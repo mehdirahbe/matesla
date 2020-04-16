@@ -61,7 +61,7 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_HSTS_PRELOAD = True
 
 # deploy, from Setting configuration variables
-ALLOWED_HOSTS = ['fathomless-scrubland-30645.herokuapp.com', '127.0.0.1']
+ALLOWED_HOSTS = ['afternoon-scrubland-61531.herokuapp.com', '127.0.0.1']
 
 # Application definition
 
