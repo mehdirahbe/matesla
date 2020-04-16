@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+  <p><a href="{% url 'logout' %}">logout</a></p>
+<p>You tesla is asleep<a href="{% url 'tesla_status' %}">Retry?</a></p>
+<table>
+<tr>
+<td>Vin</td>
+<td>{{vin}}</td>
+</tr>
+<tr>
+<td>Name</td>
+<td>{{display_name}}</td>
+</tr>
+</table>
+{% endblock %}
+

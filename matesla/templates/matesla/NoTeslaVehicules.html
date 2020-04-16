@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+  <p><a href="{% url 'logout' %}">logout</a></p>
+<p>No vehicles are associated to your account. Please retry when your car will be there.<a href="{% url 'tesla_status' %}">Retry?</a></p>
+
+{% endblock %}
+

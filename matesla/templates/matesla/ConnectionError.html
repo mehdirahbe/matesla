@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+  <p><a href="{% url 'logout' %}">logout</a></p>
+<p>Connection error. Please check your internet connection.<a href="{% url 'tesla_status' %}">Retry?</a></p>
+
+{% endblock %}
+

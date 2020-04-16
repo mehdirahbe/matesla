@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>{% block title %}Ma tesla{% endblock %}</title>
+    <meta name="generator" content="Bluefish 2.2.10">
+    <meta name="author" content="Mehdi Rahman">
+    <meta name="date" content="2019-10-09T23:23:16+0200">
+    <meta name="keywords" content="tesla">
+    <meta name="description" content="Home page for my tesla model 3">
+    <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8">
+    <meta http-equiv="expires" content="0">
+    <meta charset="UTF-8">
+    <style>
+        body {
+            background: #f5f8ff
+        }
+
+        a:hover {
+            font-size: 12 pt;
+            color: blue;
+            font-weight: bold
+        }
+
+        a:link {
+            color: blue;
+            font-size: 12 pt
+        }
+
+        a:visited {
+            color: blue;
+            font-size: 12 pt
+        }
+
+        .parameters_page_part {
+            display: inline-grid;
+            grid-template-columns: auto;
+            grid-template-rows: auto auto auto;
+            padding: 1mm;
+            grid-auto-flow: row;
+        }
+
+        .login_part {
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            padding: 1mm;
+        }
+
+        .infos_part {
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            grid-template-rows: auto auto;
+            padding: 1mm;
+        }
+
+        .generalinfos_part {
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            background-color: beige;
+            padding: 1mm;
+        }
+
+        .charge_part {
+            display: inline-grid;
+            grid-template-columns: auto auto auto;
+            background-color: whitesmoke;
+            padding: 1mm;
+        }
+
+        .drive_part {
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            grid-template-rows: auto auto;
+            background-color: blanchedalmond;
+            padding: 1mm;
+        }
+        .clim_part{
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            background-color: antiquewhite;
+            padding: 1mm;
+        }
+
+        .info_label_value {
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            padding: 1mm;
+        }
+
+        .info_label {
+            padding: 1mm;
+            text-align: left;
+        }
+        .info_value {
+             font-style:italic;
+            font-variant-caps:all-small-caps;
+           padding: 1mm;
+            text-align: right;
+        }
+
+        .commands_part {
+            display: inline-grid;
+            grid-template-columns: auto;
+            grid-template-rows: auto auto;
+            grid-auto-flow: row;
+            padding: 1mm;
+        }
+
+        .commands_part_cmd {
+            padding: 5px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+
+</html>
