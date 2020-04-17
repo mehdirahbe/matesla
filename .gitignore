@@ -52,7 +52,8 @@ coverage.xml
 .pytest_cache/
 
 # Translations
-*.mo
+#keep .mo compiled translations or it won't work when deplaoyed in the cloud due to missing file
+#*.mo
 *.pot
 
 # Django stuff:
