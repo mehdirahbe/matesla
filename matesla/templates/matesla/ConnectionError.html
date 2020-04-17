@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
 
 {% block content %}
-  <p><a href="{% url 'logout' %}">logout</a></p>
-<p>Connection error. Please check your internet connection.<a href="{% url 'tesla_status' %}">Retry?</a></p>
+  <p><a href="{% url 'logout' %}">{% trans 'logout' %}</a></p>
+<p>{% trans 'Erreur de connection. Veuillez vérifier votre connection internet.' %}<a href="{% url 'tesla_status' %}">{% trans 'Retry?' %}</a></p>
 
 {% endblock %}
 

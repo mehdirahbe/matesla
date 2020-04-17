@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 
 
-{% block title %}Login{% endblock %}
+{% block title %}{% trans 'Login' %}{% endblock %}
 
 {% block content %}
-    <a href="{% url 'signup' %}">signup</a>
-<h2>Login</h2>
+    <a href="{% url 'signup' %}">{% trans 'Signup' %}</a>
+<h2>{% trans 'Login' %}</h2>
 <form method="post">
   {% csrf_token %}
   {{ form.as_p }}
-  <button type="submit">Login</button>
+  <button type="submit">{% trans 'Login' %}</button>
 </form>
 {% endblock %}

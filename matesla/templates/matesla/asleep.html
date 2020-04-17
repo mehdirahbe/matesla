@@ -1,18 +1,9 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
 
 {% block content %}
-  <p><a href="{% url 'logout' %}">logout</a></p>
-<p>You tesla is asleep<a href="{% url 'tesla_status' %}">Retry?</a></p>
-<table>
-<tr>
-<td>Vin</td>
-<td>{{vin}}</td>
-</tr>
-<tr>
-<td>Name</td>
-<td>{{display_name}}</td>
-</tr>
-</table>
+  <p><a href="{% url 'logout' %}">{% trans 'logout' %}</a></p>
+<p>{% trans 'Your tesla is asleep' %}<a href="{% url 'tesla_status' %}">{% trans 'Retry?' %}</a></p>
 {% endblock %}
 

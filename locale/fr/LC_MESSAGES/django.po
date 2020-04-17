@@ -1,0 +1,259 @@
+# French translations for matesla app
+# Copyright (C) 2020
+# This file is distributed under the same license as the PACKAGE package.
+# Mehdi Rahman <mehdirahbvd@gmail.com>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-17 22:37+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
+"Language-Team: Français <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: accounts/templates/signup.html:4 accounts/templates/signup.html:7
+#: accounts/templates/signup.html:11
+msgid "Sign up"
+msgstr ""
+
+#: matesla/templates/matesla/AddTeslaAccount.html:4
+#: matesla/templates/matesla/ConnectionError.html:6
+#: matesla/templates/matesla/NoTeslaVehicules.html:6
+#: matesla/templates/matesla/TeslaServerCmdFail.html:6
+#: matesla/templates/matesla/TeslaServerError.html:6
+#: matesla/templates/matesla/asleep.html:6
+#: matesla/templates/matesla/carstatus.html:9
+#: matesla/templates/matesla/getdesiredchargelevel.html:5
+msgid "logout"
+msgstr "Se déconnecter"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:8
+#: matesla/templates/matesla/getdesiredchargelevel.html:9
+msgid "Save"
+msgstr "Sauver"
+
+#: matesla/templates/matesla/ConnectionError.html:7
+msgid "Erreur de connection. Veuillez vérifier votre connection internet."
+msgstr ""
+
+#: matesla/templates/matesla/ConnectionError.html:7
+#: matesla/templates/matesla/NoTeslaVehicules.html:7
+#: matesla/templates/matesla/TeslaServerCmdFail.html:7
+#: matesla/templates/matesla/TeslaServerError.html:7
+#: matesla/templates/matesla/asleep.html:7
+msgid "Retry?"
+msgstr "Réessayer?"
+
+#: matesla/templates/matesla/NoTeslaVehicules.html:7
+msgid ""
+"No vehicles are associated to your account. Please retry when your car will "
+"be there."
+msgstr ""
+"Aucune voiture n'est associée à votre compte. Veuillez réessayer quand elle "
+"sera là."
+
+#: matesla/templates/matesla/TeslaServerCmdFail.html:7
+msgid "Tesla server did return an error when executing a command"
+msgstr ""
+"Le serveur Tesla a renvoyé une erreur lors de l'exécution de la commande"
+
+#: matesla/templates/matesla/TeslaServerError.html:7
+msgid "Tesla server did return an error"
+msgstr "Le serveur Tesla a renvoyé une erreur"
+
+#: matesla/templates/matesla/asleep.html:7
+msgid "Your tesla is asleep"
+msgstr "Votre tesla est endormie"
+
+#: matesla/templates/matesla/carstatus.html:10
+msgid "Tesla account"
+msgstr "Compte Tesla"
+
+#: matesla/templates/matesla/carstatus.html:20
+msgid "Name"
+msgstr "Nom"
+
+#: matesla/templates/matesla/carstatus.html:24
+msgid "State"
+msgstr "Etat"
+
+#: matesla/templates/matesla/carstatus.html:28
+msgid "Is car locked"
+msgstr "Verrouillée?"
+
+#: matesla/templates/matesla/carstatus.html:31
+msgid "Yes, unlock?"
+msgstr "Oui, déverrouiller?"
+
+#: matesla/templates/matesla/carstatus.html:33
+msgid "No, lock?"
+msgstr "Non, verrouiller?"
+
+#: matesla/templates/matesla/carstatus.html:38
+msgid "Car type"
+msgstr "Type de voiture"
+
+#: matesla/templates/matesla/carstatus.html:42
+msgid "Exterior color"
+msgstr "Couleur extérieure"
+
+#: matesla/templates/matesla/carstatus.html:46
+msgid "Wheel"
+msgstr "Roues"
+
+#: matesla/templates/matesla/carstatus.html:50
+msgid "Firmware version"
+msgstr "Version firmware"
+
+#: matesla/templates/matesla/carstatus.html:54
+msgid "Sentry"
+msgstr "Sentry"
+
+#: matesla/templates/matesla/carstatus.html:57
+#: matesla/templates/matesla/carstatus.html:65
+msgid "Active, stop?"
+msgstr "Actif, stop?"
+
+#: matesla/templates/matesla/carstatus.html:59
+#: matesla/templates/matesla/carstatus.html:67
+msgid "Inactive, start?"
+msgstr "Inactif, démarrer?"
+
+#: matesla/templates/matesla/carstatus.html:63
+msgid "Valet mode"
+msgstr "Mode valet"
+
+#: matesla/templates/matesla/carstatus.html:74
+#, python-format
+msgid "Battery level %%"
+msgstr "Niveau batterie %%"
+
+#: matesla/templates/matesla/carstatus.html:78
+msgid "Battery range km"
+msgstr "Range de la batterie km"
+
+#: matesla/templates/matesla/carstatus.html:82
+msgid "Battery charge"
+msgstr "Batterie en charge"
+
+#: matesla/templates/matesla/carstatus.html:86
+#, python-format
+msgid "Battery degradation in %%"
+msgstr "Dégradation de la batterie en %%"
+
+#: matesla/templates/matesla/carstatus.html:90
+#, python-format
+msgid "Battery charge limit %%"
+msgstr "Limite de charge de la batterie en %%"
+
+#: matesla/templates/matesla/carstatus.html:94
+msgid "Charge port"
+msgstr "Port de charge"
+
+#: matesla/templates/matesla/carstatus.html:98
+msgid "Is Charge port open"
+msgstr "Port de charge ouvert"
+
+#: matesla/templates/matesla/carstatus.html:101
+msgid "Yes, close?"
+msgstr "Oui, fermer?"
+
+#: matesla/templates/matesla/carstatus.html:103
+msgid "No, open?"
+msgstr "Non, ouvrir?"
+
+#: matesla/templates/matesla/carstatus.html:109
+msgid "Voltage in V"
+msgstr "Voltage en V"
+
+#: matesla/templates/matesla/carstatus.html:113
+msgid "Current in A"
+msgstr "Courant en A"
+
+#: matesla/templates/matesla/carstatus.html:117
+msgid "Power in kW"
+msgstr "Puissance en kW"
+
+#: matesla/templates/matesla/carstatus.html:121
+msgid "Number of phases"
+msgstr "Nombre de phases"
+
+#: matesla/templates/matesla/carstatus.html:125
+msgid "Time left in minutes"
+msgstr "Temps restant en minutes"
+
+#: matesla/templates/matesla/carstatus.html:132
+msgid "Speed"
+msgstr "Vitesse"
+
+#: matesla/templates/matesla/carstatus.html:136
+msgid "Location"
+msgstr "Addresse"
+
+#: matesla/templates/matesla/carstatus.html:140
+msgid "Odometer"
+msgstr "Odometre"
+
+#: matesla/templates/matesla/carstatus.html:146
+msgid "Is climate on"
+msgstr "Climatisation"
+
+#: matesla/templates/matesla/carstatus.html:149
+msgid "Yes, stop?"
+msgstr "Oui, arrêter?"
+
+#: matesla/templates/matesla/carstatus.html:151
+msgid "No, start?"
+msgstr "Non, démarrer?"
+
+#: matesla/templates/matesla/carstatus.html:156
+msgid "Inside temperature"
+msgstr "Température intérieure"
+
+#: matesla/templates/matesla/carstatus.html:160
+msgid "Outside temperature"
+msgstr "Température extérieure"
+
+#: matesla/templates/matesla/carstatus.html:164
+msgid "Driver Temperature setting"
+msgstr "Température pour le conducteur"
+
+#: matesla/templates/matesla/carstatus.html:175
+msgid "Flash lights"
+msgstr "Faire clignoter les phares"
+
+#: matesla/templates/matesla/carstatus.html:176
+msgid "Honk horn (not night when people sleep)"
+msgstr "Faire klaxoner (pas la nuit quand les gens dorment)"
+
+#: matesla/templates/matesla/carstatus.html:178
+msgid "Start charge"
+msgstr "Démarrer la charge"
+
+#: matesla/templates/matesla/carstatus.html:179
+msgid "Stop charge"
+msgstr "Arrêter la charge"
+
+#: mysite/settings.py:148
+msgid "English"
+msgstr "Anglais"
+
+#: mysite/settings.py:149
+msgid "Français"
+msgstr "Français"
+
+#: templates/registration/login.html:4 templates/registration/login.html:8
+#: templates/registration/login.html:12
+msgid "Login"
+msgstr "Se connecter"
+
+#: templates/registration/login.html:7
+msgid "Signup"
+msgstr "Créer un compte"

@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% block content %}
-  <p><a href="{% url 'logout' %}">logout</a></p>
+  <p><a href="{% url 'logout' %}">{% trans 'logout' %}</a></p>
 <form action="{% url 'AddTeslaAccount' %}" method="post">
     {% csrf_token %}
     {{ tesla_account_form }}
-    <input type="submit" value="Save">
+    <input type="submit" value="{% trans 'Save' %}">
 </form>
 
 {% endblock %}

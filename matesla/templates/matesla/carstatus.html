@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
 
 {% block content %}
 <div class="parameters_page_part">
 
   <div class="login_part">
-    <span class="login_part_link"><a href="{% url 'logout' %}">logout</a><BR /></span>
-    <span class="login_part_link"><a href="{% url 'AddTeslaAccount' %}">Tesla account</a><BR /></span>
+    <span class="login_part_link"><a href="{% url 'logout' %}">{% trans 'logout' %}</a><BR /></span>
+    <span class="login_part_link"><a href="{% url 'AddTeslaAccount' %}">{% trans 'Tesla account' %}</a><BR /></span>
   </div>
 
   <div class="infos_part">
@@ -16,151 +17,151 @@
         <div class="info_value">{{vin}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Name</div>
+        <div class="info_label">{% trans 'Name' %}</div>
         <div class="info_value">{{display_name}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">State</div>
+        <div class="info_label">{% trans 'State' %}</div>
         <div class="info_value">{{state}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Is car locked</div>
+        <div class="info_label">{% trans 'Is car locked' %}</div>
         <div class="info_value">
         {% if locked is True %}
-      <a href="{% url 'unlock_car' %}">Yes, unlock?</a>
+      <a href="{% url 'unlock_car' %}">{% trans 'Yes, unlock?' %}</a>
         {% else %}
-    <a href="{% url 'lock_car' %}">No, lock?</a>
+    <a href="{% url 'lock_car' %}">{% trans 'No, lock?' %}</a>
           {% endif %}
         </div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Car type</div>
+        <div class="info_label">{% trans 'Car type' %}</div>
         <div class="info_value">{{car_type}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Exterior color</div>
+        <div class="info_label">{% trans 'Exterior color' %}</div>
         <div class="info_value">{{exterior_color}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Wheel</div>
+        <div class="info_label">{% trans 'Wheel' %}</div>
         <div class="info_value">{{wheel_type}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Firmware version</div>
+        <div class="info_label">{% trans 'Firmware version' %}</div>
         <div class="info_value">{{car_version}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Sentry</div>
+        <div class="info_label">{% trans 'Sentry' %}</div>
         <div class="info_value">
         {% if sentry_mode is True %}
-      <a href="{% url 'sentry_stop' %}">Active, stop?</a>
+      <a href="{% url 'sentry_stop' %}">{% trans 'Active, stop?' %}</a>
         {% else %}
-    <a href="{% url 'sentry_start' %}">Inactive, start?</a>
+    <a href="{% url 'sentry_start' %}">{% trans 'Inactive, start?' %}</a>
           {% endif %}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Valet mode</div>
+        <div class="info_label">{% trans 'Valet mode' %}</div>
         <div class="info_value">{% if valet_mode is True %}
-      <a href="{% url 'valet_stop' %}">Active, stop?</a>
+      <a href="{% url 'valet_stop' %}">{% trans 'Active, stop?' %}</a>
         {% else %}
-    <a href="{% url 'valet_start' %}">Inactive, start?</a>
+    <a href="{% url 'valet_start' %}">{% trans 'Inactive, start?' %}</a>
           {% endif %}
         </div>
       </div>
     </div>
     <div class="charge_part">
       <div class="info_label_value">
-        <div class="info_label">Battery level %</div>
+        <div class="info_label">{% trans 'Battery level %' %}</div>
         <div class="info_value">{{battery_level}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Battery range km</div>
+        <div class="info_label">{% trans 'Battery range km' %}</div>
         <div class="info_value">{{batteryrange}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Battery charge</div>
+        <div class="info_label">{% trans 'Battery charge' %}</div>
         <div class="info_value">{{charging_state}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Battery degradation in %</div>
+        <div class="info_label">{% trans 'Battery degradation in %' %}</div>
         <div class="info_value">{{batterydegradation}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Battery charge limit %</div>
+        <div class="info_label">{% trans 'Battery charge limit %' %}</div>
         <div class="info_value"><a href="{% url 'getdesiredchargelevel' %}">{{charge_limit_soc}}</a> </div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Charge port</div>
+        <div class="info_label">{% trans 'Charge port' %}</div>
         <div class="info_value">{{charge_port_type}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Is Charge port open</div>
+        <div class="info_label">{% trans 'Is Charge port open' %}</div>
         <div class="info_value">
                 {% if charge_port_door_open is True %}
-      <a href="{% url 'chargeport_close' %}">Yes, close?</a>
+      <a href="{% url 'chargeport_close' %}">{% trans 'Yes, close?' %}</a>
         {% else %}
-    <a href="{% url 'chargeport_open' %}">No, open?</a>
+    <a href="{% url 'chargeport_open' %}">{% trans 'No, open?' %}</a>
           {% endif %}
         </div>
       </div>
       {% if charging_state != "Disconnected" %}
       <div class="info_label_value">
-        <div class="info_label">Voltage in V</div>
+        <div class="info_label">{% trans 'Voltage in V' %}</div>
         <div class="info_value">{{charger_voltage}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Current in A</div>
+        <div class="info_label">{% trans 'Current in A' %}</div>
         <div class="info_value">{{charger_actual_current}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Power in kW %</div>
+        <div class="info_label">{% trans 'Power in kW' %}</div>
         <div class="info_value">{{charger_power}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Number of phases</div>
+        <div class="info_label">{% trans 'Number of phases' %}</div>
         <div class="info_value">{{charger_phases}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Time left in minutes</div>
+        <div class="info_label">{% trans 'Time left in minutes' %}</div>
         <div class="info_value">{{minutes_to_full_charge}}</div>
       </div>
       {% endif %}
     </div>
     <div class="drive_part">
       <div class="info_label_value">
-        <div class="info_label">Speed</div>
+        <div class="info_label">{% trans 'Speed' %}</div>
         <div class="info_value">{{speed}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Location</div>
+        <div class="info_label">{% trans 'Location' %}</div>
         <div class="info_value">{{location}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Odometer</div>
+        <div class="info_label">{% trans 'Odometer' %}</div>
         <div class="info_value">{{OdometerInKm}} km</div>
       </div>
     </div>
     <div class="clim_part">
       <div class="info_label_value">
-        <div class="info_label">Is climate on</div>
+        <div class="info_label">{% trans 'Is climate on' %}</div>
         <div class="info_value">
         {% if is_climate_on is True %}
-      <a href="{% url 'stop_climate' %}">Yes, stop?</a>
+      <a href="{% url 'stop_climate' %}">{% trans 'Yes, stop?' %}</a>
         {% else %}
-    <a href="{% url 'start_climate' %}">No, start?</a>
+    <a href="{% url 'start_climate' %}">{% trans 'No, start?' %}</a>
           {% endif %}
           </div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Inside temperature</div>
+        <div class="info_label">{% trans 'Inside temperature' %}</div>
         <div class="info_value">{{inside_temp}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Outside temperature</div>
+        <div class="info_label">{% trans 'Outside temperature' %}</div>
         <div class="info_value">{{outside_temp}}</div>
       </div>
       <div class="info_label_value">
-        <div class="info_label">Driver Temperature setting</div>
+        <div class="info_label">{% trans 'Driver Temperature setting' %}</div>
         <div class="info_value">{{driver_temp_setting}}</div>
       </div>
       </tr>
@@ -171,11 +172,11 @@
 
 
   <div class="commands_part">
-    <div class="commands_part_cmd"><a href="{% url 'flash_lights' %}">flash lights</a></div>
-    <div class="commands_part_cmd"><a href="{% url 'honk_horn' %}">honk horn (not night when people sleep)</a></div>
+    <div class="commands_part_cmd"><a href="{% url 'flash_lights' %}">{% trans 'Flash lights' %}</a></div>
+    <div class="commands_part_cmd"><a href="{% url 'honk_horn' %}">{% trans 'Honk horn (not night when people sleep)' %}</a></div>
     {% if charging_state != "Disconnected" %}
-    <div class="commands_part_cmd"><a href="{% url 'charge_start' %}">Start charge</a></div>
-    <div class="commands_part_cmd"><a href="{% url 'charge_stop' %}">Stop charge</a></div>
+    <div class="commands_part_cmd"><a href="{% url 'charge_start' %}">{% trans 'Start charge' %}</a></div>
+    <div class="commands_part_cmd"><a href="{% url 'charge_stop' %}">{% trans 'Stop charge' %}</a></div>
     {% endif %}
   </div>
 </div>
