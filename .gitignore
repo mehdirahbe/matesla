@@ -5,6 +5,9 @@ staticfiles/*
 # exception to the rule for the readme
 !staticfiles/readme.txt
 
+#ignore the cache with images downloaded from tesla
+imagesfromteslacache
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

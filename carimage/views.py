@@ -1,5 +1,10 @@
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse, HttpResponseRedirect
+from django.core.files import File
+from urllib.request import urlopen
+from tempfile import NamedTemporaryFile
+
+from carimage.models import TeslaImage
 
 '''
 Tesla uses an image generator which take a few args and return car image
@@ -86,6 +91,15 @@ See for explanations, bit he signals that codes are not reliable anymore
 https://tesla-api.timdorr.com/vehicle/optioncodes
 '''
 
+def CreateImageFile(image):
+    img_temp = NamedTemporaryFile(delete=True)
+    # get from tesla and save
+    img_temp.write(urlopen(image.image_url).read())
+    img_temp.flush()
+    image.image_file.save(f"image_{image.pk}", File(img_temp))
+    # save in the db
+    image.save()
+
 #for url parse, see https://docs.djangoproject.com/en/3.0/topics/http/urls/
 # color comes from codes as it seems correct and is the string we want (at least on my car)
 # wheel and carmodel comes from car info, not from car info codes due to reliability
@@ -100,4 +114,36 @@ def CarImageFromTesla(request,color,wheel,CarModel):
     #Assume model 3 as I have no idea of the params for other cars
     CarModelToUse="m3"
     url="https://static-assets.tesla.com/configurator/compositor?&options=$"+color+",$"+wheelToUse+",$DV4W,$MT303,$IN3PB&view=STUD_3QTR&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=0.0.25"
-    return HttpResponseRedirect(url)
+
+    #Get the image from cache, if there is a problem, redirect to tesla site
+    #code inpired from https://stackoverflow.com/questions/16381241/django-save-image-from-url-and-connect-with-imagefield
+    willNeedFileCreation=False
+    try:
+        try:
+            #get from cache
+            image=TeslaImage.objects.get(image_url=url)
+        except ObjectDoesNotExist:
+            #add it with image from tesla
+            image=TeslaImage()
+            image.image_url=url
+            # save in the db in order that primary key is init
+            image.save()
+            willNeedFileCreation=True
+        #check if a file with image is present. Will be absent on initial
+        # and also when image dir is cleaned
+        if image.image_url and not image.image_file:
+            willNeedFileCreation = True
+        if willNeedFileCreation:
+            CreateImageFile(image)
+        #Try to return cache entry
+        try:
+            return HttpResponse(image.image_file, content_type="image/png")
+        except Exception:
+            CreateImageFile(image)#image was surely missing, seems that test on image.image_file fails
+            return HttpResponse(image.image_file, content_type="image/png")
+    except Exception:
+        #go to tesla site
+        return HttpResponseRedirect(url)
+
+#valid url example:
+# http://127.0.0.1:8000/carimage/PBSB/Pinwheel18/model3

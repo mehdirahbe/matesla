@@ -70,6 +70,7 @@ ALLOWED_HOSTS = ['afternoon-scrubland-61531.herokuapp.com', '127.0.0.1']
 INSTALLED_APPS = [
     'matesla.apps.MateslaConfig',
     'accounts.apps.AccountsConfig',
+    'carimage.apps.CarimageConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
