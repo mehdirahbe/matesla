@@ -3,7 +3,14 @@
 
 
 {% block content %}
-  <p><a href="{% url 'logout' %}">{% trans 'logout' %}</a></p>
-<p>{% trans 'Your tesla is asleep' %}<a href="{% url 'tesla_status' %}">{% trans 'Retry?' %}</a></p>
+<div class="form-group">
+    <a href="{% url 'logout' %}"class="btn btn-danger">{% trans 'logout' %}</a>
+  </div>
+<div class="form-group">
+  {% trans 'Your tesla is asleep' %}
+  </div>
+<div class="form-group">
+  <a href="{% url 'tesla_status' %}"class="btn btn-primary">{% trans 'Retry?' %}</a>
+  </div>
 {% endblock %}
 

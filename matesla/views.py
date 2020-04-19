@@ -70,6 +70,24 @@ def Preparestatus(request,user):
     context["location"] = params.location
     context["OdometerInKm"]='{:.0f}'.format(params.OdometerInKm)
     template = loader.get_template('matesla/carstatus.html')
+    #get color code from codes
+    colordico={
+    "PBSB":"Solid Black",
+    "PPMR":"Red Multi-Coat",
+    "PMNG":"Midnight Silver Metallic",
+    "PPSB":"Deep Blue Metallic",
+    "PPSW":"Pearl White Multi-Coat",
+    "PMSS":"Silver Metallic",
+    "PMBL":"Obsidian Black"
+    }
+    colorcode="PPMR" #default value
+    option_codeslist=context["option_codes"].split(',')
+    for code in option_codeslist:
+        if code in colordico:
+            colorcode=code
+            break
+    context["colorcode"] = colorcode
+
     return HttpResponse(template.render(context, request))
 
 

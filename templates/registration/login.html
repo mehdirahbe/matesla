@@ -5,11 +5,16 @@
 {% block title %}{% trans 'Login' %}{% endblock %}
 
 {% block content %}
-    <a href="{% url 'signup' %}">{% trans 'Signup' %}</a>
+    <a href="{% url 'signup' %}"class="btn btn-primary">{% trans 'Signup' %}</a>
 <h2>{% trans 'Login' %}</h2>
 <form method="post">
   {% csrf_token %}
+    <div class="input-group">
+  <div class="input-group-prepend">
+    <span class="input-group-text"></span>
+  </div>
   {{ form.as_p }}
-  <button type="submit">{% trans 'Login' %}</button>
+</div>
+  <button type="submit"class="btn btn-primary">{% trans 'Login' %}</button>
 </form>
 {% endblock %}

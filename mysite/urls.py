@@ -29,7 +29,7 @@ with the current configuration having zh-cn and en activated, will have URLs as:
 /zh-cn/admin/*'''
 
 urlpatterns = [
-
+path('carimage/', include('carimage.urls'))
 ]
 
 

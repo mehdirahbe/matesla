@@ -7,7 +7,12 @@
   <h2>{% trans 'Sign up' %}</h2>
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">{% trans 'Sign up' %}</button>
+    <div class="input-group">
+  <div class="input-group-prepend">
+    <span class="input-group-text"></span>
+  </div>
+  {{ form.as_p }}
+</div>
+    <button type="submit"class="btn btn-primary">{% trans 'Sign up' %}</button>
   </form>
 {% endblock %}

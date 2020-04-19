@@ -10,27 +10,20 @@
     <meta name="keywords" content="tesla">
     <meta name="description" content="Home page for my tesla model 3">
     <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8">
     <meta http-equiv="expires" content="0">
     <meta charset="UTF-8">
+    <!--use bootstrap for nicer look. Good idea from David.
+    See for details: https://getbootstrap.com/docs/4.4/getting-started/introduction/
+    -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <style>
         body {
             background: #f5f8ff
         }
 
-        a:hover {
-            color: blue;
-            font-weight: bold
-        }
-
-        a:link {
-            color: blue;
-        }
-
-        a:visited {
-            color: blue;
-        }
 
         .parameters_page_part {
             display: inline-grid;
@@ -118,6 +111,9 @@
         {% block content %}
         {% endblock %}
     </main>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 </body>
 
 </html>
