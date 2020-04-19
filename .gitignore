@@ -1,3 +1,10 @@
+#static files collected-->ignore as they will be recreated by collectstatic
+# exclude everything
+staticfiles/*
+
+# exception to the rule for the readme
+!staticfiles/readme.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
