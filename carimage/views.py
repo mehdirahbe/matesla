@@ -14,7 +14,12 @@ https://observablehq.com/@slickplaid/model-3-configurator
 The tesla URL is https://static-assets.tesla.com/configurator/compositor
 
 Exemple of valid URL
+Model 3
 https://static-assets.tesla.com/configurator/compositor?&options=$PMNG,$W39B,$DV4W,$MT304,$IN3PB&view=STUD_3QTR&model=m3&size=200&bkba_opt=1&version=0.0.25
+Model S
+https://static-assets.tesla.com/configurator/compositor?&options=$WTAS,$PPMR,$MTS03&view=STUD_3QTR_V2&model=ms&size=300&bkba_opt=1&version=v0027d202004163351
+Model X
+https://static-assets.tesla.com/configurator/compositor?&options=$WT20,$PPMR,$MTX03&view=STUD_3QTR_V2&model=mx&size=300&bkba_opt=1&version=v0027d202004163351
 
 Here are relevant options:
 
@@ -112,8 +117,16 @@ def CarImageFromTesla(request,color,wheel,CarModel):
         wheelToUse="W38B"
 
     #Assume model 3 as I have no idea of the params for other cars
-    CarModelToUse="m3"
-    url="https://static-assets.tesla.com/configurator/compositor?&options=$"+color+",$"+wheelToUse+",$DV4W,$MT303,$IN3PB&view=STUD_3QTR&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=0.0.25"
+    if CarModel=="modelx":
+        CarModelToUse="mx"
+        url="https://static-assets.tesla.com/configurator/compositor?&options=$WT20,$"+color+",$MTX03&view=STUD_3QTR_V2&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=v0027d202004163351"
+    else:
+        if CarModel == "models":
+            CarModelToUse = "ms"
+            url = "https://static-assets.tesla.com/configurator/compositor?&options=$WTAS,$"+color+",$MTS03&view=STUD_3QTR_V2&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=v0027d202004163351"
+        else: #model 3
+            CarModelToUse="m3"
+            url="https://static-assets.tesla.com/configurator/compositor?&options=$"+color+",$"+wheelToUse+",$DV4W,$MT303,$IN3PB&view=STUD_3QTR&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=0.0.25"
 
     #Get the image from cache, if there is a problem, redirect to tesla site
     #code inpired from https://stackoverflow.com/questions/16381241/django-save-image-from-url-and-connect-with-imagefield
