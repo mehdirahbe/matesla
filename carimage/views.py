@@ -124,9 +124,13 @@ def CarImageFromTesla(request,color,wheel,CarModel):
         if CarModel == "models":
             CarModelToUse = "ms"
             url = "https://static-assets.tesla.com/configurator/compositor?&options=$WTAS,$"+color+",$MTS03&view=STUD_3QTR_V2&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=v0027d202004163351"
-        else: #model 3
-            CarModelToUse="m3"
-            url="https://static-assets.tesla.com/configurator/compositor?&options=$"+color+",$"+wheelToUse+",$DV4W,$MT303,$IN3PB&view=STUD_3QTR&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=0.0.25"
+        else:
+            if CarModel == "modely":
+                CarModelToUse = "my"
+                url = "https://static-assets.tesla.com/configurator/compositor?&options=$WY19B,$"+color+",$DV4W,$MTY03,$INYPB&view=STUD_3QTR&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=v0027d202004163351"
+            else: #model 3
+                CarModelToUse="m3"
+                url="https://static-assets.tesla.com/configurator/compositor?&options=$"+color+",$"+wheelToUse+",$DV4W,$MT303,$IN3PB&view=STUD_3QTR&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=0.0.25"
 
     #Get the image from cache, if there is a problem, redirect to tesla site
     #code inpired from https://stackoverflow.com/questions/16381241/django-save-image-from-url-and-connect-with-imagefield
