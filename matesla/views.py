@@ -64,6 +64,10 @@ def view_ConnectionError(request):
 
 
 def returnColorFronContext(context):
+    #if we know the color, use it (here is for David car) as codes
+    # can't really be trusted (David car is black according to codes)
+    if context["exterior_color"]=="PearlWhite":
+        return "PPSW";
     # get color code from codes
     colordico = {
         "PBSB": "Solid Black",
