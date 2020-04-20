@@ -50,8 +50,13 @@ def Connect(user):
         except ObjectDoesNotExist:
             raise TeslaNoUserException()
         teslalogin = teslaaccount.TeslaUser
-        saltlogin = getSaltForKey(teslalogin)
-        teslapw = decrypt(teslaaccount.TeslaPassword, saltlogin)
+        #in case of any problem with PW decryption (ie if we had to change secret)
+        #throw exception which will send us back to add tesla account
+        try:
+            saltlogin = getSaltForKey(teslalogin)
+            teslapw = decrypt(teslaaccount.TeslaPassword, saltlogin)
+        except Exception:
+            raise TeslaAuthenticationException()
         # tesla client id and secret which are everywhere on internet
         client_id = '81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384'
         client_secret = 'c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3'
