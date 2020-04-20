@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.template import loader
-from django.core.exceptions import  ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist
 
 from matesla.TeslaConnect import *
 from matesla.models import TeslaAccount
@@ -31,69 +31,84 @@ def getdesiredchargelevel(request):
         form = DesiredChargeLevelForm(initial={'DesiredChargeLevel': '90'})
     return render(request, 'matesla/getdesiredchargelevel.html', {'form': form})
 
+
 def view_teslacss(request):
     return HttpResponse(
-         loader.get_template('matesla/tesla.css').render({}, request))
+        loader.get_template('matesla/tesla.css').render({}, request))
+
 
 # This view signal the car is sleeping
 def asleep(request):
-    return singleAction(request, lambda request,user: HttpResponse(
-        loader.get_template('matesla/asleep.html').render({}, request)),True)
+    return singleAction(request, lambda request, user: HttpResponse(
+        loader.get_template('matesla/asleep.html').render({}, request)), True)
+
 
 def view_TeslaServerError(request):
-    return singleAction(request, lambda request,user: HttpResponse(
-        loader.get_template('matesla/TeslaServerError.html').render({}, request)),True)
+    return singleAction(request, lambda request, user: HttpResponse(
+        loader.get_template('matesla/TeslaServerError.html').render({}, request)), True)
+
 
 def view_TeslaServerCmdFail(request):
-    return singleAction(request, lambda request,user: HttpResponse(
-        loader.get_template('matesla/TeslaServerCmdFail.html').render({}, request)),True)
+    return singleAction(request, lambda request, user: HttpResponse(
+        loader.get_template('matesla/TeslaServerCmdFail.html').render({}, request)), True)
+
 
 def view_NoTeslaVehicules(request):
-    return singleAction(request, lambda request,user: HttpResponse(
-        loader.get_template('matesla/NoTeslaVehicules.html').render({}, request)),True)
+    return singleAction(request, lambda request, user: HttpResponse(
+        loader.get_template('matesla/NoTeslaVehicules.html').render({}, request)), True)
+
 
 def view_ConnectionError(request):
-    return singleAction(request, lambda request,user: HttpResponse(
-        loader.get_template('matesla/ConnectionError.html').render({}, request)),True)
+    return singleAction(request, lambda request, user: HttpResponse(
+        loader.get_template('matesla/ConnectionError.html').render({}, request)), True)
+
+
+def returnColorFronContext(context):
+    # get color code from codes
+    colordico = {
+        "PBSB": "Solid Black",
+        "PPMR": "Red Multi-Coat",
+        "PMNG": "Midnight Silver Metallic",
+        "PPSB": "Deep Blue Metallic",
+        "PPSW": "Pearl White Multi-Coat",
+        "PMSS": "Silver Metallic",
+        "PMBL": "Obsidian Black"
+    }
+    colorcode = "PPMR"  # default value
+    option_codeslist = context["option_codes"].split(',')
+    for code in option_codeslist:
+        if code in colordico:
+            colorcode = code
+            break
+    return colorcode
+
 
 # Prepare the status page, given a request and logged user id
-def Preparestatus(request,user):
-    params=ParamsConnectedTesla(user)
+def Preparestatus(request, user):
+    params = ParamsConnectedTesla(user)
     context = params.vehicle_state["response"]
     context.update(context["charge_state"])
     context.update(context["climate_state"])
     context.update(context["drive_state"])
     context.update(context["vehicle_config"])
     context.update(context["vehicle_state"])
-    context["batteryrange"]='{:.0f}'.format(params.batteryrange)
-    context["batterydegradation"]='{:.1f}'.format(params.batterydegradation)
+    context["batteryrange"] = '{:.0f}'.format(params.batteryrange)
+    context["batterydegradation"] = '{:.1f}'.format(params.batterydegradation)
     context["location"] = params.location
-    context["OdometerInKm"]='{:.0f}'.format(params.OdometerInKm)
+    context["OdometerInKm"] = '{:.0f}'.format(params.OdometerInKm)
     template = loader.get_template('matesla/carstatus.html')
-    #get color code from codes
-    colordico={
-    "PBSB":"Solid Black",
-    "PPMR":"Red Multi-Coat",
-    "PMNG":"Midnight Silver Metallic",
-    "PPSB":"Deep Blue Metallic",
-    "PPSW":"Pearl White Multi-Coat",
-    "PMSS":"Silver Metallic",
-    "PMBL":"Obsidian Black"
-    }
-    colorcode="PPMR" #default value
-    option_codeslist=context["option_codes"].split(',')
-    for code in option_codeslist:
-        if code in colordico:
-            colorcode=code
-            break
-    context["colorcode"] = colorcode
+    context["colorcode"] = returnColorFronContext(context)
+    # link to go in google maps, tesla provide 6 decimals
+    context["linktogooglemaps"] = "https://www.google.com/maps/search/?api=1&query=" + \
+                                  '{:.6f}'.format(context["latitude"]) + ',' + \
+                                  '{:.6f}'.format(context["longitude"])
 
     return HttpResponse(template.render(context, request))
 
 
 # The status view
 def status(request):
-    return singleAction(request, lambda request,user: Preparestatus(request,user),True)
+    return singleAction(request, lambda request, user: Preparestatus(request, user), True)
 
 
 # The user info view (debug purpose)
@@ -112,13 +127,15 @@ def UserInfo(request):
 
 '''Check login, and if fine call func.  Then go to status page.
 On tesla login error, go to tesla credentials page.'''
+
+
 def singleAction(request, func, shouldReturnFunc=False):
     user = get_user(request)
     if not user.is_authenticated:
         return redirect('login')
     try:
-        ret=func(request, user)
-        if shouldReturnFunc==True:
+        ret = func(request, user)
+        if shouldReturnFunc == True:
             return ret
     except TeslaIsAsleepException:
         # if asleep
@@ -145,30 +162,33 @@ def singleAction(request, func, shouldReturnFunc=False):
 
 # View which honk (dont call during the night!) and then display status page
 def Viewhonk_horn(request):
-    return singleAction(request, lambda request,user: executeCommand(user, 'honk_horn'))
+    return singleAction(request, lambda request, user: executeCommand(user, 'honk_horn'))
 
 
 # View which flash lights and then display status page
 def Viewflash_lights(request):
-    return singleAction(request, lambda request,user: executeCommand(user, 'flash_lights'))
+    return singleAction(request, lambda request, user: executeCommand(user, 'flash_lights'))
 
 
 # View which start car warmup and then display status page
 def Viewstart_climate(request):
-    return singleAction(request, lambda request,user: executeCommand(user, 'auto_conditioning_start'))
+    return singleAction(request, lambda request, user: executeCommand(user, 'auto_conditioning_start'))
 
 
 # View which stop car warmup and then display status page
 def Viewstop_climate(request):
-    return singleAction(request, lambda request,user: executeCommand(user, 'auto_conditioning_stop'))
+    return singleAction(request, lambda request, user: executeCommand(user, 'auto_conditioning_stop'))
+
 
 # View which stop car warmup and then display status page
 def Viewunlock_car(request):
-    return singleAction(request, lambda request,user: executeCommand(user, 'door_unlock'))
+    return singleAction(request, lambda request, user: executeCommand(user, 'door_unlock'))
+
 
 # View which stop car warmup and then display status page
 def Viewlock_car(request):
-    return singleAction(request, lambda request,user: executeCommand(user, 'door_lock'))
+    return singleAction(request, lambda request, user: executeCommand(user, 'door_lock'))
+
 
 # View which allow to add/edit tesla credentials
 def view_AddTeslaAccount(request):
@@ -193,7 +213,7 @@ def view_AddTeslaAccount(request):
                 teslaaccount.save()
             else:
                 new_user.save()
-            #remove any token which is not valid anymore
+            # remove any token which is not valid anymore
             try:
                 TeslaToken.objects.get(user_id=user.id).delete()
             except ObjectDoesNotExist:
@@ -203,7 +223,7 @@ def view_AddTeslaAccount(request):
         try:
             teslaaccount = TeslaAccount.objects.get(user_id=user.id)
         except ObjectDoesNotExist:
-            teslaaccount=None
+            teslaaccount = None
         if teslaaccount != None:
             teslalogin = teslaaccount.TeslaUser
         else:
@@ -211,33 +231,41 @@ def view_AddTeslaAccount(request):
         return render(request, 'matesla/AddTeslaAccount.html',
                       {'tesla_account_form': AddTeslaAccountForm(initial={'TeslaUser': teslalogin})})
 
+
 # Start sentry
 def view_sentry_start(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'set_sentry_mode',True))
+    return singleAction(request, lambda request, user: executeCommand(user, 'set_sentry_mode', True))
+
 
 # Stop sentry
 def view_sentry_stop(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'set_sentry_mode',False))
+    return singleAction(request, lambda request, user: executeCommand(user, 'set_sentry_mode', False))
+
 
 # Start valet mode
 def view_valet_start(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'set_valet_mode',True))
+    return singleAction(request, lambda request, user: executeCommand(user, 'set_valet_mode', True))
+
 
 # Stop valet mode
 def view_valet_stop(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'set_valet_mode',False))
+    return singleAction(request, lambda request, user: executeCommand(user, 'set_valet_mode', False))
+
 
 # Open charge port
 def view_chargeport_open(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'charge_port_door_open'))
 
+
 # Close charge port
 def view_chargeport_close(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'charge_port_door_close'))
 
+
 # Start charge
 def view_charge_start(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'charge_start'))
+
 
 # Stop charge
 def view_charge_stop(request):
