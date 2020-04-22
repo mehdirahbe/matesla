@@ -1,6 +1,6 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import TeslaAccount
+from .models import TeslaToken
 
-admin.site.register(TeslaAccount)
+admin.site.register(TeslaToken)
