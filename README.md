@@ -25,9 +25,16 @@ How to:
 3) Change look: adapt CSS in base.html
 
 Todo:
-1) Add french translation
-Done
-2) Stop storing (even if encrypted) tesla user/PW
-Done
+1) Improve look of AddTeslaAccount form https://afternoon-scrubland-61531.herokuapp.com/fr/matesla/AddTeslaAccount
+2) Correct estimate of battery degradation for tesla model 3 standard range (and if fact all non model 3 LR)
 3) Add stats on firmware updates and autopilot HW updates
+4) Manage more colors and wheel size for image rendering
+5) Keep an history of car firmware, and any other desired infos
+6) Improve look of site
+
+For developpers, how to run site locally:
+1) Run python3 manage.py migrate
+2) Then python3 manage.py createsuperuser
+3) Then python3 manage.py collectstatic
+3) Run the site with runserver
 
