@@ -22,10 +22,12 @@ How to:
 
 2) If you want to display an additional information on the car, you probably only have to adapt carstatus.html, except if it is a computed value (such as battery degradattion) where you will also have to adapt views.py to compute the value and put it in the context passed to rendering.
 
-3) Chang look: adapt CSS in base.html
+3) Change look: adapt CSS in base.html
 
 Todo:
 1) Add french translation
+Done
 2) Stop storing (even if encrypted) tesla user/PW
+Done
 3) Add stats on firmware updates and autopilot HW updates
 

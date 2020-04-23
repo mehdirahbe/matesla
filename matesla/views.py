@@ -7,7 +7,6 @@ from django.template import loader
 from django.core.exceptions import ObjectDoesNotExist
 
 from matesla.TeslaConnect import *
-from matesla.models import TeslaAccount
 from .forms import DesiredChargeLevelForm, AddTeslaAccountForm
 from matesla.passwordencryption import getSaltForKey, encrypt
 
@@ -202,39 +201,17 @@ def view_AddTeslaAccount(request):
     if request.method == 'POST':
         tesla_account_form = AddTeslaAccountForm(request.POST)
         if tesla_account_form.is_valid():
-            new_user = tesla_account_form.save(commit=False)
-            saltlogin = getSaltForKey(tesla_account_form.cleaned_data["TeslaUser"])
-            new_user.TeslaPassword = encrypt(tesla_account_form.cleaned_data["TeslaPassword"], saltlogin)
-            new_user.user_id = user
-            # update eventual previous entry
-            try:
-                teslaaccount = TeslaAccount.objects.get(user_id=user.id)
-            except ObjectDoesNotExist:
-                teslaaccount = None
-            if teslaaccount != None:
-                teslaaccount.TeslaUser = tesla_account_form.cleaned_data["TeslaUser"]
-                teslaaccount.TeslaPassword = new_user.TeslaPassword
-                teslaaccount.save()
-            else:
-                new_user.save()
-            # remove any token which is not valid anymore
+            # remove any previous token
             try:
                 TeslaToken.objects.get(user_id=user.id).delete()
             except ObjectDoesNotExist:
                 pass
+            #and save
+            tesla_account_form.SaveModdel(user)
             return redirect("tesla_status")
-    else:
-        try:
-            teslaaccount = TeslaAccount.objects.get(user_id=user.id)
-        except ObjectDoesNotExist:
-            teslaaccount = None
-        if teslaaccount != None:
-            teslalogin = teslaaccount.TeslaUser
-        else:
-            teslalogin = ""
-        return render(request, 'matesla/AddTeslaAccount.html',
-                      {'tesla_account_form': AddTeslaAccountForm(initial={'TeslaUser': teslalogin})})
-
+    #display form
+    return render(request, 'matesla/AddTeslaAccount.html',
+                      {'tesla_account_form': AddTeslaAccountForm()})
 
 # Start sentry
 def view_sentry_start(request):

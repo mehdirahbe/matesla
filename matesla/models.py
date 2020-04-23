@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.validators import MinLengthValidator
 
+#don't forget to add your models in admin.py of you want an administration page
+
 '''From to clean all migrations:
 https://simpleisbetterthancomplex.com/tutorial/2016/07/26/how-to-reset-migrations.html
 
@@ -29,12 +31,6 @@ And you are good to go.
 
 def get_sentinel_user():
     return get_user_model().objects.get_or_create(username='deleted')[0]
-
-
-class TeslaAccount(models.Model):
-    user_id = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET(get_sentinel_user))
-    TeslaUser = models.TextField(validators=[MinLengthValidator(3)])  # tesla login is an email
-    TeslaPassword = models.TextField(validators=[MinLengthValidator(1)])  # force a PW
 
 
 class TeslaToken(models.Model):

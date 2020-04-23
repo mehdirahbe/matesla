@@ -1,7 +1,10 @@
-{% extends 'base.html' %}
+<!--{% extends 'base.html' %}-->
 {% load i18n %}
 {% block content %}
   <p><a href="{% url 'logout' %}"class="btn btn-danger">{% trans 'logout' %}</a></p>
+<p>{% trans 'Please either enter your tesla user and password, or a combination of token, refresh token and creation date.' %}
+<BR/>{% trans 'If you submit your user, we will use it to generate a token and it will NOT be stored.' %}
+    <BR/>{% trans 'The token alone does not allow to put your car in drive mode.' %}</p>
 <form action="{% url 'AddTeslaAccount' %}" method="post">
     {% csrf_token %}
     <div class="input-group">
@@ -12,5 +15,18 @@
 </div>
     <input type="submit" value="{% trans 'Save' %}"class="btn btn-primary">
 </form>
-
+<p>{% trans 'You can run in any python console this code to obtain your token, refresh and creation time.' %}
+<BR/>
+import requests<BR/>
+import json<BR/>
+client_id = &#39;81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384&#39;<BR/>
+client_secret = &#39;c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3&#39;<BR/>
+token_url = &#34;https://owner-api.teslamotors.com/oauth/token&#34;<BR/>
+data = {&#39;grant_type&#39;: &#39;password&#39;, &#39;client_id&#39;: client_id, &#39;client_secret&#39;: client_secret,&#39;email&#39;: &#39;PUT HERE YOUR TESLA USER&#39;, &#39;password&#39;: &#39;PUT HERE YOUR TESLA PASSWORD&#39;}<BR/>
+access_token_response = requests.post(token_url, data=data, verify=True, allow_redirects=False)<BR/>
+tokens = json.loads(access_token_response.text)<BR/>
+print(&#34;access_token is &#34;+tokens[&#34;access_token&#34;])<BR/>
+print(&#34;created_at is &#34;+str(tokens[&#34;created_at&#34;]))<BR/>
+print(&#34;refresh_token is &#34;+tokens[&#34;refresh_token&#34;])<BR/>
+</p>
 {% endblock %}

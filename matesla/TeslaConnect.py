@@ -6,8 +6,7 @@ import json
 from django.core.exceptions import ObjectDoesNotExist
 from geopy.geocoders import Nominatim
 
-from matesla.models import TeslaState, TeslaAccount, TeslaToken
-from matesla.passwordencryption import getSaltForKey, decrypt
+from matesla.models import TeslaToken, TeslaState
 
 class TeslaServerException(Exception):
     pass
@@ -32,59 +31,89 @@ class TeslaNoVehiculeException(Exception):
 class TeslaIsAsleepException(Exception):
     pass
 
+
+# tesla client id and secret which are everywhere on internet
+client_id = '81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384'
+client_secret = 'c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3'
+
+#Either return a valid TeslaToken of None if login did fail
+def GetTokenFromLoginPW(teslalogin,teslapw):
+    token_url = "https://owner-api.teslamotors.com/oauth/token"
+    data = {'grant_type': 'password', 'client_id': client_id, 'client_secret': client_secret,
+            'email': teslalogin, 'password': teslapw}
+    access_token_response = requests.post(token_url, data=data, verify=True, allow_redirects=False)
+    # Check if connection did fail
+    if access_token_response is None or access_token_response.status_code != 200:
+        return None
+    tokens = json.loads(access_token_response.text)
+    teslatoken=TeslaToken()
+    teslatoken.access_token = tokens["access_token"]
+    teslatoken.expires_in = int(tokens["expires_in"])
+    teslatoken.created_at = int(tokens["created_at"])
+    teslatoken.refresh_token = tokens["refresh_token"]
+    teslatoken.vehicle_id=None
+    return teslatoken
+
+#Either return a valid TeslaToken of None if login did fail
+def GetTokenFromRefreshToken(refreshtoken):
+    token_url = "https://owner-api.teslamotors.com/oauth/token"
+    data = {'grant_type': 'refresh_token', 'client_id': client_id, 'client_secret': client_secret,
+            'refresh_token': refreshtoken}
+    access_token_response = requests.post(token_url, data=data, verify=True, allow_redirects=False)
+    # Check if connection did fail
+    if access_token_response is None or access_token_response.status_code != 200:
+        return None
+    tokens = json.loads(access_token_response.text)
+    teslatoken=TeslaToken()
+    teslatoken.access_token = tokens["access_token"]
+    teslatoken.expires_in = int(tokens["expires_in"])
+    teslatoken.created_at = int(tokens["created_at"])
+    teslatoken.refresh_token = tokens["refresh_token"]
+    teslatoken.vehicle_id=None
+    return teslatoken
+
+#Return the list of velicles or None if token is not valid
+def GetVehicles(access_token):
+    api_call_headers = {'Authorization': 'Bearer ' + access_token}
+    api_call_response = requests.get("https://owner-api.teslamotors.com/api/1/vehicles", headers=api_call_headers,
+                                     verify=True)
+    if api_call_response is None or api_call_response.status_code != 200:
+        return None
+    vehicles = json.loads(api_call_response.text)
+    return vehicles
+
+#return the first vehicle or None
+def GetVehicle(vehicles):
+    if vehicles is None or len(vehicles['response']) == 0:
+        return None
+    return vehicles['response'][0]['id']
+
+
 # return the tesla token object, having token and vehicule id (if a vehicle is associated to account)
 def Connect(user):
     try:
         teslatoken = TeslaToken.objects.get(user_id=user.id)
     except ObjectDoesNotExist:
-        teslatoken = None
-    # Do we have a valid filled token not expired?
-    if teslatoken is None or len(teslatoken.access_token) == 0 or datetime.datetime.fromtimestamp(
-            teslatoken.created_at + teslatoken.expires_in) < datetime.datetime.now():
-        if teslatoken is None:
-            teslatoken = TeslaToken()
-            teslatoken.user_id = user
-        # refresh the token with user+pw
-        try:
-            teslaaccount = TeslaAccount.objects.get(user_id=user.id)
-        except ObjectDoesNotExist:
-            raise TeslaNoUserException()
-        teslalogin = teslaaccount.TeslaUser
-        #in case of any problem with PW decryption (ie if we had to change secret)
-        #throw exception which will send us back to add tesla account
-        try:
-            saltlogin = getSaltForKey(teslalogin)
-            teslapw = decrypt(teslaaccount.TeslaPassword, saltlogin)
-        except Exception:
-            raise TeslaAuthenticationException()
-        # tesla client id and secret which are everywhere on internet
-        client_id = '81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384'
-        client_secret = 'c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3'
-        # do the Oauth 2 request
-        token_url = "https://owner-api.teslamotors.com/oauth/token"
-        data = {'grant_type': 'password', 'client_id': client_id, 'client_secret': client_secret,
-                'email': teslalogin, 'password': teslapw}
-        access_token_response = requests.post(token_url, data=data, verify=True, allow_redirects=False)
-        # Check if connection did fail
-        if access_token_response is None or access_token_response.status_code != 200:
-            raise TeslaAuthenticationException()
-        tokens = json.loads(access_token_response.text)
-        teslatoken.access_token = tokens["access_token"]
-        teslatoken.expires_in = int(tokens["expires_in"])
-        teslatoken.created_at = int(tokens["created_at"])
-        teslatoken.refresh_token = tokens["refresh_token"]
-        # now that we have a token, we can ask the vehicles
-        api_call_headers = {'Authorization': 'Bearer ' + teslatoken.access_token}
-        api_call_response = requests.get("https://owner-api.teslamotors.com/api/1/vehicles", headers=api_call_headers,
-                                         verify=True)
-        if api_call_response is None or api_call_response.status_code != 200:
-            raise TeslaServerException()
-        vehicles = json.loads(api_call_response.text)
-        if len(vehicles['response']) == 0:
+        raise TeslaNoUserException()
+    # Do we have a token not expired (renew at mid life)?
+    if datetime.datetime.fromtimestamp(teslatoken.created_at + teslatoken.expires_in/2) >= datetime.datetime.now():
+        #token is still valid
+        if teslatoken.vehicle_id is None:
             raise TeslaNoVehiculeException()
-        teslatoken.vehicle_id = vehicles['response'][0]['id']
-        teslatoken.save()
-    return teslatoken
+        return teslatoken
+    #Use renewal to generate a new token
+    newteslatoken=GetTokenFromRefreshToken(teslatoken.refresh_token)
+    teslatoken.delete()
+    if newteslatoken is None:
+        raise TeslaUnauthorisedException() #refresh did fail
+    #save refreshed token
+    newteslatoken.user_id=user
+    newteslatoken.vehicle_id=GetVehicle(GetVehicles(newteslatoken.access_token))
+    newteslatoken.save()
+    # and return it as above
+    if newteslatoken.vehicle_id is None:
+        raise TeslaNoVehiculeException()
+    return newteslatoken
 
 
 # return true if tesla is awake. False if still sleeping
