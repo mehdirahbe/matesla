@@ -8,8 +8,6 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from matesla.TeslaConnect import *
 from .forms import DesiredChargeLevelForm, AddTeslaAccountForm
-from matesla.passwordencryption import getSaltForKey, encrypt
-
 
 def getdesiredchargelevel(request):
     user = get_user(request)
