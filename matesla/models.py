@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+import datetime
 from django.core.validators import MinLengthValidator
 
-#don't forget to add your models in admin.py of you want an administration page
+# don't forget to add your models in admin.py of you want an administration page
 
 '''From to clean all migrations:
 https://simpleisbetterthancomplex.com/tutorial/2016/07/26/how-to-reset-migrations.html
@@ -25,6 +27,7 @@ python manage.py migrate
 And you are good to go.
 '''
 
+
 # Create your models here.
 
 # see https://stackoverflow.com/questions/50874470/how-to-save-signed-in-username-with-the-form-to-database-django
@@ -42,11 +45,30 @@ class TeslaToken(models.Model):
     # the id of the first vehicle
     vehicle_id = models.TextField()
 
+
+# Data to save about firmware updates
+class TeslaFirmwareHistory(models.Model):
+    vin = models.TextField()  # vin of the car
+    Version = models.TextField()
+    Date = models.DateField()  # First date where that version was detected
+    CarModel = models.TextField()  # IE model3
+
+    def SaveIfDontExistsYet(self, newvin, newversion, newcarmodel):
+        if TeslaFirmwareHistory.objects.filter(vin=newvin). \
+                filter(Version=newversion).filter(CarModel=newcarmodel).count() == 0:
+            # save it
+            self.vin = newvin
+            self.Version = newversion
+            self.CarModel = newcarmodel
+            self.Date = datetime.datetime.now()
+            self.save()
+
+
 class TeslaState:
     vin = None
     name = None
     batterydegradation = 0.
     location = ""
-    isOnline: bool=True
-    vehicle_state=None
-    OdometerInKm=0.
+    isOnline: bool = True
+    vehicle_state = None
+    OdometerInKm = 0.
