@@ -6,7 +6,6 @@ urlpatterns = [
     path('', views.status, name='tesla_status'),
     path('matesla/asleep', views.asleep, name='teslaasleep'),
     path('matesla/getdesiredchargelevel', views.getdesiredchargelevel, name='getdesiredchargelevel'),
-    path('matesla/UserInfo', views.UserInfo, name='UserInfo'),
     path('matesla/flash_lights', views.Viewflash_lights, name='flash_lights'),
     path('matesla/honk_horn', views.Viewhonk_horn, name='honk_horn'),
     path('matesla/start_climate', views.Viewstart_climate, name='start_climate'),

@@ -5,10 +5,13 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 from django.template import loader
 from django.core.exceptions import ObjectDoesNotExist
+from django.views.decorators.cache import never_cache
 
 from matesla.TeslaConnect import *
 from .forms import DesiredChargeLevelForm, AddTeslaAccountForm
 
+
+@never_cache
 def getdesiredchargelevel(request):
     user = get_user(request)
     if not user.is_authenticated:
@@ -35,35 +38,40 @@ def view_teslacss(request):
 
 
 # This view signal the car is sleeping
+@never_cache
 def asleep(request):
     return singleAction(request, lambda request, user: HttpResponse(
         loader.get_template('matesla/asleep.html').render({}, request)), True)
 
 
+@never_cache
 def view_TeslaServerError(request):
     return singleAction(request, lambda request, user: HttpResponse(
         loader.get_template('matesla/TeslaServerError.html').render({}, request)), True)
 
 
+@never_cache
 def view_TeslaServerCmdFail(request):
     return singleAction(request, lambda request, user: HttpResponse(
         loader.get_template('matesla/TeslaServerCmdFail.html').render({}, request)), True)
 
 
+@never_cache
 def view_NoTeslaVehicules(request):
     return singleAction(request, lambda request, user: HttpResponse(
         loader.get_template('matesla/NoTeslaVehicules.html').render({}, request)), True)
 
 
+@never_cache
 def view_ConnectionError(request):
     return singleAction(request, lambda request, user: HttpResponse(
         loader.get_template('matesla/ConnectionError.html').render({}, request)), True)
 
 
 def returnColorFronContext(context):
-    #if we know the color, use it (here is for David car) as codes
+    # if we know the color, use it (here is for David car) as codes
     # can't really be trusted (David car is black according to codes)
-    if context["exterior_color"]=="PearlWhite":
+    if context["exterior_color"] == "PearlWhite":
         return "PPSW";
     # get color code from codes
     colordico = {
@@ -108,28 +116,13 @@ def Preparestatus(request, user):
 
 
 # The status view
+@never_cache
 def status(request):
     return singleAction(request, lambda request, user: Preparestatus(request, user), True)
 
 
-# The user info view (debug purpose)
-def UserInfo(request):
-    user = get_user(request)
-    if not user.is_authenticated:
-        return redirect('login')
-    teslaaccount = TeslaAccount.objects.get(user_id=user.id)
-    teslalogin = teslaaccount.TeslaUser
-    # to debug pw encryption only, never activate in prod
-    '''saltlogin = getSaltForKey(teslalogin)
-    teslapw = decrypt(teslaaccount.TeslaPassword, saltlogin)'''
-    teslapw = 'crypté'
-    return HttpResponse(str(user.id) + "</BR>" + str(user.pk) + "</BR>" + str(teslalogin) + "</BR>" + str(teslapw))
-
-
 '''Check login, and if fine call func.  Then go to status page.
 On tesla login error, go to tesla credentials page.'''
-
-
 def singleAction(request, func, shouldReturnFunc=False):
     user = get_user(request)
     if not user.is_authenticated:
@@ -162,36 +155,43 @@ def singleAction(request, func, shouldReturnFunc=False):
 
 
 # View which honk (dont call during the night!) and then display status page
+@never_cache
 def Viewhonk_horn(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'honk_horn'))
 
 
 # View which flash lights and then display status page
+@never_cache
 def Viewflash_lights(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'flash_lights'))
 
 
 # View which start car warmup and then display status page
+@never_cache
 def Viewstart_climate(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'auto_conditioning_start'))
 
 
 # View which stop car warmup and then display status page
+@never_cache
 def Viewstop_climate(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'auto_conditioning_stop'))
 
 
 # View which stop car warmup and then display status page
+@never_cache
 def Viewunlock_car(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'door_unlock'))
 
 
 # View which stop car warmup and then display status page
+@never_cache
 def Viewlock_car(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'door_lock'))
 
 
 # View which allow to add/edit tesla credentials
+@never_cache
 def view_AddTeslaAccount(request):
     user = get_user(request)
     if not user.is_authenticated:
@@ -204,48 +204,57 @@ def view_AddTeslaAccount(request):
                 TeslaToken.objects.get(user_id=user.id).delete()
             except ObjectDoesNotExist:
                 pass
-            #and save
+            # and save
             tesla_account_form.SaveModdel(user)
             return redirect("tesla_status")
-    #display form
+    # display form
     return render(request, 'matesla/AddTeslaAccount.html',
-                      {'tesla_account_form': AddTeslaAccountForm()})
+                  {'tesla_account_form': AddTeslaAccountForm()})
+
 
 # Start sentry
+@never_cache
 def view_sentry_start(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'set_sentry_mode', True))
 
 
 # Stop sentry
+@never_cache
 def view_sentry_stop(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'set_sentry_mode', False))
 
 
 # Start valet mode
+@never_cache
 def view_valet_start(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'set_valet_mode', True))
 
 
 # Stop valet mode
+@never_cache
 def view_valet_stop(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'set_valet_mode', False))
 
 
 # Open charge port
+@never_cache
 def view_chargeport_open(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'charge_port_door_open'))
 
 
 # Close charge port
+@never_cache
 def view_chargeport_close(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'charge_port_door_close'))
 
 
 # Start charge
+@never_cache
 def view_charge_start(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'charge_start'))
 
 
 # Stop charge
+@never_cache
 def view_charge_stop(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'charge_stop'))

@@ -12,10 +12,19 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 # deploy: https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Deployment
 
+# for cache, see https://docs.djangoproject.com/en/3.0/topics/cache/
+
 import os
 import dj_database_url
-#for translations, from https://www.codementor.io/@curiouslearner/supporting-multiple-languages-in-django-part-1-11xjd2ovik
+# for translations, from https://www.codementor.io/@curiouslearner/supporting-multiple-languages-in-django-part-1-11xjd2ovik
 from django.utils.translation import ugettext_lazy as _
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -83,6 +92,7 @@ INSTALLED_APPS = [
 # Setup LocaleMiddleware to enable translations using ugettext_lazy and ugettext
 # Make sure that LocaleMiddleware comes after SessionMiddleware and before CommonMiddleware
 MIDDLEWARE = [
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -92,6 +102,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -144,17 +155,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Provide a lists of languages which your site supports.
 LANGUAGES = (
     ('en', _('English')),
     ('fr', _('Français')),
 )
 
-#translations are generated from marked labels by running this
-#django-admin makemessages -l fr
-#Once translated manually in po file, please run django-admin compilemessages
-#or new translations won't be taken into account
+# translations are generated from marked labels by running this
+# django-admin makemessages -l fr
+# Once translated manually in po file, please run django-admin compilemessages
+# or new translations won't be taken into account
 # see https://docs.djangoproject.com/en/3.0/topics/i18n/translation/
 
 # Internationalization
@@ -198,7 +208,7 @@ DATABASES['default'].update(db_from_env)
 # https://warehouse.python.org/project/whitenoise/
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-#to serve static files not linked to an app-->CSS,...
+# to serve static files not linked to an app-->CSS,...
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static")
 ]
