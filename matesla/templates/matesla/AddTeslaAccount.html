@@ -1,7 +1,11 @@
 <!--{% extends 'base.html' %}-->
 {% load i18n %}
 {% block content %}
-  <p><a href="{% url 'logout' %}"class="btn btn-danger">{% trans 'logout' %}</a></p>
+<div class="form-group">
+    <a href="{% url 'logout' %}"class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
+    <a href="{% url 'AnonymisedFirmwareUpdates' %}"class="btn btn-info btn-sm">{% trans 'Firmware Updates Stats' %}</a>
+  </div>
+<div class="form-group">
 <p>{% trans 'Please either enter your tesla user and password, or a combination of token, refresh token and creation date.' %}
 <BR/>{% trans 'If you submit your user, we will use it to generate a token and it will NOT be stored.' %}
     <BR/>{% trans 'The token alone does not allow to put your car in drive mode.' %}</p>
@@ -15,6 +19,8 @@
 </div>
     <input type="submit" value="{% trans 'Save' %}"class="btn btn-primary">
 </form>
+  </div>
+<div class="form-group">
 <p>{% trans 'You can run in any python console this code to obtain your token, refresh and creation time.' %}
 <BR/>
 import requests<BR/>
@@ -29,4 +35,5 @@ print(&#34;access_token is &#34;+tokens[&#34;access_token&#34;])<BR/>
 print(&#34;created_at is &#34;+str(tokens[&#34;created_at&#34;]))<BR/>
 print(&#34;refresh_token is &#34;+tokens[&#34;refresh_token&#34;])<BR/>
 </p>
+  </div>
 {% endblock %}

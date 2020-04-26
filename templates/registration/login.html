@@ -5,7 +5,11 @@
 {% block title %}{% trans 'Login' %}{% endblock %}
 
 {% block content %}
-    <a href="{% url 'signup' %}"class="btn btn-primary">{% trans 'Signup' %}</a>
+<div class="form-group">
+    <a href="{% url 'signup' %}"class="btn btn-primary btn-sm">{% trans 'Signup' %}</a>
+    <a href="{% url 'AnonymisedFirmwareUpdates' %}"class="btn btn-info btn-sm">{% trans 'Firmware Updates Stats' %}</a>
+  </div>
+
 <h2>{% trans 'Login' %}</h2>
 <form method="post">
   {% csrf_token %}

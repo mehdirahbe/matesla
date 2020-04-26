@@ -2,7 +2,11 @@
 {% load i18n %}
 
 {% block content %}
-  <p><a href="{% url 'logout' %}"class="btn btn-danger">{% trans 'logout' %}</a></p>
+<div class="form-group">
+    <a href="{% url 'logout' %}"class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
+    <a href="{% url 'AddTeslaAccount' %}"class="btn btn-primary btn-sm">{% trans 'Tesla account' %}</a>
+    <a href="{% url 'AnonymisedFirmwareUpdates' %}"class="btn btn-info btn-sm">{% trans 'Firmware Updates Stats' %}</a>
+  </div>
 <form action="{% url 'getdesiredchargelevel' %}" method="post">
     {% csrf_token %}
     {{ form }}

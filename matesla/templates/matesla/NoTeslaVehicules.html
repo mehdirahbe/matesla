@@ -4,7 +4,9 @@
 
 {% block content %}
 <div class="form-group">
-    <a href="{% url 'logout' %}"class="btn btn-danger">{% trans 'logout' %}</a>
+    <a href="{% url 'logout' %}"class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
+    <a href="{% url 'AddTeslaAccount' %}"class="btn btn-primary btn-sm">{% trans 'Tesla account' %}</a>
+    <a href="{% url 'AnonymisedFirmwareUpdates' %}"class="btn btn-info btn-sm">{% trans 'Firmware Updates Stats' %}</a>
   </div>
 <div class="form-group">
   {% trans 'No vehicles are associated to your account. Please retry when your car will be there.' %}

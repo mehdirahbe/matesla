@@ -4,10 +4,10 @@
 
 {% block content %}
 <div class="parameters_page_part">
-
-  <div class="login_part">
-    <span class="login_part_link"><a href="{% url 'logout' %}"class="btn btn-danger">{% trans 'logout' %}</a><BR /></span>
-    <span class="login_part_link"><a href="{% url 'AddTeslaAccount' %}"class="btn btn-danger">{% trans 'Tesla account' %}</a><BR /></span>
+<div class="form-group">
+    <a href="{% url 'logout' %}"class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
+    <a href="{% url 'AddTeslaAccount' %}"class="btn btn-primary btn-sm">{% trans 'Tesla account' %}</a>
+    <a href="{% url 'AnonymisedFirmwareUpdates' %}"class="btn btn-info btn-sm">{% trans 'Firmware Updates Stats' %}</a>
   </div>
   <img src="{% url 'CarImageFromTesla' colorcode wheel_type car_type %}" alt="Image of your tesla">
   <div class="infos_part">
@@ -28,9 +28,9 @@
         <div class="info_label">{% trans 'Is car locked' %}</div>
         <div class="info_value">
         {% if locked is True %}
-      <a href="{% url 'unlock_car' %}"class="btn btn-secondary">{% trans 'Yes, unlock?' %}</a>
+      <a href="{% url 'unlock_car' %}"class="btn btn-secondary btn-sm">{% trans 'Yes, unlock?' %}</a>
         {% else %}
-    <a href="{% url 'lock_car' %}"class="btn btn-secondary">{% trans 'No, lock?' %}</a>
+    <a href="{% url 'lock_car' %}"class="btn btn-secondary btn-sm">{% trans 'No, lock?' %}</a>
           {% endif %}
         </div>
       </div>
@@ -54,17 +54,17 @@
         <div class="info_label">{% trans 'Sentry' %}</div>
         <div class="info_value">
         {% if sentry_mode is True %}
-      <a href="{% url 'sentry_stop' %}"class="btn btn-secondary">{% trans 'Active, stop?' %}</a>
+      <a href="{% url 'sentry_stop' %}"class="btn btn-secondary btn-sm">{% trans 'Active, stop?' %}</a>
         {% else %}
-    <a href="{% url 'sentry_start' %}"class="btn btn-secondary">{% trans 'Inactive, start?' %}</a>
+    <a href="{% url 'sentry_start' %}"class="btn btn-secondary btn-sm">{% trans 'Inactive, start?' %}</a>
           {% endif %}</div>
       </div>
       <div class="info_label_value">
         <div class="info_label">{% trans 'Valet mode' %}</div>
         <div class="info_value">{% if valet_mode is True %}
-      <a href="{% url 'valet_stop' %}"class="btn btn-secondary">{% trans 'Active, stop?' %}</a>
+      <a href="{% url 'valet_stop' %}"class="btn btn-secondary btn-sm">{% trans 'Active, stop?' %}</a>
         {% else %}
-    <a href="{% url 'valet_start' %}"class="btn btn-secondary">{% trans 'Inactive, start?' %}</a>
+    <a href="{% url 'valet_start' %}"class="btn btn-secondary btn-sm">{% trans 'Inactive, start?' %}</a>
           {% endif %}
         </div>
       </div>
@@ -88,7 +88,7 @@
       </div>
       <div class="info_label_value">
         <div class="info_label">{% trans 'Battery charge limit %' %}</div>
-        <div class="info_value"><a href="{% url 'getdesiredchargelevel' %}"class="btn btn-secondary">{{charge_limit_soc}}</a> </div>
+        <div class="info_value"><a href="{% url 'getdesiredchargelevel' %}"class="btn btn-secondary btn-sm">{{charge_limit_soc}}</a> </div>
       </div>
       <div class="info_label_value">
         <div class="info_label">{% trans 'Charge port' %}</div>
@@ -98,9 +98,9 @@
         <div class="info_label">{% trans 'Is Charge port open' %}</div>
         <div class="info_value">
                 {% if charge_port_door_open is True %}
-      <a href="{% url 'chargeport_close' %}"class="btn btn-secondary">{% trans 'Yes, close?' %}</a>
+      <a href="{% url 'chargeport_close' %}"class="btn btn-secondary btn-sm">{% trans 'Yes, close?' %}</a>
         {% else %}
-    <a href="{% url 'chargeport_open' %}"class="btn btn-secondary">{% trans 'No, open?' %}</a>
+    <a href="{% url 'chargeport_open' %}"class="btn btn-secondary btn-sm">{% trans 'No, open?' %}</a>
           {% endif %}
         </div>
       </div>
@@ -134,7 +134,7 @@
       </div>
       <div class="info_label_value">
         <div class="info_label">{% trans 'Location' %}</div>
-        <div class="info_value"><a href="{{linktogooglemaps}}" target="_blank" class="btn btn-secondary">{{location}}</a></div>
+        <div class="info_value"><a href="{{linktogooglemaps}}" target="_blank" class="btn btn-secondary btn-sm">{{location}}</a></div>
       </div>
       <div class="info_label_value">
         <div class="info_label">{% trans 'Odometer' %}</div>
@@ -146,9 +146,9 @@
         <div class="info_label">{% trans 'Is climate on' %}</div>
         <div class="info_value">
         {% if is_climate_on is True %}
-      <a href="{% url 'stop_climate' %}"class="btn btn-secondary">{% trans 'Yes, stop?' %}</a>
+      <a href="{% url 'stop_climate' %}"class="btn btn-secondary btn-sm">{% trans 'Yes, stop?' %}</a>
         {% else %}
-    <a href="{% url 'start_climate' %}"class="btn btn-secondary">{% trans 'No, start?' %}</a>
+    <a href="{% url 'start_climate' %}"class="btn btn-secondary btn-sm">{% trans 'No, start?' %}</a>
           {% endif %}
           </div>
       </div>
@@ -172,11 +172,11 @@
 
 
   <div class="commands_part">
-    <div class="commands_part_cmd"><a href="{% url 'flash_lights' %}" class="btn btn-primary">{% trans 'Flash lights' %}</a></div>
-    <div class="commands_part_cmd"><a href="{% url 'honk_horn' %}" class="btn btn-primary">{% trans 'Honk horn (not night when people sleep)' %}</a></div>
+    <div class="commands_part_cmd"><a href="{% url 'flash_lights' %}" class="btn btn-primary btn-sm">{% trans 'Flash lights' %}</a></div>
+    <div class="commands_part_cmd"><a href="{% url 'honk_horn' %}" class="btn btn-primary btn-sm">{% trans 'Honk horn (not night when people sleep)' %}</a></div>
     {% if charging_state != "Disconnected" %}
-    <div class="commands_part_cmd"><a href="{% url 'charge_start' %}" class="btn btn-primary">{% trans 'Start charge' %}</a></div>
-    <div class="commands_part_cmd"><a href="{% url 'charge_stop' %}" class="btn btn-primary">{% trans 'Stop charge' %}</a></div>
+    <div class="commands_part_cmd"><a href="{% url 'charge_start' %}" class="btn btn-primary btn-sm">{% trans 'Start charge' %}</a></div>
+    <div class="commands_part_cmd"><a href="{% url 'charge_stop' %}" class="btn btn-primary btn-sm">{% trans 'Stop charge' %}</a></div>
     {% endif %}
   </div>
 </div>
