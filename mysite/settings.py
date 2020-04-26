@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     'matesla.apps.MateslaConfig',
     'accounts.apps.AccountsConfig',
     'carimage.apps.CarimageConfig',
+    'anonymisedstats.apps.AnonymisedstatsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

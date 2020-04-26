@@ -91,7 +91,6 @@ def Preparestatus(request, user):
     context.update(context["charge_state"])
     context.update(context["climate_state"])
     context.update(context["drive_state"])
-    context.update(context["vehicle_config"])
     context.update(context["vehicle_state"])
     context["batteryrange"] = '{:.0f}'.format(params.batteryrange)
     context["batterydegradation"] = '{:.1f}'.format(params.batterydegradation)
