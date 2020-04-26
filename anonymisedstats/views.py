@@ -14,9 +14,9 @@ def FirmwareUpdates(request):
     # query 10 most popular versions
     # queyr=TeslaFirmwareHistory.objects.values('Version').annotate(total=Count('Version')).order_by('-total')[:10].query
     # query 10 most recent versions
-    queyr = TeslaFirmwareHistory.objects.values('Version').annotate(MostRecent=Max('Date')).annotate(
+    queyr = TeslaFirmwareHistory.objects.filter(IsArchive=False).values('Version').annotate(MostRecent=Max('Date')).annotate(
         total=Count('Version')).order_by('-MostRecent')[:10].query
-    results = TeslaFirmwareHistory.objects.values('Version').annotate(MostRecent=Max('Date')).annotate(
+    results = TeslaFirmwareHistory.objects.filter(IsArchive=False).values('Version').annotate(MostRecent=Max('Date')).annotate(
         total=Count('Version')).order_by('-MostRecent')[:10]
     names = list()
     values = list()

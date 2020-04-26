@@ -52,15 +52,23 @@ class TeslaFirmwareHistory(models.Model):
     Version = models.TextField()
     Date = models.DateField()  # First date where that version was detected
     CarModel = models.TextField()  # IE model3
+    IsArchive = models.BooleanField(default=False)  # true if archived, means not current on the car anymore
 
     def SaveIfDontExistsYet(self, newvin, newversion, newcarmodel):
         if TeslaFirmwareHistory.objects.filter(vin=newvin). \
                 filter(Version=newversion).filter(CarModel=newcarmodel).count() == 0:
+            # Archive eventual previous version
+            previousVersions = TeslaFirmwareHistory.objects.filter(vin=newvin). \
+                filter(IsArchive=False).filter(CarModel=newcarmodel)
+            for previousEntry in previousVersions:
+                previousEntry.IsArchive = True
+                previousEntry.Save()
             # save it
             self.vin = newvin
             self.Version = newversion
             self.CarModel = newcarmodel
             self.Date = datetime.datetime.now()
+            self.IsArchive = False
             self.save()
 
 
