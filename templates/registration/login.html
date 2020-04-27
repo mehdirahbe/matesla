@@ -8,9 +8,11 @@
 <div class="form-group">
     <a href="{% url 'signup' %}"class="btn btn-primary btn-sm">{% trans 'Signup' %}</a>
     <a href="{% url 'AnonymisedFirmwareUpdates' %}"class="btn btn-info btn-sm">{% trans 'Firmware Updates Stats' %}</a>
+    <a href="https://github.com/mehdirahbe/matesla" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
   </div>
 
 <h2>{% trans 'Login' %}</h2>
+<div class="form-group">
 <form method="post">
   {% csrf_token %}
     <div class="input-group">
@@ -21,4 +23,9 @@
 </div>
   <button type="submit"class="btn btn-primary">{% trans 'Login' %}</button>
 </form>
+  </div>
+<div class="form-group">
+MaTesla is a Python/django free open source website using tesla api to connect to your marvellous Tesla car, have information on its state, location and remote control charge, temperature,... Statistics on firmware updates are also available.
+    <BR/>Have fun and you are the most welcome if you want to contribute :-)
+  </div>
 {% endblock %}
