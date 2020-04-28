@@ -67,14 +67,7 @@ def view_ConnectionError(request):
     return singleAction(request, lambda request, user: HttpResponse(
         loader.get_template('matesla/ConnectionError.html').render({}, request)), True)
 
-
-def returnColorFronContext(context):
-    # if we know the color, use it (here is for David car) as codes
-    # can't really be trusted (David car is black according to codes)
-    if context["exterior_color"] == "PearlWhite":
-        return "PPSW";
-    # get color code from codes
-    colordico = {
+ValidColorCodes = {
         "PBSB": "Solid Black",
         "PPMR": "Red Multi-Coat",
         "PMNG": "Midnight Silver Metallic",
@@ -83,10 +76,17 @@ def returnColorFronContext(context):
         "PMSS": "Silver Metallic",
         "PMBL": "Obsidian Black"
     }
+
+def returnColorFronContext(context):
+    # if we know the color, use it (here is for David car) as codes
+    # can't really be trusted (David car is black according to codes)
+    if context["exterior_color"] == "PearlWhite":
+        return "PPSW";
+    # get color code from codes
     colorcode = "PPMR"  # default value
     option_codeslist = context["option_codes"].split(',')
     for code in option_codeslist:
-        if code in colordico:
+        if code in ValidColorCodes:
             colorcode = code
             break
     return colorcode
