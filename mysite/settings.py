@@ -159,10 +159,12 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGES = (
     ('en', _('English')),
     ('fr', _('Français')),
+    ('es', _('Espanol')),
 )
 
 # translations are generated from marked labels by running this
 # django-admin makemessages -l fr
+# django-admin makemessages -l es
 # Once translated manually in po file, please run django-admin compilemessages
 # or new translations won't be taken into account
 # see https://docs.djangoproject.com/en/3.0/topics/i18n/translation/
