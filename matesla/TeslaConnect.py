@@ -105,6 +105,12 @@ def Connect(user):
         teslatoken = TeslaToken.objects.get(user_id=user.id)
     except ObjectDoesNotExist:
         raise TeslaNoUserException()
+    #if we don't have way to compute expiry date or refresh token, continue we what we have
+    #And if tesla site eject us, we will arivve to tesla account page
+    if teslatoken.created_at is None or teslatoken.refresh_token is  None:
+        if teslatoken.vehicle_id is None:
+            raise TeslaNoVehiculeException()
+        return teslatoken
     # Do we have a token not expired (renew at mid life)?
     if datetime.datetime.fromtimestamp(teslatoken.created_at + teslatoken.expires_in / 2) >= datetime.datetime.now():
         # token is still valid

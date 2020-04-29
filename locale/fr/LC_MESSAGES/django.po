@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-28 22:28+0200\n"
+"POT-Creation-Date: 2020-04-30 01:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -46,15 +46,11 @@ msgstr "Se déconnecter"
 msgid "Firmware Updates Stats"
 msgstr "Stats de mise à jour du firmware Tesla"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:10
-msgid ""
-"Please either enter your tesla user and password, or a combination of token, "
-"refresh token and creation date."
-msgstr ""
-"Veuillez entrer soit l'utilisateur et le mot de passe de votre compte Tesla, "
-"ou une combinaison de token, token de renouvellement et date de création"
+#: matesla/templates/matesla/AddTeslaAccount.html:13
+msgid "Please either enter your tesla user and password, or a token."
+msgstr "Veuillez entrer soit un utilisateur et un mot de passe valides, soit un token"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:11
+#: matesla/templates/matesla/AddTeslaAccount.html:14
 msgid ""
 "If you submit your user, we will use it to generate a token and it will NOT "
 "be stored."
@@ -62,16 +58,43 @@ msgstr ""
 "Si vous soumettez votre utilisateur, nous l'utiliserons pour générer un "
 "token et il ne SERA PAS stocké"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:12
+#: matesla/templates/matesla/AddTeslaAccount.html:15
+msgid ""
+"The token allow to connect to your Tesla car, it does expire after 45 days."
+msgstr "Le token permet de ce connecter à votre voiture Tesla, il expire après 45 jours"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:16
 msgid "The token alone does not allow to put your car in drive mode."
 msgstr "Le token seul ne permet pas de mettre la voiture en mode conduite."
 
-#: matesla/templates/matesla/AddTeslaAccount.html:21
+#: matesla/templates/matesla/AddTeslaAccount.html:17
+msgid "Token is invalidated if you change your tesla password."
+msgstr "Le token est invalidé quand vous changez votre mot de passe"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:18
+msgid ""
+"Optionally, you can also provide token creation date to know when the token "
+"will expire."
+msgstr "De manière optionelle, vous pouvez également fournir une date de création du token, de manière à savoir quand ce dernier expire."
+
+#: matesla/templates/matesla/AddTeslaAccount.html:19
+msgid ""
+"The optional refresh token then allow to get automatically a new one from "
+"Tesla."
+msgstr "Le token de rafraîchissement permettra d'en obtenir automatiquement un nouveau de la part de Tesla"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:20
+msgid ""
+"If you only fill the token, we have no way to renew it, and this form will "
+"be presented again at expiration."
+msgstr "Si vous remplissez uniquement le token, nous n'avons aucun moyen de le renouveler, et ce formulaire vous sera à nouveau présenté à l'expiration"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:23
 #: matesla/templates/matesla/getdesiredchargelevel.html:14
 msgid "Save"
 msgstr "Sauver"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:25
+#: matesla/templates/matesla/AddTeslaAccount.html:27
 msgid ""
 "You can run in any python console this code to obtain your token, refresh "
 "and creation time."
@@ -189,101 +212,101 @@ msgstr "Range de la batterie km"
 msgid "Battery charge"
 msgstr "Batterie en charge"
 
-#: matesla/templates/matesla/carstatus.html:87
+#: matesla/templates/matesla/carstatus.html:88
 #, python-format
 msgid "Battery degradation in %%"
 msgstr "Dégradation de la batterie en %%"
 
-#: matesla/templates/matesla/carstatus.html:91
+#: matesla/templates/matesla/carstatus.html:93
 #, python-format
 msgid "Battery charge limit %%"
 msgstr "Limite de charge de la batterie en %%"
 
-#: matesla/templates/matesla/carstatus.html:95
+#: matesla/templates/matesla/carstatus.html:97
 msgid "Charge port"
 msgstr "Port de charge"
 
-#: matesla/templates/matesla/carstatus.html:99
+#: matesla/templates/matesla/carstatus.html:101
 msgid "Is Charge port open"
 msgstr "Port de charge ouvert"
 
-#: matesla/templates/matesla/carstatus.html:102
+#: matesla/templates/matesla/carstatus.html:104
 msgid "Yes, close?"
 msgstr "Oui, fermer?"
 
-#: matesla/templates/matesla/carstatus.html:104
+#: matesla/templates/matesla/carstatus.html:106
 msgid "No, open?"
 msgstr "Non, ouvrir?"
 
-#: matesla/templates/matesla/carstatus.html:110
+#: matesla/templates/matesla/carstatus.html:112
 msgid "Voltage in V"
 msgstr "Voltage en V"
 
-#: matesla/templates/matesla/carstatus.html:114
+#: matesla/templates/matesla/carstatus.html:116
 msgid "Current in A"
 msgstr "Courant en A"
 
-#: matesla/templates/matesla/carstatus.html:118
+#: matesla/templates/matesla/carstatus.html:120
 msgid "Power in kW"
 msgstr "Puissance en kW"
 
-#: matesla/templates/matesla/carstatus.html:122
+#: matesla/templates/matesla/carstatus.html:124
 msgid "Number of phases"
 msgstr "Nombre de phases"
 
-#: matesla/templates/matesla/carstatus.html:126
+#: matesla/templates/matesla/carstatus.html:128
 msgid "Time left in minutes"
 msgstr "Temps restant en minutes"
 
-#: matesla/templates/matesla/carstatus.html:133
+#: matesla/templates/matesla/carstatus.html:135
 msgid "Speed"
 msgstr "Vitesse"
 
-#: matesla/templates/matesla/carstatus.html:137
+#: matesla/templates/matesla/carstatus.html:139
 msgid "Location"
 msgstr "Addresse"
 
-#: matesla/templates/matesla/carstatus.html:141
+#: matesla/templates/matesla/carstatus.html:143
 msgid "Odometer"
 msgstr "Odometre"
 
-#: matesla/templates/matesla/carstatus.html:147
+#: matesla/templates/matesla/carstatus.html:149
 msgid "Is climate on"
 msgstr "Climatisation"
 
-#: matesla/templates/matesla/carstatus.html:150
+#: matesla/templates/matesla/carstatus.html:152
 msgid "Yes, stop?"
 msgstr "Oui, arrêter?"
 
-#: matesla/templates/matesla/carstatus.html:152
+#: matesla/templates/matesla/carstatus.html:154
 msgid "No, start?"
 msgstr "Non, démarrer?"
 
-#: matesla/templates/matesla/carstatus.html:157
+#: matesla/templates/matesla/carstatus.html:159
 msgid "Inside temperature"
 msgstr "Température intérieure"
 
-#: matesla/templates/matesla/carstatus.html:161
+#: matesla/templates/matesla/carstatus.html:163
 msgid "Outside temperature"
 msgstr "Température extérieure"
 
-#: matesla/templates/matesla/carstatus.html:165
+#: matesla/templates/matesla/carstatus.html:167
 msgid "Driver Temperature setting"
 msgstr "Température pour le conducteur"
 
-#: matesla/templates/matesla/carstatus.html:176
+#: matesla/templates/matesla/carstatus.html:178
 msgid "Flash lights"
 msgstr "Faire clignoter les phares"
 
-#: matesla/templates/matesla/carstatus.html:177
+#: matesla/templates/matesla/carstatus.html:179
 msgid "Honk horn (not night when people sleep)"
 msgstr "Faire klaxoner (pas la nuit quand les gens dorment)"
 
-#: matesla/templates/matesla/carstatus.html:179
+#: matesla/templates/matesla/carstatus.html:181
 msgid "Start charge"
 msgstr "Démarrer la charge"
 
-#: matesla/templates/matesla/carstatus.html:180
+#: matesla/templates/matesla/carstatus.html:182
 msgid "Stop charge"
 msgstr "Arrêter la charge"
 
@@ -294,6 +317,10 @@ msgstr "Anglais"
 #: mysite/settings.py:161
 msgid "Français"
 msgstr "Français"
+
+#: mysite/settings.py:162
+msgid "Espanol"
+msgstr ""
 
 #: templates/registration/login.html:5 templates/registration/login.html:14
 #: templates/registration/login.html:24
@@ -311,10 +338,11 @@ msgid ""
 "location and remote control charge, temperature,... Statistics on firmware "
 "updates are also available."
 msgstr ""
-"MaTesla est un site web Python/django libre utilisant l'API de Tesla "
-"pour se connecter à votre merveilleuse voiture Tesla, obtenir des informations sur son état, "
-"sa position, et contrôller à distance sa charge, sa température,... Des statistiques sur les "
-"mises à jour du firmware sont également disponibles."
+"MaTesla est un site web Python/django libre utilisant l'API de Tesla pour se "
+"connecter à votre merveilleuse voiture Tesla, obtenir des informations sur "
+"son état, sa position, et contrôller à distance sa charge, sa "
+"température,... Des statistiques sur les mises à jour du firmware sont "
+"également disponibles."
 
 #: templates/registration/login.html:29
 msgid "Have fun and you are the most welcome if you want to contribute :-)"

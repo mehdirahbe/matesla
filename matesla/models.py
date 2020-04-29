@@ -39,11 +39,11 @@ def get_sentinel_user():
 class TeslaToken(models.Model):
     user_id = models.ForeignKey(get_user_model(), null=True, on_delete=models.SET(get_sentinel_user))
     access_token = models.TextField()
-    expires_in = models.IntegerField()
-    created_at = models.IntegerField()
-    refresh_token = models.TextField()
+    expires_in = models.IntegerField(null=True)
+    created_at = models.IntegerField(null=True)
+    refresh_token = models.TextField(null=True)
     # the id of the first vehicle
-    vehicle_id = models.TextField()
+    vehicle_id = models.TextField(null=True)
 
 
 # Data to save about firmware updates

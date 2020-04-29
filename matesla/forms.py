@@ -37,25 +37,32 @@ class AddTeslaAccountForm(forms.Form):
                 self.token.vehicle_id = GetVehicle(GetVehicles(self.token.access_token))
                 return True  # Yes, valid
         # try on token
-        if (len(self.data['Token']) == 64 and len(self.data['TokenRefresh']) == 64):
-            if len(self.data['CreateAt']) < 0:
-                return False
-            # do we have valid creation date?
-            try:
-                CreateAtVal = int(self.data['CreateAt'])
-                if CreateAtVal < 0:
-                    return False
-            except ValueError:
-                return False
+        if len(self.data['Token']) == 64:
             vehicles = GetVehicles(self.data['Token'])
             if vehicles is not None:  # got vehicles, yes, valid
                 self.token = TeslaToken()
                 self.token.access_token = self.data['Token']
-                self.token.created_at = CreateAtVal
-                self.token.refresh_token = self.data['TokenRefresh']
+                '''Demand from Meaban on https://forums.automobile-propre.com/topic/site-pour-se-connecter-%C3%A0-sa-voiture-22944/
+                stating than not informatician are lost with refresh token and creation time
+                thus allow to only use token.
+                Thus story refresh and creation if we have them, do without else'''
+                if (len(self.data['TokenRefresh']) == 64):
+                    self.token.refresh_token = self.data['TokenRefresh']
+                else:
+                    self.token.refresh_token = None
+                # do we have valid creation date?
+                self.token.created_at = None
+                if len(self.data['CreateAt']) > 0:
+                    try:
+                        CreateAtVal = int(self.data['CreateAt'])
+                        if CreateAtVal > 0:
+                            self.token.created_at = CreateAtVal
+                    except ValueError:
+                        self.token.created_at = None
+                #save vehicle id
                 self.token.vehicle_id = GetVehicle(vehicles)
                 self.token.expires_in = 45 * 86400  # 45 days, in s
-                return True
+            return True
         # something went wrong, not valid
         return False
 
