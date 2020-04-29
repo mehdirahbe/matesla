@@ -83,10 +83,12 @@
         <div class="info_label">{% trans 'Battery charge' %}</div>
         <div class="info_value">{{charging_state}}</div>
       </div>
+      {%if batterydegradation is not None%}
       <div class="info_label_value">
         <div class="info_label">{% trans 'Battery degradation in %' %}</div>
         <div class="info_value">{{batterydegradation}}</div>
       </div>
+      {%endif%}
       <div class="info_label_value">
         <div class="info_label">{% trans 'Battery charge limit %' %}</div>
         <div class="info_value"><a href="{% url 'getdesiredchargelevel' %}"class="btn btn-secondary btn-sm">{{charge_limit_soc}}</a> </div>

@@ -67,15 +67,17 @@ def view_ConnectionError(request):
     return singleAction(request, lambda request, user: HttpResponse(
         loader.get_template('matesla/ConnectionError.html').render({}, request)), True)
 
+
 ValidColorCodes = {
-        "PBSB": "Solid Black",
-        "PPMR": "Red Multi-Coat",
-        "PMNG": "Midnight Silver Metallic",
-        "PPSB": "Deep Blue Metallic",
-        "PPSW": "Pearl White Multi-Coat",
-        "PMSS": "Silver Metallic",
-        "PMBL": "Obsidian Black"
-    }
+    "PBSB": "Solid Black",
+    "PPMR": "Red Multi-Coat",
+    "PMNG": "Midnight Silver Metallic",
+    "PPSB": "Deep Blue Metallic",
+    "PPSW": "Pearl White Multi-Coat",
+    "PMSS": "Silver Metallic",
+    "PMBL": "Obsidian Black"
+}
+
 
 def returnColorFronContext(context):
     # if we know the color, use it (here is for David car) as codes
@@ -102,7 +104,10 @@ def Preparestatus(request, user):
     context.update(context["vehicle_config"])
     context.update(context["vehicle_state"])
     context["batteryrange"] = '{:.0f}'.format(params.batteryrange)
-    context["batterydegradation"] = '{:.1f}'.format(params.batterydegradation)
+    if params.batterydegradation is not None:
+        context["batterydegradation"] = '{:.1f}'.format(params.batterydegradation)
+    else:
+        context["batterydegradation"] = None
     context["location"] = params.location
     context["OdometerInKm"] = '{:.0f}'.format(params.OdometerInKm)
     template = loader.get_template('matesla/carstatus.html')
@@ -123,6 +128,8 @@ def status(request):
 
 '''Check login, and if fine call func.  Then go to status page.
 On tesla login error, go to tesla credentials page.'''
+
+
 def singleAction(request, func, shouldReturnFunc=False):
     user = get_user(request)
     if not user.is_authenticated:

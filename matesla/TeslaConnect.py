@@ -160,6 +160,41 @@ def SaveDataHistory(teslaState):
     toSave.SaveIfDontExistsYet(teslaState.vin, vehicle_state["car_version"], vehicle_config["car_type"])
 
 
+'''Return the battery degradation in %. The problem is to known EPA mileage as
+it is not returned and due to invalid codes, it is impossible to know exact car
+ and battery model.
+ So compute when we can and return None when impossible to compute safely
+ batteryrange should be in miles, battery_level is in %'''
+
+
+def ComputeBatteryDegradation(batteryrange, battery_level, vin):
+    # First check which car it is
+    # https://teslatap.com/vin-decoder/
+    # position 8 (base 1) B = Dual Motor - Standard or Performance Model 3
+    # A = Single Motor - Standard Model 3
+    # In pos 4 (base 1), the 3 means model 3
+    # 5YJ3E7EA7KFxxxxxx seems to be the rare LR 1 motor
+    # 5YJ3E7EB1KFxxxxxx AWD (mine, I am sure)
+    # 5YJ3E7EA4LFxxxxxx std range 1 moteur (friend, I am sure too)
+    model = vin[3]
+    if model != "3":
+        return None
+    isDual = (vin[7] == "B")
+    if isDual is True:
+        EPARange = 310.
+    else:
+        EPARange = 250.
+    batterydegradation = (1. - ((1. * batteryrange) / (battery_level * 1.) * 100.) / EPARange) * 100.
+    if isDual is False and batterydegradation < -5:
+        # single motor with strongly negative battery degradatation means
+        # probably the LR single motor. It would be nice if someone wuith that model confirms
+        EPARange = 322.
+        batterydegradation = (1. - ((1. * batteryrange) / (battery_level * 1.) * 100.) / EPARange) * 100.
+    if batterydegradation < 0.:  # don't return negative degradation
+        batterydegradation = 0.
+    return batterydegradation
+
+
 # returns params as TeslaState
 def ParamsConnectedTesla(user):
     teslaatoken = Connect(user)
@@ -185,7 +220,7 @@ def ParamsConnectedTesla(user):
     chargestate = context["charge_state"]
     ret.batteryrange = chargestate["battery_range"] * 1.609344
     # Estimate battery degradation
-    ret.batterydegradation = (1. - ((1. * ret.batteryrange) / (chargestate["battery_level"] * 1.) * 100.) / 500.) * 100.
+    ret.batterydegradation = ComputeBatteryDegradation(chargestate["battery_range"],chargestate["battery_level"],ret.vin)
     drive_state = context["drive_state"]
     longitude = str(drive_state["longitude"])
     latitude = str(drive_state["latitude"])
