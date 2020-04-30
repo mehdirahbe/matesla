@@ -84,6 +84,8 @@ def returnColorFronContext(context):
     # can't really be trusted (David car is black according to codes)
     if context["exterior_color"] == "PearlWhite":
         return "PPSW";
+    if context["exterior_color"] == "DeepBlue":
+        return "PPSB";
     # get color code from codes
     colorcode = "PPMR"  # default value
     option_codeslist = context["option_codes"].split(',')
