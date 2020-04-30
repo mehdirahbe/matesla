@@ -187,14 +187,29 @@ def ComputeBatteryDegradation(batteryrange, battery_level, vin):
         return None
     isDual = (vin[7] == "B")
     if isDual is True:
+        '''From https://en.wikipedia.org/wiki/Tesla_Model_3
+        the optional 75-kWh battery would have a range of about 310 miles (500 km)
+        It seems that in 2020, a new rating was set to 322 miles, but clearly mar
+        AWD car still computes based on 310 (500 km)'''
         EPARange = 310.
     else:
-        EPARange = 250.
+        '''From https://en.wikipedia.org/wiki/Tesla_Model_3        
+        It seems that in 2020, a new rating was set to 250 miles (402 km), but clearly
+        car bought new in february/march 2020 don't use that, as nearly
+        new in april 2020, they shouldn't have a degradation > 5%
+        -->After 1 hour doing google searches, impossible to find old value.
+        So back to https://forums.automobile-propre.com/topic/kilom%C3%A9trage-max-qu-indique-votre-voiture-%C3%A0-100-15552/?&page=78#comments
+        There Kratos said 378 km for SR+-->235 miles for a new car from march 2020
+        Let's use that, it should at least be reasonable'''
+        EPARange = 235.
     batterydegradation = (1. - ((1. * batteryrange) / (battery_level * 1.) * 100.) / EPARange) * 100.
     if isDual is False and batterydegradation < -5:
-        # single motor with strongly negative battery degradatation means
-        # probably the LR single motor. It would be nice if someone wuith that model confirms
-        EPARange = 322.
+        '''From https://en.wikipedia.org/wiki/Tesla_Model_3
+        RWD: 325 miles (523 km) combined
+        single motor with strongly negative battery degradatation means
+        probably the LR single motor. It would be nice if someone
+        with that model confirms'''
+        EPARange = 325.
         batterydegradation = (1. - ((1. * batteryrange) / (battery_level * 1.) * 100.) / EPARange) * 100.
     if batterydegradation < 0.:  # don't return negative degradation
         batterydegradation = 0.
