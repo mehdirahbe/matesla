@@ -130,6 +130,26 @@ LOGOUT_REDIRECT_URL = 'login'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+'''To use a file as db
+'default': {
+    'ENGINE': 'django.db.backends.sqlite3',
+    'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+}
+'''
+
+'''
+To use postgres local db.
+    #From https://djangocentral.com/using-postgresql-with-django/ to use postgres in local
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'mrtestdb',
+        'USER': 'mr',
+        'PASSWORD': 'mr',
+        'HOST': 'localhost',
+        'PORT': '',
+    }
+'''
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
