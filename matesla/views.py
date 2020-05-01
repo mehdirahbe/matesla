@@ -75,7 +75,7 @@ ValidColorCodes = {
     "PPSB": "Deep Blue Metallic",
     "PPSW": "Pearl White Multi-Coat",
     "PMSS": "Silver Metallic",
-    "PMBL": "Obsidian Black"
+    "PMBL": "Obsidian Black",
 }
 
 
@@ -86,6 +86,8 @@ def returnColorFronContext(context):
         return "PPSW";
     if context["exterior_color"] == "DeepBlue":
         return "PPSB";
+    if context["exterior_color"] == "SteelGrey":
+        return "PMNG";
     # get color code from codes
     colorcode = "PPMR"  # default value
     option_codeslist = context["option_codes"].split(',')

@@ -121,7 +121,7 @@ def CarImageFromTesla(request,color,wheel,CarModel):
         CarModelToUse="mx"
         url="https://static-assets.tesla.com/configurator/compositor?&options=$WT20,$"+color+",$MTX03&view=STUD_3QTR_V2&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=v0027d202004163351"
     else:
-        if CarModel == "models":
+        if CarModel == "models" or CarModel == "models2":
             CarModelToUse = "ms"
             url = "https://static-assets.tesla.com/configurator/compositor?&options=$WTAS,$"+color+",$MTS03&view=STUD_3QTR_V2&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=v0027d202004163351"
         else:
