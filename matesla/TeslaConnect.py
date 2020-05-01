@@ -6,7 +6,7 @@ import json
 from django.core.exceptions import ObjectDoesNotExist
 from geopy.geocoders import Nominatim
 
-from matesla.models import TeslaToken, TeslaState, TeslaFirmwareHistory
+from matesla.models import TeslaToken, TeslaState, TeslaFirmwareHistory, TeslaCarInfo
 
 
 class TeslaServerException(Exception):
@@ -105,9 +105,9 @@ def Connect(user):
         teslatoken = TeslaToken.objects.get(user_id=user.id)
     except ObjectDoesNotExist:
         raise TeslaNoUserException()
-    #if we don't have way to compute expiry date or refresh token, continue we what we have
-    #And if tesla site eject us, we will arivve to tesla account page
-    if teslatoken.created_at is None or teslatoken.refresh_token is  None:
+    # if we don't have way to compute expiry date or refresh token, continue we what we have
+    # And if tesla site eject us, we will arivve to tesla account page
+    if teslatoken.created_at is None or teslatoken.refresh_token is None:
         if teslatoken.vehicle_id is None:
             raise TeslaNoVehiculeException()
         return teslatoken
@@ -164,6 +164,9 @@ def SaveDataHistory(teslaState):
     # Firmware updates
     toSave = TeslaFirmwareHistory()
     toSave.SaveIfDontExistsYet(teslaState.vin, vehicle_state["car_version"], vehicle_config["car_type"])
+    # Car infos
+    toSave = TeslaCarInfo()
+    toSave.SaveIfDontExistsYet(teslaState.vin, context)
 
 
 '''Return the battery degradation in %. The problem is to known EPA mileage as
@@ -241,7 +244,8 @@ def ParamsConnectedTesla(user):
     chargestate = context["charge_state"]
     ret.batteryrange = chargestate["battery_range"] * 1.609344
     # Estimate battery degradation
-    ret.batterydegradation = ComputeBatteryDegradation(chargestate["battery_range"],chargestate["battery_level"],ret.vin)
+    ret.batterydegradation = ComputeBatteryDegradation(chargestate["battery_range"], chargestate["battery_level"],
+                                                       ret.vin)
     drive_state = context["drive_state"]
     longitude = str(drive_state["longitude"])
     latitude = str(drive_state["latitude"])
