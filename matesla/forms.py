@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 from matesla.TeslaConnect import GetTokenFromLoginPW, GetVehicles, GetVehicle
 from matesla.models import TeslaToken
-
+from django.utils.translation import ugettext_lazy as _
 
 class DesiredChargeLevelForm(forms.Form):
     DesiredChargeLevel = forms.IntegerField(label='Desired Charge Level',
@@ -14,11 +14,14 @@ class DesiredChargeLevelForm(forms.Form):
 
 class AddTeslaAccountForm(forms.Form):
     # required=False means that the field can be left empty
-    TeslaUser = forms.CharField(widget=forms.TextInput, required=False)
-    TeslaPassword = forms.CharField(widget=forms.PasswordInput, required=False)
-    Token = forms.CharField(widget=forms.TextInput, max_length=64, required=False)
-    TokenRefresh = forms.CharField(widget=forms.TextInput, max_length=64, required=False)
-    CreateAt = forms.IntegerField(widget=forms.TextInput, required=False)
+    TeslaUser = forms.CharField(widget=forms.TextInput, required=False, label=_('Tesla account user'))
+    TeslaPassword = forms.CharField(widget=forms.PasswordInput, required=False, label=_('Tesla account password'))
+    Token = forms.CharField(widget=forms.TextInput, max_length=64, required=False,
+                            label=_('Tesla token (only advanced users)'))
+    TokenRefresh = forms.CharField(widget=forms.TextInput, max_length=64, required=False,
+                                   label=_('Tesla refresh token (advanced users, optional)'))
+    CreateAt = forms.IntegerField(widget=forms.TextInput, required=False,
+                                  label=_('Tesla token creation time (advanced users, optional)'))
     # Token retrieved during is valid
     token = TeslaToken()
 
@@ -33,7 +36,7 @@ class AddTeslaAccountForm(forms.Form):
         if (len(self.data['TeslaUser']) > 0 and len(self.data['TeslaPassword']) > 0):
             self.token = GetTokenFromLoginPW(self.data['TeslaUser'], self.data['TeslaPassword'])
             if self.token is not None:
-                #init vehicle
+                # init vehicle
                 self.token.vehicle_id = GetVehicle(GetVehicles(self.token.access_token))
                 return True  # Yes, valid
         # try on token
@@ -59,14 +62,14 @@ class AddTeslaAccountForm(forms.Form):
                             self.token.created_at = CreateAtVal
                     except ValueError:
                         self.token.created_at = None
-                #save vehicle id
+                # save vehicle id
                 self.token.vehicle_id = GetVehicle(vehicles)
                 self.token.expires_in = 45 * 86400  # 45 days, in s
             return True
         # something went wrong, not valid
         return False
 
-    def SaveModdel(self,user):
+    def SaveModdel(self, user):
         if self.token is None:
             return
         self.token.user_id = user

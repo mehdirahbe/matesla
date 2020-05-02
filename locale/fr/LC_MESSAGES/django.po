@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-30 01:39+0200\n"
+"POT-Creation-Date: 2020-05-02 15:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -22,6 +22,26 @@ msgstr ""
 #: accounts/templates/signup.html:16
 msgid "Sign up"
 msgstr "Créer un compte"
+
+#: matesla/forms.py:18
+msgid "Tesla account user"
+msgstr "Utilisateur du compte Tesla"
+
+#: matesla/forms.py:19
+msgid "Tesla account password"
+msgstr "Mot de passe du compte Tesla"
+
+#: matesla/forms.py:21
+msgid "Tesla token (only advanced users)"
+msgstr "Jeton Tesla (utilisateurs avancés)"
+
+#: matesla/forms.py:23
+msgid "Tesla refresh token (advanced users, optional)"
+msgstr "Jeton de rafraîchissement Tesla (utilisateurs avancés, optionel)"
+
+#: matesla/forms.py:25
+msgid "Tesla token creation time (advanced users, optional)"
+msgstr "Moment de création du jeton Tesla (utilisateurs avancés, optionel)"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:5
 #: matesla/templates/matesla/ConnectionError.html:7
@@ -47,60 +67,89 @@ msgid "Firmware Updates Stats"
 msgstr "Stats de mise à jour du firmware Tesla"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:13
-msgid "Please either enter your tesla user and password, or a token."
-msgstr "Veuillez entrer soit un utilisateur et un mot de passe valides, soit un token"
+msgid "Please either enter (one of the 2 methods):"
+msgstr "Veuillez entrer (une des 2 méthodes):"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:14
-msgid ""
-"If you submit your user, we will use it to generate a token and it will NOT "
-"be stored."
-msgstr ""
-"Si vous soumettez votre utilisateur, nous l'utiliserons pour générer un "
-"token et il ne SERA PAS stocké"
+msgid "a) your tesla credentials: user and password (recommanded method)"
+msgstr "a) Vos informations de compte Tesla: utilisateur et mot de passe (méthode recommandée)"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:15
-msgid ""
-"The token allow to connect to your Tesla car, it does expire after 45 days."
-msgstr "Le token permet de ce connecter à votre voiture Tesla, il expire après 45 jours"
+msgid "b) A token (advanced users)"
+msgstr "b) Un jeton (token), pour utilisateurs avancés"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:16
-msgid "The token alone does not allow to put your car in drive mode."
-msgstr "Le token seul ne permet pas de mettre la voiture en mode conduite."
+msgid ""
+"If you submit your user, we will use it to generate a token and your user "
+"will NOT be stored."
+msgstr ""
+"Si vous soumettez votre utilisateur, nous l'utiliserons pour générer un "
+"jeton et votre utilisateur ne SERA PAS stocké"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:17
-msgid "Token is invalidated if you change your tesla password."
-msgstr "Le token est invalidé quand vous changez votre mot de passe"
+msgid ""
+"The token allow to connect to your Tesla car, it does expire after 45 days."
+msgstr ""
+"Le jeton permet de se connecter à votre voiture Tesla, il expire après 45 "
+"jours"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:18
-msgid ""
-"Optionally, you can also provide token creation date to know when the token "
-"will expire."
-msgstr "De manière optionelle, vous pouvez également fournir une date de création du token, de manière à savoir quand ce dernier expire."
+msgid "The token alone does not allow to put your car in drive mode."
+msgstr "Le jeton seul ne permet pas de mettre la voiture en mode conduite."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:19
-msgid ""
-"The optional refresh token then allow to get automatically a new one from "
-"Tesla."
-msgstr "Le token de rafraîchissement permettra d'en obtenir automatiquement un nouveau de la part de Tesla"
+msgid "Token is invalidated if you change your tesla password."
+msgstr "Le jeton est invalidé quand vous changez votre mot de passe"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:20
 msgid ""
+"If you did choose to provide a token, optionally, you can also provide token "
+"creation date to know when the token will expire."
+msgstr ""
+"Si vous avez choisi de fournir un  jeton, de manière optionelle, vous pouvez "
+"également fournir une date de création du jeton, de manière à savoir quand "
+"ce dernier expire."
+
+#: matesla/templates/matesla/AddTeslaAccount.html:21
+msgid ""
+"The optional refresh token then allow to get automatically a new one from "
+"Tesla."
+msgstr ""
+"Le jeton de rafraîchissement permettra d'en obtenir automatiquement un "
+"nouveau de la part de Tesla"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:22
+msgid ""
 "If you only fill the token, we have no way to renew it, and this form will "
 "be presented again at expiration."
-msgstr "Si vous remplissez uniquement le token, nous n'avons aucun moyen de le renouveler, et ce formulaire vous sera à nouveau présenté à l'expiration"
+msgstr ""
+"Si vous remplissez uniquement le jeton, nous n'avons aucun moyen de le "
+"renouveler, et ce formulaire vous sera à nouveau présenté à l'expiration"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:23
+#: matesla/templates/matesla/AddTeslaAccount.html:25
 #: matesla/templates/matesla/getdesiredchargelevel.html:14
 msgid "Save"
 msgstr "Sauver"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:27
+#: matesla/templates/matesla/AddTeslaAccount.html:29
 msgid ""
-"You can run in any python console this code to obtain your token, refresh "
-"and creation time."
+"For advanced users: you can run in any python console this code to obtain "
+"your token, refresh and creation time."
 msgstr ""
-"Vous pouvez exécuter ce code dans une console Python pour obtenir votre "
-"token, token de renouvellement et date de création."
+"Pour les utilisateurs avancés: vous pouvez exécuter ce code dans une console "
+"Python pour obtenir votre jeton, jeton de renouvellement et date de création."
+
+#: matesla/templates/matesla/AddTeslaAccount.html:30
+msgid "You have to install "
+msgstr "Vous devez installer "
+
+#: matesla/templates/matesla/AddTeslaAccount.html:32
+msgid " and "
+msgstr " et "
+
+#: matesla/templates/matesla/AddTeslaAccount.html:34
+msgid " package first."
+msgstr " en premier"
 
 #: matesla/templates/matesla/ConnectionError.html:8
 #: matesla/templates/matesla/NoTeslaVehicules.html:8
@@ -310,17 +359,17 @@ msgstr "Démarrer la charge"
 msgid "Stop charge"
 msgstr "Arrêter la charge"
 
-#: mysite/settings.py:160
+#: mysite/settings.py:180
 msgid "English"
 msgstr "Anglais"
 
-#: mysite/settings.py:161
+#: mysite/settings.py:181
 msgid "Français"
 msgstr "Français"
 
-#: mysite/settings.py:162
+#: mysite/settings.py:182
 msgid "Espanol"
-msgstr ""
+msgstr "Espagnol"
 
 #: templates/registration/login.html:5 templates/registration/login.html:14
 #: templates/registration/login.html:24
