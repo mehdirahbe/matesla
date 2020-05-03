@@ -2,11 +2,14 @@ from tempfile import mktemp
 
 from django.db.models import Count, Max
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.template import loader
 import matplotlib.pyplot as plt
 import os
+from django.contrib.auth import get_user
 
 # Create your views here.
+from django.views.decorators.cache import never_cache
+
 from matesla.models import TeslaFirmwareHistory, TeslaCarInfo
 
 
@@ -64,15 +67,47 @@ def FirmwareUpdates(request):
     return GenerateBarGraph(names, values, 'Most recent Firmware updates')
 
 
-def StatsOnCarByModel(request, desiredfield, CarModel):
+def StatsOnCarByModelGraph(request, desiredfield, CarModel):
     results = TeslaCarInfo.objects.filter(car_type=CarModel).values(desiredfield).annotate(
         total=Count(desiredfield)).order_by(desiredfield)[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, desiredfield)
     return GenerateBarGraph(names, values, desiredfield)
 
 
-def StatsOnCarAllModels(request, desiredfield):
+def StatsOnCarAllModelsGraph(request, desiredfield):
     results = TeslaCarInfo.objects.values(desiredfield).annotate(
         total=Count(desiredfield)).order_by(desiredfield)[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, desiredfield)
     return GenerateBarGraph(names, values, desiredfield)
+
+
+@never_cache
+def StatsChoicePage(request):
+    return HttpResponse(loader.get_template('anonymisedstats/carstats.html').render({}, request))
+
+
+# view for admin in order to download all car info
+def GetAllRawCarInfos(request):
+    user = get_user(request)
+    if not user.is_authenticated or not user.is_superuser:
+        return HttpResponse('Accessing all raw car infos is only for admins')
+    countRows = TeslaCarInfo.objects.count()
+    if countRows == 0:
+        return HttpResponse("")
+    results = TeslaCarInfo.objects.values()
+    retAsTabDelimitted = ""
+
+    # generate heading
+    entry = results[0]
+    for fields in entry:
+        retAsTabDelimitted += fields
+        retAsTabDelimitted += "\t"
+    retAsTabDelimitted += "\n"
+
+    # then values
+    for entry in results:
+        for field in entry.values():
+            retAsTabDelimitted += str(field)
+            retAsTabDelimitted += "\t"
+        retAsTabDelimitted += "\n"
+    return HttpResponse(retAsTabDelimitted, content_type="text/plain")

@@ -9,6 +9,8 @@ A request to /articles/2005/03/ would match the third entry in the list. Django
 
 urlpatterns = [
 path('firmwareupdates', views.FirmwareUpdates, name='AnonymisedFirmwareUpdates'),
-path('<str:desiredfield>', views.StatsOnCarAllModels, name='AnonymisedStatsOnCarByModel'),
-path('<str:desiredfield>/<str:CarModel>', views.StatsOnCarByModel, name='AnonymisedStatsOnCarByModel'),
+path('StatsOnCarGraph/<str:desiredfield>', views.StatsOnCarAllModelsGraph, name='AnonymisedStatsOnCarByModel'),
+path('StatsOnCarGraph/<str:desiredfield>/<str:CarModel>', views.StatsOnCarByModelGraph, name='AnonymisedStatsOnCarByModel'),
+path('AnonymisedStatsChoicePage', views.StatsChoicePage, name='AnonymisedStatsChoicePage'),
+path('GetAllRawCarInfos', views.GetAllRawCarInfos, name='AnonymisedStatsGetAllRawCarInfos'),
 ]

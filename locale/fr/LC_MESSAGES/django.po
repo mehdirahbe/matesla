@@ -63,8 +63,8 @@ msgstr "Se déconnecter"
 #: matesla/templates/matesla/carstatus.html:10
 #: matesla/templates/matesla/getdesiredchargelevel.html:8
 #: templates/registration/login.html:10
-msgid "Firmware Updates Stats"
-msgstr "Stats de mise à jour du firmware Tesla"
+msgid "Firmware and cars Stats"
+msgstr "Stats du firmware Tesla et des voitures"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:13
 msgid "Please either enter (one of the 2 methods):"

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
+and tested with fiddle http://jsfiddle.net-->
+
+<select id="choiceGraphCriteria">
+    <option value="0"selected>Firmware most recent updates</option>
+    <option value="1">Date</option>
+    <option value="2">car_type</option>
+    <option value="3">charge_port_type</option>
+    <option value="4">exterior_color</option>
+    <option value="5">has_air_suspension</option>
+    <option value="6">has_ludicrous_mode</option>
+    <option value="7">motorized_charge_port</option>
+    <option value="8">rear_seat_heaters</option>
+    <option value="9">rhd</option>
+    <option value="10">roof_color</option>
+    <option value="11">wheel_type</option>
+    <option value="12">sentry_mode_available</option>
+    <option value="13">smart_summon_available</option>
+    <option value="14">eu_vehicle</option>
+</select>
+
+<select id="choiceSecondCriteriacar_type">
+    <option value="-1" selected>All</option>
+    <option value="0">model3</option>
+    <option value="1">models2</option>
+</select>
+
+
+<img src="{% url 'AnonymisedFirmwareUpdates' %}"/>
+{% endblock %}
+
+{% block javascript %}
+<script>
+/*also inspired from stackoverflow*/
+var pictureList = [
+/*List same entries as in select choiceGraphCriteria, but with the image URL*/
+"{% url 'AnonymisedFirmwareUpdates' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'Date' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'car_type' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'charge_port_type' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'exterior_color' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'has_air_suspension' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'has_ludicrous_mode' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'motorized_charge_port' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'rear_seat_heaters' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'rhd' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'roof_color' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'wheel_type' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'sentry_mode_available' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'smart_summon_available' %}",
+"{% url 'AnonymisedStatsOnCarByModel' 'eu_vehicle' %}",
+ ];
+
+var SecondCriteriacar_typeList = [
+/*List same entries as in select choiceSecondCriteriacar_type, but with the last part of the URL*/
+"model3",
+"models2",
+ ];
+
+function ChangeImageSourceFunction()
+{
+    var choiceGraphCriteriaSelectItem = parseInt($('#choiceGraphCriteria').val());
+    var choiceSecondCriteriacar_typeSelectItem = parseInt($('#choiceSecondCriteriacar_type').val());
+    /*If we don't have second car type criteria or we display firmware
+    not yet classified by car*/
+    if (choiceSecondCriteriacar_typeSelectItem<0 || choiceGraphCriteriaSelectItem==0)
+        $('img').attr("src",pictureList[choiceGraphCriteriaSelectItem]);
+    else
+        $('img').attr("src",pictureList[choiceGraphCriteriaSelectItem]+"\\"+SecondCriteriacar_typeList[choiceSecondCriteriacar_typeSelectItem]);
+}
+
+$('#choiceGraphCriteria').change(ChangeImageSourceFunction);
+$('#choiceSecondCriteriacar_type').change(ChangeImageSourceFunction);
+</script>
+{% endblock %}
