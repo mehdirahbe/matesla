@@ -109,7 +109,7 @@ def CreateImageFile(image):
 # color comes from codes as it seems correct and is the string we want (at least on my car)
 # wheel and carmodel comes from car info, not from car info codes due to reliability
 def CarImageFromTesla(request,color,wheel,CarModel):
-    size="300"
+    size="400"
 
     #Assume 19 as I can only identify 18 reliably as it is my car wheels
     wheelToUse="W39B"
