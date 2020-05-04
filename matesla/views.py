@@ -121,6 +121,11 @@ def Preparestatus(request, user):
                                   '{:.6f}'.format(context["latitude"]) + ',' + \
                                   '{:.6f}'.format(context["longitude"])
 
+    # allow to check if we are on deployment test server, or localhost
+    WebServerName = str(request.get_host())
+    context["IsLocalHost"] = WebServerName == "127.0.0.1:8000"
+    context["Isafternoonscrubland"] = WebServerName == "afternoon-scrubland-61531.herokuapp.com"
+
     return HttpResponse(template.render(context, request))
 
 

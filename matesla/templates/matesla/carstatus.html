@@ -111,6 +111,16 @@
         <a href="https://github.com/mehdirahbe/matesla" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
     </div>
 
+    {% if IsLocalHost %}
+    <h6>You are on local computer, to test new developments.
+    Please go on official site <a href="https://matesla.herokuapp.com" class="btn btn-danger btn-sm">https://matesla.herokuapp.com</a></h6>
+    {% endif %}
+    {% if Isafternoonscrubland %}
+    <h6>You are on afternoon-scrubland-61531.herokuapp.com, to test deployment.
+        Please go on official site <a href="https://matesla.herokuapp.com" class="btn btn-danger btn-sm">https://matesla.herokuapp.com</a></h6>
+    {% endif %}
+
+
     <!--Inspired from https://getbootstrap.com/docs/4.4/examples/carousel/
     and extended to 6 parts-->
     <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="10000">
@@ -367,6 +377,5 @@
             <span class="sr-only">Next</span>
         </a>
     </div>
-
 </div>
 {% endblock %}
