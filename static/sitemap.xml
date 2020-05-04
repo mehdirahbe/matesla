@@ -1,37 +1,172 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset
-      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
+    <!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
 
+    <url>
+        <loc>https://matesla.herokuapp.com/en/accounts/login/</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>1.00</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/fr/accounts/login/</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>1.00</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/en/accounts/signup/</loc>
+        <lastmod>2020-04-28T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/fr/accounts/signup/</loc>
+        <lastmod>2020-04-28T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
 
-<url>
-  <loc>https://matesla.herokuapp.com/en/accounts/login/</loc>
-  <lastmod>2020-04-28T15:36:09+00:00</lastmod>
-  <priority>1.00</priority>
-</url>
-<url>
-  <loc>https://matesla.herokuapp.com/fr/accounts/login/</loc>
-  <lastmod>2020-04-28T15:36:09+00:00</lastmod>
-  <priority>1.00</priority>
-</url>
-<url>
-  <loc>https://matesla.herokuapp.com/en/accounts/signup/</loc>
-  <lastmod>2020-04-28T15:36:09+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://matesla.herokuapp.com/fr/accounts/signup/</loc>
-  <lastmod>2020-04-28T15:36:09+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://matesla.herokuapp.com/anonymisedstats/firmwareupdates</loc>
-  <lastmod>2020-04-28T15:36:09+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/AnonymisedStatsChoicePage</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>1.00</priority>
+    </url>
 
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/firmwareupdates</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/car_type</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/charge_port_type</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/exterior_color</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/has_air_suspension</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/has_ludicrous_mode</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/motorized_charge_port</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/rear_seat_heaters</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/rhd</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/roof_color</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/wheel_type</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/sentry_mode_available</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/smart_summon_available</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/eu_vehicle</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/car_type/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/charge_port_type/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/exterior_color/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/has_air_suspension/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/has_ludicrous_mode/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/motorized_charge_port/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/rear_seat_heaters/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/rhd/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/roof_color/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/wheel_type/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/sentry_mode_available/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/smart_summon_available/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
+    <url>
+        <loc>https://matesla.herokuapp.com/anonymisedstats/StatsOnCarGraph/eu_vehicle/model3</loc>
+        <lastmod>2020-05-04T15:36:09+00:00</lastmod>
+        <priority>0.80</priority>
+    </url>
 
 </urlset>
