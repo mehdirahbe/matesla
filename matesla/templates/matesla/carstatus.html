@@ -112,12 +112,12 @@
     </div>
 
     {% if IsLocalHost %}
-    <h6>You are on local computer, to test new developments.
-    Please go on official site <a href="https://matesla.herokuapp.com" class="btn btn-danger btn-sm">https://matesla.herokuapp.com</a></h6>
+    <h6>{% trans 'You are on local computer, only used to test new developments.'%}
+        {% trans 'Please go on official site instead <a href="https://matesla.herokuapp.com" class="btn btn-danger btn-sm">https://matesla.herokuapp.com</a></h6>'%}
     {% endif %}
     {% if Isafternoonscrubland %}
-    <h6>You are on afternoon-scrubland-61531.herokuapp.com, to test deployment.
-        Please go on official site <a href="https://matesla.herokuapp.com" class="btn btn-danger btn-sm">https://matesla.herokuapp.com</a></h6>
+    <h6>{% trans 'You are on afternoon-scrubland-61531.herokuapp.com, only used to test deployment.'%}
+        {% trans 'Please go on official site instead <a href="https://matesla.herokuapp.com" class="btn btn-danger btn-sm">https://matesla.herokuapp.com</a></h6>'%}
     {% endif %}
 
 
