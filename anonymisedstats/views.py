@@ -15,6 +15,7 @@ from matesla.models import TeslaFirmwareHistory, TeslaCarInfo
 
 # return content as png of a bar graph with names (X), values (Y) with title
 def GenerateBarGraph(names, values, title):
+    #figsize is size in hundred of pixels
     fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(9, 3), sharey=True)
     axs.bar(names, values)
     fig.suptitle(title)

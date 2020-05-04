@@ -1,6 +1,109 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
+        {% block cssstyle %}
+        /*to avoid cut images, from https://www.w3schools.com/css/css_rwd_images.asp
+        +https://www.cssmine.com/ebook/css3-media-queries
+        Image is 400 pixels wide, see view in carimage*/
+        @media (max-width: 400px) {
+         img {
+                  width: 100%;
+                  height: auto;
+                }
+        }
+
+        .parameters_page_part {
+            display: inline-grid;
+            grid-template-columns: auto;
+            grid-template-rows: auto auto auto;
+            padding: 1mm;
+            grid-auto-flow: row;
+        }
+
+        .login_part {
+            display: inline-grid;
+            grid-template-columns: auto auto auto;
+            padding: 1mm;
+        }
+
+        .generalinfos_part {
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            padding: 1mm;
+        }
+
+        .charge_part {
+            display: inline-grid;
+            grid-template-columns: auto auto auto;
+            padding: 1mm;
+        }
+
+        .drive_part {
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            grid-template-rows: auto auto;
+            padding: 1mm;
+        }
+        .clim_part{
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            padding: 1mm;
+        }
+
+        .info_label_value {
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            padding: 1mm;
+        }
+
+        .info_label {
+            padding: 1mm;
+            text-align: left;
+        }
+        .info_value {
+             font-style:italic;
+            font-variant-caps:all-small-caps;
+           padding: 1mm;
+            text-align: right;
+        }
+
+        .commands_part {
+            display: inline-grid;
+            grid-template-columns: auto;
+            grid-template-rows: auto auto;
+            grid-auto-flow: row;
+            padding: 1mm;
+        }
+
+        .commands_part_cmd {
+            padding: 5px;
+            text-align: center;
+        }
+        <!--taken from bootstrap carousel sample,
+        https://getbootstrap.com/docs/4.4/examples/carousel/carousel.css-->
+        /* Carousel base class */
+        .carousel {
+          margin-bottom: 4rem;
+        }
+        /* Since positioning the image, we need to help out the caption */
+        .carousel-caption {
+          top: 0rem;
+          z-index: 10;
+        }
+
+        /* Declare heights because of positioning of img element */
+        /*The minimum to see all in charge item (when car is in charge) is 28*/
+        .carousel-item {
+          height: 28rem;
+        }
+        .carousel-item > img {
+          position: absolute;
+          top: 0;
+          left: 0;
+          min-width: 100%;
+          height: 28rem;
+        }
+        {% endblock %}
 
 {% block content %}
 <div class="parameters_page_part">
