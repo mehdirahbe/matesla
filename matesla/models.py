@@ -91,7 +91,7 @@ class TeslaFirmwareHistory(models.Model):
                 filter(IsArchive=False)
             for previousEntry in previousVersions:
                 previousEntry.IsArchive = True
-                previousEntry.Save()
+                previousEntry.save()
             # save it
             self.vin = newvin
             self.Version = newversion

@@ -25,8 +25,9 @@ def GenerateBarGraph(names, values, title):
     # See https://matplotlib.org/3.2.1/faq/howto_faq.html#how-to-use-matplotlib-in-a-web-application-server
     # as pyplot in webserver will generate leaks
     # result: errors 500 in heroku official, grr
-    #as defaukt dpi is 100, 9, 3 means 900*300 pixels
-    fig = Figure(figsize=[9, 3])
+    # as defaukt dpi is 100, 9, 3 means 900*300 pixels
+    # and we need more width than 9 for firmware as label are large
+    fig = Figure(figsize=[12, 3])
     ax = fig.subplots(nrows=1, ncols=1, sharey=True)
     ax.bar(names, values)
     fig.suptitle(title)
@@ -61,7 +62,11 @@ def GetNamesAndValuesFromGroupByTotalResult(results, desiredfield):
                     else:
                         names.append("False")
                 else:
-                    names.append(entry[desiredfield])
+                    name = str(entry[desiredfield])
+                    # if large (ie firmware), keep first word
+                    if len(name) > 5:
+                        name = name.split()[0]
+                    names.append(name)
         values.append(entry['total'])
     return names, values
 
