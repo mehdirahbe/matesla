@@ -1,9 +1,15 @@
+import base64
+import io
+from io import BytesIO
 from tempfile import mktemp
 
 from django.db.models import Count, Max
 from django.http import HttpResponse
 from django.template import loader
-import matplotlib.pyplot as plt
+from matplotlib.backends.backend_template import FigureCanvas
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from django.http import HttpResponse
 import os
 from django.contrib.auth import get_user
 
@@ -15,19 +21,25 @@ from matesla.models import TeslaFirmwareHistory, TeslaCarInfo
 
 # return content as png of a bar graph with names (X), values (Y) with title
 def GenerateBarGraph(names, values, title):
-    #figsize is size in hundred of pixels
-    fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(9, 3), sharey=True)
-    axs.bar(names, values)
+    # figsize is size in hundred of pixels
+    # See https://matplotlib.org/3.2.1/faq/howto_faq.html#how-to-use-matplotlib-in-a-web-application-server
+    # as pyplot in webserver will generate leaks
+    # result: errors 500 in heroku official, grr
+    #as defaukt dpi is 100, 9, 3 means 900*300 pixels
+    fig = Figure(figsize=[9, 3])
+    ax = fig.subplots(nrows=1, ncols=1, sharey=True)
+    ax.bar(names, values)
     fig.suptitle(title)
-    tempfilename = mktemp()
-    plt.savefig(tempfilename)
-    plt.close()
-    f = open(tempfilename + '.png', "rb")
-    content = f.read()
-    f.close()
-    os.remove(tempfilename + '.png')
-    # return HttpResponse(queyr)
-    return HttpResponse(content, content_type="image/png")
+    # https://stackoverflow.com/questions/49542459/error-in-django-when-using-matplotlib-examples
+    buf = io.BytesIO()
+    canvas = FigureCanvasAgg(fig)
+    canvas.print_png(buf)
+    response = HttpResponse(buf.getvalue(), content_type='image/png')
+    # if required clear the figure for reuse
+    fig.clear()
+    # I recommend to add Content-Length for Django
+    response['Content-Length'] = str(len(response.content))
+    return response
 
 
 def GetNamesAndValuesFromGroupByTotalResult(results, desiredfield):
