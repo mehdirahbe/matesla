@@ -13,4 +13,5 @@ path('StatsOnCarGraph/<str:desiredfield>', views.StatsOnCarAllModelsGraph, name=
 path('StatsOnCarGraph/<str:desiredfield>/<str:CarModel>', views.StatsOnCarByModelGraph, name='AnonymisedStatsOnCarByModel'),
 path('AnonymisedStatsChoicePage', views.StatsChoicePage, name='AnonymisedStatsChoicePage'),
 path('GetAllRawCarInfos', views.GetAllRawCarInfos, name='AnonymisedStatsGetAllRawCarInfos'),
+path('RefreshAllRawCarInfos', views.RefreshAllRawCarInfos, name='AnonymisedStatsRefreshAllRawCarInfos'),
 ]

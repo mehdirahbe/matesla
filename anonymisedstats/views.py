@@ -1,8 +1,11 @@
 import base64
 import io
+import json
+import time
 from io import BytesIO
 from tempfile import mktemp
 
+import requests
 from django.db.models import Count, Max
 from django.http import HttpResponse
 from django.template import loader
@@ -16,7 +19,8 @@ from django.contrib.auth import get_user
 # Create your views here.
 from django.views.decorators.cache import never_cache
 
-from matesla.models import TeslaFirmwareHistory, TeslaCarInfo
+from matesla.TeslaConnect import WaitForWakeUp, SaveDataHistory, SendWakeUpCommand
+from matesla.models import TeslaFirmwareHistory, TeslaCarInfo, TeslaToken, TeslaState
 
 
 # return content as png of a bar graph with names (X), values (Y) with title
@@ -129,3 +133,43 @@ def GetAllRawCarInfos(request):
             retAsTabDelimitted += "\t"
         retAsTabDelimitted += "\n"
     return HttpResponse(retAsTabDelimitted, content_type="text/plain")
+
+def RefreshOneCarInfo(vehicle_id,access_token,teslaatoken):
+    if vehicle_id is None or access_token is None:
+        return
+    api_call_headers = {'Authorization': 'Bearer ' + access_token}
+    # Loop as car is probably asleep
+    while True:
+        api_call_response = requests.get(
+            "https://owner-api.teslamotors.com/api/1/vehicles/" + str(vehicle_id) + "/vehicle_data",
+            headers=api_call_headers, verify=True)
+        # If asleep, wait 1 second
+        if api_call_response is not None and api_call_response.status_code == 408:
+            SendWakeUpCommand(access_token,vehicle_id)
+            time.sleep(1)
+            continue
+        if api_call_response is None or api_call_response.status_code != 200:
+            return  # some error
+        # save info we need
+        ret = TeslaState
+        vehicle_state = json.loads(api_call_response.text)
+        ret.vehicle_state = vehicle_state
+        context = vehicle_state["response"]
+        ret.vin = context["vin"]
+        SaveDataHistory(ret)
+        return
+
+
+# view for admin to connect to all cars to refresh infos
+def RefreshAllRawCarInfos(request):
+    user = get_user(request)
+    if not user.is_authenticated or not user.is_superuser:
+        return HttpResponse('Accessing all raw car infos is only for admins')
+    # Loop on all tokens
+    allTokens = TeslaToken.objects.values()
+    for teslaatoken in allTokens:
+        try:
+            RefreshOneCarInfo(teslaatoken['vehicle_id'], teslaatoken['access_token'],teslaatoken)
+        except Exception:
+            pass
+    return HttpResponse("Refresh done")

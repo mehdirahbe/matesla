@@ -132,17 +132,22 @@ def Connect(user):
     return newteslatoken
 
 
+def SendWakeUpCommand(access_token, vehicle_id):
+    api_call_headers = {'Authorization': 'Bearer ' + access_token}
+    api_call_response = requests.post(
+        "https://owner-api.teslamotors.com/api/1/vehicles/" + str(vehicle_id) + "/wake_up",
+        headers=api_call_headers, verify=True)
+    return api_call_response
+
+
 # return true if tesla is awake. False if still sleeping
-def WaitForWakeUp(teslaatoken):
+def WaitForWakeUp(teslaatoken: TeslaToken):
     if teslaatoken is None:
-        raise AuthenticationError
+        raise TeslaAuthenticationException
     # wait until awake, can take some time
     passes = 0
-    api_call_headers = {'Authorization': 'Bearer ' + teslaatoken.access_token}
     while True:
-        api_call_response = requests.post(
-            "https://owner-api.teslamotors.com/api/1/vehicles/" + str(teslaatoken.vehicle_id) + "/wake_up",
-            headers=api_call_headers, verify=True)
+        api_call_response = SendWakeUpCommand(teslaatoken.access_token, teslaatoken.vehicle_id)
         if api_call_response is None or api_call_response.status_code != 200:
             raise TeslaServerException()
         vehicle_state = json.loads(api_call_response.text)
