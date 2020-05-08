@@ -74,9 +74,6 @@ class AccountsTestCase(TestCase):
         self.assertEqual(response.status_code, 200, 'eu_vehicle anonymisedstats did fail')
         response = c.post('/anonymisedstats/GetAllRawCarInfos')
         self.assertEqual(response.status_code, 200, 'GetAllRawCarInfos anonymisedstats did fail')
-        response = c.post('/anonymisedstats/RefreshAllRawCarInfos')
-        self.assertEqual(response.status_code, 200, 'RefreshAllRawCarInfos anonymisedstats did fail')
-
 
     def test_BogusUrlFails(self):
         c = Client()
