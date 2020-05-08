@@ -14,6 +14,12 @@ class Command(BaseCommand):
     '''See https://medium.com/@bencleary/django-scheduled-tasks-queues-part-1-62d6b6dc24f8
     You can run this:
     python3 manage.py RefreshAllRawCarInfos
+    In heroku, it runs with a scheduled task once a day (as it has to wake up cars)
+    To add the scheduler, it is:
+    heroku addons:create scheduler:standard  -a matesla
+    Then configure it via the web interface
+    You can see execution logs like this:
+    heroku logs --ps scheduler -a matesla
     '''
 
     def RefreshOneCarInfo(self, vehicle_id, access_token):
