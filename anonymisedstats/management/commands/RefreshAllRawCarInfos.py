@@ -22,7 +22,12 @@ class Command(BaseCommand):
             return
         api_call_headers = {'Authorization': 'Bearer ' + access_token}
         # Loop as car is probably asleep
+        whichPass = 0
         while True:
+            whichPass = whichPass + 1
+            if whichPass > 10:
+                print("Give up this car, it doesn't wakeup\n")
+                return
             api_call_response = requests.get(
                 "https://owner-api.teslamotors.com/api/1/vehicles/" + str(vehicle_id) + "/vehicle_data",
                 headers=api_call_headers, verify=True)
