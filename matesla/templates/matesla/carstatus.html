@@ -35,6 +35,11 @@
             padding: 1mm;
             grid-auto-flow: row;
         }
+        @media (min-width: 600px) {
+            .charge_part {
+                grid-template-columns: auto auto;
+            }
+        }
 
         .drive_part {
             display: inline-grid;
@@ -89,16 +94,22 @@
         }
 
         /* Declare heights because of positioning of img element */
-        /*The minimum to see all in charge item (when car is in charge) is 35*/
+        /*The minimum to see all in charge item (when car is in charge) is 40,
+        when displayed in 1 col=devices with small width, ie smartphone held
+        vertically.*/
         .carousel-item {
-          height: 35rem;
+          height: 40rem;
+        }
+        @media (min-width: 600px) {
+            .carousel-item {
+              height: 30rem;
+            }
         }
         .carousel-item > img {
           position: absolute;
           top: 0;
           left: 0;
           min-width: 100%;
-          height: 35rem;
         }
         {% endblock %}
 
@@ -122,7 +133,7 @@
 
 
     <!--Inspired from https://getbootstrap.com/docs/4.4/examples/carousel/
-    and extended to 6 parts-->
+    and extended to 5 parts-->
     <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="10000">
         <ol class="carousel-indicators">
             <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
@@ -130,7 +141,6 @@
             <li data-target="#myCarousel" data-slide-to="2"></li>
             <li data-target="#myCarousel" data-slide-to="3"></li>
             <li data-target="#myCarousel" data-slide-to="4"></li>
-            <li data-target="#myCarousel" data-slide-to="5"></li>
         </ol>
         <div class="carousel-inner">
             <div class="carousel-item active">
@@ -140,8 +150,16 @@
                 </svg>
                 <div class="container">
                     <div class="carousel-caption text-center">
-                        <h5>{%trans 'Your car'%}</h5>
+                        <h5>{%trans 'Your car'%} {{display_name}}</h5>
                         <img src="{% url 'CarImageFromTesla' colorcode wheel_type car_type %}" alt="Image of your tesla">
+                    <div class="commands_part">
+                        <div class="commands_part_cmd"><a href="{% url 'flash_lights' %}" class="btn btn-primary btn-sm">{% trans 'Flash lights' %}</a></div>
+                        <div class="commands_part_cmd"><a href="{% url 'honk_horn' %}" class="btn btn-primary btn-sm">{% trans 'Honk horn (not night when people sleep)' %}</a></div>
+                        {% if charging_state != "Disconnected" %}
+                        <div class="commands_part_cmd"><a href="{% url 'charge_start' %}" class="btn btn-primary btn-sm">{% trans 'Start charge' %}</a></div>
+                        <div class="commands_part_cmd"><a href="{% url 'charge_stop' %}" class="btn btn-primary btn-sm">{% trans 'Stop charge' %}</a></div>
+                        {% endif %}
+                    </div>
                     </div>
                 </div>
             </div>
@@ -157,10 +175,6 @@
                             <div class="info_label_value">
                                 <div class="info_label">Vin</div>
                                 <div class="info_value">{{vin}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Name' %}</div>
-                                <div class="info_value">{{display_name}}</div>
                             </div>
                             <div class="info_label_value">
                                 <div class="info_label">{% trans 'State' %}</div>
@@ -345,25 +359,6 @@
                               <div class="info_value">{{driver_temp_setting}}</div>
                           </div>
                       </div>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        <h5>{%trans 'Other commands'%}</h5>
-                        <div class="commands_part">
-                            <div class="commands_part_cmd"><a href="{% url 'flash_lights' %}" class="btn btn-primary btn-sm">{% trans 'Flash lights' %}</a></div>
-                            <div class="commands_part_cmd"><a href="{% url 'honk_horn' %}" class="btn btn-primary btn-sm">{% trans 'Honk horn (not night when people sleep)' %}</a></div>
-                            {% if charging_state != "Disconnected" %}
-                            <div class="commands_part_cmd"><a href="{% url 'charge_start' %}" class="btn btn-primary btn-sm">{% trans 'Start charge' %}</a></div>
-                            <div class="commands_part_cmd"><a href="{% url 'charge_stop' %}" class="btn btn-primary btn-sm">{% trans 'Stop charge' %}</a></div>
-                            {% endif %}
-                        </div>
                     </div>
                 </div>
             </div>
