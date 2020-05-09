@@ -58,7 +58,7 @@ class TeslaCarInfo(models.Model):
         ]
         # avoid having dups in db
         constraints = [
-            models.UniqueConstraint(fields=['vin'], name='unique version of each car')
+            models.UniqueConstraint(fields=['vin'], name='TeslaCarInfo: unique version of each car')
         ]
 
     def SaveIfDontExistsYet(self, vin, context):

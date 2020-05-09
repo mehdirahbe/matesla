@@ -44,7 +44,7 @@ class TeslaFirmwareHistory(models.Model):
         ]
         # avoid having dups in db
         constraints = [
-            models.UniqueConstraint(fields=['vin', 'Version', 'Date'], name='unique version at same date for car')
+            models.UniqueConstraint(fields=['vin', 'Version', 'Date'], name='TeslaFirmwareHistory: unique version at same date for car')
         ]
 
     def SaveIfDontExistsYet(self, newvin, newversion, newcarmodel):

@@ -45,7 +45,7 @@ class TeslaCarDataSnapshot(models.Model):
         ]
         # avoid having dups in db
         constraints = [
-            models.UniqueConstraint(fields=['vin', 'Date'], name='unique version at same date for car')
+            models.UniqueConstraint(fields=['vin', 'Date'], name='TeslaCarDataSnapshot: unique version at same date for car')
         ]
 
     def SaveIfDontExistsYet(self, vin, context):

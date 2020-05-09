@@ -50,6 +50,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='teslacardatasnapshot',
-            constraint=models.UniqueConstraint(fields=('vin', 'Date'), name='unique version at same date for car'),
+            constraint=models.UniqueConstraint(fields=('vin', 'Date'), name='unique version at same date for cardup'),
         ),
     ]
