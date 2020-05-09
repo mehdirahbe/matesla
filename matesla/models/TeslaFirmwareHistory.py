@@ -2,6 +2,15 @@ import datetime
 
 from django.db import models
 
+'''note the 9 mai a migration did fail due to dups
+solution is to connect interactively and clean table then refresh firmware data
+
+heroku pg:psql -a afternoon-scrubland-61531
+to have tables: truncate table matesla_teslafirmwarehistory
+-->execute truncate table matesla_teslafirmwarehistory;
+Then refill that
+heroku run python manage.py RefreshAllRawCarInfos  -a afternoon-scrubland-61531
+'''
 
 # Data to save about firmware updates
 class TeslaFirmwareHistory(models.Model):
