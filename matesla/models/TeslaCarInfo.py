@@ -83,14 +83,20 @@ class TeslaCarInfo(models.Model):
             try:
                 self.sentry_mode_available = vehicle_state['sentry_mode_available']
             except Exception:
-                self.sentry_mode_available = None
+                self.sentry_mode_available = False
             try:
                 self.smart_summon_available = vehicle_state['smart_summon_available']
             except Exception:
-                self.smart_summon_available = None
+                self.smart_summon_available = False
             self.save()
         else:
             # update the last seen date
             previousEntry = TeslaCarInfo.objects.filter(vin=vin)[0]
             previousEntry.LastSeenDate = datetime.datetime.now()
+            # in the past we had none fields, but this is not nice is graphs-->put false instead
+            if previousEntry.sentry_mode_available is None:
+                previousEntry.sentry_mode_available = False
+            if previousEntry.smart_summon_available is None:
+                previousEntry.smart_summon_available = False
+            # Save
             previousEntry.save()

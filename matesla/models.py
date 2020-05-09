@@ -25,7 +25,3 @@ And you are good to go.
 # Create your models in models subdir
 # see https://code.djangoproject.com/wiki/CookBookSplitModelsToFiles
 
-
-
-
-

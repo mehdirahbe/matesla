@@ -6,6 +6,7 @@ import json
 from django.core.exceptions import ObjectDoesNotExist
 from geopy.geocoders import Nominatim
 
+from .models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from .models.TeslaToken import TeslaToken
 from .models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from .models.TeslaCarInfo import TeslaCarInfo
@@ -174,6 +175,9 @@ def SaveDataHistory(teslaState):
     toSave.SaveIfDontExistsYet(teslaState.vin, vehicle_state["car_version"], vehicle_config["car_type"])
     # Car infos
     toSave = TeslaCarInfo()
+    toSave.SaveIfDontExistsYet(teslaState.vin, context)
+    # Car variable infos
+    toSave=TeslaCarDataSnapshot()
     toSave.SaveIfDontExistsYet(teslaState.vin, context)
 
 
