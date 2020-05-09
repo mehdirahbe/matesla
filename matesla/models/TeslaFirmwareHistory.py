@@ -10,6 +10,10 @@ to have tables: truncate table matesla_teslafirmwarehistory
 -->execute truncate table matesla_teslafirmwarehistory;
 Then refill that
 heroku run python manage.py RefreshAllRawCarInfos  -a afternoon-scrubland-61531
+
+If migrations don't work, you can try
+heroku run python manage.py migrate --run-syncdb -a afternoon-scrubland-61531
+
 '''
 
 # Data to save about firmware updates
