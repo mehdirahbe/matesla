@@ -4,11 +4,11 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.template import loader
-from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.cache import never_cache
 
 from matesla.TeslaConnect import *
 from .forms import DesiredChargeLevelForm, AddTeslaAccountForm
+from .models.TeslaToken import TeslaToken
 
 
 @never_cache

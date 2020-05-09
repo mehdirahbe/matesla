@@ -5,7 +5,8 @@ import requests
 from django.core.management.base import BaseCommand, CommandError
 
 from matesla.TeslaConnect import SendWakeUpCommand, SaveDataHistory
-from matesla.models import TeslaToken, TeslaState
+from matesla.models.TeslaToken import TeslaToken
+from matesla.TeslaState import TeslaState
 
 
 class Command(BaseCommand):

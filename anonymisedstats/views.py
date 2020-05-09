@@ -10,7 +10,8 @@ from django.contrib.auth import get_user
 # Create your views here.
 from django.views.decorators.cache import never_cache
 
-from matesla.models import TeslaFirmwareHistory, TeslaCarInfo
+from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
+from matesla.models.TeslaCarInfo import TeslaCarInfo
 
 
 # return content as png of a bar graph with names (X), values (Y) with title

@@ -1,10 +1,8 @@
-import datetime
-
 from django import forms
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from matesla.TeslaConnect import GetTokenFromLoginPW, GetVehicles, GetVehicle
-from matesla.models import TeslaToken
+from .models.TeslaToken import TeslaToken
 from django.utils.translation import ugettext_lazy as _
 
 class DesiredChargeLevelForm(forms.Form):

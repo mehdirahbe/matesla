@@ -6,7 +6,10 @@ import json
 from django.core.exceptions import ObjectDoesNotExist
 from geopy.geocoders import Nominatim
 
-from matesla.models import TeslaToken, TeslaState, TeslaFirmwareHistory, TeslaCarInfo
+from .models.TeslaToken import TeslaToken
+from .models.TeslaFirmwareHistory import TeslaFirmwareHistory
+from .models.TeslaCarInfo import TeslaCarInfo
+from matesla.TeslaState import TeslaState
 
 
 class TeslaServerException(Exception):

@@ -3,7 +3,7 @@
 from django.conf import settings
 import django.core.validators
 from django.db import migrations, models
-import matesla.models
+import matesla.models.TeslaToken
 
 
 class Migration(migrations.Migration):
@@ -24,7 +24,8 @@ class Migration(migrations.Migration):
                 ('created_at', models.IntegerField()),
                 ('refresh_token', models.TextField()),
                 ('vehicle_id', models.TextField()),
-                ('user_id', models.ForeignKey(null=True, on_delete=models.SET(matesla.models.get_sentinel_user), to=settings.AUTH_USER_MODEL)),
+                ('user_id', models.ForeignKey(null=True, on_delete=models.SET(
+                    matesla.models.TeslaToken.get_sentinel_user), to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
@@ -33,7 +34,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('TeslaUser', models.TextField(validators=[django.core.validators.MinLengthValidator(3)])),
                 ('TeslaPassword', models.TextField(validators=[django.core.validators.MinLengthValidator(1)])),
-                ('user_id', models.ForeignKey(null=True, on_delete=models.SET(matesla.models.get_sentinel_user), to=settings.AUTH_USER_MODEL)),
+                ('user_id', models.ForeignKey(null=True, on_delete=models.SET(
+                    matesla.models.TeslaToken.get_sentinel_user), to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]
