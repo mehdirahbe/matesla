@@ -41,8 +41,8 @@ and tested with fiddle http://jsfiddle.net-->
     <option value="1">models2</option>
 </select>
 
-
 <img src="{% url 'AnonymisedFirmwareUpdates' %}"/>
+<a href="{% url 'AnonymisedFirmwareUpdatesAsCSV' %}"class="btn btn-info btn-sm">{% trans 'Download Firmware Stats' %}</a>
 {% endblock %}
 
 {% block javascript %}
