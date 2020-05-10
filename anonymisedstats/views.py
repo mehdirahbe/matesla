@@ -6,6 +6,8 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from django.http import HttpResponse
 from django.contrib.auth import get_user
+from django.db import connection
+import csv
 
 # Create your views here.
 from django.views.decorators.cache import never_cache
@@ -15,6 +17,9 @@ from matesla.models.TeslaCarInfo import TeslaCarInfo
 
 
 # return content as png of a bar graph with names (X), values (Y) with title
+from mysite.settings import DATABASES
+
+
 def GenerateBarGraph(names, values, title):
     # figsize is size in hundred of pixels
     # See https://matplotlib.org/3.2.1/faq/howto_faq.html#how-to-use-matplotlib-in-a-web-application-server
@@ -67,17 +72,24 @@ def GetNamesAndValuesFromGroupByTotalResult(results, desiredfield):
 
 
 def FirmwareUpdates(request):
-    # query 10 most popular versions
-    # queyr=TeslaFirmwareHistory.objects.values('Version').annotate(total=Count('Version')).order_by('-total')[:10].query
-    # query 10 most recent versions
-    queyr = TeslaFirmwareHistory.objects.filter(IsArchive=False).values('Version').annotate(
-        MostRecent=Max('Date')).annotate(
-        total=Count('Version')).order_by('-MostRecent')[:10].query
+    # query 10 most recent versions to not have an unreadable graph
     results = TeslaFirmwareHistory.objects.filter(IsArchive=False).values('Version').annotate(
         MostRecent=Max('Date')).annotate(
         total=Count('Version')).order_by('-MostRecent')[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, 'Version')
     return GenerateBarGraph(names, values, 'Most recent Firmware updates')
+
+
+def FirmwareUpdatesAsCSV(request):
+    # Same query as FirmwareUpdates but no top as here we can return all rows
+    query = str(TeslaFirmwareHistory.objects.filter(IsArchive=False).values('Version').annotate(
+        MostRecent=Max('Date')).annotate(
+        total=Count('Version')).order_by('-MostRecent').query)
+    # grr sql lite want 0 for false and generated query use false-->adapt
+    if DATABASES['default']['ENGINE'].find('sqlite') >= 0:
+        query = query.replace('False', '0')
+
+    return PrepareCSVFromQuery(query)
 
 
 def StatsOnCarByModelGraph(request, desiredfield, CarModel):
@@ -99,28 +111,37 @@ def StatsChoicePage(request):
     return HttpResponse(loader.get_template('anonymisedstats/carstats.html').render({}, request))
 
 
+def PrepareCSVFromQuery(query):
+    # from https://docs.djangoproject.com/en/3.0/topics/db/sql/ for sql
+    # from https://docs.djangoproject.com/en/3.0/howto/outputting-csv/ for csv
+
+    # prepare csv response (browser should know that)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="AllRawCarInfos.csv"'
+    writer = csv.writer(response)
+
+    # connect to SQL
+    with connection.cursor() as cursor:
+        results = cursor.execute(query)
+
+        # generate heading
+        title = []
+        for col in cursor.description:
+            title.append(col[0])  # index 0 seems to be name
+        writer.writerow(title)
+
+        # then values
+        for row in cursor.fetchall():
+            values = []
+            for field in row:
+                values.append(str(field))
+            writer.writerow(values)
+        return response
+
+
 # view for admin in order to download all car info
 def GetAllRawCarInfos(request):
     user = get_user(request)
     if not user.is_authenticated or not user.is_superuser:
         return HttpResponse('Accessing all raw car infos is only for admins')
-    countRows = TeslaCarInfo.objects.count()
-    if countRows == 0:
-        return HttpResponse("")
-    results = TeslaCarInfo.objects.values()
-    retAsTabDelimitted = ""
-
-    # generate heading
-    entry = results[0]
-    for fields in entry:
-        retAsTabDelimitted += fields
-        retAsTabDelimitted += "\t"
-    retAsTabDelimitted += "\n"
-
-    # then values
-    for entry in results:
-        for field in entry.values():
-            retAsTabDelimitted += str(field)
-            retAsTabDelimitted += "\t"
-        retAsTabDelimitted += "\n"
-    return HttpResponse(retAsTabDelimitted, content_type="text/plain")
+    return PrepareCSVFromQuery('select * from matesla_teslacarinfo;')
