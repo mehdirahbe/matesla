@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-05 00:38+0200\n"
+"POT-Creation-Date: 2020-05-10 12:24+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -23,23 +23,27 @@ msgstr ""
 msgid "Sign up"
 msgstr "Créer un compte"
 
-#: matesla/forms.py:17
+#: anonymisedstats/templates/anonymisedstats/carstats.html:45
+msgid "Download Firmware Stats"
+msgstr "Télécharger les stats du Firmware"
+
+#: matesla/forms.py:15
 msgid "Tesla account user"
 msgstr "Utilisateur du compte Tesla"
 
-#: matesla/forms.py:18
+#: matesla/forms.py:16
 msgid "Tesla account password"
 msgstr "Mot de passe du compte Tesla"
 
-#: matesla/forms.py:20
+#: matesla/forms.py:18
 msgid "Tesla token (only advanced users)"
 msgstr "Jeton Tesla (utilisateurs avancés)"
 
-#: matesla/forms.py:22
+#: matesla/forms.py:20
 msgid "Tesla refresh token (advanced users, optional)"
 msgstr "Jeton de rafraîchissement Tesla (utilisateurs avancés, optionel)"
 
-#: matesla/forms.py:24
+#: matesla/forms.py:22
 msgid "Tesla token creation time (advanced users, optional)"
 msgstr "Moment de création du jeton Tesla (utilisateurs avancés, optionel)"
 
@@ -49,7 +53,7 @@ msgstr "Moment de création du jeton Tesla (utilisateurs avancés, optionel)"
 #: matesla/templates/matesla/TeslaServerCmdFail.html:7
 #: matesla/templates/matesla/TeslaServerError.html:7
 #: matesla/templates/matesla/asleep.html:7
-#: matesla/templates/matesla/carstatus.html:108
+#: matesla/templates/matesla/carstatus.html:119
 #: matesla/templates/matesla/getdesiredchargelevel.html:6
 msgid "logout"
 msgstr "Se déconnecter"
@@ -60,7 +64,7 @@ msgstr "Se déconnecter"
 #: matesla/templates/matesla/TeslaServerCmdFail.html:9
 #: matesla/templates/matesla/TeslaServerError.html:9
 #: matesla/templates/matesla/asleep.html:9
-#: matesla/templates/matesla/carstatus.html:110
+#: matesla/templates/matesla/carstatus.html:121
 #: matesla/templates/matesla/getdesiredchargelevel.html:8
 #: templates/registration/login.html:10
 msgid "Firmware and cars Stats"
@@ -158,7 +162,7 @@ msgstr " en premier"
 #: matesla/templates/matesla/TeslaServerCmdFail.html:8
 #: matesla/templates/matesla/TeslaServerError.html:8
 #: matesla/templates/matesla/asleep.html:8
-#: matesla/templates/matesla/carstatus.html:109
+#: matesla/templates/matesla/carstatus.html:120
 #: matesla/templates/matesla/getdesiredchargelevel.html:7
 msgid "Tesla account"
 msgstr "Compte Tesla"
@@ -196,20 +200,27 @@ msgstr "Le serveur Tesla a renvoyé une erreur"
 msgid "Your tesla is asleep"
 msgstr "Votre tesla est endormie"
 
-#: matesla/templates/matesla/carstatus.html:115
-msgid "You are on local computer, only used to test new developments."
-msgstr "Vous êtes sur l'ordinateur local, utilisé uniquement pour tester de nouveaux développements.."
+#: matesla/templates/matesla/carstatus.html:123
+msgid "Download my Data"
+msgstr "Télécharger mes données"
 
-#: matesla/templates/matesla/carstatus.html:116
-#: matesla/templates/matesla/carstatus.html:120
+#: matesla/templates/matesla/carstatus.html:128
+msgid "You are on local computer, only used to test new developments."
+msgstr ""
+"Vous êtes sur l'ordinateur local, utilisé uniquement pour tester de nouveaux "
+"développements.."
+
+#: matesla/templates/matesla/carstatus.html:129
+#: matesla/templates/matesla/carstatus.html:133
 msgid ""
 "Please go on official site instead <a href=\"https://matesla.herokuapp.com\" "
 "class=\"btn btn-danger btn-sm\">https://matesla.herokuapp.com</a></h6>"
 msgstr ""
-"Veuillez aller à la place sur le site officiel <a href=\"https://matesla.herokuapp.com\" "
-"class=\"btn btn-danger btn-sm\">https://matesla.herokuapp.com</a></h6>"
+"Veuillez aller à la place sur le site officiel <a href=\"https://matesla."
+"herokuapp.com\" class=\"btn btn-danger btn-sm\">https://matesla.herokuapp."
+"com</a></h6>"
 
-#: matesla/templates/matesla/carstatus.html:119
+#: matesla/templates/matesla/carstatus.html:132
 msgid ""
 "You are on afternoon-scrubland-61531.herokuapp.com, only used to test "
 "deployment."
@@ -217,204 +228,196 @@ msgstr ""
 "Vous êtes sur afternoon-scrubland-61531.herokuapp.com, utilisé uniquement "
 "pour tester le déploiement."
 
-#: matesla/templates/matesla/carstatus.html:143
+#: matesla/templates/matesla/carstatus.html:155
 msgid "Your car"
 msgstr "Votre voiture"
 
-#: matesla/templates/matesla/carstatus.html:155
+#: matesla/templates/matesla/carstatus.html:158
+msgid "Flash lights"
+msgstr "Faire clignoter les phares"
+
+#: matesla/templates/matesla/carstatus.html:159
+msgid "Honk horn (not night when people sleep)"
+msgstr "Faire klaxoner (pas la nuit quand les gens dorment)"
+
+#: matesla/templates/matesla/carstatus.html:161
+msgid "Start charge"
+msgstr "Démarrer la charge"
+
+#: matesla/templates/matesla/carstatus.html:162
+msgid "Stop charge"
+msgstr "Arrêter la charge"
+
+#: matesla/templates/matesla/carstatus.html:175
 msgid "General information"
 msgstr "Informations générales"
 
-#: matesla/templates/matesla/carstatus.html:162
-msgid "Name"
-msgstr "Nom"
-
-#: matesla/templates/matesla/carstatus.html:166
+#: matesla/templates/matesla/carstatus.html:182
 msgid "State"
 msgstr "Etat"
 
-#: matesla/templates/matesla/carstatus.html:170
+#: matesla/templates/matesla/carstatus.html:186
 msgid "Is car locked"
 msgstr "Verrouillée?"
 
-#: matesla/templates/matesla/carstatus.html:173
+#: matesla/templates/matesla/carstatus.html:189
 msgid "Yes, unlock?"
 msgstr "Oui, déverrouiller?"
 
-#: matesla/templates/matesla/carstatus.html:175
+#: matesla/templates/matesla/carstatus.html:191
 msgid "No, lock?"
 msgstr "Non, verrouiller?"
 
-#: matesla/templates/matesla/carstatus.html:180
+#: matesla/templates/matesla/carstatus.html:196
 msgid "Car type"
 msgstr "Type de voiture"
 
-#: matesla/templates/matesla/carstatus.html:184
+#: matesla/templates/matesla/carstatus.html:200
 msgid "Exterior color"
 msgstr "Couleur extérieure"
 
-#: matesla/templates/matesla/carstatus.html:188
+#: matesla/templates/matesla/carstatus.html:204
 msgid "Wheel"
 msgstr "Roues"
 
-#: matesla/templates/matesla/carstatus.html:192
+#: matesla/templates/matesla/carstatus.html:208
 msgid "Firmware version"
 msgstr "Version firmware"
 
-#: matesla/templates/matesla/carstatus.html:196
+#: matesla/templates/matesla/carstatus.html:212
 msgid "Sentry"
 msgstr "Sentry"
 
-#: matesla/templates/matesla/carstatus.html:199
-#: matesla/templates/matesla/carstatus.html:208
+#: matesla/templates/matesla/carstatus.html:215
+#: matesla/templates/matesla/carstatus.html:224
 msgid "Active, stop?"
 msgstr "Actif, stop?"
 
-#: matesla/templates/matesla/carstatus.html:201
-#: matesla/templates/matesla/carstatus.html:210
+#: matesla/templates/matesla/carstatus.html:217
+#: matesla/templates/matesla/carstatus.html:226
 msgid "Inactive, start?"
 msgstr "Inactif, démarrer?"
 
-#: matesla/templates/matesla/carstatus.html:206
+#: matesla/templates/matesla/carstatus.html:222
 msgid "Valet mode"
 msgstr "Mode valet"
 
-#: matesla/templates/matesla/carstatus.html:225
+#: matesla/templates/matesla/carstatus.html:241
 msgid "Charge status"
 msgstr "Status de charge"
 
-#: matesla/templates/matesla/carstatus.html:228
+#: matesla/templates/matesla/carstatus.html:244
 #, python-format
 msgid "Battery level %%"
 msgstr "Niveau batterie %%"
 
-#: matesla/templates/matesla/carstatus.html:232
+#: matesla/templates/matesla/carstatus.html:248
 msgid "Battery range km"
 msgstr "Range de la batterie km"
 
-#: matesla/templates/matesla/carstatus.html:236
+#: matesla/templates/matesla/carstatus.html:252
 msgid "Battery charge"
 msgstr "Batterie en charge"
 
-#: matesla/templates/matesla/carstatus.html:241
+#: matesla/templates/matesla/carstatus.html:257
 #, python-format
 msgid "Battery degradation in %%"
 msgstr "Dégradation de la batterie en %%"
 
-#: matesla/templates/matesla/carstatus.html:246
+#: matesla/templates/matesla/carstatus.html:262
 #, python-format
 msgid "Battery charge limit %%"
 msgstr "Limite de charge de la batterie en %%"
 
-#: matesla/templates/matesla/carstatus.html:251
+#: matesla/templates/matesla/carstatus.html:267
 msgid "Charge port"
 msgstr "Port de charge"
 
-#: matesla/templates/matesla/carstatus.html:255
+#: matesla/templates/matesla/carstatus.html:271
 msgid "Is Charge port open"
 msgstr "Port de charge ouvert"
 
-#: matesla/templates/matesla/carstatus.html:258
+#: matesla/templates/matesla/carstatus.html:274
 msgid "Yes, close?"
 msgstr "Oui, fermer?"
 
-#: matesla/templates/matesla/carstatus.html:260
+#: matesla/templates/matesla/carstatus.html:276
 msgid "No, open?"
 msgstr "Non, ouvrir?"
 
-#: matesla/templates/matesla/carstatus.html:266
+#: matesla/templates/matesla/carstatus.html:282
 msgid "Voltage in V"
 msgstr "Voltage en V"
 
-#: matesla/templates/matesla/carstatus.html:270
+#: matesla/templates/matesla/carstatus.html:286
 msgid "Current in A"
 msgstr "Courant en A"
 
-#: matesla/templates/matesla/carstatus.html:274
+#: matesla/templates/matesla/carstatus.html:290
 msgid "Power in kW"
 msgstr "Puissance en kW"
 
-#: matesla/templates/matesla/carstatus.html:278
+#: matesla/templates/matesla/carstatus.html:294
 msgid "Number of phases"
 msgstr "Nombre de phases"
 
-#: matesla/templates/matesla/carstatus.html:282
+#: matesla/templates/matesla/carstatus.html:298
 msgid "Time left in minutes"
 msgstr "Temps restant en minutes"
 
-#: matesla/templates/matesla/carstatus.html:297
+#: matesla/templates/matesla/carstatus.html:313
 msgid "Drive and location"
 msgstr "Conduite et emplacement"
 
-#: matesla/templates/matesla/carstatus.html:300
+#: matesla/templates/matesla/carstatus.html:316
 msgid "Speed"
 msgstr "Vitesse"
 
-#: matesla/templates/matesla/carstatus.html:304
+#: matesla/templates/matesla/carstatus.html:320
 msgid "Location"
 msgstr "Addresse"
 
-#: matesla/templates/matesla/carstatus.html:309
+#: matesla/templates/matesla/carstatus.html:325
 msgid "Odometer"
 msgstr "Odometre"
 
-#: matesla/templates/matesla/carstatus.html:323
+#: matesla/templates/matesla/carstatus.html:339
 msgid "Climate information"
 msgstr "Climatisation"
 
-#: matesla/templates/matesla/carstatus.html:326
+#: matesla/templates/matesla/carstatus.html:342
 msgid "Is climate on"
 msgstr "Climatisation"
 
-#: matesla/templates/matesla/carstatus.html:329
+#: matesla/templates/matesla/carstatus.html:345
 msgid "Yes, stop?"
 msgstr "Oui, arrêter?"
 
-#: matesla/templates/matesla/carstatus.html:331
+#: matesla/templates/matesla/carstatus.html:347
 msgid "No, start?"
 msgstr "Non, démarrer?"
 
-#: matesla/templates/matesla/carstatus.html:336
+#: matesla/templates/matesla/carstatus.html:352
 msgid "Inside temperature"
 msgstr "Température intérieure"
 
-#: matesla/templates/matesla/carstatus.html:340
+#: matesla/templates/matesla/carstatus.html:356
 msgid "Outside temperature"
 msgstr "Température extérieure"
 
-#: matesla/templates/matesla/carstatus.html:344
+#: matesla/templates/matesla/carstatus.html:360
 msgid "Driver Temperature setting"
 msgstr "Température pour le conducteur"
 
-#: matesla/templates/matesla/carstatus.html:358
-msgid "Other commands"
-msgstr "Autres commandes"
-
-#: matesla/templates/matesla/carstatus.html:360
-msgid "Flash lights"
-msgstr "Faire clignoter les phares"
-
-#: matesla/templates/matesla/carstatus.html:361
-msgid "Honk horn (not night when people sleep)"
-msgstr "Faire klaxoner (pas la nuit quand les gens dorment)"
-
-#: matesla/templates/matesla/carstatus.html:363
-msgid "Start charge"
-msgstr "Démarrer la charge"
-
-#: matesla/templates/matesla/carstatus.html:364
-msgid "Stop charge"
-msgstr "Arrêter la charge"
-
-#: mysite/settings.py:180
+#: mysite/settings.py:196
 msgid "English"
 msgstr "Anglais"
 
-#: mysite/settings.py:181
+#: mysite/settings.py:197
 msgid "Français"
 msgstr "Français"
 
-#: mysite/settings.py:182
+#: mysite/settings.py:198
 msgid "Espanol"
 msgstr "Espagnol"
 
@@ -443,3 +446,9 @@ msgstr ""
 #: templates/registration/login.html:29
 msgid "Have fun and you are the most welcome if you want to contribute :-)"
 msgstr "Amusez vous, vous êtes les bienvenus si vous voulez contribuer :-)"
+
+#~ msgid "Name"
+#~ msgstr "Nom"
+
+#~ msgid "Other commands"
+#~ msgstr "Autres commandes"

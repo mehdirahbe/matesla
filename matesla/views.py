@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.template import loader
 from django.views.decorators.cache import never_cache
 
+from anonymisedstats.views import PrepareCSVFromQuery
 from matesla.TeslaConnect import *
 from .forms import DesiredChargeLevelForm, AddTeslaAccountForm
 from .models.TeslaToken import TeslaToken
@@ -274,3 +275,16 @@ def view_charge_start(request):
 @never_cache
 def view_charge_stop(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'charge_stop'))
+
+
+def AllMyDataAsCSV(user):
+    vin = JustGetTheVin(user)
+    query = "select * from matesla_teslacardatasnapshot where vin='" + vin + "';"
+    return PrepareCSVFromQuery(query)
+
+
+# returns data stored in db for the user is CSV-->the only info from the car
+# we need is the vin to filter results
+@never_cache
+def view_AllMyDataAsCSV(request):
+    return singleAction(request, lambda request, user: AllMyDataAsCSV(user), True)
