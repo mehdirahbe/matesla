@@ -262,8 +262,8 @@ def GetEPARange(vin):
         # Same thing here... 2020 EPA range seems not used
         EPARange = 240  # https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=41416
     if model == "S" and isDual == True:
-        if year <= 2018:
-            EPARange = 259  # for the 75D https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=39838
+        # no need to test year as 259 seems constant for 75D
+        EPARange = 259  # for the 75D https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=39838
     return EPARange, model, isDual, year
 
 
