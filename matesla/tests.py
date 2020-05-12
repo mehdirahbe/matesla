@@ -1,10 +1,10 @@
 from django.test import TestCase
 # Inspired from https://docs.djangoproject.com/en/3.0/topics/testing/tools/
 from django.test import Client
-from django.urls import path
 
 # Inspired from https://docs.djangoproject.com/en/3.0/topics/testing/overview/
 # Create your tests here.
+from matesla.TeslaConnect import GetEPARange
 from matesla.urls import urlpatterns
 from matesla.views import returnColorFronContext, ValidColorCodes
 
@@ -49,7 +49,27 @@ class MaTeslaTestCase(TestCase):
         for url in allURLs:
             for lang in {"fr", "en"}:
                 response = c.post("/" + lang + '/' + url)
-                self.assertEqual(response.status_code, 302, lang + ' url '+url+' did work without looged user')
+                self.assertEqual(response.status_code, 302, lang + ' url ' + url + ' did work without looged user')
             response = c.post('/' + url)
             # test on 302 as it must redirect to a login in right language
-            self.assertEqual(response.status_code, 302, 'int url '+url+' did work without looged user')
+            self.assertEqual(response.status_code, 302, 'int url ' + url + ' did work without looged user')
+
+    def test_VinFunctions(self):
+        vin = '5YJ3E7EB1KF123456'
+        EPARange, model, isDual, year = GetEPARange(vin)
+        self.assertEqual(model, "3", "5YJ3E7EB1KF123456 is from a model 3")
+        self.assertEqual(year, 2019, "5YJ3E7EB1KF123456 is from 2019")
+        self.assertEqual(isDual, True, "5YJ3E7EB1KF123456 is dual motor")
+        self.assertEqual(EPARange, 310, "5YJ3E7EB1KF123456 has a range of 310")
+        vin = '5YJ3E7EA4LF123456'
+        EPARange, model, isDual, year = GetEPARange(vin)
+        self.assertEqual(model, "3", "5YJ3E7EA4LF123456 is from a model 3")
+        self.assertEqual(year, 2020, "5YJ3E7EA4LF123456 is from 2020")
+        self.assertEqual(isDual, False, "5YJ3E7EA4LF123456 is single motor")
+        self.assertEqual(EPARange, 240, "5YJ3E7EA4LF123456 has a range of 240")
+        vin = '5YJSA7E2XJF123456'
+        EPARange, model, isDual, year = GetEPARange(vin)
+        self.assertEqual(model, "S", "5YJSA7E2XJF123456 is from a model S")
+        self.assertEqual(year, 2018, "5YJSA7E2XJF123456 is from 2018")
+        self.assertEqual(isDual, True, "5YJSA7E2XJF123456 is dual motor")
+        self.assertEqual(EPARange, 259, "5YJSA7E2XJF123456 has a range of 259")
