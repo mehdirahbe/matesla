@@ -4,7 +4,7 @@ from django.db.models import Count, Max
 from django.template import loader
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from django.contrib.auth import get_user
 from django.db import connection
 import csv
@@ -14,7 +14,6 @@ from django.views.decorators.cache import never_cache
 
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.TeslaCarInfo import TeslaCarInfo
-
 
 # return content as png of a bar graph with names (X), values (Y) with title
 from mysite.settings import DATABASES
@@ -93,6 +92,12 @@ def FirmwareUpdatesAsCSV(request):
 
 
 def StatsOnCarByModelGraph(request, desiredfield, CarModel):
+    # Check that it is one field from the TeslaCarInfo
+    validFields = TeslaCarInfo.__dict__
+    if desiredfield is None or desiredfield not in validFields:
+        # means invalid desiredfield field was passed
+        return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield)
+
     results = TeslaCarInfo.objects.filter(car_type=CarModel).values(desiredfield).annotate(
         total=Count(desiredfield)).order_by(desiredfield)[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, desiredfield)
@@ -100,6 +105,12 @@ def StatsOnCarByModelGraph(request, desiredfield, CarModel):
 
 
 def StatsOnCarAllModelsGraph(request, desiredfield):
+    # Check that it is one field from the TeslaCarInfo
+    validFields = TeslaCarInfo.__dict__
+    if desiredfield is None or desiredfield not in validFields:
+        # means invalid desiredfield field was passed
+        return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield)
+
     results = TeslaCarInfo.objects.values(desiredfield).annotate(
         total=Count(desiredfield)).order_by(desiredfield)[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, desiredfield)
