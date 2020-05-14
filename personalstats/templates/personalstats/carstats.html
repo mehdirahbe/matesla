@@ -5,66 +5,191 @@
         /*to avoid cut images, from https://www.w3schools.com/css/css_rwd_images.asp
         +https://www.cssmine.com/ebook/css3-media-queries
         Image is 1200 pixels wide, see figsize in view*/
-        @media (max-width: 1200px) {
+        @media (max-width: 1500px) {
          img {
                   width: 100%;
                   height: auto;
                 }
         }
+
+        <!--taken from bootstrap carousel sample,
+        https://getbootstrap.com/docs/4.4/examples/carousel/carousel.css-->
+        /* Carousel base class */
+        .carousel {
+          margin-bottom: 1rem;
+        }
+        /* Since positioning the image, we need to help out the caption */
+        .carousel-caption {
+          top: 0rem;
+          z-index: 10;
+        }
+
+        /* Declare heights because of positioning of img element */
+        /*The minimum to see all in charge item (when car is in charge) is 40,
+        when displayed in 1 col=devices with small width, ie smartphone held
+        vertically.*/
+        .carousel-item {
+          height: 40rem;
+        }
+        .carousel-item > img {
+          position: absolute;
+          top: 0;
+          left: 0;
+          min-width: 100%;
+        }
+
+
 {% endblock %}
 
 {% block content %}
-<!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
-and tested with fiddle http://jsfiddle.net-->
-<!--todo
-<select id="choiceGraphCriteria">
-    <option value="1"selected>battery_level</option>
-    <option value="2"selected>battery_range</option>
-    <option value="3"selected>charge_limit_soc</option>
-    <option value="4"selected>charge_rate</option>
-    <option value="5"selected>charger_actual_current</option>
-    <option value="6"selected>charger_phases</option>
-    <option value="7"selected>charger_power</option>
-    <option value="8"selected>charger_voltage</option>
-    <option value="9"selected>est_battery_range</option>
-    <option value="10"selected>fast_charger_present</option>
-    <option value="12"selected>usable_battery_level</option>
-    <option value="13"selected>climate_keeper_mode</option>
-    <option value="14"selected>driver_temp_setting</option>
-    <option value="15"selected>inside_temp</option>
-    <option value="16"selected>is_climate_on</option>
-    <option value="17"selected>outside_temp</option>
-    <option value="18"selected>passenger_temp_setting</option>
-    <option value="19"selected>latitude</option>
-    <option value="20"selected>longitude</option>
-    <option value="21"selected>power</option>
-    <option value="22"selected>speed</option>
-    <option value="23"selected>odometer</option>
-</select>
--->
-<img src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}"/>
-<a href="{% url 'AllMyDataAsCSV' hashedVin %}"class="btn btn-info btn-sm">{% trans 'Download my Data' %}</a>
+    <a href="{% url 'AllMyDataAsCSV' hashedVin %}"class="btn btn-info btn-sm">{% trans 'Download my Data' %}</a>
+
+    <!--Inspired from https://getbootstrap.com/docs/4.4/examples/carousel/
+    and extended to 4 parts-->
+    <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="10000">
+        <ol class="carousel-indicators">
+            <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+            <li data-target="#myCarousel" data-slide-to="1"></li>
+            <li data-target="#myCarousel" data-slide-to="2"></li>
+        </ol>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
+                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
+                    <rect width="100%" height="100%" fill="#443737"/>
+                </svg>
+                <div class="container">
+                    <div class="carousel-caption text-center">
+                        <h5>{%trans 'Charge related'%}</h5>
+                        <img id="chargeGraphImg" src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}"/>
+                        <!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
+                        and tested with fiddle http://jsfiddle.net-->
+                        <select id="chargeGraphCriteria">
+                            <option value="0"selected>battery_level</option>
+                            <option value="1">battery_range</option>
+                            <option value="2">charge_limit_soc</option>
+                            <option value="3">charge_rate</option>
+                            <option value="4">charger_actual_current</option>
+                            <option value="5">charger_phases</option>
+                            <option value="6">charger_power</option>
+                            <option value="7">charger_voltage</option>
+                            <option value="8">est_battery_range</option>
+                            <option value="9">usable_battery_level</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
+                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
+                    <rect width="100%" height="100%" fill="#443737"/>
+                </svg>
+                <div class="container">
+                    <div class="carousel-caption text-center">
+                        <h5>{%trans 'Temperature related'%}</h5>
+                        <img id="temperatureGraphImg" src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 5%}"/>
+                        <select id="temperatureGraphCriteria">
+                            <option value="0"selected>outside_temp</option>
+                            <option value="1">driver_temp_setting</option>
+                            <option value="2">inside_temp</option>
+                            <option value="3">passenger_temp_setting</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
+                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
+                    <rect width="100%" height="100%" fill="#443737"/>
+                </svg>
+                <div class="container">
+                    <div class="carousel-caption text-center">
+                        <h5>{%trans 'Drive related'%}</h5>
+                        <img id="driveGraphImg" src="{% url 'StatsOnCarGraph' hashedVin 'odometer' 5%}"/>
+                        <select id="driveGraphCriteria">
+                            <option value="0"selected>odometer</option>
+                            <option value="1">speed</option>
+                            <option value="2">latitude</option>
+                            <option value="3">longitude</option>
+                            <option value="4">power</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+        </a>
+        <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+        </a>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block javascript %}
 <script>
 /*also inspired from stackoverflow*/
-/*
-var pictureList = [
-/*List same entries as in select choiceGraphCriteria, but with the image URL*/
-    <option value="1"selected>battery_level</option>
-    <option value="2"selected>battery_range</option>
-"{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'battery_range' 5%}",
+//For temperature carousel item
+var temperaturepictureList = [
+/*List same entries as in select temperatureGraphCriteria, but with the image URL*/
+"{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'driver_temp_setting' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'inside_temp' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'passenger_temp_setting' 5%}",
  ];
 
-function ChangeImageSourceFunction()
+function ChangeTemperatureImageSourceFunction()
 {
-    var choiceGraphCriteriaSelectItem = parseInt($('#choiceGraphCriteria').val());
-    $('img').attr("src",pictureList[choiceGraphCriteriaSelectItem-1]);
+    var choiceSelectItem = parseInt($('#temperatureGraphCriteria').val());
+    $('#temperatureGraphImg').attr("src",temperaturepictureList[choiceSelectItem]);
 }
 
-$('#choiceGraphCriteria').change(ChangeImageSourceFunction);
-*/
+$('#temperatureGraphCriteria').change(ChangeTemperatureImageSourceFunction);
+
+//For drive carousel item
+var drivepictureList = [
+/*List same entries as in select driveGraphCriteria, but with the image URL*/
+"{% url 'StatsOnCarGraph' hashedVin 'odometer' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'speed' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'latitude' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'longitude' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'power' 5%}",
+ ];
+
+function ChangeDriveImageSourceFunction()
+{
+    var choiceSelectItem = parseInt($('#driveGraphCriteria').val());
+    $('#driveGraphImg').attr("src",drivepictureList[choiceSelectItem]);
+}
+
+$('#driveGraphCriteria').change(ChangeDriveImageSourceFunction);
+
+//For charge carousel item
+var chargepictureList = [
+/*List same entries as in select chargeGraphCriteria, but with the image URL*/
+"{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'battery_range' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charge_limit_soc' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charge_rate' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charger_actual_current' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charger_phases' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charger_power' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charger_voltage' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'est_battery_range' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'usable_battery_level' 5%}",
+ ];
+
+function ChangeChargeImageSourceFunction()
+{
+    var choiceSelectItem = parseInt($('#chargeGraphCriteria').val());
+    $('#chargeGraphImg').attr("src",chargepictureList[choiceSelectItem]);
+}
+
+$('#chargeGraphCriteria').change(ChangeChargeImageSourceFunction);
+
 </script>
 {% endblock %}

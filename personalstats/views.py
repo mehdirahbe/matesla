@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 from django.template import loader
+from django.views.decorators.cache import never_cache
 
 from anonymisedstats.views import PrepareCSVFromQuery
 from matesla.models.VinHash import HashTheVin, IsValidHash
@@ -18,7 +19,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 
 def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title):
     # From https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.plot_date.html
-    fig = Figure(figsize=[12, 3])
+    fig = Figure(figsize=[12, 5])
 
     formatter = DateFormatter('%m/%d/%y')
 
@@ -28,6 +29,7 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title):
         ax.plot_date(datesList, avgvalues)
         ax.plot_date(datesList, maxvalues)
         ax.xaxis.set_major_formatter(formatter)
+        ax.ticklabel_format(axis='y', useOffset=False, style='plain')
     fig.suptitle(title)
     # https://stackoverflow.com/questions/49542459/error-in-django-when-using-matplotlib-examples
     buf = io.BytesIO()
@@ -54,6 +56,7 @@ def GetDatesAndValuesFromGroupByDateResult(results):
     return dates, maxvalues, minvalues, avgvalues
 
 
+@never_cache
 def StatsOnCarGraph(request, hashedVin, desiredfield, numberofdays):
     if not IsValidHash(hashedVin):
         # means invalid hashedVin field was passed
@@ -75,6 +78,7 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, numberofdays):
     return GenerateDateGraph(dates, maxvalues, minvalues, avgvalues, desiredfield)
 
 
+@never_cache
 def Stats(request, hashedVin):
     if not IsValidHash(hashedVin):
         # means invalid hashedVin field was passed
