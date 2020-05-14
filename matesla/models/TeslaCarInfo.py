@@ -1,10 +1,13 @@
 import datetime
 from django.db import models
-
+from matesla.models.VinHash import HashTheVin
 
 # Data to save about car info which cannot change
+
+
 class TeslaCarInfo(models.Model):
     vin = models.TextField()  # vin of the car
+    hashedVin = models.TextField(null=True)  # hash of the vin, to use in URL of graphs
     Date = models.DateField()  # First date where that car was detected
     LastSeenDate = models.DateField()  # Last date where that car was seen
     # names are the ones that tesla returns
@@ -28,6 +31,7 @@ class TeslaCarInfo(models.Model):
         indexes = [
             # for SaveIfDontExistsYet
             models.Index(fields=['vin']),
+            models.Index(fields=['hashedVin']),
             # for stats on the field
             models.Index(fields=['car_type']),
             models.Index(fields=['charge_port_type']),
@@ -65,6 +69,7 @@ class TeslaCarInfo(models.Model):
         if TeslaCarInfo.objects.filter(vin=vin).count() == 0:
             # Add the car
             self.vin = vin
+            self.hashedVin = HashTheVin(vin)
             self.Date = self.LastSeenDate = datetime.datetime.now()
             vehicle_config = context['vehicle_config']
             self.car_type = vehicle_config['car_type']

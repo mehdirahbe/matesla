@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'carimage.apps.CarimageConfig',
     'anonymisedstats.apps.AnonymisedstatsConfig',
+    'personalstats.apps.PersonalstatsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -168,8 +169,12 @@ To use postgres local db.
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'mrtestdb',
+        'USER': 'mr',
+        'PASSWORD': 'b6zn4o',
+        'HOST': 'localhost',
+        'PORT': '5433',
     }
 }
 

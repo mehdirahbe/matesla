@@ -6,13 +6,15 @@ from django.core.management.base import BaseCommand
 
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaToken import TeslaToken
+from matesla.models.VinHash import HashTheVin
+
 
 class Command(BaseCommand):
     help = 'Runs through token and save all car inf' \
            'os. Do not wake them, let them sleep'
 
     '''You can run this:
-    python3 manage.py RefreshAllRawCarInfos
+    python3 manage.py TakeTeslaCarDataSnapshot
     For scheduler details, see refreshallrawcarinfos.py
     '''
 
@@ -35,7 +37,15 @@ class Command(BaseCommand):
         print("Info refreshed for " + context["display_name"] + "\n")
         return
 
+    # in case some vin don't have their hash, as field was added after 1 week
+    def UpdateHashVin(self):
+        alltoUpdate = TeslaCarDataSnapshot.objects.filter(hashedVin__isnull=True)
+        for entry in alltoUpdate:
+            entry.hashedVin = HashTheVin(entry.vin)
+            entry.save(update_fields=['hashedVin'])
+
     def handle(self, *args, **options):
+        self.UpdateHashVin()
         # Loop on all tokens
         allTokens = TeslaToken.objects.values()
         countCars = 0

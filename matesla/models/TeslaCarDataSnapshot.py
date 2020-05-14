@@ -1,10 +1,13 @@
 from django.utils import timezone
 from django.db import models
-
+from matesla.models.VinHash import HashTheVin
 
 # Data to save car info which change
+
+
 class TeslaCarDataSnapshot(models.Model):
     vin = models.TextField()  # vin of the car (allow to link with TeslaCarInfo is necessary)
+    hashedVin = models.TextField(null=True)  # hash of the vin, to use in URL of graphs
     Date = models.DateTimeField(default=timezone.now)  # When the data was taken
     # From charge_state
     battery_level = models.IntegerField()  # IE 71
@@ -42,16 +45,19 @@ class TeslaCarDataSnapshot(models.Model):
         indexes = [
             # to retrieve easily all infos on a car
             models.Index(fields=['vin']),
+            models.Index(fields=['hashedVin']),
         ]
         # avoid having dups in db
         constraints = [
-            models.UniqueConstraint(fields=['vin', 'Date'], name='TeslaCarDataSnapshot: unique version at same date for car')
+            models.UniqueConstraint(fields=['vin', 'Date'],
+                                    name='TeslaCarDataSnapshot: unique version at same date for car')
         ]
 
     def SaveIfDontExistsYet(self, vin, context):
         if TeslaCarDataSnapshot.objects.filter(vin=vin).filter(Date=timezone.now()).count() == 0:
             # Add the car
             self.vin = vin
+            self.hashedVin = HashTheVin(vin)
             # From charge_state
             charge_state = context['charge_state']
             self.battery_level = charge_state['battery_level']
@@ -77,7 +83,7 @@ class TeslaCarDataSnapshot(models.Model):
             self.usable_battery_level = charge_state['usable_battery_level']
             # From climate_state
             climate_state = context['climate_state']
-            #Why did tesla put a text value for this?
+            # Why did tesla put a text value for this?
             if climate_state['climate_keeper_mode'] == 'off':
                 self.climate_keeper_mode = False
             else:

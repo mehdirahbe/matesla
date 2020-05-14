@@ -30,14 +30,15 @@ with the current configuration having zh-cn and en activated, will have URLs as:
 
 urlpatterns = [
 path('carimage/', include('carimage.urls')),
-path('anonymisedstats/', include('anonymisedstats.urls'))
 ]
 
 
 urlpatterns += i18n_patterns(
+    path('anonymisedstats/', include('anonymisedstats.urls')),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
     # TemplateView.as_view(template_name='the file to use.html')
-    path('', include('matesla.urls'))
+    path('', include('matesla.urls')),
+    path('personalstats/', include('personalstats.urls'))
 )

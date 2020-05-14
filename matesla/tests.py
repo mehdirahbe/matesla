@@ -30,8 +30,7 @@ allURLs = {'',
            'matesla/chargeport_open',
            'matesla/chargeport_close',
            'matesla/charge_start',
-           'matesla/charge_stop',
-           'matesla/AllMyDataAsCSV'}
+           'matesla/charge_stop'}
 
 
 class MaTeslaTestCase(TestCase):

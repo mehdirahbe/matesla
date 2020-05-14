@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block cssstyle %}
+        /*to avoid cut images, from https://www.w3schools.com/css/css_rwd_images.asp
+        +https://www.cssmine.com/ebook/css3-media-queries
+        Image is 1200 pixels wide, see figsize in view*/
+        @media (max-width: 1200px) {
+         img {
+                  width: 100%;
+                  height: auto;
+                }
+        }
+{% endblock %}
+
+{% block content %}
+<!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
+and tested with fiddle http://jsfiddle.net-->
+
+<select id="choiceGraphCriteria">
+    <option value="1"selected>battery_level</option>
+    <option value="2"selected>battery_range</option>
+    <option value="3"selected>charge_limit_soc</option>
+    <option value="4"selected>charge_rate</option>
+    <option value="5"selected>charger_actual_current</option>
+    <option value="6"selected>charger_phases</option>
+    <option value="7"selected>charger_power</option>
+    <option value="8"selected>charger_voltage</option>
+    <option value="9"selected>est_battery_range</option>
+    <option value="10"selected>fast_charger_present</option>
+    <option value="12"selected>usable_battery_level</option>
+    <option value="13"selected>climate_keeper_mode</option>
+    <option value="14"selected>driver_temp_setting</option>
+    <option value="15"selected>inside_temp</option>
+    <option value="16"selected>is_climate_on</option>
+    <option value="17"selected>outside_temp</option>
+    <option value="18"selected>passenger_temp_setting</option>
+    <option value="19"selected>latitude</option>
+    <option value="20"selected>longitude</option>
+    <option value="21"selected>power</option>
+    <option value="22"selected>speed</option>
+    <option value="23"selected>odometer</option>
+</select>
+
+<img src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}"/>
+<a href="{% url 'AllMyDataAsCSV' hashedVin %}"class="btn btn-info btn-sm">{% trans 'Download my Data' %}</a>
+{% endblock %}
+
+{% block javascript %}
+<script>
+/*also inspired from stackoverflow*/
+var pictureList = [
+/*List same entries as in select choiceGraphCriteria, but with the image URL*/
+    <option value="1"selected>battery_level</option>
+    <option value="2"selected>battery_range</option>
+"{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'battery_range' 5%}",
+ ];
+
+function ChangeImageSourceFunction()
+{
+    var choiceGraphCriteriaSelectItem = parseInt($('#choiceGraphCriteria').val());
+    $('img').attr("src",pictureList[choiceGraphCriteriaSelectItem-1]);
+}
+
+$('#choiceGraphCriteria').change(ChangeImageSourceFunction);
+</script>
+{% endblock %}

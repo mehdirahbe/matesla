@@ -1,5 +1,4 @@
 import datetime
-
 import requests
 import json
 
@@ -11,7 +10,6 @@ from .models.TeslaToken import TeslaToken
 from .models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from .models.TeslaCarInfo import TeslaCarInfo
 from matesla.TeslaState import TeslaState
-
 
 class TeslaServerException(Exception):
     pass
@@ -290,23 +288,6 @@ def ComputeBatteryDegradation(batteryrange, battery_level, vin):
     if batterydegradation < 0.:  # don't return negative degradation
         batterydegradation = 0.
     return batterydegradation
-
-
-# Just get the vin, don't wake up car
-def JustGetTheVin(user):
-    teslaatoken = Connect(user)
-    api_call_headers = {'Authorization': 'Bearer ' + teslaatoken.access_token}
-    api_call_response = requests.get(
-        "https://owner-api.teslamotors.com/api/1/vehicles/" + str(teslaatoken.vehicle_id) + "/vehicle_data",
-        headers=api_call_headers, verify=True)
-    if api_call_response is not None and api_call_response.status_code == 408:
-        return json.loads(api_call_response.text)["response"]["vin"]  # asleep, don't care vin is present
-    if api_call_response is not None and api_call_response.status_code == 401:
-        raise TeslaUnauthorisedException
-    if api_call_response is None or api_call_response.status_code != 200:
-        raise TeslaServerException()
-    return json.loads(api_call_response.text)["response"]["vin"]  # car is awake
-
 
 # returns params as TeslaState
 def ParamsConnectedTesla(user):
