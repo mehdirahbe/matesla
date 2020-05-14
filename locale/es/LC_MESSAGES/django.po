@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-10 12:24+0200\n"
+"POT-Creation-Date: 2020-05-14 12:56+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -183,7 +183,7 @@ msgid "Your tesla is asleep"
 msgstr ""
 
 #: matesla/templates/matesla/carstatus.html:123
-msgid "Download my Data"
+msgid "My data"
 msgstr ""
 
 #: matesla/templates/matesla/carstatus.html:128
@@ -384,16 +384,20 @@ msgstr ""
 msgid "Driver Temperature setting"
 msgstr ""
 
-#: mysite/settings.py:196
+#: mysite/settings.py:201
 msgid "English"
 msgstr ""
 
-#: mysite/settings.py:197
+#: mysite/settings.py:202
 msgid "Français"
 msgstr ""
 
-#: mysite/settings.py:198
+#: mysite/settings.py:203
 msgid "Espanol"
+msgstr ""
+
+#: personalstats/templates/personalstats/carstats.html:46
+msgid "Download my Data"
 msgstr ""
 
 #: templates/registration/login.html:5 templates/registration/login.html:14

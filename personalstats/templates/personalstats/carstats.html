@@ -16,7 +16,7 @@
 {% block content %}
 <!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
 and tested with fiddle http://jsfiddle.net-->
-
+<!--todo
 <select id="choiceGraphCriteria">
     <option value="1"selected>battery_level</option>
     <option value="2"selected>battery_range</option>
@@ -41,7 +41,7 @@ and tested with fiddle http://jsfiddle.net-->
     <option value="22"selected>speed</option>
     <option value="23"selected>odometer</option>
 </select>
-
+-->
 <img src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}"/>
 <a href="{% url 'AllMyDataAsCSV' hashedVin %}"class="btn btn-info btn-sm">{% trans 'Download my Data' %}</a>
 {% endblock %}
@@ -49,6 +49,7 @@ and tested with fiddle http://jsfiddle.net-->
 {% block javascript %}
 <script>
 /*also inspired from stackoverflow*/
+/*
 var pictureList = [
 /*List same entries as in select choiceGraphCriteria, but with the image URL*/
     <option value="1"selected>battery_level</option>
@@ -64,5 +65,6 @@ function ChangeImageSourceFunction()
 }
 
 $('#choiceGraphCriteria').change(ChangeImageSourceFunction);
+*/
 </script>
 {% endblock %}
