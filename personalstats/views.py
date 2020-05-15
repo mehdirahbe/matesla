@@ -1,18 +1,16 @@
-from django.shortcuts import redirect
+import io
+
+from django.db.models import Max, Min, Avg
+from django.db.models.functions import TruncDate
+from django.http import HttpResponse, HttpResponseNotFound
 from django.template import loader
-from django.views.decorators.cache import never_cache
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.dates import (DateFormatter)
+from matplotlib.figure import Figure
 
 from anonymisedstats.views import PrepareCSVFromQuery
-from matesla.models.VinHash import HashTheVin, IsValidHash
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
-from matplotlib.dates import (YEARLY, DateFormatter, rrulewrapper, RRuleLocator, drange)
-from django.contrib.auth import get_user
-import io
-from django.db.models import Count, Max, Min, Avg
-from django.db.models.functions import TruncDate
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from django.http import HttpResponse, HttpResponseNotFound
+from matesla.models.VinHash import IsValidHash
 
 
 # Create your views here.
@@ -56,7 +54,8 @@ def GetDatesAndValuesFromGroupByDateResult(results):
     return dates, maxvalues, minvalues, avgvalues
 
 
-@never_cache
+#allow to disable cache when improving graphs and you want a constant reload
+#@never_cache
 def StatsOnCarGraph(request, hashedVin, desiredfield, numberofdays):
     if not IsValidHash(hashedVin):
         # means invalid hashedVin field was passed
@@ -78,7 +77,8 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, numberofdays):
     return GenerateDateGraph(dates, maxvalues, minvalues, avgvalues, desiredfield)
 
 
-@never_cache
+#allow to disable cache when improving HTML and you want a constant reload
+#@never_cache
 def Stats(request, hashedVin):
     if not IsValidHash(hashedVin):
         # means invalid hashedVin field was passed
