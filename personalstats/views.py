@@ -23,9 +23,12 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title):
 
     ax = fig.subplots()
     if datesList is not None and minvalues is not None:
-        ax.plot_date(datesList, minvalues)
-        ax.plot_date(datesList, avgvalues)
-        ax.plot_date(datesList, maxvalues)
+        # See for line styles: https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot.html#matplotlib.pyplot.plot
+        # and for possible args https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot_date.html#matplotlib.pyplot.plot_date
+        ax.plot_date(datesList, minvalues, linestyle='-', label='Min')
+        ax.plot_date(datesList, avgvalues, linestyle='-', label='Avg')
+        ax.plot_date(datesList, maxvalues, linestyle='-', label='Max')
+        ax.legend()  # https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.legend.html#matplotlib.axes.Axes.legend
         ax.xaxis.set_major_formatter(formatter)
         ax.ticklabel_format(axis='y', useOffset=False, style='plain')
     fig.suptitle(title)
@@ -54,8 +57,8 @@ def GetDatesAndValuesFromGroupByDateResult(results):
     return dates, maxvalues, minvalues, avgvalues
 
 
-#allow to disable cache when improving graphs and you want a constant reload
-#@never_cache
+# allow to disable cache when improving graphs and you want a constant reload
+# @never_cache
 def StatsOnCarGraph(request, hashedVin, desiredfield, numberofdays):
     if not IsValidHash(hashedVin):
         # means invalid hashedVin field was passed
@@ -72,13 +75,14 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, numberofdays):
 
     results = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin) \
         .values(date=TruncDate('Date')) \
-        .annotate(max_val=Max(desiredfield)).annotate(min_val=Min(desiredfield)).annotate(avg_val=Avg(desiredfield))
+        .annotate(max_val=Max(desiredfield)).annotate(min_val=Min(desiredfield)). \
+        annotate(avg_val=Avg(desiredfield)).order_by('date')
     dates, maxvalues, minvalues, avgvalues = GetDatesAndValuesFromGroupByDateResult(results)
     return GenerateDateGraph(dates, maxvalues, minvalues, avgvalues, desiredfield)
 
 
-#allow to disable cache when improving HTML and you want a constant reload
-#@never_cache
+# allow to disable cache when improving HTML and you want a constant reload
+# @never_cache
 def Stats(request, hashedVin):
     if not IsValidHash(hashedVin):
         # means invalid hashedVin field was passed
