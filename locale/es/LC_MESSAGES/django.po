@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-14 12:56+0200\n"
+"POT-Creation-Date: 2020-05-16 11:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -283,7 +283,7 @@ msgstr ""
 
 #: matesla/templates/matesla/carstatus.html:244
 #, python-format
-msgid "Battery level %%"
+msgid "Battery level (%%)"
 msgstr ""
 
 #: matesla/templates/matesla/carstatus.html:248
@@ -296,12 +296,12 @@ msgstr ""
 
 #: matesla/templates/matesla/carstatus.html:257
 #, python-format
-msgid "Battery degradation in %%"
+msgid "Battery degradation (%%)"
 msgstr ""
 
 #: matesla/templates/matesla/carstatus.html:262
 #, python-format
-msgid "Battery charge limit %%"
+msgid "Battery charge limit (%%)"
 msgstr ""
 
 #: matesla/templates/matesla/carstatus.html:267
@@ -344,7 +344,7 @@ msgstr ""
 msgid "Drive and location"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:316
+#: matesla/templates/matesla/carstatus.html:316 personalstats/views.py:28
 msgid "Speed"
 msgstr ""
 
@@ -396,8 +396,104 @@ msgstr ""
 msgid "Espanol"
 msgstr ""
 
-#: personalstats/templates/personalstats/carstats.html:46
+#: personalstats/templates/personalstats/carstats.html:45
 msgid "Download my Data"
+msgstr ""
+
+#: personalstats/templates/personalstats/carstats.html:63
+msgid "Charge related graphs"
+msgstr ""
+
+#: personalstats/templates/personalstats/carstats.html:89
+msgid "Temperature related graphs"
+msgstr ""
+
+#: personalstats/templates/personalstats/carstats.html:107
+msgid "Drive related graphs"
+msgstr ""
+
+#: personalstats/views.py:23
+msgid "Outside temperature (°C)"
+msgstr ""
+
+#: personalstats/views.py:24
+msgid "Driver temperature (°C)"
+msgstr ""
+
+#: personalstats/views.py:25
+msgid "Inside temperature (°C)"
+msgstr ""
+
+#: personalstats/views.py:26
+msgid "Passenger temperature (°C)"
+msgstr ""
+
+#: personalstats/views.py:27
+msgid "Odometer (miles)"
+msgstr ""
+
+#: personalstats/views.py:29
+msgid "Latitude"
+msgstr ""
+
+#: personalstats/views.py:30
+msgid "Longitude"
+msgstr ""
+
+#: personalstats/views.py:31
+msgid "Power"
+msgstr ""
+
+#: personalstats/views.py:32
+msgid "Battery level (%)"
+msgstr ""
+
+#: personalstats/views.py:33
+msgid "Battery range (miles)"
+msgstr ""
+
+#: personalstats/views.py:34
+msgid "Battery charge limit (%)"
+msgstr ""
+
+#: personalstats/views.py:35
+msgid "Charge rate"
+msgstr ""
+
+#: personalstats/views.py:36
+msgid "Charger actual current (A)"
+msgstr ""
+
+#: personalstats/views.py:37
+msgid "Charger phases"
+msgstr ""
+
+#: personalstats/views.py:38
+msgid "Charger power (kW)"
+msgstr ""
+
+#: personalstats/views.py:39
+msgid "Charger voltage (V)"
+msgstr ""
+
+#: personalstats/views.py:40
+msgid "Estimated battery range (miles)"
+msgstr ""
+
+#: personalstats/views.py:41
+msgid "Usable battery level (%)"
+msgstr ""
+
+#: personalstats/views.py:70
+msgid "Minimum"
+msgstr ""
+
+#: personalstats/views.py:71
+msgid "Average"
+msgstr ""
+
+#: personalstats/views.py:72
+msgid "Maximum"
 msgstr ""
 
 #: templates/registration/login.html:5 templates/registration/login.html:14

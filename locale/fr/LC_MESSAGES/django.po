@@ -2,13 +2,11 @@
 # Copyright (C) 2020
 # This file is distributed under the same license as the PACKAGE package.
 # Mehdi Rahman <mehdirahbvd@gmail.com>, 2020.
-#
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-14 12:56+0200\n"
+"POT-Creation-Date: 2020-05-16 11:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -308,8 +306,8 @@ msgstr "Status de charge"
 
 #: matesla/templates/matesla/carstatus.html:244
 #, python-format
-msgid "Battery level %%"
-msgstr "Niveau batterie %%"
+msgid "Battery level (%%)"
+msgstr "Niveau batterie (%%)"
 
 #: matesla/templates/matesla/carstatus.html:248
 msgid "Battery range km"
@@ -321,13 +319,13 @@ msgstr "Batterie en charge"
 
 #: matesla/templates/matesla/carstatus.html:257
 #, python-format
-msgid "Battery degradation in %%"
-msgstr "Dégradation de la batterie en %%"
+msgid "Battery degradation (%%)"
+msgstr "Dégradation de la batterie (%%)"
 
 #: matesla/templates/matesla/carstatus.html:262
 #, python-format
-msgid "Battery charge limit %%"
-msgstr "Limite de charge de la batterie en %%"
+msgid "Battery charge limit (%%)"
+msgstr "Limite de charge de la batterie (%%)"
 
 #: matesla/templates/matesla/carstatus.html:267
 msgid "Charge port"
@@ -369,7 +367,7 @@ msgstr "Temps restant en minutes"
 msgid "Drive and location"
 msgstr "Conduite et emplacement"
 
-#: matesla/templates/matesla/carstatus.html:316
+#: matesla/templates/matesla/carstatus.html:316 personalstats/views.py:28
 msgid "Speed"
 msgstr "Vitesse"
 
@@ -421,9 +419,105 @@ msgstr "Français"
 msgid "Espanol"
 msgstr "Espagnol"
 
-#: personalstats/templates/personalstats/carstats.html:46
+#: personalstats/templates/personalstats/carstats.html:45
 msgid "Download my Data"
 msgstr "Télécharger mes données"
+
+#: personalstats/templates/personalstats/carstats.html:63
+msgid "Charge related graphs"
+msgstr "Graphes liés à la charge"
+
+#: personalstats/templates/personalstats/carstats.html:89
+msgid "Temperature related graphs"
+msgstr "Graphes liés à la température"
+
+#: personalstats/templates/personalstats/carstats.html:107
+msgid "Drive related graphs"
+msgstr "Graphes liés à la conduite"
+
+#: personalstats/views.py:23
+msgid "Outside temperature (°C)"
+msgstr "Température extérieure (°C)"
+
+#: personalstats/views.py:24
+msgid "Driver temperature (°C)"
+msgstr "Température pour le conducteur (°C)"
+
+#: personalstats/views.py:25
+msgid "Inside temperature (°C)"
+msgstr "Température intérieure (°C)"
+
+#: personalstats/views.py:26
+msgid "Passenger temperature (°C)"
+msgstr "Température intérieure (°C)"
+
+#: personalstats/views.py:27
+msgid "Odometer (miles)"
+msgstr "Odometre (miles)"
+
+#: personalstats/views.py:29
+msgid "Latitude"
+msgstr "Latitude"
+
+#: personalstats/views.py:30
+msgid "Longitude"
+msgstr "Longitude"
+
+#: personalstats/views.py:31
+msgid "Power"
+msgstr "Puissance"
+
+#: personalstats/views.py:32
+msgid "Battery level (%)"
+msgstr "Niveau batterie (%)"
+
+#: personalstats/views.py:33
+msgid "Battery range (miles)"
+msgstr "Range de la batterie (miles)"
+
+#: personalstats/views.py:34
+msgid "Battery charge limit (%)"
+msgstr "Limite de charge de la batterie (%)"
+
+#: personalstats/views.py:35
+msgid "Charge rate"
+msgstr "Vitesse de charge"
+
+#: personalstats/views.py:36
+msgid "Charger actual current (A)"
+msgstr "Courant actuel de charge (A)"
+
+#: personalstats/views.py:37
+msgid "Charger phases"
+msgstr "Nombre de phases"
+
+#: personalstats/views.py:38
+msgid "Charger power (kW)"
+msgstr "Puissance de charge (kW)"
+
+#: personalstats/views.py:39
+msgid "Charger voltage (V)"
+msgstr "Voltage de charge (V)"
+
+#: personalstats/views.py:40
+msgid "Estimated battery range (miles)"
+msgstr "Range estimé de la batterie (miles)"
+
+#: personalstats/views.py:41
+msgid "Usable battery level (%)"
+msgstr "Niveau utilisable batterie (%)"
+
+#: personalstats/views.py:70
+msgid "Minimum"
+msgstr "Minimum"
+
+#: personalstats/views.py:71
+msgid "Average"
+msgstr "Moyenne"
+
+#: personalstats/views.py:72
+msgid "Maximum"
+msgstr "Maximum"
 
 #: templates/registration/login.html:5 templates/registration/login.html:14
 #: templates/registration/login.html:24
@@ -450,6 +544,9 @@ msgstr ""
 #: templates/registration/login.html:29
 msgid "Have fun and you are the most welcome if you want to contribute :-)"
 msgstr "Amusez vous, vous êtes les bienvenus si vous voulez contribuer :-)"
+
+#~ msgid "Battery degradation (%)"
+#~ msgstr "Dégradation de la batterie (%)"
 
 #~ msgid "Name"
 #~ msgstr "Nom"
