@@ -14,6 +14,13 @@ it is not returned and due to invalid codes, it is impossible to know exact car
 from matesla.VinAnalysis import GetModelFromVin, IsDualMotor, GetYearFromVin
 from matesla.models.TeslaCarInfo import TeslaCarInfo
 
+# Return range in miles from cache
+def GetEPARangeFromCache(vin):
+    carInfos = TeslaCarInfo.objects.filter(vin=vin)
+    if len(carInfos) > 0 and carInfos[0].EPARange is not None:
+        return carInfos[0].EPARange
+    return None
+
 
 def GetEPARange(vin):
     # Do we already have it?
@@ -72,12 +79,18 @@ def UpdateBatteryDegradation(vin, EPARange):
         carInfo.EPARange = EPARange
         carInfo.save()
 
+#return battery degradation in % with batteryrange vs EPARange (in miles) and battery_level (in %)
+def ComputeBatteryDegradationFromEPARange(batteryrange, battery_level, EPARange):
+    if EPARange is None:
+        return None
+    batterydegradation = (1. - ((1. * batteryrange) / (battery_level * 1.) * 100.) / EPARange) * 100.
+    return batterydegradation
 
 def ComputeBatteryDegradation(batteryrange, battery_level, vin):
     EPARange, model, isDual, year = GetEPARange(vin)
     if EPARange is None:
         return None
-    batterydegradation = (1. - ((1. * batteryrange) / (battery_level * 1.) * 100.) / EPARange) * 100.
+    batterydegradation = ComputeBatteryDegradationFromEPARange(batteryrange, battery_level, EPARange)
     if model == "3" and isDual is False and batterydegradation < -5:
         '''From https://en.wikipedia.org/wiki/Tesla_Model_3
         RWD: 325 miles (523 km) combined
@@ -85,14 +98,14 @@ def ComputeBatteryDegradation(batteryrange, battery_level, vin):
         probably the LR single motor. It would be nice if someone
         with that model confirms'''
         EPARange = 325.
-        batterydegradation = (1. - ((1. * batteryrange) / (battery_level * 1.) * 100.) / EPARange) * 100.
+        batterydegradation = ComputeBatteryDegradationFromEPARange(batteryrange, battery_level, EPARange)
         if batterydegradation >= 0.:
             UpdateBatteryDegradation(vin, EPARange)
     if model == "S" and isDual == True and batterydegradation < 0:
         # see all the range for 85, 90, 100 kwh batteries https://en.wikipedia.org/wiki/Tesla_Model_S
         ranges = [270., 294., 335.]
         for EPARange in ranges:
-            batterydegradation = (1. - ((1. * batteryrange) / (battery_level * 1.) * 100.) / EPARange) * 100.
+            batterydegradation = ComputeBatteryDegradationFromEPARange(batteryrange, battery_level, EPARange)
             if batterydegradation >= 0.:
                 UpdateBatteryDegradation(vin, EPARange)
                 return batterydegradation

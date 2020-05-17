@@ -34,6 +34,7 @@ class PersonalStatsTestCase(TestCase):
                 "charger_voltage",
                 "est_battery_range",
                 "usable_battery_level",
+                "battery_degradation",
         }
 
         # bar chart on car infos

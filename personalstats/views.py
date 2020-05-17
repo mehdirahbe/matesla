@@ -38,7 +38,9 @@ def GetTitleForFieldDico():
         'charger_power': _('Charger power (kW)'),
         'charger_voltage': _('Charger voltage (V)'),
         'est_battery_range': _('Estimated battery range (miles)'),
-        'usable_battery_level': _('Usable battery level (%)')}
+        'usable_battery_level': _('Usable battery level (%)'),
+        'battery_degradation': _('Battery degradation (%)'),
+    }
     return dico
 
 # Return a nice title for field

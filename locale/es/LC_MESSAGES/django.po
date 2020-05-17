@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-16 11:01+0200\n"
+"POT-Creation-Date: 2020-05-17 13:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,7 +23,7 @@ msgstr ""
 msgid "Sign up"
 msgstr ""
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:45
+#: anonymisedstats/templates/anonymisedstats/carstats.html:48
 msgid "Download Firmware Stats"
 msgstr ""
 
@@ -484,15 +484,19 @@ msgstr ""
 msgid "Usable battery level (%)"
 msgstr ""
 
-#: personalstats/views.py:70
-msgid "Minimum"
-msgstr ""
-
-#: personalstats/views.py:71
-msgid "Average"
+#: personalstats/views.py:42
+msgid "Battery degradation (%)"
 msgstr ""
 
 #: personalstats/views.py:72
+msgid "Minimum"
+msgstr ""
+
+#: personalstats/views.py:73
+msgid "Average"
+msgstr ""
+
+#: personalstats/views.py:74
 msgid "Maximum"
 msgstr ""
 

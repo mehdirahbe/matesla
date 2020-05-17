@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-16 11:01+0200\n"
+"POT-Creation-Date: 2020-05-17 13:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -21,7 +21,7 @@ msgstr ""
 msgid "Sign up"
 msgstr "Créer un compte"
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:45
+#: anonymisedstats/templates/anonymisedstats/carstats.html:48
 msgid "Download Firmware Stats"
 msgstr "Télécharger les stats du Firmware"
 
@@ -507,15 +507,19 @@ msgstr "Range estimé de la batterie (miles)"
 msgid "Usable battery level (%)"
 msgstr "Niveau utilisable batterie (%)"
 
-#: personalstats/views.py:70
+#: personalstats/views.py:42
+msgid "Battery degradation (%)"
+msgstr "Dégradation de la batterie (%)"
+
+#: personalstats/views.py:72
 msgid "Minimum"
 msgstr "Minimum"
 
-#: personalstats/views.py:71
+#: personalstats/views.py:73
 msgid "Average"
 msgstr "Moyenne"
 
-#: personalstats/views.py:72
+#: personalstats/views.py:74
 msgid "Maximum"
 msgstr "Maximum"
 
@@ -544,9 +548,6 @@ msgstr ""
 #: templates/registration/login.html:29
 msgid "Have fun and you are the most welcome if you want to contribute :-)"
 msgstr "Amusez vous, vous êtes les bienvenus si vous voulez contribuer :-)"
-
-#~ msgid "Battery degradation (%)"
-#~ msgstr "Dégradation de la batterie (%)"
 
 #~ msgid "Name"
 #~ msgstr "Nom"

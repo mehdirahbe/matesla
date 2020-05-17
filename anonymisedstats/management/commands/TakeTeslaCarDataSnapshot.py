@@ -4,6 +4,7 @@ import time
 import requests
 from django.core.management.base import BaseCommand
 
+from matesla.BatteryDegradation import ComputeBatteryDegradationFromEPARange, GetEPARangeFromCache
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaToken import TeslaToken
 from matesla.models.VinHash import HashTheVin
@@ -37,15 +38,25 @@ class Command(BaseCommand):
         print("Info refreshed for " + context["display_name"] + "\n")
         return
 
-    # in case some vin don't have their hash, as field was added after 1 week
-    def UpdateHashVin(self):
-        alltoUpdate = TeslaCarDataSnapshot.objects.filter(hashedVin__isnull=True)
+    # in case some vin don't have some fields, as field was added later
+    # intended to be run one shot
+    def UpdateNewlyAddedFields(self):
+        alltoUpdate = TeslaCarDataSnapshot.objects.filter(battery_degradation__isnull=True)
+        vinToEPARange = {}
         for entry in alltoUpdate:
-            entry.hashedVin = HashTheVin(entry.vin)
-            entry.save(update_fields=['hashedVin'])
+            # get EPA range, use cache to not do same query all the time to car info table
+            if entry.vin in vinToEPARange:
+                EPARange = vinToEPARange[entry.vin]
+            else:
+                EPARange = GetEPARangeFromCache(entry.vin)
+
+            entry.battery_degradation = ComputeBatteryDegradationFromEPARange(
+                entry.battery_range, entry.battery_level, EPARange)
+
+            entry.save(update_fields=['battery_degradation'])
 
     def handle(self, *args, **options):
-        self.UpdateHashVin()
+        self.UpdateNewlyAddedFields()
         # Loop on all tokens
         allTokens = TeslaToken.objects.values()
         countCars = 0
