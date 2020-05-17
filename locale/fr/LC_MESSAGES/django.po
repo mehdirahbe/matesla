@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-17 13:45+0200\n"
+"POT-Creation-Date: 2020-05-17 22:18+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -423,15 +423,19 @@ msgstr "Espagnol"
 msgid "Download my Data"
 msgstr "Télécharger mes données"
 
-#: personalstats/templates/personalstats/carstats.html:63
+#: personalstats/templates/personalstats/carstats.html:64
+msgid "Battery degradation graphs"
+msgstr "Graphes de dégradation de la batterie"
+
+#: personalstats/templates/personalstats/carstats.html:84
 msgid "Charge related graphs"
 msgstr "Graphes liés à la charge"
 
-#: personalstats/templates/personalstats/carstats.html:89
+#: personalstats/templates/personalstats/carstats.html:109
 msgid "Temperature related graphs"
 msgstr "Graphes liés à la température"
 
-#: personalstats/templates/personalstats/carstats.html:107
+#: personalstats/templates/personalstats/carstats.html:127
 msgid "Drive related graphs"
 msgstr "Graphes liés à la conduite"
 
@@ -511,15 +515,15 @@ msgstr "Niveau utilisable batterie (%)"
 msgid "Battery degradation (%)"
 msgstr "Dégradation de la batterie (%)"
 
-#: personalstats/views.py:72
+#: personalstats/views.py:86
 msgid "Minimum"
 msgstr "Minimum"
 
-#: personalstats/views.py:73
+#: personalstats/views.py:87
 msgid "Average"
 msgstr "Moyenne"
 
-#: personalstats/views.py:74
+#: personalstats/views.py:88
 msgid "Maximum"
 msgstr "Maximum"
 

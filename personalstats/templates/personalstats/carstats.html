@@ -51,6 +51,7 @@
             <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
             <li data-target="#myCarousel" data-slide-to="1"></li>
             <li data-target="#myCarousel" data-slide-to="2"></li>
+            <li data-target="#myCarousel" data-slide-to="3"></li>
         </ol>
         <div class="carousel-inner">
             <div class="carousel-item active">
@@ -60,10 +61,28 @@
                 </svg>
                 <div class="container">
                     <div class="carousel-caption text-center">
-                        <h5>{%trans 'Charge related graphs'%}</h5>
-                        <img id="chargeGraphImg" src="{% url 'StatsOnCarGraph' hashedVin 'battery_degradation' 5%}"/>
+                        <h5>{%trans 'Battery degradation graphs'%}</h5>
+                        <img id="degradationGraphImg" src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'outside_temp'%}"/>
                         <!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
                         and tested with fiddle http://jsfiddle.net-->
+                        <select id="degradationGraphCriteria">
+                            <option value="0" selected>{{outside_temp}}</option>
+                            <option value="1">{{odometer}}</option>
+                            <option value="2">{{battery_level}}</option>
+                            <option value="3">{{charge_limit_soc}}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
+                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
+                    <rect width="100%" height="100%" fill="#443737"/>
+                </svg>
+                <div class="container">
+                    <div class="carousel-caption text-center">
+                        <h5>{%trans 'Charge related graphs'%}</h5>
+                        <img id="chargeGraphImg" src="{% url 'StatsOnCarGraph' hashedVin 'battery_degradation' 5%}"/>
                         <select id="chargeGraphCriteria">
                             <option value="0" selected>{{battery_degradation}}</option>
                             <option value="1">{{battery_level}}</option>
@@ -171,7 +190,6 @@ $('#driveGraphCriteria').change(ChangeDriveImageSourceFunction);
 //For charge carousel item
 var chargepictureList = [
 /*List same entries as in select chargeGraphCriteria, but with the image URL*/
-"{% url 'StatsOnCarGraph' hashedVin 'battery_degradation' 5%}",
 "{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}",
 "{% url 'StatsOnCarGraph' hashedVin 'battery_range' 5%}",
 "{% url 'StatsOnCarGraph' hashedVin 'charge_limit_soc' 5%}",
@@ -191,6 +209,24 @@ function ChangeChargeImageSourceFunction()
 }
 
 $('#chargeGraphCriteria').change(ChangeChargeImageSourceFunction);
+
+
+//For battery degradation carousel item
+var batterydegradationpictureList = [
+/*List same entries as in select degradationGraphCriteria, but with the image URL*/
+"{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'outside_temp'%}",
+"{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer'%}",
+"{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'battery_level'%}",
+"{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'charge_limit_soc'%}",
+ ];
+
+function ChangeBatteryDegradationImageSourceFunction()
+{
+    var choiceSelectItem = parseInt($('#degradationGraphCriteria').val());
+    $('#degradationGraphImg').attr("src",batterydegradationpictureList[choiceSelectItem]);
+}
+
+$('#degradationGraphCriteria').change(ChangeBatteryDegradationImageSourceFunction);
 
 </script>
 {% endblock %}

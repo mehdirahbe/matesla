@@ -43,15 +43,29 @@ def GetTitleForFieldDico():
     }
     return dico
 
+
 # Return a nice title for field
 def GetTitleForField(field):
     if field is None:
         return field
-    dico=GetTitleForFieldDico()
+    dico = GetTitleForFieldDico()
     if field in dico:
         return dico[field]
-    #not found, return as is
+    # not found, return as is
     return field
+
+
+def GeneratePngFromGraph(fig):
+    # https://stackoverflow.com/questions/49542459/error-in-django-when-using-matplotlib-examples
+    buf = io.BytesIO()
+    canvas = FigureCanvasAgg(fig)
+    canvas.print_png(buf)
+    response = HttpResponse(buf.getvalue(), content_type='image/png')
+    # if required clear the figure for reuse
+    fig.clear()
+    # I recommend to add Content-Length for Django
+    response['Content-Length'] = str(len(response.content))
+    return response
 
 
 def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title):
@@ -76,16 +90,7 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title):
         ax.xaxis.set_major_formatter(formatter)
         ax.ticklabel_format(axis='y', useOffset=False, style='plain')
     fig.suptitle(title)
-    # https://stackoverflow.com/questions/49542459/error-in-django-when-using-matplotlib-examples
-    buf = io.BytesIO()
-    canvas = FigureCanvasAgg(fig)
-    canvas.print_png(buf)
-    response = HttpResponse(buf.getvalue(), content_type='image/png')
-    # if required clear the figure for reuse
-    fig.clear()
-    # I recommend to add Content-Length for Django
-    response['Content-Length'] = str(len(response.content))
-    return response
+    return GeneratePngFromGraph(fig)
 
 
 def GetDatesAndValuesFromGroupByDateResult(results):
@@ -101,18 +106,26 @@ def GetDatesAndValuesFromGroupByDateResult(results):
     return dates, maxvalues, minvalues, avgvalues
 
 
-# allow to disable cache when improving graphs and you want a constant reload
-# @never_cache
-def StatsOnCarGraph(request, hashedVin, desiredfield, numberofdays):
+# Check params and ensure that they are not a potential SQL injection
+# return response + False if problem, None + True if fine
+def SecurityChecks(hashedVin, desiredfield):
     if not IsValidHash(hashedVin):
         # means invalid hashedVin field was passed
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin), False
     # Check that it is one field from the TeslaCarDataSnapshot
     validFields = TeslaCarDataSnapshot.__dict__
     if desiredfield is None or desiredfield not in validFields:
         # means invalid desiredfield field was passed
-        return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield)
+        return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield), False
+    return None, True
 
+
+# allow to disable cache when improving graphs and you want a constant reload
+# @never_cache
+def StatsOnCarGraph(request, hashedVin, desiredfield, numberofdays):
+    response, isValid = SecurityChecks(hashedVin, desiredfield)
+    if isValid is False:
+        return response
     count = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).count()
     if count == 0:
         return GenerateDateGraph(None, None, None, None, desiredfield)
@@ -148,3 +161,43 @@ def view_AllMyDataAsCSV(request, hashedVin):
         return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
     query = "select * from matesla_teslacardatasnapshot where \"hashedVin\"='" + hashedVin + "';"
     return PrepareCSVFromQuery(query)
+
+
+def GetXandYFromBatteryDegradResult(results, xfield):
+    xvalues = list()
+    yvalues = list()
+    for entry in results:
+        entry = entry.__dict__
+        if entry['battery_degradation'] is None:
+            continue
+        if entry[xfield] is None:
+            continue
+
+        xvalues.append(entry[xfield])
+        yvalues.append(entry['battery_degradation'])
+    return xvalues, yvalues
+
+
+def GenerateScatterGraph(xvalues, yvalues, title):
+    # From https://matplotlib.org/3.2.1/api/_as_gen/matplotlib.pyplot.scatter.html
+    fig = Figure(figsize=[12, 5])
+
+    ax = fig.subplots()
+    if xvalues is not None and yvalues is not None:
+        ax.scatter(xvalues, yvalues)
+    fig.suptitle(title)
+    return GeneratePngFromGraph(fig)
+
+
+def BatteryDegradationGraph(request, hashedVin, desiredfield):
+    response, isValid = SecurityChecks(hashedVin, desiredfield)
+    if isValid is False:
+        return response
+
+    count = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).count()
+    if count == 0:
+        return GenerateDateGraph(None, None, None, None, 'battery_degradation')
+
+    results = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
+    xvalues, yxvalues = GetXandYFromBatteryDegradResult(results, desiredfield)
+    return GenerateScatterGraph(xvalues, yxvalues, GetTitleForField(desiredfield))
