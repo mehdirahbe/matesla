@@ -176,7 +176,12 @@ def SaveDataHistory(teslaState):
     toSave.SaveIfDontExistsYet(teslaState.vin, vehicle_state["car_version"], vehicle_config["car_type"])
     # Car infos
     toSave = TeslaCarInfo()
-    toSave.SaveIfDontExistsYet(teslaState.vin, context)
+    toSave=toSave.SaveIfDontExistsYet(teslaState.vin, context)
+    #if we don't have epa range yet, this will force its recomputation
+    if toSave.EPARange is None:
+        chargestate = context["charge_state"]
+        ComputeBatteryDegradation(chargestate["battery_range"], chargestate["battery_level"],
+                                  teslaState.vin)
     # Car variable infos
     toSave = TeslaCarDataSnapshot()
     toSave.SaveIfDontExistsYet(teslaState.vin, context)

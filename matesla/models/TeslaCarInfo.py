@@ -79,6 +79,7 @@ class TeslaCarInfo(models.Model):
             models.UniqueConstraint(fields=['vin'], name='TeslaCarInfo: unique version of each car')
         ]
 
+    #save or refresh, return saved object
     def SaveIfDontExistsYet(self, vin, context):
         if TeslaCarInfo.objects.filter(vin=vin).count() == 0:
             # Add the car
@@ -112,6 +113,7 @@ class TeslaCarInfo(models.Model):
             except Exception:
                 self.smart_summon_available = False
             self.save()
+            return self
         else:
             # update the last seen date
             previousEntry = TeslaCarInfo.objects.filter(vin=vin)[0]
@@ -127,3 +129,4 @@ class TeslaCarInfo(models.Model):
                 previousEntry.modelYear = GetYearFromVin(vin)
             # Save
             previousEntry.save()
+            return previousEntry
