@@ -61,11 +61,11 @@
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Charge related graphs'%}</h5>
-                        <img id="chargeGraphImg" src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}"/>
+                        <img id="chargeGraphImg" src="{% url 'StatsOnCarGraph' hashedVin 'battery_degradation' 5%}"/>
                         <!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
                         and tested with fiddle http://jsfiddle.net-->
                         <select id="chargeGraphCriteria">
-                            <option value="0"selected>{{battery_degradation}}</option>
+                            <option value="0" selected>{{battery_degradation}}</option>
                             <option value="1">{{battery_level}}</option>
                             <option value="2">{{battery_range}}</option>
                             <option value="3">{{charge_limit_soc}}</option>
@@ -90,7 +90,7 @@
                         <h5>{%trans 'Temperature related graphs'%}</h5>
                         <img id="temperatureGraphImg" src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 5%}"/>
                         <select id="temperatureGraphCriteria">
-                            <option value="0"selected>{{outside_temp}}</option>
+                            <option value="0" selected>{{outside_temp}}</option>
                             <option value="1">{{driver_temp_setting}}</option>
                             <option value="2">{{inside_temp}}</option>
                             <option value="3">{{passenger_temp_setting}}</option>
@@ -108,7 +108,7 @@
                         <h5>{%trans 'Drive related graphs'%}</h5>
                         <img id="driveGraphImg" src="{% url 'StatsOnCarGraph' hashedVin 'odometer' 5%}"/>
                         <select id="driveGraphCriteria">
-                            <option value="0"selected>{{odometer}}</option>
+                            <option value="0" selected>{{odometer}}</option>
                             <option value="1">{{speed}}</option>
                             <option value="2">{{latitude}}</option>
                             <option value="3">{{longitude}}</option>
