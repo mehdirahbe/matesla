@@ -4,7 +4,7 @@ from django.test import Client
 
 # Inspired from https://docs.djangoproject.com/en/3.0/topics/testing/overview/
 # Create your tests here.
-from matesla.TeslaConnect import GetEPARange
+from matesla.BatteryDegradation import GetEPARange
 from matesla.urls import urlpatterns
 from matesla.views import returnColorFronContext, ValidColorCodes
 

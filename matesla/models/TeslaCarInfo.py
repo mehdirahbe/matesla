@@ -1,6 +1,9 @@
 import datetime
 from django.db import models
+
+from matesla.VinAnalysis import IsDualMotor, GetYearFromVin
 from matesla.models.VinHash import HashTheVin
+
 
 # Data to save about car info which cannot change
 
@@ -25,6 +28,11 @@ class TeslaCarInfo(models.Model):
     sentry_mode_available = models.BooleanField(null=True)  # IE True
     smart_summon_available = models.BooleanField(null=True)  # IE True
     eu_vehicle = models.BooleanField()  # IE True
+    # EPA range in miles, estimated from info in vin, used to
+    # compute battery degradation
+    EPARange = models.IntegerField(null=True)
+    isDualMotor = models.BooleanField(null=True)  # Computed from vin
+    modelYear = models.IntegerField(null=True)
 
     class Meta:
         # index definition, see https://docs.djangoproject.com/en/3.0/ref/models/options/#django.db.models.Options.indexes
@@ -46,6 +54,9 @@ class TeslaCarInfo(models.Model):
             models.Index(fields=['sentry_mode_available']),
             models.Index(fields=['smart_summon_available']),
             models.Index(fields=['eu_vehicle']),
+            models.Index(fields=['EPARange']),
+            models.Index(fields=['isDualMotor']),
+            models.Index(fields=['modelYear']),
             # again with car type for segmentation on both criterias
             models.Index(fields=['charge_port_type', 'car_type']),
             models.Index(fields=['exterior_color', 'car_type']),
@@ -59,6 +70,9 @@ class TeslaCarInfo(models.Model):
             models.Index(fields=['sentry_mode_available', 'car_type']),
             models.Index(fields=['smart_summon_available', 'car_type']),
             models.Index(fields=['eu_vehicle', 'car_type']),
+            models.Index(fields=['EPARange', 'car_type']),
+            models.Index(fields=['isDualMotor', 'car_type']),
+            models.Index(fields=['modelYear', 'car_type']),
         ]
         # avoid having dups in db
         constraints = [
@@ -83,6 +97,10 @@ class TeslaCarInfo(models.Model):
             self.roof_color = vehicle_config['roof_color']
             self.wheel_type = vehicle_config['wheel_type']
             self.eu_vehicle = vehicle_config['eu_vehicle']
+            # will be filled when battery degradation is computed first time
+            self.EPARange = None
+            self.isDualMotor = IsDualMotor(vin)
+            self.modelYear = GetYearFromVin(vin)
             # some cars don't have info-->just skip
             vehicle_state = context['vehicle_state']
             try:
@@ -103,5 +121,9 @@ class TeslaCarInfo(models.Model):
                 previousEntry.sentry_mode_available = False
             if previousEntry.smart_summon_available is None:
                 previousEntry.smart_summon_available = False
+            if previousEntry.isDualMotor is None:
+                previousEntry.isDualMotor = IsDualMotor(vin)
+            if previousEntry.modelYear is None:
+                previousEntry.modelYear = GetYearFromVin(vin)
             # Save
             previousEntry.save()

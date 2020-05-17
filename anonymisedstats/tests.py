@@ -27,7 +27,11 @@ class AccountsTestCase(TestCase):
             'wheel_type',
             'sentry_mode_available',
             'smart_summon_available',
-            'eu_vehicle'}
+            'eu_vehicle',
+            'EPARange',
+            'isDualMotor',
+            'modelYear',
+        }
         # bar chart on car infos
         for lang in {"fr", "en"}:
             response = c.post('/'+lang+'/anonymisedstats/firmwareupdates')

@@ -55,17 +55,11 @@ def GetNamesAndValuesFromGroupByTotalResult(results, desiredfield):
                 else:
                     names.append("False")
             else:
-                if type(entry[desiredfield]) == type(1):
-                    if entry[desiredfield] == 1:
-                        names.append("True")
-                    else:
-                        names.append("False")
-                else:
-                    name = str(entry[desiredfield])
-                    # if large (ie firmware), keep first word
-                    if len(name) > 5:
-                        name = name.split()[0]
-                    names.append(name)
+                name = str(entry[desiredfield])
+                # if large (ie firmware), keep first word
+                if len(name) > 5:
+                    name = name.split()[0]
+                names.append(name)
         values.append(entry['total'])
     return names, values
 

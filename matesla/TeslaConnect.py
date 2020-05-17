@@ -5,11 +5,14 @@ import json
 from django.core.exceptions import ObjectDoesNotExist
 from geopy.geocoders import Nominatim
 
+from .BatteryDegradation import ComputeBatteryDegradation
+from .VinAnalysis import GetModelFromVin, IsDualMotor, GetYearFromVin
 from .models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from .models.TeslaToken import TeslaToken
 from .models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from .models.TeslaCarInfo import TeslaCarInfo
 from matesla.TeslaState import TeslaState
+
 
 class TeslaServerException(Exception):
     pass
@@ -179,115 +182,7 @@ def SaveDataHistory(teslaState):
     toSave.SaveIfDontExistsYet(teslaState.vin, context)
 
 
-'''Return the battery degradation in %. The problem is to known EPA mileage as
-it is not returned and due to invalid codes, it is impossible to know exact car
- and battery model.
- So compute when we can and return None when impossible to compute safely
- batteryrange should be in miles, battery_level is in %'''
 
-
-# Return the year, see https://en.wikipedia.org/wiki/Vehicle_identification_number
-# in practical, char 10 (base 1) mean: A is 2010, K is 2019 and L 2020
-# and Y will be 2030 (no letter Z, 1 is 2031). And many holes, so complex
-def GetYearFromVin(vin):
-    if len(vin) < 10:
-        return None
-    letter = vin[9]
-    if 'A' <= letter <= 'H':
-        return ord(letter) - ord('A') + 2010
-    if 'J' <= letter <= 'N':
-        return ord(letter) - ord('J') + 2018
-    if letter == 'P':
-        return 2023
-    if 'R' <= letter <= 'T':
-        return ord(letter) - ord('R') + 2024
-    if 'V' <= letter <= 'Y':
-        return ord(letter) - ord('V') + 2027
-    if '1' <= letter <= '9':
-        return ord(letter) - ord('1') + 2031
-    return None
-
-
-# Pos 4 (base 1) is the model->S3XY
-def GetModelFromVin(vin):
-    if len(vin) < 4:
-        return None
-    letter = vin[3]
-    return letter
-
-
-# Pos 8 (base 1) allow to know if single or dual motor
-def IsDualMotor(vin):
-    if len(vin) < 8:
-        return None
-    letter = vin[7]
-    if letter == "2" or letter == "B":
-        return True
-    if letter == "A":
-        return False
-    return None
-
-
-# we can get fairly previse extracting from vin car model, year and motors.
-# but we miss one info: battery power. If for model 3, there is SR, sr+,
-# medum and LR all being single motor.
-# Return range (or nonne)+model, isDual, year extracted from vin
-def GetEPARange(vin):
-    # First check which car it is
-    # 5YJ3E7EA7KF123456 seems to be the rare LR 1 motor
-    # 5YJ3E7EB1KF123456 AWD (mine, I am sure)
-    # 5YJ3E7EA4LF123456 std range 1 moteur (friend, I am sure too)
-    # 5YJSA7E2XJF123456 model s
-    # found the official values on https://www.fueleconomy.gov/feg/Find.do?action=sbsSelect
-    model = GetModelFromVin(vin)
-    isDual = IsDualMotor(vin)
-    year = GetYearFromVin(vin)
-    if model is None or isDual is None or year is None:
-        return None
-    EPARange = None
-
-    # for the car we can identify, assume most frequent configuration
-    if model == "3" and isDual == True:
-        '''up to 2019, was 310. Then should be 330
-        But there is a 2020 model thus brand new we can assume without degradation, and it
-        displays 7.4 % if we use 330 (we are in may).
-        I thus assume that tesla continue to return the number of miles
-        according to old epa
-        See https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=41189 for <=2019
-        and https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=42274 for 2020'''
-        EPARange = 310
-    if model == "3" and isDual == False:
-        # Same thing here... 2020 EPA range seems not used
-        EPARange = 240  # https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=41416
-    if model == "S" and isDual == True:
-        # no need to test year as 259 seems constant for 75D
-        EPARange = 259  # for the 75D https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=39838
-    return EPARange, model, isDual, year
-
-
-def ComputeBatteryDegradation(batteryrange, battery_level, vin):
-    EPARange, model, isDual, year = GetEPARange(vin)
-    if EPARange is None:
-        return None
-    batterydegradation = (1. - ((1. * batteryrange) / (battery_level * 1.) * 100.) / EPARange) * 100.
-    if model == "3" and isDual is False and batterydegradation < -5:
-        '''From https://en.wikipedia.org/wiki/Tesla_Model_3
-        RWD: 325 miles (523 km) combined
-        single motor with strongly negative battery degradatation means
-        probably the LR single motor. It would be nice if someone
-        with that model confirms'''
-        EPARange = 325.
-        batterydegradation = (1. - ((1. * batteryrange) / (battery_level * 1.) * 100.) / EPARange) * 100.
-    if model == "S" and isDual == True and batterydegradation < 0:
-        # see all the range for 85, 90, 100 kwh batteries https://en.wikipedia.org/wiki/Tesla_Model_S
-        ranges = [270., 294., 335.]
-        for EPARange in ranges:
-            batterydegradation = (1. - ((1. * batteryrange) / (battery_level * 1.) * 100.) / EPARange) * 100.
-            if batterydegradation>0.:
-                return batterydegradation
-    if batterydegradation < 0.:  # don't return negative degradation
-        batterydegradation = 0.
-    return batterydegradation
 
 # returns params as TeslaState
 def ParamsConnectedTesla(user):
