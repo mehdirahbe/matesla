@@ -8,6 +8,7 @@ from django.template import loader
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.dates import (DateFormatter)
 from matplotlib.figure import Figure
+from numpy.polynomial.polynomial import polyfit
 
 from anonymisedstats.views import PrepareCSVFromQuery
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
@@ -185,6 +186,17 @@ def GenerateScatterGraph(xvalues, yvalues, title):
     ax = fig.subplots()
     if xvalues is not None and yvalues is not None:
         ax.scatter(xvalues, yvalues)
+        # do regression polynomial, see https://stackoverflow.com/questions/19068862/how-to-overplot-a-line-on-a-scatter-plot-in-python
+        # and https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
+        #a, b, c = polyfit(xvalues, yvalues, 2)
+        a, b = polyfit(xvalues, yvalues, 1)
+        regressy = []
+        xvalues.sort()
+        for x in xvalues:
+            #y = c * x * x + b * x + a
+            y = b * x + a
+            regressy.append(y)
+        ax.plot(xvalues, regressy, '-')
     fig.suptitle(title)
     return GeneratePngFromGraph(fig)
 
