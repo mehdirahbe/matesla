@@ -12,6 +12,7 @@ class TeslaCarDataSnapshot(models.Model):
     vin = models.TextField()  # vin of the car (allow to link with TeslaCarInfo is necessary)
     hashedVin = models.TextField(null=True)  # hash of the vin, to use in URL of graphs
     Date = models.DateTimeField(default=timezone.now)  # When the data was taken
+    DateOnlyDay = models.DateField(null=True)  # The day when the data was taken
     # From charge_state
     battery_level = models.IntegerField()  # IE 71
     battery_range = models.FloatField()  # IE 205.95
@@ -62,6 +63,7 @@ class TeslaCarDataSnapshot(models.Model):
             # Add the car
             self.vin = vin
             self.hashedVin = HashTheVin(vin)
+            self.DateOnlyDay = timezone.now().date()
             # From charge_state
             charge_state = context['charge_state']
             self.battery_level = charge_state['battery_level']

@@ -2,7 +2,6 @@ import io
 
 import django
 from django.db.models import Max, Min, Avg
-from django.db.models.functions import TruncDate
 from django.http import HttpResponse, HttpResponseNotFound
 from django.template import loader
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -100,7 +99,7 @@ def GetDatesAndValuesFromGroupByDateResult(results):
     minvalues = list()
     avgvalues = list()
     for entry in results:
-        dates.append(entry['date'])
+        dates.append(entry['DateOnlyDay'])
         maxvalues.append(entry['max_val'])
         minvalues.append(entry['min_val'])
         avgvalues.append(entry['avg_val'])
@@ -132,9 +131,9 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, numberofdays):
         return GenerateDateGraph(None, None, None, None, desiredfield)
 
     results = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin) \
-        .values(date=TruncDate('Date')) \
+        .values('DateOnlyDay') \
         .annotate(max_val=Max(desiredfield)).annotate(min_val=Min(desiredfield)). \
-        annotate(avg_val=Avg(desiredfield)).order_by('date')
+        annotate(avg_val=Avg(desiredfield)).order_by('DateOnlyDay')
     dates, maxvalues, minvalues, avgvalues = GetDatesAndValuesFromGroupByDateResult(results)
     return GenerateDateGraph(dates, maxvalues, minvalues, avgvalues, GetTitleForField(desiredfield))
 
@@ -188,12 +187,12 @@ def GenerateScatterGraph(xvalues, yvalues, title):
         ax.scatter(xvalues, yvalues)
         # do regression polynomial, see https://stackoverflow.com/questions/19068862/how-to-overplot-a-line-on-a-scatter-plot-in-python
         # and https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
-        #a, b, c = polyfit(xvalues, yvalues, 2)
+        # a, b, c = polyfit(xvalues, yvalues, 2)
         a, b = polyfit(xvalues, yvalues, 1)
         regressy = []
         xvalues.sort()
         for x in xvalues:
-            #y = c * x * x + b * x + a
+            # y = c * x * x + b * x + a
             y = b * x + a
             regressy.append(y)
         ax.plot(xvalues, regressy, '-')

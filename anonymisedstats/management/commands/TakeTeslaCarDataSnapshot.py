@@ -41,19 +41,11 @@ class Command(BaseCommand):
     # in case some vin don't have some fields, as field was added later
     # intended to be run one shot
     def UpdateNewlyAddedFields(self):
-        alltoUpdate = TeslaCarDataSnapshot.objects.filter(battery_degradation__isnull=True)
-        vinToEPARange = {}
+        alltoUpdate = TeslaCarDataSnapshot.objects.filter(DateOnlyDay__isnull=True)
         for entry in alltoUpdate:
-            # get EPA range, use cache to not do same query all the time to car info table
-            if entry.vin in vinToEPARange:
-                EPARange = vinToEPARange[entry.vin]
-            else:
-                EPARange = GetEPARangeFromCache(entry.vin)
+            entry.DateOnlyDay = entry.Date.date()
 
-            entry.battery_degradation = ComputeBatteryDegradationFromEPARange(
-                entry.battery_range, entry.battery_level, EPARange)
-
-            entry.save(update_fields=['battery_degradation'])
+            entry.save(update_fields=['DateOnlyDay'])
 
     def handle(self, *args, **options):
         self.UpdateNewlyAddedFields()
