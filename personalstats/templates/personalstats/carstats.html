@@ -70,6 +70,7 @@
                             <option value="1">{{odometer}}</option>
                             <option value="2">{{battery_level}}</option>
                             <option value="3">{{charge_limit_soc}}</option>
+                            <option value="4">{{battery_degradation}}</option>
                         </select>
                     </div>
                 </div>
@@ -82,19 +83,18 @@
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Charge related graphs'%}</h5>
-                        <img id="chargeGraphImg" src="{% url 'StatsOnCarGraph' hashedVin 'battery_degradation' 5%}"/>
+                        <img id="chargeGraphImg" src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}"/>
                         <select id="chargeGraphCriteria">
-                            <option value="0" selected>{{battery_degradation}}</option>
-                            <option value="1">{{battery_level}}</option>
-                            <option value="2">{{battery_range}}</option>
-                            <option value="3">{{charge_limit_soc}}</option>
-                            <option value="4">{{charge_rate}}</option>
-                            <option value="5">{{charger_actual_current}}</option>
-                            <option value="6">{{charger_phases}}</option>
-                            <option value="7">{{charger_power}}</option>
-                            <option value="8">{{charger_voltage}}</option>
-                            <option value="9">{{est_battery_range}}</option>
-                            <option value="10">{{usable_battery_level}}</option>
+                            <option value="0" selected>{{battery_level}}</option>
+                            <option value="1">{{battery_range}}</option>
+                            <option value="2">{{charge_limit_soc}}</option>
+                            <option value="3">{{charge_rate}}</option>
+                            <option value="4">{{charger_actual_current}}</option>
+                            <option value="5">{{charger_phases}}</option>
+                            <option value="6">{{charger_power}}</option>
+                            <option value="7">{{charger_voltage}}</option>
+                            <option value="8">{{est_battery_range}}</option>
+                            <option value="9">{{usable_battery_level}}</option>
                         </select>
                     </div>
                 </div>
@@ -218,6 +218,7 @@ var batterydegradationpictureList = [
 "{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer'%}",
 "{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'battery_level'%}",
 "{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'charge_limit_soc'%}",
+"{% url 'StatsOnCarGraph' hashedVin 'battery_degradation' 5%}",
  ];
 
 function ChangeBatteryDegradationImageSourceFunction()

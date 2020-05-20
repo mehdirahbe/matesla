@@ -453,7 +453,7 @@ msgstr "Température intérieure (°C)"
 
 #: personalstats/views.py:26
 msgid "Passenger temperature (°C)"
-msgstr "Température intérieure (°C)"
+msgstr "Température du passager (°C)"
 
 #: personalstats/views.py:27
 msgid "Odometer (miles)"
