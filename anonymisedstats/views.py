@@ -8,6 +8,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 from django.contrib.auth import get_user
 from django.db import connection
 import csv
+from django.utils.translation import ugettext_lazy as _
 
 # Create your views here.
 from django.views.decorators.cache import never_cache
@@ -17,6 +18,41 @@ from matesla.models.TeslaCarInfo import TeslaCarInfo
 
 # return content as png of a bar graph with names (X), values (Y) with title
 from mysite.settings import DATABASES
+
+
+# Return a dictionary with titles for fields
+def GetTitleForFieldDico():
+    dico = {
+        'Date': _('Car addition Date'),
+        'car_type': _('Car type'),
+        'charge_port_type': _('Charge port'),
+        'exterior_color': _('Exterior color'),
+        'has_air_suspension': _('Has air suspension'),
+        'has_ludicrous_mode': _('Has ludicrous mode'),
+        'motorized_charge_port': _('Is charge port motorized'),
+        'rear_seat_heaters': _('Has rear seat heaters'),
+        'rhd': _('Right hand drive'),
+        'roof_color': _('Roof color'),
+        'wheel_type': _('Wheel'),
+        'sentry_mode_available': _('Is sentry mode available'),
+        'smart_summon_available': _('Is FSD enabled'),
+        'eu_vehicle': _('European union car'),
+        'EPARange': _('EPA Range (miles)'),
+        'isDualMotor': _('Is Dual Motor'),
+        'modelYear': _('Car year'),
+    }
+    return dico
+
+
+# Return a nice title for field
+def GetTitleForField(field):
+    if field is None:
+        return field
+    dico = GetTitleForFieldDico()
+    if field in dico:
+        return dico[field]
+    # not found, return as is
+    return field
 
 
 def GenerateBarGraph(names, values, title):
@@ -47,13 +83,13 @@ def GetNamesAndValuesFromGroupByTotalResult(results, desiredfield):
     values = list()
     for entry in results:
         if entry[desiredfield] is None:
-            names.append("No Value")
+            names.append(str(_("No Value")))
         else:
             if type(entry[desiredfield]) == type(True):
                 if entry[desiredfield] is True:
-                    names.append("True")
+                    names.append(str(_("True")))
                 else:
-                    names.append("False")
+                    names.append(str(_("False")))
             else:
                 name = str(entry[desiredfield])
                 # if large (ie firmware), keep first word
@@ -70,7 +106,7 @@ def FirmwareUpdates(request):
         MostRecent=Max('Date')).annotate(
         total=Count('Version')).order_by('-MostRecent')[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, 'Version')
-    return GenerateBarGraph(names, values, 'Most recent Firmware updates')
+    return GenerateBarGraph(names, values, _('Most recent Firmware updates'))
 
 
 def FirmwareUpdatesAsCSV(request):
@@ -95,7 +131,7 @@ def StatsOnCarByModelGraph(request, desiredfield, CarModel):
     results = TeslaCarInfo.objects.filter(car_type=CarModel).values(desiredfield).annotate(
         total=Count(desiredfield)).order_by(desiredfield)[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, desiredfield)
-    return GenerateBarGraph(names, values, desiredfield)
+    return GenerateBarGraph(names, values, GetTitleForField(desiredfield))
 
 
 def StatsOnCarAllModelsGraph(request, desiredfield):
@@ -108,12 +144,15 @@ def StatsOnCarAllModelsGraph(request, desiredfield):
     results = TeslaCarInfo.objects.values(desiredfield).annotate(
         total=Count(desiredfield)).order_by(desiredfield)[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, desiredfield)
-    return GenerateBarGraph(names, values, desiredfield)
+    return GenerateBarGraph(names, values, GetTitleForField(desiredfield))
 
 
 @never_cache
 def StatsChoicePage(request):
-    return HttpResponse(loader.get_template('anonymisedstats/carstats.html').render({}, request))
+    context = {}
+    context.update(GetTitleForFieldDico())
+
+    return HttpResponse(loader.get_template('anonymisedstats/carstats.html').render(context, request))
 
 
 def PrepareCSVFromQuery(query):

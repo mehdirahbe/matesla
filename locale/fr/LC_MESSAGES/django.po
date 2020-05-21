@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-17 22:18+0200\n"
+"POT-Creation-Date: 2020-05-21 14:38+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -21,9 +21,94 @@ msgstr ""
 msgid "Sign up"
 msgstr "Créer un compte"
 
+#: anonymisedstats/templates/anonymisedstats/carstats.html:21
+#: anonymisedstats/views.py:109
+msgid "Most recent Firmware updates"
+msgstr "Mises à jour du firmware les plus récentes"
+
 #: anonymisedstats/templates/anonymisedstats/carstats.html:48
 msgid "Download Firmware Stats"
 msgstr "Télécharger les stats du Firmware"
+
+#: anonymisedstats/views.py:26
+msgid "Car addition Date"
+msgstr "Date d'addition de la voiture"
+
+#: anonymisedstats/views.py:27 matesla/templates/matesla/carstatus.html:196
+msgid "Car type"
+msgstr "Type de voiture"
+
+#: anonymisedstats/views.py:28 matesla/templates/matesla/carstatus.html:267
+msgid "Charge port"
+msgstr "Port de charge"
+
+#: anonymisedstats/views.py:29 matesla/templates/matesla/carstatus.html:200
+msgid "Exterior color"
+msgstr "Couleur extérieure"
+
+#: anonymisedstats/views.py:30
+msgid "Has air suspension"
+msgstr "Suspension à air"
+
+#: anonymisedstats/views.py:31
+msgid "Has ludicrous mode"
+msgstr "Mode ludicrous"
+
+#: anonymisedstats/views.py:32
+msgid "Is charge port motorized"
+msgstr "Port de charge motorisé"
+
+#: anonymisedstats/views.py:33
+msgid "Has rear seat heaters"
+msgstr "Sièges arrières chauffants"
+
+#: anonymisedstats/views.py:34
+msgid "Right hand drive"
+msgstr "Conduite à gauche"
+
+#: anonymisedstats/views.py:35
+msgid "Roof color"
+msgstr "Couleur du toît"
+
+#: anonymisedstats/views.py:36 matesla/templates/matesla/carstatus.html:204
+msgid "Wheel"
+msgstr "Roues"
+
+#: anonymisedstats/views.py:37
+msgid "Is sentry mode available"
+msgstr "Mode sentry disponible"
+
+#: anonymisedstats/views.py:38
+msgid "Is FSD enabled"
+msgstr "Option Conduite autonome (FSD) active"
+
+#: anonymisedstats/views.py:39
+msgid "European union car"
+msgstr "Voiture européenne"
+
+#: anonymisedstats/views.py:40
+msgid "EPA Range (miles)"
+msgstr "Range EPA (miles)"
+
+#: anonymisedstats/views.py:41
+msgid "Is Dual Motor"
+msgstr "Double motorisation"
+
+#: anonymisedstats/views.py:42
+msgid "Car year"
+msgstr "Année de la voiture"
+
+#: anonymisedstats/views.py:86
+msgid "No Value"
+msgstr "Aucune valeur"
+
+#: anonymisedstats/views.py:90
+msgid "True"
+msgstr "Vrai"
+
+#: anonymisedstats/views.py:92
+msgid "False"
+msgstr "Faux"
 
 #: matesla/forms.py:15
 msgid "Tesla account user"
@@ -266,18 +351,6 @@ msgstr "Oui, déverrouiller?"
 msgid "No, lock?"
 msgstr "Non, verrouiller?"
 
-#: matesla/templates/matesla/carstatus.html:196
-msgid "Car type"
-msgstr "Type de voiture"
-
-#: matesla/templates/matesla/carstatus.html:200
-msgid "Exterior color"
-msgstr "Couleur extérieure"
-
-#: matesla/templates/matesla/carstatus.html:204
-msgid "Wheel"
-msgstr "Roues"
-
 #: matesla/templates/matesla/carstatus.html:208
 msgid "Firmware version"
 msgstr "Version firmware"
@@ -326,10 +399,6 @@ msgstr "Dégradation de la batterie (%%)"
 #, python-format
 msgid "Battery charge limit (%%)"
 msgstr "Limite de charge de la batterie (%%)"
-
-#: matesla/templates/matesla/carstatus.html:267
-msgid "Charge port"
-msgstr "Port de charge"
 
 #: matesla/templates/matesla/carstatus.html:271
 msgid "Is Charge port open"
@@ -427,7 +496,7 @@ msgstr "Télécharger mes données"
 msgid "Battery degradation graphs"
 msgstr "Graphes de dégradation de la batterie"
 
-#: personalstats/templates/personalstats/carstats.html:84
+#: personalstats/templates/personalstats/carstats.html:85
 msgid "Charge related graphs"
 msgstr "Graphes liés à la charge"
 

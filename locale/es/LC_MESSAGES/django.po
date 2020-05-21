@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-17 22:18+0200\n"
+"POT-Creation-Date: 2020-05-21 14:38+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,8 +23,93 @@ msgstr ""
 msgid "Sign up"
 msgstr ""
 
+#: anonymisedstats/templates/anonymisedstats/carstats.html:21
+#: anonymisedstats/views.py:109
+msgid "Most recent Firmware updates"
+msgstr ""
+
 #: anonymisedstats/templates/anonymisedstats/carstats.html:48
 msgid "Download Firmware Stats"
+msgstr ""
+
+#: anonymisedstats/views.py:26
+msgid "Car addition Date"
+msgstr ""
+
+#: anonymisedstats/views.py:27 matesla/templates/matesla/carstatus.html:196
+msgid "Car type"
+msgstr ""
+
+#: anonymisedstats/views.py:28 matesla/templates/matesla/carstatus.html:267
+msgid "Charge port"
+msgstr ""
+
+#: anonymisedstats/views.py:29 matesla/templates/matesla/carstatus.html:200
+msgid "Exterior color"
+msgstr ""
+
+#: anonymisedstats/views.py:30
+msgid "Has air suspension"
+msgstr ""
+
+#: anonymisedstats/views.py:31
+msgid "Has ludicrous mode"
+msgstr ""
+
+#: anonymisedstats/views.py:32
+msgid "Is charge port motorized"
+msgstr ""
+
+#: anonymisedstats/views.py:33
+msgid "Has rear seat heaters"
+msgstr ""
+
+#: anonymisedstats/views.py:34
+msgid "Right hand drive"
+msgstr ""
+
+#: anonymisedstats/views.py:35
+msgid "Roof color"
+msgstr ""
+
+#: anonymisedstats/views.py:36 matesla/templates/matesla/carstatus.html:204
+msgid "Wheel"
+msgstr ""
+
+#: anonymisedstats/views.py:37
+msgid "Is sentry mode available"
+msgstr ""
+
+#: anonymisedstats/views.py:38
+msgid "Is FSD enabled"
+msgstr ""
+
+#: anonymisedstats/views.py:39
+msgid "European union car"
+msgstr ""
+
+#: anonymisedstats/views.py:40
+msgid "EPA Range (miles)"
+msgstr ""
+
+#: anonymisedstats/views.py:41
+msgid "Is Dual Motor"
+msgstr ""
+
+#: anonymisedstats/views.py:42
+msgid "Car year"
+msgstr ""
+
+#: anonymisedstats/views.py:86
+msgid "No Value"
+msgstr ""
+
+#: anonymisedstats/views.py:90
+msgid "True"
+msgstr ""
+
+#: anonymisedstats/views.py:92
+msgid "False"
 msgstr ""
 
 #: matesla/forms.py:15
@@ -243,18 +328,6 @@ msgstr ""
 msgid "No, lock?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:196
-msgid "Car type"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:200
-msgid "Exterior color"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:204
-msgid "Wheel"
-msgstr ""
-
 #: matesla/templates/matesla/carstatus.html:208
 msgid "Firmware version"
 msgstr ""
@@ -302,10 +375,6 @@ msgstr ""
 #: matesla/templates/matesla/carstatus.html:262
 #, python-format
 msgid "Battery charge limit (%%)"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:267
-msgid "Charge port"
 msgstr ""
 
 #: matesla/templates/matesla/carstatus.html:271
@@ -401,10 +470,10 @@ msgid "Download my Data"
 msgstr ""
 
 #: personalstats/templates/personalstats/carstats.html:64
-msgid "Battery degradations graphs"
+msgid "Battery degradation graphs"
 msgstr ""
 
-#: personalstats/templates/personalstats/carstats.html:84
+#: personalstats/templates/personalstats/carstats.html:85
 msgid "Charge related graphs"
 msgstr ""
 
