@@ -3,10 +3,9 @@ import requests
 import json
 
 from django.core.exceptions import ObjectDoesNotExist
-from geopy.geocoders import Nominatim
 
 from .BatteryDegradation import ComputeBatteryDegradation
-from .VinAnalysis import GetModelFromVin, IsDualMotor, GetYearFromVin
+from .models.AddressFromLatLong import AddressFromLatLong, GetAddressFromLatLong
 from .models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from .models.TeslaToken import TeslaToken
 from .models.TeslaFirmwareHistory import TeslaFirmwareHistory
@@ -176,8 +175,8 @@ def SaveDataHistory(teslaState):
     toSave.SaveIfDontExistsYet(teslaState.vin, vehicle_state["car_version"], vehicle_config["car_type"])
     # Car infos
     toSave = TeslaCarInfo()
-    toSave=toSave.SaveIfDontExistsYet(teslaState.vin, context)
-    #if we don't have epa range yet, this will force its recomputation
+    toSave = toSave.SaveIfDontExistsYet(teslaState.vin, context)
+    # if we don't have epa range yet, this will force its recomputation
     if toSave.EPARange is None:
         chargestate = context["charge_state"]
         ComputeBatteryDegradation(chargestate["battery_range"], chargestate["battery_level"],
@@ -185,8 +184,6 @@ def SaveDataHistory(teslaState):
     # Car variable infos
     toSave = TeslaCarDataSnapshot()
     toSave.SaveIfDontExistsYet(teslaState.vin, context)
-
-
 
 
 # returns params as TeslaState
@@ -221,12 +218,7 @@ def ParamsConnectedTesla(user):
     latitude = str(drive_state["latitude"])
     vehicle_state = context["vehicle_state"]
     ret.OdometerInKm = vehicle_state['odometer'] * 1.609344
-    try:
-        geolocator = Nominatim(user_agent="mon app tesla")
-        location = geolocator.reverse(latitude + "," + longitude)
-        ret.location = location.address
-    except Exception:
-        ret.location = "Unknown"
+    ret.location = GetAddressFromLatLong(drive_state["latitude"], drive_state["longitude"])
     # Save info for data history
     SaveDataHistory(ret)
     return ret
