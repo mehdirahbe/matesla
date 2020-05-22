@@ -59,12 +59,12 @@
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Battery degradation graphs'%}</h5>
-                        <img id="degradationGraphImg" src="{% url 'AnonymisedStatsBatteryDegradationGraph' 'outside_temp' %}"/>
+                        <img id="degradationGraphImg" src="{% url 'AnonymisedStatsBatteryDegradationGraph' 'odometer' %}"/>
                         <!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
                         and tested with fiddle http://jsfiddle.net-->
                         <select id="degradationGraphCriteria">
-                            <option value="0" selected>{{outside_temp}}</option>
-                            <option value="1">{{odometer}}</option>
+                            <option value="0" selected>{{odometer}}</option>
+                            <option value="1">{{outside_temp}}</option>
                             <option value="2">{{battery_level}}</option>
                             <option value="3">{{charge_limit_soc}}</option>
                         </select>
@@ -201,8 +201,8 @@ $('#choiceSecondCriteriacar_type').change(ChangeCarStatsImageSourceFunction);
 var batterydegradationpictureList = [
     /*List same entries as in select degradationGraphCriteria, but with the image URL*/
 
-    "{% url 'AnonymisedStatsBatteryDegradationGraph' 'outside_temp' %}",
     "{% url 'AnonymisedStatsBatteryDegradationGraph' 'odometer' %}",
+    "{% url 'AnonymisedStatsBatteryDegradationGraph' 'outside_temp' %}",
     "{% url 'AnonymisedStatsBatteryDegradationGraph' 'battery_level' %}",
     "{% url 'AnonymisedStatsBatteryDegradationGraph' 'charge_limit_soc' %}",
  ];
