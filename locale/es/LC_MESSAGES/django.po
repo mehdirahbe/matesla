@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-21 14:38+0200\n"
+"POT-Creation-Date: 2020-05-22 21:35+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,13 +23,27 @@ msgstr ""
 msgid "Sign up"
 msgstr ""
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:21
+#: anonymisedstats/templates/anonymisedstats/carstats.html:61
+#: personalstats/templates/personalstats/carstats.html:64
+msgid "Battery degradation graphs"
+msgstr ""
+
+#: anonymisedstats/templates/anonymisedstats/carstats.html:77
+#: matesla/templates/matesla/carstatus.html:208
+msgid "Firmware version"
+msgstr ""
+
+#: anonymisedstats/templates/anonymisedstats/carstats.html:80
 #: anonymisedstats/views.py:109
 msgid "Most recent Firmware updates"
 msgstr ""
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:48
+#: anonymisedstats/templates/anonymisedstats/carstats.html:82
 msgid "Download Firmware Stats"
+msgstr ""
+
+#: anonymisedstats/templates/anonymisedstats/carstats.html:93
+msgid "Cars statistics"
 msgstr ""
 
 #: anonymisedstats/views.py:26
@@ -328,10 +342,6 @@ msgstr ""
 msgid "No, lock?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:208
-msgid "Firmware version"
-msgstr ""
-
 #: matesla/templates/matesla/carstatus.html:212
 msgid "Sentry"
 msgstr ""
@@ -467,10 +477,6 @@ msgstr ""
 
 #: personalstats/templates/personalstats/carstats.html:45
 msgid "Download my Data"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:64
-msgid "Battery degradation graphs"
 msgstr ""
 
 #: personalstats/templates/personalstats/carstats.html:85

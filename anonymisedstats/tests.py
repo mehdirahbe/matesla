@@ -32,8 +32,11 @@ class AccountsTestCase(TestCase):
             'isDualMotor',
             'modelYear',
         }
-        # bar chart on car infos
         for lang in {"fr", "en"}:
+            # scatter chart on battery degradation
+            response = c.post('/'+lang+'/anonymisedstats/BatteryDegradationGraph/odometer')
+            self.assertEqual(response.status_code, 200, 'BatteryDegradationGraph anonymisedstats did fail')
+            # bar chart on car infos
             response = c.post('/'+lang+'/anonymisedstats/firmwareupdates')
             self.assertEqual(response.status_code, 200, 'firmwareupdates anonymisedstats did fail')
             response = c.post('/'+lang+'/anonymisedstats/FirmwareUpdatesAsCSV')

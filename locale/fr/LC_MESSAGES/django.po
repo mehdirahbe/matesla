@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-21 14:38+0200\n"
+"POT-Creation-Date: 2020-05-22 21:35+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -21,14 +21,28 @@ msgstr ""
 msgid "Sign up"
 msgstr "Créer un compte"
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:21
+#: anonymisedstats/templates/anonymisedstats/carstats.html:61
+#: personalstats/templates/personalstats/carstats.html:64
+msgid "Battery degradation graphs"
+msgstr "Graphes de dégradation de la batterie"
+
+#: anonymisedstats/templates/anonymisedstats/carstats.html:77
+#: matesla/templates/matesla/carstatus.html:208
+msgid "Firmware version"
+msgstr "Version firmware"
+
+#: anonymisedstats/templates/anonymisedstats/carstats.html:80
 #: anonymisedstats/views.py:109
 msgid "Most recent Firmware updates"
 msgstr "Mises à jour du firmware les plus récentes"
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:48
+#: anonymisedstats/templates/anonymisedstats/carstats.html:82
 msgid "Download Firmware Stats"
 msgstr "Télécharger les stats du Firmware"
+
+#: anonymisedstats/templates/anonymisedstats/carstats.html:93
+msgid "Cars statistics"
+msgstr "Statistiques des voitures"
 
 #: anonymisedstats/views.py:26
 msgid "Car addition Date"
@@ -351,10 +365,6 @@ msgstr "Oui, déverrouiller?"
 msgid "No, lock?"
 msgstr "Non, verrouiller?"
 
-#: matesla/templates/matesla/carstatus.html:208
-msgid "Firmware version"
-msgstr "Version firmware"
-
 #: matesla/templates/matesla/carstatus.html:212
 msgid "Sentry"
 msgstr "Sentry"
@@ -491,10 +501,6 @@ msgstr "Espagnol"
 #: personalstats/templates/personalstats/carstats.html:45
 msgid "Download my Data"
 msgstr "Télécharger mes données"
-
-#: personalstats/templates/personalstats/carstats.html:64
-msgid "Battery degradation graphs"
-msgstr "Graphes de dégradation de la batterie"
 
 #: personalstats/templates/personalstats/carstats.html:85
 msgid "Charge related graphs"

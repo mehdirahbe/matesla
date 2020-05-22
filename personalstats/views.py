@@ -7,9 +7,9 @@ from django.template import loader
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.dates import (DateFormatter)
 from matplotlib.figure import Figure
-from numpy.polynomial.polynomial import polyfit
 
-from anonymisedstats.views import PrepareCSVFromQuery
+from anonymisedstats.views import PrepareCSVFromQuery, GetXandYFromBatteryDegradResult, GenerateScatterGraph, \
+    GeneratePngFromGraph
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.VinHash import IsValidHash
 from django.utils.translation import ugettext_lazy as _
@@ -53,19 +53,6 @@ def GetTitleForField(field):
         return dico[field]
     # not found, return as is
     return field
-
-
-def GeneratePngFromGraph(fig):
-    # https://stackoverflow.com/questions/49542459/error-in-django-when-using-matplotlib-examples
-    buf = io.BytesIO()
-    canvas = FigureCanvasAgg(fig)
-    canvas.print_png(buf)
-    response = HttpResponse(buf.getvalue(), content_type='image/png')
-    # if required clear the figure for reuse
-    fig.clear()
-    # I recommend to add Content-Length for Django
-    response['Content-Length'] = str(len(response.content))
-    return response
 
 
 def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title):
@@ -163,41 +150,6 @@ def view_AllMyDataAsCSV(request, hashedVin):
     return PrepareCSVFromQuery(query)
 
 
-def GetXandYFromBatteryDegradResult(results, xfield):
-    xvalues = list()
-    yvalues = list()
-    for entry in results:
-        entry = entry.__dict__
-        if entry['battery_degradation'] is None:
-            continue
-        if entry[xfield] is None:
-            continue
-
-        xvalues.append(entry[xfield])
-        yvalues.append(entry['battery_degradation'])
-    return xvalues, yvalues
-
-
-def GenerateScatterGraph(xvalues, yvalues, title):
-    # From https://matplotlib.org/3.2.1/api/_as_gen/matplotlib.pyplot.scatter.html
-    fig = Figure(figsize=[12, 5])
-
-    ax = fig.subplots()
-    if xvalues is not None and yvalues is not None:
-        ax.scatter(xvalues, yvalues)
-        # do regression polynomial, see https://stackoverflow.com/questions/19068862/how-to-overplot-a-line-on-a-scatter-plot-in-python
-        # and https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
-        # a, b, c = polyfit(xvalues, yvalues, 2)
-        a, b = polyfit(xvalues, yvalues, 1)
-        regressy = []
-        xvalues.sort()
-        for x in xvalues:
-            # y = c * x * x + b * x + a
-            y = b * x + a
-            regressy.append(y)
-        ax.plot(xvalues, regressy, '-')
-    fig.suptitle(title)
-    return GeneratePngFromGraph(fig)
 
 
 def BatteryDegradationGraph(request, hashedVin, desiredfield):

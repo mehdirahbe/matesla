@@ -9,16 +9,29 @@ from django.contrib.auth import get_user
 from django.db import connection
 import csv
 from django.utils.translation import ugettext_lazy as _
+from numpy.polynomial.polynomial import polyfit
 
 # Create your views here.
 from django.views.decorators.cache import never_cache
 
+from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.TeslaCarInfo import TeslaCarInfo
 
 # return content as png of a bar graph with names (X), values (Y) with title
 from mysite.settings import DATABASES
 
+def GeneratePngFromGraph(fig):
+    # https://stackoverflow.com/questions/49542459/error-in-django-when-using-matplotlib-examples
+    buf = io.BytesIO()
+    canvas = FigureCanvasAgg(fig)
+    canvas.print_png(buf)
+    response = HttpResponse(buf.getvalue(), content_type='image/png')
+    # if required clear the figure for reuse
+    fig.clear()
+    # I recommend to add Content-Length for Django
+    response['Content-Length'] = str(len(response.content))
+    return response
 
 # Return a dictionary with titles for fields
 def GetTitleForFieldDico():
@@ -40,6 +53,10 @@ def GetTitleForFieldDico():
         'EPARange': _('EPA Range (miles)'),
         'isDualMotor': _('Is Dual Motor'),
         'modelYear': _('Car year'),
+        'outside_temp': _('Outside temperature (°C)'),
+        'odometer': _('Odometer (miles)'),
+        'battery_level': _('Battery level (%)'),
+        'charge_limit_soc': _('Battery charge limit (%)'),
     }
     return dico
 
@@ -60,22 +77,14 @@ def GenerateBarGraph(names, values, title):
     # See https://matplotlib.org/3.2.1/faq/howto_faq.html#how-to-use-matplotlib-in-a-web-application-server
     # as pyplot in webserver will generate leaks
     # result: errors 500 in heroku official, grr
-    # as defaukt dpi is 100, 9, 3 means 900*300 pixels
+    # as default dpi is 100, 9, 3 means 900*300 pixels
     # and we need more width than 9 for firmware as label are large
     fig = Figure(figsize=[12, 3])
     ax = fig.subplots(nrows=1, ncols=1, sharey=True)
-    ax.bar(names, values)
+    if names is not None and values is not  None:
+        ax.bar(names, values)
     fig.suptitle(title)
-    # https://stackoverflow.com/questions/49542459/error-in-django-when-using-matplotlib-examples
-    buf = io.BytesIO()
-    canvas = FigureCanvasAgg(fig)
-    canvas.print_png(buf)
-    response = HttpResponse(buf.getvalue(), content_type='image/png')
-    # if required clear the figure for reuse
-    fig.clear()
-    # I recommend to add Content-Length for Django
-    response['Content-Length'] = str(len(response.content))
-    return response
+    return GeneratePngFromGraph(fig)
 
 
 def GetNamesAndValuesFromGroupByTotalResult(results, desiredfield):
@@ -189,3 +198,59 @@ def GetAllRawCarInfos(request):
     if not user.is_authenticated or not user.is_superuser:
         return HttpResponse('Accessing all raw car infos is only for admins')
     return PrepareCSVFromQuery('select * from matesla_teslacarinfo;')
+
+def GetXandYFromBatteryDegradResult(results, xfield):
+    xvalues = list()
+    yvalues = list()
+    for entry in results:
+        entry = entry.__dict__
+        if entry['battery_degradation'] is None:
+            continue
+        if entry[xfield] is None:
+            continue
+
+        xvalues.append(entry[xfield])
+        yvalues.append(entry['battery_degradation'])
+    return xvalues, yvalues
+
+
+def GenerateScatterGraph(xvalues, yvalues, title):
+    # From https://matplotlib.org/3.2.1/api/_as_gen/matplotlib.pyplot.scatter.html
+    fig = Figure(figsize=[12, 5])
+
+    ax = fig.subplots()
+    if xvalues is not None and yvalues is not None:
+        ax.scatter(xvalues, yvalues)
+        # do regression polynomial, see https://stackoverflow.com/questions/19068862/how-to-overplot-a-line-on-a-scatter-plot-in-python
+        # and https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
+        # a, b, c = polyfit(xvalues, yvalues, 2)
+        a, b = polyfit(xvalues, yvalues, 1)
+        regressy = []
+        xvalues.sort()
+        for x in xvalues:
+            # y = c * x * x + b * x + a
+            y = b * x + a
+            regressy.append(y)
+        ax.plot(xvalues, regressy, '-')
+    fig.suptitle(title)
+    return GeneratePngFromGraph(fig)
+
+def BatteryDegradationGraph(request, desiredfield):
+    # Similar (and reuse) wht is done for equivalent graph in personal graph,
+    # but here we mix all car data
+
+    # Check that it is one field from the TeslaCarDataSnapshot
+    validFields = TeslaCarDataSnapshot.__dict__
+    if desiredfield is None or desiredfield not in validFields:
+        # means invalid desiredfield field was passed
+        return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield), False
+
+    count = TeslaCarDataSnapshot.objects.count()
+    if count == 0:
+        return GenerateBarGraph(None, None, GetTitleForField(desiredfield))
+
+    # to have a random sample
+    # see https://stackoverflow.com/questions/31801826/random-sample-on-django-querysets-how-will-sampling-on-querysets-affect-perform
+    results = TeslaCarDataSnapshot.objects.all().order_by('?')[:500]
+    xvalues, yxvalues = GetXandYFromBatteryDegradResult(results, desiredfield)
+    return GenerateScatterGraph(xvalues, yxvalues, GetTitleForField(desiredfield))
