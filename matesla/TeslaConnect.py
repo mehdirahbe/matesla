@@ -223,13 +223,11 @@ def ParamsConnectedTesla(user):
     SaveDataHistory(ret)
     return ret
 
-
-def SetChargeLevel(desiredchargelevel, user):
+def SetTeslaParamater(data,user,commandToCall):
     teslaatoken = Connect(user)
     api_call_headers = {'Authorization': 'Bearer ' + teslaatoken.access_token}
-    data = {'percent': str(desiredchargelevel)}
     api_call_response = requests.post(
-        "https://owner-api.teslamotors.com/api/1/vehicles/" + str(teslaatoken.vehicle_id) + "/command/set_charge_limit",
+        "https://owner-api.teslamotors.com/api/1/vehicles/" + str(teslaatoken.vehicle_id) + "/command/"+commandToCall,
         headers=api_call_headers, verify=True, data=data)
     if api_call_response is not None and api_call_response.status_code == 408:
         raise TeslaIsAsleepException
@@ -238,6 +236,14 @@ def SetChargeLevel(desiredchargelevel, user):
     if api_call_response is None or api_call_response.status_code != 200:
         raise TeslaCommandException()
 
+
+def SetChargeLevel(desiredchargelevel, user):
+    data = {'percent': str(desiredchargelevel)}
+    SetTeslaParamater(data, user, 'set_charge_limit')
+
+def SetDriverTempCelcius(desiredtemperature, user):
+    data = {'driver_temp': str(desiredtemperature)}
+    SetTeslaParamater(data, user, 'set_temps')
 
 # rem execute a command, see https://www.teslaapi.io/vehicles/commands for list
 def executeCommand(user, command, setOn=None):

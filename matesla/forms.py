@@ -6,8 +6,12 @@ from .models.TeslaToken import TeslaToken
 from django.utils.translation import ugettext_lazy as _
 
 class DesiredChargeLevelForm(forms.Form):
-    DesiredChargeLevel = forms.IntegerField(label='Desired Charge Level',
+    DesiredChargeLevel = forms.IntegerField(label=_('Desired Charge Level'),
                                             validators=[MinValueValidator(50), MaxValueValidator(100)])
+class DesiredTemperatureForm(forms.Form):
+    #28 °C is the max that my car accepts
+    DesiredTemperature = forms.IntegerField(label=_('Driver temperature'),
+                                            validators=[MinValueValidator(15), MaxValueValidator(28)])
 
 
 class AddTeslaAccountForm(forms.Form):

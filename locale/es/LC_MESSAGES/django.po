@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-22 21:35+0200\n"
+"POT-Creation-Date: 2020-06-09 23:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,121 +28,145 @@ msgstr ""
 msgid "Battery degradation graphs"
 msgstr ""
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:77
+#: anonymisedstats/templates/anonymisedstats/carstats.html:81
 #: matesla/templates/matesla/carstatus.html:208
 msgid "Firmware version"
 msgstr ""
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:80
-#: anonymisedstats/views.py:109
+#: anonymisedstats/templates/anonymisedstats/carstats.html:84
+#: anonymisedstats/views.py:118
 msgid "Most recent Firmware updates"
 msgstr ""
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:82
+#: anonymisedstats/templates/anonymisedstats/carstats.html:86
 msgid "Download Firmware Stats"
 msgstr ""
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:93
+#: anonymisedstats/templates/anonymisedstats/carstats.html:97
 msgid "Cars statistics"
 msgstr ""
 
-#: anonymisedstats/views.py:26
+#: anonymisedstats/views.py:39
 msgid "Car addition Date"
 msgstr ""
 
-#: anonymisedstats/views.py:27 matesla/templates/matesla/carstatus.html:196
+#: anonymisedstats/views.py:40 matesla/templates/matesla/carstatus.html:196
 msgid "Car type"
 msgstr ""
 
-#: anonymisedstats/views.py:28 matesla/templates/matesla/carstatus.html:267
+#: anonymisedstats/views.py:41 matesla/templates/matesla/carstatus.html:267
 msgid "Charge port"
 msgstr ""
 
-#: anonymisedstats/views.py:29 matesla/templates/matesla/carstatus.html:200
+#: anonymisedstats/views.py:42 matesla/templates/matesla/carstatus.html:200
 msgid "Exterior color"
 msgstr ""
 
-#: anonymisedstats/views.py:30
+#: anonymisedstats/views.py:43
 msgid "Has air suspension"
 msgstr ""
 
-#: anonymisedstats/views.py:31
+#: anonymisedstats/views.py:44
 msgid "Has ludicrous mode"
 msgstr ""
 
-#: anonymisedstats/views.py:32
+#: anonymisedstats/views.py:45
 msgid "Is charge port motorized"
 msgstr ""
 
-#: anonymisedstats/views.py:33
+#: anonymisedstats/views.py:46
 msgid "Has rear seat heaters"
 msgstr ""
 
-#: anonymisedstats/views.py:34
+#: anonymisedstats/views.py:47
 msgid "Right hand drive"
 msgstr ""
 
-#: anonymisedstats/views.py:35
+#: anonymisedstats/views.py:48
 msgid "Roof color"
 msgstr ""
 
-#: anonymisedstats/views.py:36 matesla/templates/matesla/carstatus.html:204
+#: anonymisedstats/views.py:49 matesla/templates/matesla/carstatus.html:204
 msgid "Wheel"
 msgstr ""
 
-#: anonymisedstats/views.py:37
+#: anonymisedstats/views.py:50
 msgid "Is sentry mode available"
 msgstr ""
 
-#: anonymisedstats/views.py:38
+#: anonymisedstats/views.py:51
 msgid "Is FSD enabled"
 msgstr ""
 
-#: anonymisedstats/views.py:39
+#: anonymisedstats/views.py:52
 msgid "European union car"
 msgstr ""
 
-#: anonymisedstats/views.py:40
+#: anonymisedstats/views.py:53
 msgid "EPA Range (miles)"
 msgstr ""
 
-#: anonymisedstats/views.py:41
+#: anonymisedstats/views.py:54
 msgid "Is Dual Motor"
 msgstr ""
 
-#: anonymisedstats/views.py:42
+#: anonymisedstats/views.py:55
 msgid "Car year"
 msgstr ""
 
-#: anonymisedstats/views.py:86
+#: anonymisedstats/views.py:56 personalstats/views.py:23
+msgid "Outside temperature (°C)"
+msgstr ""
+
+#: anonymisedstats/views.py:57 personalstats/views.py:27
+msgid "Odometer (miles)"
+msgstr ""
+
+#: anonymisedstats/views.py:58 personalstats/views.py:32
+msgid "Battery level (%)"
+msgstr ""
+
+#: anonymisedstats/views.py:59 personalstats/views.py:34
+msgid "Battery charge limit (%)"
+msgstr ""
+
+#: anonymisedstats/views.py:95
 msgid "No Value"
 msgstr ""
 
-#: anonymisedstats/views.py:90
+#: anonymisedstats/views.py:99
 msgid "True"
 msgstr ""
 
-#: anonymisedstats/views.py:92
+#: anonymisedstats/views.py:101
 msgid "False"
 msgstr ""
 
-#: matesla/forms.py:15
+#: matesla/forms.py:9
+msgid "Desired Charge Level"
+msgstr ""
+
+#: matesla/forms.py:13
+msgid "Driver temperature"
+msgstr ""
+
+#: matesla/forms.py:19
 msgid "Tesla account user"
 msgstr ""
 
-#: matesla/forms.py:16
+#: matesla/forms.py:20
 msgid "Tesla account password"
 msgstr ""
 
-#: matesla/forms.py:18
+#: matesla/forms.py:22
 msgid "Tesla token (only advanced users)"
 msgstr ""
 
-#: matesla/forms.py:20
+#: matesla/forms.py:24
 msgid "Tesla refresh token (advanced users, optional)"
 msgstr ""
 
-#: matesla/forms.py:22
+#: matesla/forms.py:26
 msgid "Tesla token creation time (advanced users, optional)"
 msgstr ""
 
@@ -154,6 +178,7 @@ msgstr ""
 #: matesla/templates/matesla/asleep.html:7
 #: matesla/templates/matesla/carstatus.html:119
 #: matesla/templates/matesla/getdesiredchargelevel.html:6
+#: matesla/templates/matesla/getdesiredtemperature.html:6
 msgid "logout"
 msgstr ""
 
@@ -165,6 +190,7 @@ msgstr ""
 #: matesla/templates/matesla/asleep.html:9
 #: matesla/templates/matesla/carstatus.html:121
 #: matesla/templates/matesla/getdesiredchargelevel.html:8
+#: matesla/templates/matesla/getdesiredtemperature.html:8
 #: templates/registration/login.html:10
 msgid "Firmware and cars Stats"
 msgstr ""
@@ -220,6 +246,7 @@ msgstr ""
 
 #: matesla/templates/matesla/AddTeslaAccount.html:25
 #: matesla/templates/matesla/getdesiredchargelevel.html:14
+#: matesla/templates/matesla/getdesiredtemperature.html:14
 msgid "Save"
 msgstr ""
 
@@ -248,6 +275,7 @@ msgstr ""
 #: matesla/templates/matesla/asleep.html:8
 #: matesla/templates/matesla/carstatus.html:120
 #: matesla/templates/matesla/getdesiredchargelevel.html:7
+#: matesla/templates/matesla/getdesiredtemperature.html:7
 msgid "Tesla account"
 msgstr ""
 
@@ -491,10 +519,6 @@ msgstr ""
 msgid "Drive related graphs"
 msgstr ""
 
-#: personalstats/views.py:23
-msgid "Outside temperature (°C)"
-msgstr ""
-
 #: personalstats/views.py:24
 msgid "Driver temperature (°C)"
 msgstr ""
@@ -505,10 +529,6 @@ msgstr ""
 
 #: personalstats/views.py:26
 msgid "Passenger temperature (°C)"
-msgstr ""
-
-#: personalstats/views.py:27
-msgid "Odometer (miles)"
 msgstr ""
 
 #: personalstats/views.py:29
@@ -523,16 +543,8 @@ msgstr ""
 msgid "Power"
 msgstr ""
 
-#: personalstats/views.py:32
-msgid "Battery level (%)"
-msgstr ""
-
 #: personalstats/views.py:33
 msgid "Battery range (miles)"
-msgstr ""
-
-#: personalstats/views.py:34
-msgid "Battery charge limit (%)"
 msgstr ""
 
 #: personalstats/views.py:35
@@ -567,15 +579,15 @@ msgstr ""
 msgid "Battery degradation (%)"
 msgstr ""
 
-#: personalstats/views.py:86
+#: personalstats/views.py:73
 msgid "Minimum"
 msgstr ""
 
-#: personalstats/views.py:87
+#: personalstats/views.py:74
 msgid "Average"
 msgstr ""
 
-#: personalstats/views.py:88
+#: personalstats/views.py:75
 msgid "Maximum"
 msgstr ""
 

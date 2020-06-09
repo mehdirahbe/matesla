@@ -8,7 +8,7 @@ from django.views.decorators.cache import never_cache
 import re
 from anonymisedstats.views import PrepareCSVFromQuery
 from matesla.TeslaConnect import *
-from .forms import DesiredChargeLevelForm, AddTeslaAccountForm
+from .forms import DesiredChargeLevelForm, AddTeslaAccountForm, DesiredTemperatureForm
 from .models.TeslaToken import TeslaToken
 from .models.VinHash import HashTheVin, IsValidHash
 
@@ -33,6 +33,25 @@ def getdesiredchargelevel(request):
         form = DesiredChargeLevelForm(initial={'DesiredChargeLevel': '90'})
     return render(request, 'matesla/getdesiredchargelevel.html', {'form': form})
 
+@never_cache
+def getdesiredtemperature(request):
+    user = get_user(request)
+    if not user.is_authenticated:
+        return redirect('login')
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = DesiredTemperatureForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # redirect to a new URL:
+            SetDriverTempCelcius(form.cleaned_data["DesiredTemperature"], user)
+            return redirect("tesla_status")
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = DesiredTemperatureForm(initial={'DesiredTemperature': '20'})
+    return render(request, 'matesla/getdesiredtemperature.html', {'form': form})
 
 def view_teslacss(request):
     return HttpResponse(

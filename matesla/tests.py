@@ -12,6 +12,7 @@ from matesla.views import returnColorFronContext, ValidColorCodes
 allURLs = {'',
            'matesla/asleep',
            'matesla/getdesiredchargelevel',
+           'matesla/getdesiredtemperature',
            'matesla/flash_lights',
            'matesla/honk_horn',
            'matesla/start_climate',
