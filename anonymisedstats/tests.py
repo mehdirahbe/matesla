@@ -33,8 +33,11 @@ class AccountsTestCase(TestCase):
             'modelYear',
         }
         for lang in {"fr", "en"}:
-            # scatter chart on battery degradation
+            # scatter chart on battery degradation vs odometer
             response = c.post('/'+lang+'/anonymisedstats/BatteryDegradationGraph/odometer')
+            self.assertEqual(response.status_code, 200, 'BatteryDegradationGraph anonymisedstats did fail')
+            # scatter chart on battery degradation vs Number of Cycles
+            response = c.post('/'+lang+'/anonymisedstats/BatteryDegradationGraph/NumberCycles')
             self.assertEqual(response.status_code, 200, 'BatteryDegradationGraph anonymisedstats did fail')
             # bar chart on car infos
             response = c.post('/'+lang+'/anonymisedstats/firmwareupdates')

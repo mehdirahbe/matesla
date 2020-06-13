@@ -57,6 +57,7 @@ def GetTitleForFieldDico():
         'odometer': _('Odometer (miles)'),
         'battery_level': _('Battery level (%)'),
         'charge_limit_soc': _('Battery charge limit (%)'),
+        'NumberCycles': _('Estim. number of battery cycles'),
     }
     return dico
 
