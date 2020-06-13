@@ -33,6 +33,7 @@ def getdesiredchargelevel(request):
         form = DesiredChargeLevelForm(initial={'DesiredChargeLevel': '90'})
     return render(request, 'matesla/getdesiredchargelevel.html', {'form': form})
 
+
 @never_cache
 def getdesiredtemperature(request):
     user = get_user(request)
@@ -52,6 +53,7 @@ def getdesiredtemperature(request):
     else:
         form = DesiredTemperatureForm(initial={'DesiredTemperature': '20'})
     return render(request, 'matesla/getdesiredtemperature.html', {'form': form})
+
 
 def view_teslacss(request):
     return HttpResponse(
@@ -133,6 +135,10 @@ def Preparestatus(request, user):
         context["batterydegradation"] = '{:.1f}'.format(params.batterydegradation)
     else:
         context["batterydegradation"] = None
+    if params.NumberCycles is None:
+        context["NumberCycles"] = None
+    else:
+        context["NumberCycles"] = '{:.1f}'.format(params.NumberCycles)
     context["hashedVin"] = HashTheVin(context["vin"])
     context["location"] = params.location
     context["OdometerInKm"] = '{:.0f}'.format(params.OdometerInKm)

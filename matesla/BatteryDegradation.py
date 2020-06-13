@@ -4,15 +4,13 @@ it is not returned and due to invalid codes, it is impossible to know exact car
  So compute when we can and return None when impossible to compute safely
  batteryrange should be in miles, battery_level is in %'''
 
-
-
-
 # we can get fairly precise extracting from vin car model, year and motors.
 # but we miss one info: battery power. If for model 3, there is SR, sr+,
 # medium and LR all being single motor.
 # Return range (or none)+model, isDual, year extracted from vin
 from matesla.VinAnalysis import GetModelFromVin, IsDualMotor, GetYearFromVin
 from matesla.models.TeslaCarInfo import TeslaCarInfo
+
 
 # Return range in miles from cache
 def GetEPARangeFromCache(vin):
@@ -69,27 +67,43 @@ def GetEPARange(vin):
     return EPARange, model, isDual, year
 
 
-# Update battery degradation, in case our very crude
+# Update EPARange (miles), in case our very crude
 # GetEPARange initial result did induce a negative battery
 # degradation
-def UpdateBatteryDegradation(vin, EPARange):
+def UpdateBatteryEPARange(vin, EPARange):
     carInfos = TeslaCarInfo.objects.filter(vin=vin)
     if len(carInfos) > 0:
         carInfo = carInfos[0]
         carInfo.EPARange = EPARange
         carInfo.save()
 
-#return battery degradation in % with batteryrange vs EPARange (in miles) and battery_level (in %)
+
+# return battery degradation in % with batteryrange vs EPARange (in miles) and battery_level (in %)
 def ComputeBatteryDegradationFromEPARange(batteryrange, battery_level, EPARange):
     if EPARange is None:
         return None
     batterydegradation = (1. - ((1. * batteryrange) / (battery_level * 1.) * 100.) / EPARange) * 100.
     return batterydegradation
 
-def ComputeBatteryDegradation(batteryrange, battery_level, vin):
+
+def ComputeNumCycles(EPARange, odometerMiles):
+    if EPARange is None or odometerMiles is None:
+        return None
+    if EPARange == 0:
+        return None
+    cycles = (1. * odometerMiles) / EPARange
+    # rough guess add 20 % due to regenerative braking adding cycles to the battery
+    # and vampire drain being reffiled without the car driving
+    cycles = cycles * 1.2
+    return cycles
+
+
+# return battery degradation and number of cycles of the battery
+# odometer is used to estimates number of cycles
+def ComputeBatteryDegradation(batteryrange, battery_level, vin, odometerMiles):
     EPARange, model, isDual, year = GetEPARange(vin)
     if EPARange is None:
-        return None
+        return None, None
     batterydegradation = ComputeBatteryDegradationFromEPARange(batteryrange, battery_level, EPARange)
     if model == "3" and isDual is False and batterydegradation < -5:
         '''From https://en.wikipedia.org/wiki/Tesla_Model_3
@@ -100,15 +114,15 @@ def ComputeBatteryDegradation(batteryrange, battery_level, vin):
         EPARange = 325.
         batterydegradation = ComputeBatteryDegradationFromEPARange(batteryrange, battery_level, EPARange)
         if batterydegradation >= 0.:
-            UpdateBatteryDegradation(vin, EPARange)
+            UpdateBatteryEPARange(vin, EPARange)
     if model == "S" and isDual == True and batterydegradation < 0:
         # see all the range for 85, 90, 100 kwh batteries https://en.wikipedia.org/wiki/Tesla_Model_S
         ranges = [270., 294., 335.]
         for EPARange in ranges:
             batterydegradation = ComputeBatteryDegradationFromEPARange(batteryrange, battery_level, EPARange)
             if batterydegradation >= 0.:
-                UpdateBatteryDegradation(vin, EPARange)
-                return batterydegradation
+                UpdateBatteryEPARange(vin, EPARange)
+                return batterydegradation, ComputeNumCycles(EPARange, odometerMiles)
     if batterydegradation < 0.:  # don't return negative degradation
         batterydegradation = 0.
-    return batterydegradation
+    return batterydegradation, ComputeNumCycles(EPARange, odometerMiles)

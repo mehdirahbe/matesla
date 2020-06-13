@@ -179,8 +179,9 @@ def SaveDataHistory(teslaState):
     # if we don't have epa range yet, this will force its recomputation
     if toSave.EPARange is None:
         chargestate = context["charge_state"]
+        vehicle_state = context["vehicle_state"]
         ComputeBatteryDegradation(chargestate["battery_range"], chargestate["battery_level"],
-                                  teslaState.vin)
+                                  teslaState.vin, vehicle_state['odometer'])
     # Car variable infos
     toSave = TeslaCarDataSnapshot()
     toSave.SaveIfDontExistsYet(teslaState.vin, context)
@@ -211,23 +212,26 @@ def ParamsConnectedTesla(user):
     chargestate = context["charge_state"]
     ret.batteryrange = chargestate["battery_range"] * 1.609344
     # Estimate battery degradation
-    ret.batterydegradation = ComputeBatteryDegradation(chargestate["battery_range"], chargestate["battery_level"],
-                                                       ret.vin)
+    vehicle_state = context["vehicle_state"]
+    ret.batterydegradation, ret.NumberCycles = ComputeBatteryDegradation(chargestate["battery_range"],
+                                                                         chargestate["battery_level"],
+                                                                         ret.vin,
+                                                                         vehicle_state['odometer'])
     drive_state = context["drive_state"]
     longitude = str(drive_state["longitude"])
     latitude = str(drive_state["latitude"])
-    vehicle_state = context["vehicle_state"]
     ret.OdometerInKm = vehicle_state['odometer'] * 1.609344
     ret.location = GetAddressFromLatLong(drive_state["latitude"], drive_state["longitude"])
     # Save info for data history
     SaveDataHistory(ret)
     return ret
 
-def SetTeslaParamater(data,user,commandToCall):
+
+def SetTeslaParamater(data, user, commandToCall):
     teslaatoken = Connect(user)
     api_call_headers = {'Authorization': 'Bearer ' + teslaatoken.access_token}
     api_call_response = requests.post(
-        "https://owner-api.teslamotors.com/api/1/vehicles/" + str(teslaatoken.vehicle_id) + "/command/"+commandToCall,
+        "https://owner-api.teslamotors.com/api/1/vehicles/" + str(teslaatoken.vehicle_id) + "/command/" + commandToCall,
         headers=api_call_headers, verify=True, data=data)
     if api_call_response is not None and api_call_response.status_code == 408:
         raise TeslaIsAsleepException
@@ -241,9 +245,11 @@ def SetChargeLevel(desiredchargelevel, user):
     data = {'percent': str(desiredchargelevel)}
     SetTeslaParamater(data, user, 'set_charge_limit')
 
+
 def SetDriverTempCelcius(desiredtemperature, user):
     data = {'driver_temp': str(desiredtemperature)}
     SetTeslaParamater(data, user, 'set_temps')
+
 
 # rem execute a command, see https://www.teslaapi.io/vehicles/commands for list
 def executeCommand(user, command, setOn=None):

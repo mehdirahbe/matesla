@@ -4,7 +4,7 @@ import time
 import requests
 from django.core.management.base import BaseCommand
 
-from matesla.BatteryDegradation import ComputeBatteryDegradationFromEPARange, GetEPARangeFromCache
+from matesla.BatteryDegradation import ComputeBatteryDegradationFromEPARange, GetEPARangeFromCache, ComputeNumCycles
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaToken import TeslaToken
 from matesla.models.VinHash import HashTheVin
@@ -41,11 +41,11 @@ class Command(BaseCommand):
     # in case some vin don't have some fields, as field was added later
     # intended to be run one shot
     def UpdateNewlyAddedFields(self):
-        alltoUpdate = TeslaCarDataSnapshot.objects.filter(DateOnlyDay__isnull=True)
+        alltoUpdate = TeslaCarDataSnapshot.objects.filter(NumberCycles__isnull=True)
         for entry in alltoUpdate:
-            entry.DateOnlyDay = entry.Date.date()
-
-            entry.save(update_fields=['DateOnlyDay'])
+            EPARange = GetEPARangeFromCache(entry.vin)
+            entry.NumberCycles = ComputeNumCycles(EPARange, entry.odometer)
+            entry.save(update_fields=['NumberCycles'])
 
     def handle(self, *args, **options):
         self.UpdateNewlyAddedFields()

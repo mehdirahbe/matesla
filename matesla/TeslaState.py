@@ -2,8 +2,11 @@
 class TeslaState:
     vin = None
     name = None
+    # battery degradation in %
     batterydegradation = 0.
     location = ""
     isOnline: bool = True
     vehicle_state = None
     OdometerInKm = 0.
+    # Estimated number of cycles of the battery
+    NumberCycles: int = None

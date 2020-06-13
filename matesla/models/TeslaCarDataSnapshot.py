@@ -1,7 +1,7 @@
 from django.utils import timezone
 from django.db import models
 
-from matesla.BatteryDegradation import ComputeBatteryDegradationFromEPARange, GetEPARangeFromCache
+from matesla.BatteryDegradation import ComputeBatteryDegradationFromEPARange, GetEPARangeFromCache, ComputeNumCycles
 from matesla.models.VinHash import HashTheVin
 
 
@@ -44,6 +44,7 @@ class TeslaCarDataSnapshot(models.Model):
     # from vehicle_state
     odometer = models.IntegerField()  # in miles
     battery_degradation = models.FloatField(null=True)  # computed degradation in %
+    NumberCycles = models.FloatField(null=True)  # Number of cycles of the battery
 
     class Meta:
         # index definition, see https://docs.djangoproject.com/en/3.0/ref/models/options/#django.db.models.Options.indexes
@@ -110,6 +111,8 @@ class TeslaCarDataSnapshot(models.Model):
             # from vehicle_state
             vehicle_state = context['vehicle_state']
             self.odometer = vehicle_state['odometer']
+            EPARange = GetEPARangeFromCache(vin)
+            self.NumberCycles = ComputeNumCycles(EPARange, self.odometer)
             self.battery_degradation = ComputeBatteryDegradationFromEPARange(
-                self.battery_range, self.battery_level, GetEPARangeFromCache(vin))
+                self.battery_range, self.battery_level, EPARange)
             self.save()
