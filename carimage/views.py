@@ -86,7 +86,6 @@ Interior (choose one)
 
 '''
 
-
 '''
 Here is the info returned by my car.
 'AD15,MDL3,PBSB,RENA,BT37,ID3W,RF3G,S3PB,DRLH,DV2W,W39B,APF0,COUS,BC3B,CH07,PC30,FC3P,FG31,GLFR,
@@ -95,6 +94,7 @@ HL31,HM31,IL31,LTPB,MR31,FM3B,RS3H,SA3P,STCP,SC04,SU3C,T3CA,TW00,TM00,UT3P,WR00,
 See for explanations, bit he signals that codes are not reliable anymore
 https://tesla-api.timdorr.com/vehicle/optioncodes
 '''
+
 
 def CreateImageFile(image):
     img_temp = NamedTemporaryFile(delete=True)
@@ -105,62 +105,63 @@ def CreateImageFile(image):
     # save in the db
     image.save()
 
-#for url parse, see https://docs.djangoproject.com/en/3.0/topics/http/urls/
+
+# for url parse, see https://docs.djangoproject.com/en/3.0/topics/http/urls/
 # color comes from codes as it seems correct and is the string we want (at least on my car)
 # wheel and carmodel comes from car info, not from car info codes due to reliability
-def CarImageFromTesla(request,color,wheel,CarModel):
-    size="400"
+def CarImageFromTesla(request, color, wheel, CarModel):
+    size = "400"
 
-    #Assume 19 as I can only identify 18 reliably as it is my car wheels
-    wheelToUse="W39B"
-    if wheel=="Pinwheel18":
-        wheelToUse="W38B"
+    # Assume 19 as I can only identify 18 reliably as it is my car wheels
+    wheelToUse = "W39B"
+    if wheel == "Pinwheel18":
+        wheelToUse = "W38B"
 
-    #Assume model 3 as I have no idea of the params for other cars
-    if CarModel=="modelx":
-        CarModelToUse="mx"
-        url="https://static-assets.tesla.com/configurator/compositor?&options=$WT20,$"+color+",$MTX03&view=STUD_3QTR_V2&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=v0027d202004163351"
+    # Assume model 3 as I have no idea of the params for other cars
+    if CarModel == "modelx":
+        CarModelToUse = "mx"
+        url = "https://static-assets.tesla.com/configurator/compositor?&options=$WT20,$" + color + ",$MTX03&view=STUD_3QTR_V2&model=" + CarModelToUse + "&size=" + size + "&bkba_opt=1&version=v0027d202004163351"
     else:
         if CarModel == "models" or CarModel == "models2":
             CarModelToUse = "ms"
-            url = "https://static-assets.tesla.com/configurator/compositor?&options=$WTAS,$"+color+",$MTS03&view=STUD_3QTR_V2&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=v0027d202004163351"
+            url = "https://static-assets.tesla.com/configurator/compositor?&options=$WTAS,$" + color + ",$MTS03&view=STUD_3QTR_V2&model=" + CarModelToUse + "&size=" + size + "&bkba_opt=1&version=v0027d202004163351"
         else:
             if CarModel == "modely":
                 CarModelToUse = "my"
-                url = "https://static-assets.tesla.com/configurator/compositor?&options=$WY19B,$"+color+",$DV4W,$MTY03,$INYPB&view=STUD_3QTR&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=v0027d202004163351"
-            else: #model 3
-                CarModelToUse="m3"
-                url="https://static-assets.tesla.com/configurator/compositor?&options=$"+color+",$"+wheelToUse+",$DV4W,$MT303,$IN3PB&view=STUD_3QTR&model="+CarModelToUse+"&size="+size+"&bkba_opt=1&version=0.0.25"
+                url = "https://static-assets.tesla.com/configurator/compositor?&options=$WY19B,$" + color + ",$DV4W,$MTY03,$INYPB&view=STUD_3QTR&model=" + CarModelToUse + "&size=" + size + "&bkba_opt=1&version=v0027d202004163351"
+            else:  # model 3
+                CarModelToUse = "m3"
+                url = "https://static-assets.tesla.com/configurator/compositor?&options=$" + color + ",$" + wheelToUse + ",$DV4W,$MT303,$IN3PB&view=STUD_3QTR&model=" + CarModelToUse + "&size=" + size + "&bkba_opt=1&version=0.0.25"
 
-    #Get the image from cache, if there is a problem, redirect to tesla site
-    #code inpired from https://stackoverflow.com/questions/16381241/django-save-image-from-url-and-connect-with-imagefield
-    willNeedFileCreation=False
+    # Get the image from cache, if there is a problem, redirect to tesla site
+    # code inpired from https://stackoverflow.com/questions/16381241/django-save-image-from-url-and-connect-with-imagefield
+    willNeedFileCreation = False
     try:
         try:
-            #get from cache
-            image=TeslaImage.objects.get(image_url=url)
+            # get from cache
+            image = TeslaImage.objects.get(image_url=url)
         except ObjectDoesNotExist:
-            #add it with image from tesla
-            image=TeslaImage()
-            image.image_url=url
+            # add it with image from tesla
+            image = TeslaImage()
+            image.image_url = url
             # save in the db in order that primary key is init
             image.save()
-            willNeedFileCreation=True
-        #check if a file with image is present. Will be absent on initial
+            willNeedFileCreation = True
+        # check if a file with image is present. Will be absent on initial
         # and also when image dir is cleaned
         if image.image_url and not image.image_file:
             willNeedFileCreation = True
         if willNeedFileCreation:
             CreateImageFile(image)
-        #Try to return cache entry
+        # Try to return cache entry
         try:
             return HttpResponse(image.image_file, content_type="image/png")
         except Exception:
-            CreateImageFile(image)#image was surely missing, seems that test on image.image_file fails
+            CreateImageFile(image)  # image was surely missing, seems that test on image.image_file fails
             return HttpResponse(image.image_file, content_type="image/png")
     except Exception:
-        #go to tesla site
+        # go to tesla site
         return HttpResponseRedirect(url)
 
-#valid url example:
+# valid url example:
 # http://127.0.0.1:8000/carimage/PBSB/Pinwheel18/model3
