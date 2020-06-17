@@ -1,0 +1,10 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Denote all files that should not be modified.
+# reason signatures does not match anymore and browser reject them
+# when site run on windows (problem detected by rilette
+# and corrected by me)
+# see https://help.github.com/en/enterprise/2.18/user/github/using-git/configuring-git-to-handle-line-endings
+*.css binary
+*.js binary
