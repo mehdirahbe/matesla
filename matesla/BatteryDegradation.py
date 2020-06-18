@@ -98,12 +98,12 @@ def ComputeNumCycles(EPARange, odometerMiles):
     return cycles
 
 
-# return battery degradation and number of cycles of the battery
+# return battery degradation and number of cycles of the battery+EPA Range in Miles
 # odometer is used to estimates number of cycles
 def ComputeBatteryDegradation(batteryrange, battery_level, vin, odometerMiles):
     EPARange, model, isDual, year = GetEPARange(vin)
     if EPARange is None:
-        return None, None
+        return None, None, None
     batterydegradation = ComputeBatteryDegradationFromEPARange(batteryrange, battery_level, EPARange)
     if model == "3" and isDual is False and batterydegradation < -5:
         '''From https://en.wikipedia.org/wiki/Tesla_Model_3
@@ -122,7 +122,7 @@ def ComputeBatteryDegradation(batteryrange, battery_level, vin, odometerMiles):
             batterydegradation = ComputeBatteryDegradationFromEPARange(batteryrange, battery_level, EPARange)
             if batterydegradation >= 0.:
                 UpdateBatteryEPARange(vin, EPARange)
-                return batterydegradation, ComputeNumCycles(EPARange, odometerMiles)
+                return batterydegradation, ComputeNumCycles(EPARange, odometerMiles), EPARange
     if batterydegradation < 0.:  # don't return negative degradation
         batterydegradation = 0.
-    return batterydegradation, ComputeNumCycles(EPARange, odometerMiles)
+    return batterydegradation, ComputeNumCycles(EPARange, odometerMiles), EPARange

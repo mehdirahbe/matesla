@@ -175,8 +175,8 @@
                         <h5>{%trans 'General information'%}</h5>
                         <div class="generalinfos_part">
                             <div class="info_label_value">
-                                <div class="info_label">Vin</div>
-                                <div class="info_value"><a href="https://teslatap.com/vin-decoder/" target="_blank" class="btn btn-secondary btn-sm">{{vin}}</a></div>
+                                <div class="info_label"><a href="https://teslatap.com/vin-decoder/" target="_blank" class="btn btn-secondary btn-sm">Vin</a></div>
+                                <div class="info_value">{{vin}}</div>
                             </div>
                             <div class="info_label_value">
                                 <div class="info_label">{% trans 'State' %}</div>
@@ -328,6 +328,10 @@
                             <div class="info_label_value">
                                 <div class="info_label">{% trans 'Estim. number of battery cycles' %}</div>
                                 <div class="info_value">{{NumberCycles}}</div>
+                            </div>
+                            <div class="info_label_value">
+                                <div class="info_label">{% trans 'EPA Range (miles)' %}</div>
+                                <div class="info_value"><a href="https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=41189" target="_blank" class="btn btn-secondary btn-sm">{{EPARangeMiles}}</a></div>
                             </div>
                         </div>
                     </div>

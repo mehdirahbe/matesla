@@ -213,10 +213,11 @@ def ParamsConnectedTesla(user):
     ret.batteryrange = chargestate["battery_range"] * 1.609344
     # Estimate battery degradation
     vehicle_state = context["vehicle_state"]
-    ret.batterydegradation, ret.NumberCycles = ComputeBatteryDegradation(chargestate["battery_range"],
-                                                                         chargestate["battery_level"],
-                                                                         ret.vin,
-                                                                         vehicle_state['odometer'])
+    ret.batterydegradation, ret.NumberCycles, ret.EPARangeMiles = ComputeBatteryDegradation(
+        chargestate["battery_range"],
+        chargestate["battery_level"],
+        ret.vin,
+        vehicle_state['odometer'])
     drive_state = context["drive_state"]
     longitude = str(drive_state["longitude"])
     latitude = str(drive_state["latitude"])

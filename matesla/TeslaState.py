@@ -10,3 +10,5 @@ class TeslaState:
     OdometerInKm = 0.
     # Estimated number of cycles of the battery
     NumberCycles: int = None
+    # Guessed EPA range in miles
+    EPARangeMiles: int = None

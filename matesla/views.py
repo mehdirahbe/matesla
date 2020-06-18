@@ -139,6 +139,10 @@ def Preparestatus(request, user):
         context["NumberCycles"] = None
     else:
         context["NumberCycles"] = '{:.1f}'.format(params.NumberCycles)
+    if params.EPARangeMiles is None:
+        context["EPARangeMiles"] = None
+    else:
+        context["EPARangeMiles"] = '{:.0f}'.format(params.EPARangeMiles)
     context["hashedVin"] = HashTheVin(context["vin"])
     context["location"] = params.location
     context["OdometerInKm"] = '{:.0f}'.format(params.OdometerInKm)
