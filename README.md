@@ -26,15 +26,16 @@ How to:
 
 Todo:
 1) Improve look of AddTeslaAccount form https://afternoon-scrubland-61531.herokuapp.com/fr/matesla/AddTeslaAccount
-2) Correct estimate of battery degradation for tesla model 3 standard range (and if fact all non model 3 LR)
-3) Add stats on firmware updates and autopilot HW updates
-4) Manage more colors and wheel size for image rendering
-5) Keep an history of car firmware, and any other desired infos
-6) Improve look of site
+2) Allow to set EPA range
+3) Allow to control overheat
+4) When doing a command, avoid a page refresh
+5) Allow to change PW+add feature in case of lost PW
 
 For developpers, how to run site locally:
-1) Run python3 manage.py migrate
-2) Then python3 manage.py createsuperuser
-3) Then python3 manage.py collectstatic
-3) Run the site with runserver
+1) Install python, django and mandatory modules (see requirements.txt) 
+2) Run python3 manage.py migrate (configure postgress db first, see settings.py)
+3) Then python3 manage.py createsuperuser (optional)
+4) Then python3 manage.py collectstatic
+5) Check that all is fine: python3 manage.py test
+6) Run the site with: python3 manage.py runserver
 
