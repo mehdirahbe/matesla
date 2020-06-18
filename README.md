@@ -30,6 +30,9 @@ Todo:
 3) Allow to control overheat
 4) When doing a command, avoid a page refresh
 5) Allow to change PW+add feature in case of lost PW
+6) Add more languages. If you are a native speaker, please don't hesitate
+to add a new language. No need to be a programmer to do that, just ask me to prepare
+and I will prepare a text file to just translate.
 
 For developpers, how to run site locally:
 1) Install python, django and mandatory modules (see requirements.txt) 
