@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path('', views.status, name='tesla_status'),
+    path('matesla/statusJson', views.statusJson, name='teslastatusJson'),
     path('matesla/asleep', views.asleep, name='teslaasleep'),
     path('matesla/getdesiredchargelevel', views.getdesiredchargelevel, name='getdesiredchargelevel'),
     path('matesla/getdesiredtemperature', views.getdesiredtemperature, name='getdesiredtemperature'),

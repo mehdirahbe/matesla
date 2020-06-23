@@ -54,6 +54,17 @@ class MaTeslaTestCase(TestCase):
             # test on 302 as it must redirect to a login in right language
             self.assertEqual(response.status_code, 302, 'int url ' + url + ' did work without looged user')
 
+    def test_JsonUrls(self):
+        # all URLs from this app need a logged user
+        allJsonURLs = {'matesla/statusJson'}
+        c = Client()
+        for url in allJsonURLs:
+            for lang in {"fr", "en"}:
+                response = c.post("/" + lang + '/' + url)
+                self.assertEqual(response.status_code, 200, lang + ' url ' + url + ' did not work')
+            response = c.post('/' + url)
+            self.assertEqual(response.status_code, 302, 'int url ' + url + ' did not work')
+
     def test_VinFunctions(self):
         vin = '5YJ3E7EB1KF123456'
         EPARange, model, isDual, year = GetEPARange(vin)

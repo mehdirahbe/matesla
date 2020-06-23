@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user
 # Create your views here.
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.template import loader
@@ -121,8 +121,8 @@ def returnColorFronContext(context):
     return colorcode
 
 
-# Prepare the status page, given a request and logged user id
-def Preparestatus(request, user):
+# Prepare all entries used in the status page, given a request and logged user id
+def PreparestatusDictionary(request, user):
     params = ParamsConnectedTesla(user)
     context = params.vehicle_state["response"]
     context.update(context["charge_state"])
@@ -146,7 +146,6 @@ def Preparestatus(request, user):
     context["hashedVin"] = HashTheVin(context["vin"])
     context["location"] = params.location
     context["OdometerInKm"] = '{:.0f}'.format(params.OdometerInKm)
-    template = loader.get_template('matesla/carstatus.html')
     context["colorcode"] = returnColorFronContext(context)
     # link to go in google maps, tesla provide 6 decimals
     context["linktogooglemaps"] = "https://www.google.com/maps/search/?api=1&query=" + \
@@ -157,14 +156,68 @@ def Preparestatus(request, user):
     WebServerName = str(request.get_host())
     context["IsLocalHost"] = WebServerName == "127.0.0.1:8000"
     context["Isafternoonscrubland"] = WebServerName == "afternoon-scrubland-61531.herokuapp.com"
+    return context
 
+
+# Prepare the status page, given a request and logged user id
+def Preparestatus(request, user):
+    context = PreparestatusDictionary(request, user)
+    template = loader.get_template('matesla/carstatus.html')
     return HttpResponse(template.render(context, request))
+
+
+# Get the status page data as Json, given a request and logged user id
+def PreparestatusJson(request, user):
+    context = PreparestatusDictionary(request, user)
+    # See https://simpleisbetterthancomplex.com/tutorial/2016/07/27/how-to-return-json-encoded-response.html
+    return JsonResponse(context)
 
 
 # The status view
 @never_cache
 def status(request):
     return singleAction(request, lambda request, user: Preparestatus(request, user), True)
+
+
+# The status json data
+@never_cache
+def statusJson(request):
+    return singleActionJson(request, lambda request, user: PreparestatusJson(request, user))
+
+
+'''Check login, and if fine call func. Return its output.
+On tesla login error, return json error detail.
+Never redirect.'''
+
+
+def singleActionJson(request, func):
+    user = get_user(request)
+    if not user.is_authenticated:
+        return JsonResponse({'error': 'not logged'})
+    try:
+        ret = func(request, user)
+        return ret
+    except TeslaIsAsleepException:
+        # if asleep
+        WaitForWakeUp(Connect(user))
+        return JsonResponse({'error': 'TeslaIsAsleepException'})
+    except TeslaNoUserException:
+        return JsonResponse({'error': 'TeslaNoUserException'})
+    except TeslaUnauthorisedException:
+        return JsonResponse({'error': 'TeslaUnauthorisedException'})
+    except TeslaAuthenticationException:
+        return JsonResponse({'error': 'TeslaAuthenticationException'})
+    except TeslaServerException:
+        return JsonResponse({'error': 'TeslaServerException'})
+    except TeslaCommandException:
+        return JsonResponse({'error': 'TeslaCommandException'})
+    except TeslaNoVehiculeException:
+        return JsonResponse({'error': 'TeslaNoVehiculeException'})
+    except requests.exceptions.ConnectionError:
+        return JsonResponse({'error': 'ConnectionError'})
+    except Exception as ex:
+        return JsonResponse({'error': type(ex).__name__})
+    return JsonResponse({'error': 'How did we arrive here?'})
 
 
 '''Check login, and if fine call func.  Then go to status page.
