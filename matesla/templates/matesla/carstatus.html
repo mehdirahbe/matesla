@@ -120,8 +120,6 @@
         <a href="{% url 'AddTeslaAccount' %}" class="btn btn-primary btn-sm">{% trans 'Tesla account' %}</a>
         <a href="{% url 'AnonymisedStatsChoicePage' %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Firmware and cars Stats' %}</a>
         <a href="https://github.com/mehdirahbe/matesla" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
-        <a href="{% url 'PersoStats' hashedVin %}" target="_blank" class="btn btn-info btn-sm">{% trans 'My data' %}</a>
-
     </div>
 
     {% if IsLocalHost %}
@@ -161,8 +159,10 @@
                         <div class="commands_part_cmd"><a href="{% url 'charge_start' %}" class="btn btn-primary btn-sm">{% trans 'Start charge' %}</a></div>
                         <div class="commands_part_cmd"><a href="{% url 'charge_stop' %}" class="btn btn-primary btn-sm">{% trans 'Stop charge' %}</a></div>
                         {% endif %}
+                        <div class="commands_part_cmd"><a href="{% url 'PersoStats' hashedVin %}" target="_blank" class="btn btn-info btn-sm">{% trans 'My data' %}</a></div>
+                        <div class="commands_part_cmd"><a href="{% url 'teslastatusJson' %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Json current data' %}</a></div>
                     </div>
-                    </div>
+                </div>
                 </div>
             </div>
             <div class="carousel-item">
