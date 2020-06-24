@@ -10,6 +10,8 @@ from django.db import connection
 import csv
 from django.utils.translation import ugettext_lazy as _
 from numpy.polynomial.polynomial import polyfit
+from datetime import timedelta
+from django.utils import timezone
 
 # Create your views here.
 from django.views.decorators.cache import never_cache
@@ -18,8 +20,15 @@ from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.TeslaCarInfo import TeslaCarInfo
 
+# in a general way, I eject cars not seen for maxdaysinthepast days
+# for period test: https://stackoverflow.com/questions/1984047/django-filter-older-than-days
+# cars should be refreshed at least once a day, ok, they can be unreachable
+# (no network), but anyway it should be short
+maxdaysinthepast = 15
+
 # return content as png of a bar graph with names (X), values (Y) with title
 from mysite.settings import DATABASES
+
 
 def GeneratePngFromGraph(fig):
     # https://stackoverflow.com/questions/49542459/error-in-django-when-using-matplotlib-examples
@@ -32,6 +41,7 @@ def GeneratePngFromGraph(fig):
     # I recommend to add Content-Length for Django
     response['Content-Length'] = str(len(response.content))
     return response
+
 
 # Return a dictionary with titles for fields
 def GetTitleForFieldDico():
@@ -82,7 +92,7 @@ def GenerateBarGraph(names, values, title):
     # and we need more width than 9 for firmware as label are large
     fig = Figure(figsize=[12, 3])
     ax = fig.subplots(nrows=1, ncols=1, sharey=True)
-    if names is not None and values is not  None:
+    if names is not None and values is not None:
         ax.bar(names, values)
     fig.suptitle(title)
     return GeneratePngFromGraph(fig)
@@ -112,7 +122,10 @@ def GetNamesAndValuesFromGroupByTotalResult(results, desiredfield):
 
 def FirmwareUpdates(request):
     # query 10 most recent versions to not have an unreadable graph
-    results = TeslaFirmwareHistory.objects.filter(IsArchive=False).values('Version').annotate(
+    time_threshold = timezone.now() - timedelta(days=maxdaysinthepast)
+    results = TeslaFirmwareHistory.objects.filter(
+        vin__in=TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold).values('vin')).filter(IsArchive=False).values(
+        'Version').annotate(
         MostRecent=Max('Date')).annotate(
         total=Count('Version')).order_by('-MostRecent')[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, 'Version')
@@ -138,7 +151,9 @@ def StatsOnCarByModelGraph(request, desiredfield, CarModel):
         # means invalid desiredfield field was passed
         return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield)
 
-    results = TeslaCarInfo.objects.filter(car_type=CarModel).values(desiredfield).annotate(
+    time_threshold = timezone.now() - timedelta(days=maxdaysinthepast)
+    results = TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold).filter(car_type=CarModel).values(
+        desiredfield).annotate(
         total=Count(desiredfield)).order_by(desiredfield)[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, desiredfield)
     return GenerateBarGraph(names, values, GetTitleForField(desiredfield))
@@ -151,7 +166,8 @@ def StatsOnCarAllModelsGraph(request, desiredfield):
         # means invalid desiredfield field was passed
         return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield)
 
-    results = TeslaCarInfo.objects.values(desiredfield).annotate(
+    time_threshold = timezone.now() - timedelta(days=maxdaysinthepast)
+    results = TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold).values(desiredfield).annotate(
         total=Count(desiredfield)).order_by(desiredfield)[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, desiredfield)
     return GenerateBarGraph(names, values, GetTitleForField(desiredfield))
@@ -200,6 +216,7 @@ def GetAllRawCarInfos(request):
         return HttpResponse('Accessing all raw car infos is only for admins')
     return PrepareCSVFromQuery('select * from matesla_teslacarinfo;')
 
+
 def GetXandYFromBatteryDegradResult(results, xfield):
     xvalues = list()
     yvalues = list()
@@ -235,6 +252,7 @@ def GenerateScatterGraph(xvalues, yvalues, title):
         ax.plot(xvalues, regressy, '-')
     fig.suptitle(title)
     return GeneratePngFromGraph(fig)
+
 
 def BatteryDegradationGraph(request, desiredfield):
     # Similar (and reuse) wht is done for equivalent graph in personal graph,
