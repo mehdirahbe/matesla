@@ -4,7 +4,7 @@
 <div class="form-group">
     <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
     <a href="{% url 'AnonymisedStatsChoicePage' %}" class="btn btn-info btn-sm">{% trans 'Firmware and cars Stats' %}</a>
-    <a href="https://github.com/mehdirahbe/matesla" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
+    <a href="https://github.com/mehdirahbe/matesla" rel="noopener noreferrer" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
 </div>
 <div class="input-group mb-3">
     <div class="input-group-prepend">
@@ -28,9 +28,9 @@
     <div class="form-group">
         <p>{% trans 'For advanced users: you can run in any python console this code to obtain your token, refresh and creation time.' %}
             <BR/>{% trans 'You have to install '%}
-            <a href="https://www.python.org/downloads/" target="_blank">Python</a>
+            <a href="https://www.python.org/downloads/" rel="noopener noreferrer" target="_blank">Python</a>
                 {% trans ' and '%}
-                <a href="https://requests.readthedocs.io/en/master/user/install" target="_blank">Requests</a>
+                <a href="https://requests.readthedocs.io/en/master/user/install" rel="noopener noreferrer" target="_blank">Requests</a>
             {% trans ' package first.'%}</p>
             <p>import requests<BR/>
             import json<BR/>

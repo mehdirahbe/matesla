@@ -119,7 +119,7 @@
         <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
         <a href="{% url 'AddTeslaAccount' %}" class="btn btn-primary btn-sm">{% trans 'Tesla account' %}</a>
         <a href="{% url 'AnonymisedStatsChoicePage' %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Firmware and cars Stats' %}</a>
-        <a href="https://github.com/mehdirahbe/matesla" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
+        <a href="https://github.com/mehdirahbe/matesla" rel="noopener noreferrer" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
     </div>
 
     {% if IsLocalHost %}
@@ -175,7 +175,7 @@
                         <h5>{%trans 'General information'%}</h5>
                         <div class="generalinfos_part">
                             <div class="info_label_value">
-                                <div class="info_label"><a href="https://teslatap.com/vin-decoder/" target="_blank" class="btn btn-secondary btn-sm">Vin</a></div>
+                                <div class="info_label"><a href="https://teslatap.com/vin-decoder/" rel="noopener noreferrer" target="_blank" class="btn btn-secondary btn-sm">Vin</a></div>
                                 <div class="info_value">{{vin}}</div>
                             </div>
                             <div class="info_label_value">
@@ -318,7 +318,7 @@
                             </div>
                             <div class="info_label_value">
                                 <div class="info_label">{% trans 'Location' %}</div>
-                                <div class="info_value"><a href="{{linktogooglemaps}}" target="_blank" class="btn btn-secondary btn-sm">{{location}}</a>
+                                <div class="info_value"><a href="{{linktogooglemaps}}" rel="noopener noreferrer" target="_blank" class="btn btn-secondary btn-sm">{{location}}</a>
                                 </div>
                             </div>
                             <div class="info_label_value">
@@ -331,7 +331,7 @@
                             </div>
                             <div class="info_label_value">
                                 <div class="info_label">{% trans 'EPA Range (miles)' %}</div>
-                                <div class="info_value"><a href="https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=41189" target="_blank" class="btn btn-secondary btn-sm">{{EPARangeMiles}}</a></div>
+                                <div class="info_value"><a href="https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=41189" rel="noopener noreferrer" target="_blank" class="btn btn-secondary btn-sm">{{EPARangeMiles}}</a></div>
                             </div>
                         </div>
                     </div>
