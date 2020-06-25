@@ -48,6 +48,13 @@
 <script src="{% static "jquery-3.5.1.slim.min.js" %}"  crossorigin="anonymous"></script>
 <script src="{% static "popper.min.js" %}"  crossorigin="anonymous"></script>
 <script src="{% static "bootstrap.min.js" %}"  crossorigin="anonymous"></script>
+<!--this comes from https://web.dev/codelab-use-lazysizes-to-lazyload-images/,
+proposed by chrome when doing tests on the page
+Original is https://raw.githubusercontent.com/aFarkas/lazysizes/gh-pages/lazysizes.min.js
+-->
+  <script src="{% static "lazysizes.min.js" %}" async></script>
+
+
         {% block javascript %}
         {% endblock %}
 </body>
