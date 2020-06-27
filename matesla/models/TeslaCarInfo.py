@@ -40,6 +40,8 @@ class TeslaCarInfo(models.Model):
             # for SaveIfDontExistsYet
             models.Index(fields=['vin']),
             models.Index(fields=['hashedVin']),
+            #to have all cars with recent data
+            models.Index(fields=['LastSeenDate']),
             # for stats on the field
             models.Index(fields=['car_type']),
             models.Index(fields=['charge_port_type']),
