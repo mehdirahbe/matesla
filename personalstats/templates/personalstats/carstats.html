@@ -62,7 +62,7 @@
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Battery degradation graphs'%}</h5>
-                        <img id="degradationGraphImg" class="lazyload" alt="{%trans 'Battery degradation graphs'%}" data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'outside_temp'%}"/>
+                        <img id="degradationGraphImg" class="lazyload" alt="{%trans 'Battery degradation graphs'%}" data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'outside_temp'%}" width="1200" height="500"/>
                         <!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
                         and tested with fiddle http://jsfiddle.net-->
                         <select id="degradationGraphCriteria">
@@ -83,7 +83,7 @@
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Charge related graphs'%}</h5>
-                        <img id="chargeGraphImg" class="lazyload" alt="{%trans 'Charge related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}"/>
+                        <img id="chargeGraphImg" class="lazyload" alt="{%trans 'Charge related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}" width="1200" height="500"/>
                         <select id="chargeGraphCriteria">
                             <option value="0" selected>{{battery_level}}</option>
                             <option value="1">{{battery_range}}</option>
@@ -107,7 +107,7 @@
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Temperature related graphs'%}</h5>
-                        <img id="temperatureGraphImg" class="lazyload" alt="{%trans 'Temperature related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 5%}"/>
+                        <img id="temperatureGraphImg" class="lazyload" alt="{%trans 'Temperature related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 5%}" width="1200" height="500"/>
                         <select id="temperatureGraphCriteria">
                             <option value="0" selected>{{outside_temp}}</option>
                             <option value="1">{{driver_temp_setting}}</option>
@@ -125,7 +125,7 @@
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Drive related graphs'%}</h5>
-                        <img id="driveGraphImg" class="lazyload" alt="{%trans 'Drive related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' 5%}"/>
+                        <img id="driveGraphImg" class="lazyload" alt="{%trans 'Drive related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' 5%}"  width="1200" height="500"/>
                         <select id="driveGraphCriteria">
                             <option value="0" selected>{{odometer}}</option>
                             <option value="1">{{speed}}</option>

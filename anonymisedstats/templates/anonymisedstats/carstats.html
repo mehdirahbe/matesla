@@ -62,7 +62,7 @@ proposed by chrome when doing tests on the page-->
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Battery degradation graphs'%}</h5>
-                        <img id="degradationGraphImg" class="lazyload" alt="{%trans 'Battery degradation graphs'%}" data-src="{% url 'AnonymisedStatsBatteryDegradationGraph' 'NumberCycles' %}"/>
+                        <img id="degradationGraphImg" class="lazyload" alt="{%trans 'Battery degradation graphs'%}" data-src="{% url 'AnonymisedStatsBatteryDegradationGraph' 'NumberCycles' %} " width="1200" height="500"/>
                         <!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
                         and tested with fiddle http://jsfiddle.net-->
                         <select id="degradationGraphCriteria">
@@ -83,7 +83,7 @@ proposed by chrome when doing tests on the page-->
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Firmware version'%}</h5>
-                        <img id="FirmwareGraphImg" class="lazyload" alt="{%trans 'Firmware version'%}" data-src="{% url 'AnonymisedFirmwareUpdates' %}"/>
+                        <img id="FirmwareGraphImg" class="lazyload" alt="{%trans 'Firmware version'%}" data-src="{% url 'AnonymisedFirmwareUpdates' %}" width="1200" height="300"/>
                         <select id="FirmwareGraphCriteria">
                             <option value="0" selected>{%trans 'Most recent Firmware updates'%}</option>
                         </select>
@@ -99,7 +99,7 @@ proposed by chrome when doing tests on the page-->
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Cars statistics'%}</h5>
-                        <img id="CarStatsGraphImg" class="lazyload" alt="{%trans 'Cars statistics'%}" data-src="{% url 'AnonymisedStatsOnCarByModel' 'car_type' %}"/>
+                        <img id="CarStatsGraphImg" class="lazyload" alt="{%trans 'Cars statistics'%}" data-src="{% url 'AnonymisedStatsOnCarByModel' 'car_type' %}" width="1200" height="300"/>
                         <select id="CarStatsGraphCriteria">
                             <option value="0" selected>{{car_type}}</option>
                             <option value="1">{{smart_summon_available}}</option>
