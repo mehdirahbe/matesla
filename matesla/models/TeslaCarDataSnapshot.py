@@ -57,6 +57,8 @@ class TeslaCarDataSnapshot(models.Model):
             models.Index(fields=['hashedVin']),
             # to generate top samples in a fast way
             models.Index(fields=['randomNr']),
+            # idem in perso stats
+            models.Index(fields=['hashedVin', 'randomNr']),
         ]
         # avoid having dups in db
         constraints = [

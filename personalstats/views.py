@@ -161,6 +161,7 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield):
     if count == 0:
         return GenerateDateGraph(None, None, None, None, 'battery_degradation')
 
-    results = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
+    #see in anonymous stats for random samples
+    results = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).order_by('randomNr')[:500]
     xvalues, yxvalues = GetXandYFromBatteryDegradResult(results, desiredfield)
     return GenerateScatterGraph(xvalues, yxvalues, GetTitleForField(desiredfield))
