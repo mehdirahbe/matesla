@@ -1,3 +1,5 @@
+from random import random
+
 from django.utils import timezone
 from django.db import models
 
@@ -45,6 +47,7 @@ class TeslaCarDataSnapshot(models.Model):
     odometer = models.IntegerField()  # in miles
     battery_degradation = models.FloatField(null=True)  # computed degradation in %
     NumberCycles = models.FloatField(null=True)  # Number of cycles of the battery
+    randomNr = models.FloatField(null=True)  # random number to easily generate samples
 
     class Meta:
         # index definition, see https://docs.djangoproject.com/en/3.0/ref/models/options/#django.db.models.Options.indexes
@@ -52,6 +55,8 @@ class TeslaCarDataSnapshot(models.Model):
             # to retrieve easily all infos on a car
             models.Index(fields=['vin']),
             models.Index(fields=['hashedVin']),
+            # to generate top samples in a fast way
+            models.Index(fields=['randomNr']),
         ]
         # avoid having dups in db
         constraints = [
@@ -115,4 +120,5 @@ class TeslaCarDataSnapshot(models.Model):
             self.NumberCycles = ComputeNumCycles(EPARange, self.odometer)
             self.battery_degradation = ComputeBatteryDegradationFromEPARange(
                 self.battery_range, self.battery_level, EPARange)
+            self.randomNr = random()
             self.save()

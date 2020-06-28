@@ -1,5 +1,6 @@
 import json
 import time
+from random import random
 
 import requests
 from django.core.management.base import BaseCommand
@@ -41,11 +42,10 @@ class Command(BaseCommand):
     # in case some vin don't have some fields, as field was added later
     # intended to be run one shot
     def UpdateNewlyAddedFields(self):
-        alltoUpdate = TeslaCarDataSnapshot.objects.filter(NumberCycles__isnull=True)
+        alltoUpdate = TeslaCarDataSnapshot.objects.filter(randomNr__isnull=True)
         for entry in alltoUpdate:
-            EPARange = GetEPARangeFromCache(entry.vin)
-            entry.NumberCycles = ComputeNumCycles(EPARange, entry.odometer)
-            entry.save(update_fields=['NumberCycles'])
+            entry.randomNr = random()
+            entry.save(update_fields=['randomNr'])
 
     def handle(self, *args, **options):
         self.UpdateNewlyAddedFields()

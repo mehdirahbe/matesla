@@ -32,7 +32,7 @@ from mysite.settings import DATABASES
 
 def GeneratePngFromGraph(fig):
     # activate this when you want performance analysis
-    #return HttpResponse("<html><body>todo activate this only for performance test of graphs</body></html>")
+    # return HttpResponse("<html><body>todo activate this only for performance test of graphs</body></html>")
 
     # https://stackoverflow.com/questions/49542459/error-in-django-when-using-matplotlib-examples
     buf = io.BytesIO()
@@ -273,6 +273,10 @@ def BatteryDegradationGraph(request, desiredfield):
 
     # to have a random sample
     # see https://stackoverflow.com/questions/31801826/random-sample-on-django-querysets-how-will-sampling-on-querysets-affect-perform
-    results = TeslaCarDataSnapshot.objects.all().order_by('?')[:500]
+    # but as data grows, it it faster to have a real random number in data
+    # we are now at 6000 rows and it is 3 times faster, as using ?-->random()
+    # needs to read all the table and sort it by random.
+    # While using indexed randomNr just take the first rows of the index (yes, it uses the index).
+    results = TeslaCarDataSnapshot.objects.all().order_by('randomNr')[:500]
     xvalues, yxvalues = GetXandYFromBatteryDegradResult(results, desiredfield)
     return GenerateScatterGraph(xvalues, yxvalues, GetTitleForField(desiredfield))
