@@ -88,11 +88,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',
 ]
 
 # Setup LocaleMiddleware to enable translations using ugettext_lazy and ugettext
 # Make sure that LocaleMiddleware comes after SessionMiddleware and before CommonMiddleware
 MIDDLEWARE = [
+    # From https://django-debug-toolbar.readthedocs.io/en/latest/installation.html
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -256,4 +259,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # to serve static files not linked to an app-->CSS,...
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static")
+]
+
+INTERNAL_IPS = [
+    '127.0.0.1',
 ]

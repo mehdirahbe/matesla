@@ -31,6 +31,9 @@ from mysite.settings import DATABASES
 
 
 def GeneratePngFromGraph(fig):
+    # activate this when you want performance analysis
+    #return HttpResponse("<html><body>todo activate this only for performance test of graphs</body></html>")
+
     # https://stackoverflow.com/questions/49542459/error-in-django-when-using-matplotlib-examples
     buf = io.BytesIO()
     canvas = FigureCanvasAgg(fig)

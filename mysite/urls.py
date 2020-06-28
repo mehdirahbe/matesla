@@ -42,3 +42,10 @@ urlpatterns += i18n_patterns(
     path('', include('matesla.urls')),
     path('personalstats/', include('personalstats.urls'))
 )
+
+# see https://django-debug-toolbar.readthedocs.io/en/latest/installation.html
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns
