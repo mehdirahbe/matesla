@@ -153,7 +153,9 @@ To use postgres local db.
     From https://devcenter.heroku.com/articles/heroku-postgresql#pg-push-and-pg-pull
     You can make a copy of site db in local postgres with this.
     The name to use is just under Installed add-ons on heroku dashboard
-    heroku pg:pull postgresql-...  mrtestdb  --app afternoon-scrubland-61531
+    heroku pg:backups:capture -a matesla
+    heroku pg:backups:download -a matesla
+    pg_restore --verbose --clean --no-acl --no-owner -h localhost -U mr -d mrtestdb latest.dump
 
     Postgress 12 should have been installed first and user mr (put your ream user)
     created with ad hoc password, here dummy mr
