@@ -151,7 +151,7 @@
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Your car'%} {{display_name}}</h5>
-                        <img src="{% url 'CarImageFromTesla' colorcode wheel_type car_type %}" alt="Image of your tesla">
+                        <img src="{% url 'CarImageFromTesla' colorcode wheel_type car_type %}" alt="Image of your tesla" width="400" height="224">
                     <div class="commands_part">
                         <div class="commands_part_cmd"><a href="{% url 'flash_lights' %}" class="btn btn-primary btn-sm">{% trans 'Flash lights' %}</a></div>
                         <div class="commands_part_cmd"><a href="{% url 'honk_horn' %}" class="btn btn-primary btn-sm">{% trans 'Honk horn (not night when people sleep)' %}</a></div>
