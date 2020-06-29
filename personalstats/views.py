@@ -165,3 +165,13 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield):
     results = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).order_by('randomNr')[:500]
     xvalues, yxvalues = GetXandYFromBatteryDegradResult(results, desiredfield)
     return GenerateScatterGraph(xvalues, yxvalues, GetTitleForField(desiredfield))
+
+# returns page with firmware history for the car
+def FirmwareHistory(request, hashedVin):
+    if not IsValidHash(hashedVin):
+        # means invalid hashedVin field was passed
+        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    if TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).count() == 0:
+        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    query = "select * from matesla_TeslaFirmwareHistory where \"hashedVin\"='" + hashedVin + "';"
+    return PrepareCSVFromQuery(query)

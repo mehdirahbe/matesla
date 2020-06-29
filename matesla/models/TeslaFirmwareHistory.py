@@ -2,6 +2,8 @@ import datetime
 
 from django.db import models
 
+from matesla.models.VinHash import HashTheVin
+
 '''note the 9 mai a migration did fail due to dups
 solution is to connect interactively and clean table then refresh firmware data
 
@@ -16,9 +18,11 @@ heroku run python manage.py migrate --run-syncdb -a afternoon-scrubland-61531
 
 '''
 
+
 # Data to save about firmware updates
 class TeslaFirmwareHistory(models.Model):
     vin = models.TextField()  # vin of the car
+    hashedVin = models.TextField(null=True)  # hash of the vin, to use in URL of graphs
     Version = models.TextField()
     Date = models.DateField()  # First date where that version was detected
     CarModel = models.TextField()  # IE model3
@@ -33,6 +37,7 @@ class TeslaFirmwareHistory(models.Model):
             # for SaveIfDontExistsYet
             models.Index(fields=['vin', 'IsArchive']),
             models.Index(fields=['vin', 'vin']),
+            models.Index(fields=['hashedVin']),
             # as archives are excluded
             models.Index(fields=['IsArchive', 'Version']),
             # with date for sort by most recent
@@ -44,7 +49,8 @@ class TeslaFirmwareHistory(models.Model):
         ]
         # avoid having dups in db
         constraints = [
-            models.UniqueConstraint(fields=['vin', 'Version', 'Date'], name='TeslaFirmwareHistory: unique version at same date for car')
+            models.UniqueConstraint(fields=['vin', 'Version', 'Date'],
+                                    name='TeslaFirmwareHistory: unique version at same date for car')
         ]
 
     def SaveIfDontExistsYet(self, newvin, newversion, newcarmodel):
@@ -58,6 +64,7 @@ class TeslaFirmwareHistory(models.Model):
                 previousEntry.save()
             # save it
             self.vin = newvin
+            self.hashedVin = HashTheVin(newvin)
             self.Version = newversion
             self.CarModel = newcarmodel
             self.Date = datetime.datetime.now()

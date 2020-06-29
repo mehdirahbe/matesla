@@ -5,6 +5,7 @@ import requests
 from django.core.management.base import BaseCommand, CommandError
 
 from matesla.TeslaConnect import SendWakeUpCommand, SaveDataHistory
+from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.TeslaCarInfo import TeslaCarInfo
 from matesla.models.TeslaToken import TeslaToken
 from matesla.TeslaState import TeslaState
@@ -61,7 +62,13 @@ class Command(BaseCommand):
 
     # in case some vin don't have their hash, as field was added after 1 week
     def UpdateHashVin(self):
+        # car info
         alltoUpdate = TeslaCarInfo.objects.filter(hashedVin__isnull=True)
+        for entry in alltoUpdate:
+            entry.hashedVin = HashTheVin(entry.vin)
+            entry.save(update_fields=['hashedVin'])
+        # firmware history
+        alltoUpdate = TeslaFirmwareHistory.objects.filter(hashedVin__isnull=True)
         for entry in alltoUpdate:
             entry.hashedVin = HashTheVin(entry.vin)
             entry.save(update_fields=['hashedVin'])

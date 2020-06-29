@@ -52,3 +52,9 @@ class PersonalStatsTestCase(TestCase):
             self.assertEqual(response.status_code, 404, 'personalstats with bogus field did work')
             response = c.post('/' + lang + '/personalstats/Stats/--')
             self.assertEqual(response.status_code, 404, 'HTML personalstats page did work with SQL injection SHA')
+
+    def test_FirmwareHistory(self):
+        c = Client()
+        for lang in {"fr", "en"}:
+            response = c.post('/'+lang+'/personalstats/FirmwareHistory/fakesha')
+            self.assertEqual(response.status_code, 200, 'personalstats FirmwareHistory did not work')
