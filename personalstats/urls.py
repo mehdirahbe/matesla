@@ -13,4 +13,5 @@ path('BatteryDegradationGraph/<str:hashedVin>/<str:desiredfield>', views.Battery
 path('StatsOnCarGraph/<str:hashedVin>/<str:desiredfield>/<int:numberofdays>', views.StatsOnCarGraph, name='StatsOnCarGraph'),
 path('AllMyDataAsCSV/<str:hashedVin>', views.view_AllMyDataAsCSV, name='AllMyDataAsCSV'),
 path('FirmwareHistory/<str:hashedVin>', views.FirmwareHistory, name='PersoStatsFirmwareHistory'),
+path('FirmwareHistoryCSV/<str:hashedVin>', views.FirmwareHistoryCSV, name='PersoStatsFirmwareHistoryCSV'),
 ]
