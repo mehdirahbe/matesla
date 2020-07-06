@@ -111,6 +111,8 @@ def returnColorFronContext(context):
         return "PPSB";
     if context["exterior_color"] == "SteelGrey" or context["exterior_color"] == "MidnightSilver":
         return "PMNG";
+    if context["exterior_color"] == "RedMulticoat":
+        return "PPMR";
     # get color code from codes
     colorcode = "PPMR"  # default value
     option_codeslist = context["option_codes"].split(',')

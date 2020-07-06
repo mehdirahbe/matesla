@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load render_table from django_tables2 %}
+
+
+{% block content %}
+<div class="form-group">
+    <a href="{% url 'logout' %}"class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
+    <a href="{% url 'AddTeslaAccount' %}"class="btn btn-primary btn-sm">{% trans 'Tesla account' %}</a>
+    <a href="{% url 'AnonymisedStatsChoicePage' %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Firmware and cars Stats' %}</a>
+    <a href="https://github.com/mehdirahbe/matesla" rel="noopener noreferrer" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
+  </div>
+<div class="form-group">
+    {{query}}
+{% for item in objs %}
+    <tr>
+         <td>{{ item.field1 }}</td>
+         <td>{{ item.field2 }}</td>
+         <td>{{ item.field3 }}</td>
+         <td>{{ item.field4 }}</td>
+    </tr>
+       {% endfor %}  </div>
+{% endblock %}
+
+
+
+
