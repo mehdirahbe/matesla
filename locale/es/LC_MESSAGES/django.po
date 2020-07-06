@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-23 22:02+0200\n"
+"POT-Creation-Date: 2020-07-06 23:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,126 +23,130 @@ msgstr ""
 msgid "Sign up"
 msgstr ""
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:61
+#: anonymisedstats/templates/anonymisedstats/carstats.html:64
+#: anonymisedstats/templates/anonymisedstats/carstats.html:65
 #: personalstats/templates/personalstats/carstats.html:64
+#: personalstats/templates/personalstats/carstats.html:65
 msgid "Battery degradation graphs"
 msgstr ""
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:82
-#: matesla/templates/matesla/carstatus.html:208
+#: anonymisedstats/templates/anonymisedstats/carstats.html:85
+#: anonymisedstats/templates/anonymisedstats/carstats.html:86
+#: matesla/templates/matesla/carstatus.html:209
 msgid "Firmware version"
 msgstr ""
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:85
-#: anonymisedstats/views.py:119
+#: anonymisedstats/templates/anonymisedstats/carstats.html:88
+#: anonymisedstats/views.py:135
 msgid "Most recent Firmware updates"
 msgstr ""
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:87
+#: anonymisedstats/templates/anonymisedstats/carstats.html:90
 msgid "Download Firmware Stats"
 msgstr ""
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:98
+#: anonymisedstats/templates/anonymisedstats/carstats.html:101
+#: anonymisedstats/templates/anonymisedstats/carstats.html:102
 msgid "Cars statistics"
 msgstr ""
 
-#: anonymisedstats/views.py:39
+#: anonymisedstats/views.py:52
 msgid "Car addition Date"
 msgstr ""
 
-#: anonymisedstats/views.py:40 matesla/templates/matesla/carstatus.html:196
+#: anonymisedstats/views.py:53 matesla/templates/matesla/carstatus.html:197
 msgid "Car type"
 msgstr ""
 
-#: anonymisedstats/views.py:41 matesla/templates/matesla/carstatus.html:267
+#: anonymisedstats/views.py:54 matesla/templates/matesla/carstatus.html:268
 msgid "Charge port"
 msgstr ""
 
-#: anonymisedstats/views.py:42 matesla/templates/matesla/carstatus.html:200
+#: anonymisedstats/views.py:55 matesla/templates/matesla/carstatus.html:201
 msgid "Exterior color"
 msgstr ""
 
-#: anonymisedstats/views.py:43
+#: anonymisedstats/views.py:56
 msgid "Has air suspension"
 msgstr ""
 
-#: anonymisedstats/views.py:44
+#: anonymisedstats/views.py:57
 msgid "Has ludicrous mode"
 msgstr ""
 
-#: anonymisedstats/views.py:45
+#: anonymisedstats/views.py:58
 msgid "Is charge port motorized"
 msgstr ""
 
-#: anonymisedstats/views.py:46
+#: anonymisedstats/views.py:59
 msgid "Has rear seat heaters"
 msgstr ""
 
-#: anonymisedstats/views.py:47
+#: anonymisedstats/views.py:60
 msgid "Right hand drive"
 msgstr ""
 
-#: anonymisedstats/views.py:48
+#: anonymisedstats/views.py:61
 msgid "Roof color"
 msgstr ""
 
-#: anonymisedstats/views.py:49 matesla/templates/matesla/carstatus.html:204
+#: anonymisedstats/views.py:62 matesla/templates/matesla/carstatus.html:205
 msgid "Wheel"
 msgstr ""
 
-#: anonymisedstats/views.py:50
+#: anonymisedstats/views.py:63
 msgid "Is sentry mode available"
 msgstr ""
 
-#: anonymisedstats/views.py:51
+#: anonymisedstats/views.py:64
 msgid "Is FSD enabled"
 msgstr ""
 
-#: anonymisedstats/views.py:52
+#: anonymisedstats/views.py:65
 msgid "European union car"
 msgstr ""
 
-#: anonymisedstats/views.py:53 matesla/templates/matesla/carstatus.html:333
+#: anonymisedstats/views.py:66 matesla/templates/matesla/carstatus.html:334
 msgid "EPA Range (miles)"
 msgstr ""
 
-#: anonymisedstats/views.py:54
+#: anonymisedstats/views.py:67
 msgid "Is Dual Motor"
 msgstr ""
 
-#: anonymisedstats/views.py:55
+#: anonymisedstats/views.py:68
 msgid "Car year"
 msgstr ""
 
-#: anonymisedstats/views.py:56 personalstats/views.py:23
+#: anonymisedstats/views.py:69 personalstats/views.py:28
 msgid "Outside temperature (°C)"
 msgstr ""
 
-#: anonymisedstats/views.py:57 personalstats/views.py:27
+#: anonymisedstats/views.py:70 personalstats/views.py:32
 msgid "Odometer (miles)"
 msgstr ""
 
-#: anonymisedstats/views.py:58 personalstats/views.py:32
+#: anonymisedstats/views.py:71 personalstats/views.py:37
 msgid "Battery level (%)"
 msgstr ""
 
-#: anonymisedstats/views.py:59 personalstats/views.py:34
+#: anonymisedstats/views.py:72 personalstats/views.py:39
 msgid "Battery charge limit (%)"
 msgstr ""
 
-#: anonymisedstats/views.py:60 matesla/templates/matesla/carstatus.html:329
+#: anonymisedstats/views.py:73 matesla/templates/matesla/carstatus.html:330
 msgid "Estim. number of battery cycles"
 msgstr ""
 
-#: anonymisedstats/views.py:96
+#: anonymisedstats/views.py:109
 msgid "No Value"
 msgstr ""
 
-#: anonymisedstats/views.py:100
+#: anonymisedstats/views.py:113
 msgid "True"
 msgstr ""
 
-#: anonymisedstats/views.py:102
+#: anonymisedstats/views.py:115
 msgid "False"
 msgstr ""
 
@@ -183,6 +187,7 @@ msgstr ""
 #: matesla/templates/matesla/carstatus.html:119
 #: matesla/templates/matesla/getdesiredchargelevel.html:6
 #: matesla/templates/matesla/getdesiredtemperature.html:6
+#: personalstats/templates/personalstats/FirmwareHistory.html:8
 msgid "logout"
 msgstr ""
 
@@ -195,6 +200,7 @@ msgstr ""
 #: matesla/templates/matesla/carstatus.html:121
 #: matesla/templates/matesla/getdesiredchargelevel.html:8
 #: matesla/templates/matesla/getdesiredtemperature.html:8
+#: personalstats/templates/personalstats/FirmwareHistory.html:10
 #: templates/registration/login.html:10
 msgid "Firmware and cars Stats"
 msgstr ""
@@ -280,6 +286,7 @@ msgstr ""
 #: matesla/templates/matesla/carstatus.html:120
 #: matesla/templates/matesla/getdesiredchargelevel.html:7
 #: matesla/templates/matesla/getdesiredtemperature.html:7
+#: personalstats/templates/personalstats/FirmwareHistory.html:9
 msgid "Tesla account"
 msgstr ""
 
@@ -358,244 +365,252 @@ msgstr ""
 msgid "Json current data"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:175
+#: matesla/templates/matesla/carstatus.html:164
+msgid "Firmware history"
+msgstr ""
+
+#: matesla/templates/matesla/carstatus.html:176
 msgid "General information"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:182
+#: matesla/templates/matesla/carstatus.html:183
 msgid "State"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:186
+#: matesla/templates/matesla/carstatus.html:187
 msgid "Is car locked"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:189
+#: matesla/templates/matesla/carstatus.html:190
 msgid "Yes, unlock?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:191
+#: matesla/templates/matesla/carstatus.html:192
 msgid "No, lock?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:212
+#: matesla/templates/matesla/carstatus.html:213
 msgid "Sentry"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:215
-#: matesla/templates/matesla/carstatus.html:224
+#: matesla/templates/matesla/carstatus.html:216
+#: matesla/templates/matesla/carstatus.html:225
 msgid "Active, stop?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:217
-#: matesla/templates/matesla/carstatus.html:226
+#: matesla/templates/matesla/carstatus.html:218
+#: matesla/templates/matesla/carstatus.html:227
 msgid "Inactive, start?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:222
+#: matesla/templates/matesla/carstatus.html:223
 msgid "Valet mode"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:241
+#: matesla/templates/matesla/carstatus.html:242
 msgid "Charge status"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:244
+#: matesla/templates/matesla/carstatus.html:245
 #, python-format
 msgid "Battery level (%%)"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:248
+#: matesla/templates/matesla/carstatus.html:249
 msgid "Battery range km"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:252
+#: matesla/templates/matesla/carstatus.html:253
 msgid "Battery charge"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:257
+#: matesla/templates/matesla/carstatus.html:258
 #, python-format
 msgid "Battery degradation (%%)"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:262
+#: matesla/templates/matesla/carstatus.html:263
 #, python-format
 msgid "Battery charge limit (%%)"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:271
+#: matesla/templates/matesla/carstatus.html:272
 msgid "Is Charge port open"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:274
+#: matesla/templates/matesla/carstatus.html:275
 msgid "Yes, close?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:276
+#: matesla/templates/matesla/carstatus.html:277
 msgid "No, open?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:282
+#: matesla/templates/matesla/carstatus.html:283
 msgid "Voltage in V"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:286
+#: matesla/templates/matesla/carstatus.html:287
 msgid "Current in A"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:290
+#: matesla/templates/matesla/carstatus.html:291
 msgid "Power in kW"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:294
+#: matesla/templates/matesla/carstatus.html:295
 msgid "Number of phases"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:298
+#: matesla/templates/matesla/carstatus.html:299
 msgid "Time left in minutes"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:313
+#: matesla/templates/matesla/carstatus.html:314
 msgid "Drive and location"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:316 personalstats/views.py:28
+#: matesla/templates/matesla/carstatus.html:317 personalstats/views.py:33
 msgid "Speed"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:320
+#: matesla/templates/matesla/carstatus.html:321
 msgid "Location"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:325
+#: matesla/templates/matesla/carstatus.html:326
 msgid "Odometer"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:347
+#: matesla/templates/matesla/carstatus.html:348
 msgid "Climate information"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:350
+#: matesla/templates/matesla/carstatus.html:351
 msgid "Is climate on"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:353
+#: matesla/templates/matesla/carstatus.html:354
 msgid "Yes, stop?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:355
+#: matesla/templates/matesla/carstatus.html:356
 msgid "No, start?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:360
+#: matesla/templates/matesla/carstatus.html:361
 msgid "Inside temperature"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:364
+#: matesla/templates/matesla/carstatus.html:365
 msgid "Outside temperature"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:368
+#: matesla/templates/matesla/carstatus.html:369
 msgid "Driver Temperature setting"
 msgstr ""
 
-#: mysite/settings.py:201
+#: mysite/settings.py:207
 msgid "English"
 msgstr ""
 
-#: mysite/settings.py:202
+#: mysite/settings.py:208
 msgid "Français"
 msgstr ""
 
-#: mysite/settings.py:203
+#: mysite/settings.py:209
 msgid "Espanol"
 msgstr ""
 
+#: personalstats/templates/personalstats/FirmwareHistory.html:14
 #: personalstats/templates/personalstats/carstats.html:45
 msgid "Download my Data"
 msgstr ""
 
 #: personalstats/templates/personalstats/carstats.html:85
+#: personalstats/templates/personalstats/carstats.html:86
 msgid "Charge related graphs"
 msgstr ""
 
 #: personalstats/templates/personalstats/carstats.html:109
+#: personalstats/templates/personalstats/carstats.html:110
 msgid "Temperature related graphs"
 msgstr ""
 
 #: personalstats/templates/personalstats/carstats.html:127
+#: personalstats/templates/personalstats/carstats.html:128
 msgid "Drive related graphs"
 msgstr ""
 
-#: personalstats/views.py:24
+#: personalstats/views.py:29
 msgid "Driver temperature (°C)"
 msgstr ""
 
-#: personalstats/views.py:25
+#: personalstats/views.py:30
 msgid "Inside temperature (°C)"
 msgstr ""
 
-#: personalstats/views.py:26
+#: personalstats/views.py:31
 msgid "Passenger temperature (°C)"
 msgstr ""
 
-#: personalstats/views.py:29
+#: personalstats/views.py:34
 msgid "Latitude"
 msgstr ""
 
-#: personalstats/views.py:30
+#: personalstats/views.py:35
 msgid "Longitude"
 msgstr ""
 
-#: personalstats/views.py:31
+#: personalstats/views.py:36
 msgid "Power"
 msgstr ""
 
-#: personalstats/views.py:33
+#: personalstats/views.py:38
 msgid "Battery range (miles)"
 msgstr ""
 
-#: personalstats/views.py:35
+#: personalstats/views.py:40
 msgid "Charge rate"
 msgstr ""
 
-#: personalstats/views.py:36
+#: personalstats/views.py:41
 msgid "Charger actual current (A)"
 msgstr ""
 
-#: personalstats/views.py:37
+#: personalstats/views.py:42
 msgid "Charger phases"
 msgstr ""
 
-#: personalstats/views.py:38
+#: personalstats/views.py:43
 msgid "Charger power (kW)"
 msgstr ""
 
-#: personalstats/views.py:39
+#: personalstats/views.py:44
 msgid "Charger voltage (V)"
 msgstr ""
 
-#: personalstats/views.py:40
+#: personalstats/views.py:45
 msgid "Estimated battery range (miles)"
 msgstr ""
 
-#: personalstats/views.py:41
+#: personalstats/views.py:46
 msgid "Usable battery level (%)"
 msgstr ""
 
-#: personalstats/views.py:42
+#: personalstats/views.py:47
 msgid "Battery degradation (%)"
 msgstr ""
 
-#: personalstats/views.py:73
+#: personalstats/views.py:78
 msgid "Minimum"
 msgstr ""
 
-#: personalstats/views.py:74
+#: personalstats/views.py:79
 msgid "Average"
 msgstr ""
 
-#: personalstats/views.py:75
+#: personalstats/views.py:80
 msgid "Maximum"
 msgstr ""
 

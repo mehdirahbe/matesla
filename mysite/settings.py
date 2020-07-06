@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
+    'django_tables2',
 ]
 
 # Setup LocaleMiddleware to enable translations using ugettext_lazy and ugettext

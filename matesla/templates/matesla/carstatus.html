@@ -161,6 +161,7 @@
                         {% endif %}
                         <div class="commands_part_cmd"><a href="{% url 'PersoStats' hashedVin %}" target="_blank" class="btn btn-info btn-sm">{% trans 'My data' %}</a></div>
                         <div class="commands_part_cmd"><a href="{% url 'teslastatusJson' %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Json current data' %}</a></div>
+                        <div class="commands_part_cmd"><a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Firmware history' %}</a></div>
                     </div>
                 </div>
                 </div>

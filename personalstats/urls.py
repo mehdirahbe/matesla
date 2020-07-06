@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .views import FirmwareHistoryView
 
 '''From https://docs.djangoproject.com/en/3.0/topics/http/urls/
 A request to /articles/2005/03/ would match the third entry in the list. Django
@@ -14,4 +15,5 @@ path('StatsOnCarGraph/<str:hashedVin>/<str:desiredfield>/<int:numberofdays>', vi
 path('AllMyDataAsCSV/<str:hashedVin>', views.view_AllMyDataAsCSV, name='AllMyDataAsCSV'),
 path('FirmwareHistory/<str:hashedVin>', views.FirmwareHistory, name='PersoStatsFirmwareHistory'),
 path('FirmwareHistoryCSV/<str:hashedVin>', views.FirmwareHistoryCSV, name='PersoStatsFirmwareHistoryCSV'),
+path('FirmwareHistory', FirmwareHistoryView.as_view(), name='PersoStatsFirmwareHistory'),
 ]

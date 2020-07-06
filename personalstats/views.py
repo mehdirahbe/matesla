@@ -3,7 +3,9 @@ import io
 import django
 from django.db.models import Max, Min, Avg
 from django.http import HttpResponse, HttpResponseNotFound
+from django.shortcuts import render
 from django.template import loader
+from django_tables2 import SingleTableView
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.dates import (DateFormatter)
 from matplotlib.figure import Figure
@@ -11,13 +13,16 @@ from matplotlib.figure import Figure
 from anonymisedstats.views import PrepareCSVFromQuery, GetXandYFromBatteryDegradResult, GenerateScatterGraph, \
     GeneratePngFromGraph
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.VinHash import IsValidHash
 from django.utils.translation import ugettext_lazy as _
-
 
 # Create your views here.
 
 # Return a dictionary with titles for fields
+from personalstats.tables import TeslaFirmwareHistoryTable
+
+
 def GetTitleForFieldDico():
     dico = {
         'outside_temp': _('Outside temperature (°C)'),
@@ -150,8 +155,6 @@ def view_AllMyDataAsCSV(request, hashedVin):
     return PrepareCSVFromQuery(query)
 
 
-
-
 def BatteryDegradationGraph(request, hashedVin, desiredfield):
     response, isValid = SecurityChecks(hashedVin, desiredfield)
     if isValid is False:
@@ -161,21 +164,26 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield):
     if count == 0:
         return GenerateDateGraph(None, None, None, None, 'battery_degradation')
 
-    #see in anonymous stats for random samples
+    # see in anonymous stats for random samples
     results = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).order_by('randomNr')[:500]
     xvalues, yxvalues = GetXandYFromBatteryDegradResult(results, desiredfield)
     return GenerateScatterGraph(xvalues, yxvalues, GetTitleForField(desiredfield))
 
+
 # returns page with firmware history for the car
-# todo add nice page
+class FirmwareHistoryView(SingleTableView):
+    model = TeslaFirmwareHistory
+    table_class = TeslaFirmwareHistoryTable
+    template_name = 'personalstats/FirmwareHistory.html'
+
+
+# Display page with car firmware history
 def FirmwareHistory(request, hashedVin):
-    if not IsValidHash(hashedVin):
-        # means invalid hashedVin field was passed
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
-    if TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).count() == 0:
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
-    query = "select * from matesla_TeslaFirmwareHistory where \"hashedVin\"='" + hashedVin + "';"
-    return PrepareCSVFromQuery(query)
+    # see https://django-tables2.readthedocs.io/en/latest/pages/table-data.html
+    table = TeslaFirmwareHistoryTable(TeslaFirmwareHistory.objects.filter(hashedVin=hashedVin))
+    return render(request, 'personalstats/FirmwareHistory.html',
+                  {'table': table, 'hashedVin': hashedVin})
+
 
 # returns CSV with firmware history for the car
 def FirmwareHistoryCSV(request, hashedVin):
@@ -184,5 +192,5 @@ def FirmwareHistoryCSV(request, hashedVin):
         return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
     if TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).count() == 0:
         return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
-    query = "select * from matesla_TeslaFirmwareHistory where \"hashedVin\"='" + hashedVin + "';"
+    query = "select \"Version\",\"Date\" from matesla_TeslaFirmwareHistory where \"hashedVin\"='" + hashedVin + "' order by 2 desc;"
     return PrepareCSVFromQuery(query)
