@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-06 23:33+0200\n"
+"POT-Creation-Date: 2020-07-25 23:52+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -23,8 +23,8 @@ msgstr "Créer un compte"
 
 #: anonymisedstats/templates/anonymisedstats/carstats.html:64
 #: anonymisedstats/templates/anonymisedstats/carstats.html:65
-#: personalstats/templates/personalstats/carstats.html:64
-#: personalstats/templates/personalstats/carstats.html:65
+#: personalstats/templates/personalstats/carstats.html:75
+#: personalstats/templates/personalstats/carstats.html:76
 msgid "Battery degradation graphs"
 msgstr "Graphes de dégradation de la batterie"
 
@@ -116,19 +116,19 @@ msgstr "Double motorisation"
 msgid "Car year"
 msgstr "Année de la voiture"
 
-#: anonymisedstats/views.py:69 personalstats/views.py:28
+#: anonymisedstats/views.py:69 personalstats/views.py:29
 msgid "Outside temperature (°C)"
 msgstr "Température extérieure (°C)"
 
-#: anonymisedstats/views.py:70 personalstats/views.py:32
+#: anonymisedstats/views.py:70 personalstats/views.py:33
 msgid "Odometer (miles)"
 msgstr "Odometre (miles)"
 
-#: anonymisedstats/views.py:71 personalstats/views.py:37
+#: anonymisedstats/views.py:71 personalstats/views.py:38
 msgid "Battery level (%)"
 msgstr "Niveau batterie (%)"
 
-#: anonymisedstats/views.py:72 personalstats/views.py:39
+#: anonymisedstats/views.py:72 personalstats/views.py:40
 msgid "Battery charge limit (%)"
 msgstr "Limite de charge de la batterie (%)"
 
@@ -185,7 +185,6 @@ msgstr "Moment de création du jeton Tesla (utilisateurs avancés, optionel)"
 #: matesla/templates/matesla/carstatus.html:119
 #: matesla/templates/matesla/getdesiredchargelevel.html:6
 #: matesla/templates/matesla/getdesiredtemperature.html:6
-#: personalstats/templates/personalstats/FirmwareHistory.html:8
 msgid "logout"
 msgstr "Se déconnecter"
 
@@ -198,7 +197,6 @@ msgstr "Se déconnecter"
 #: matesla/templates/matesla/carstatus.html:121
 #: matesla/templates/matesla/getdesiredchargelevel.html:8
 #: matesla/templates/matesla/getdesiredtemperature.html:8
-#: personalstats/templates/personalstats/FirmwareHistory.html:10
 #: templates/registration/login.html:10
 msgid "Firmware and cars Stats"
 msgstr "Stats du firmware Tesla et des voitures"
@@ -299,7 +297,6 @@ msgstr " en premier"
 #: matesla/templates/matesla/carstatus.html:120
 #: matesla/templates/matesla/getdesiredchargelevel.html:7
 #: matesla/templates/matesla/getdesiredtemperature.html:7
-#: personalstats/templates/personalstats/FirmwareHistory.html:9
 msgid "Tesla account"
 msgstr "Compte Tesla"
 
@@ -493,7 +490,7 @@ msgstr "Temps restant en minutes"
 msgid "Drive and location"
 msgstr "Conduite et emplacement"
 
-#: matesla/templates/matesla/carstatus.html:317 personalstats/views.py:33
+#: matesla/templates/matesla/carstatus.html:317 personalstats/views.py:34
 msgid "Speed"
 msgstr "Vitesse"
 
@@ -545,95 +542,131 @@ msgstr "Français"
 msgid "Espanol"
 msgstr "Espagnol"
 
-#: personalstats/templates/personalstats/FirmwareHistory.html:14
+#: personalstats/templates/personalstats/FirmwareHistory.html:8
 #: personalstats/templates/personalstats/carstats.html:45
 msgid "Download my Data"
 msgstr "Télécharger mes données"
 
-#: personalstats/templates/personalstats/carstats.html:85
-#: personalstats/templates/personalstats/carstats.html:86
+#: personalstats/templates/personalstats/carstats.html:47
+msgid "1 Week"
+msgstr "1 semaine"
+
+#: personalstats/templates/personalstats/carstats.html:48
+msgid "2 Weeks"
+msgstr "2 semaines"
+
+#: personalstats/templates/personalstats/carstats.html:49
+msgid "1 Month"
+msgstr "1 mois"
+
+#: personalstats/templates/personalstats/carstats.html:50
+msgid "3 Months"
+msgstr "3 mois"
+
+#: personalstats/templates/personalstats/carstats.html:51
+msgid "6 Months"
+msgstr "6 mois"
+
+#: personalstats/templates/personalstats/carstats.html:52
+msgid "1 Year"
+msgstr "1 an"
+
+#: personalstats/templates/personalstats/carstats.html:53
+msgid "2 Years"
+msgstr "2 ans"
+
+#: personalstats/templates/personalstats/carstats.html:54
+msgid "5 Years"
+msgstr "5 ans"
+
+#: personalstats/templates/personalstats/carstats.html:55
+msgid "10 Years"
+msgstr "10 ans"
+
+#: personalstats/templates/personalstats/carstats.html:96
+#: personalstats/templates/personalstats/carstats.html:97
 msgid "Charge related graphs"
 msgstr "Graphes liés à la charge"
 
-#: personalstats/templates/personalstats/carstats.html:109
-#: personalstats/templates/personalstats/carstats.html:110
+#: personalstats/templates/personalstats/carstats.html:120
+#: personalstats/templates/personalstats/carstats.html:121
 msgid "Temperature related graphs"
 msgstr "Graphes liés à la température"
 
-#: personalstats/templates/personalstats/carstats.html:127
-#: personalstats/templates/personalstats/carstats.html:128
+#: personalstats/templates/personalstats/carstats.html:138
+#: personalstats/templates/personalstats/carstats.html:139
 msgid "Drive related graphs"
 msgstr "Graphes liés à la conduite"
 
-#: personalstats/views.py:29
+#: personalstats/views.py:30
 msgid "Driver temperature (°C)"
 msgstr "Température pour le conducteur (°C)"
 
-#: personalstats/views.py:30
+#: personalstats/views.py:31
 msgid "Inside temperature (°C)"
 msgstr "Température intérieure (°C)"
 
-#: personalstats/views.py:31
+#: personalstats/views.py:32
 msgid "Passenger temperature (°C)"
 msgstr "Température du passager (°C)"
 
-#: personalstats/views.py:34
+#: personalstats/views.py:35
 msgid "Latitude"
 msgstr "Latitude"
 
-#: personalstats/views.py:35
+#: personalstats/views.py:36
 msgid "Longitude"
 msgstr "Longitude"
 
-#: personalstats/views.py:36
+#: personalstats/views.py:37
 msgid "Power"
 msgstr "Puissance"
 
-#: personalstats/views.py:38
+#: personalstats/views.py:39
 msgid "Battery range (miles)"
 msgstr "Range de la batterie (miles)"
 
-#: personalstats/views.py:40
+#: personalstats/views.py:41
 msgid "Charge rate"
 msgstr "Vitesse de charge"
 
-#: personalstats/views.py:41
+#: personalstats/views.py:42
 msgid "Charger actual current (A)"
 msgstr "Courant actuel de charge (A)"
 
-#: personalstats/views.py:42
+#: personalstats/views.py:43
 msgid "Charger phases"
 msgstr "Nombre de phases"
 
-#: personalstats/views.py:43
+#: personalstats/views.py:44
 msgid "Charger power (kW)"
 msgstr "Puissance de charge (kW)"
 
-#: personalstats/views.py:44
+#: personalstats/views.py:45
 msgid "Charger voltage (V)"
 msgstr "Voltage de charge (V)"
 
-#: personalstats/views.py:45
+#: personalstats/views.py:46
 msgid "Estimated battery range (miles)"
 msgstr "Range estimé de la batterie (miles)"
 
-#: personalstats/views.py:46
+#: personalstats/views.py:47
 msgid "Usable battery level (%)"
 msgstr "Niveau utilisable batterie (%)"
 
-#: personalstats/views.py:47
+#: personalstats/views.py:48
 msgid "Battery degradation (%)"
 msgstr "Dégradation de la batterie (%)"
 
-#: personalstats/views.py:78
+#: personalstats/views.py:79
 msgid "Minimum"
 msgstr "Minimum"
 
-#: personalstats/views.py:79
+#: personalstats/views.py:80
 msgid "Average"
 msgstr "Moyenne"
 
-#: personalstats/views.py:80
+#: personalstats/views.py:81
 msgid "Maximum"
 msgstr "Maximum"
 

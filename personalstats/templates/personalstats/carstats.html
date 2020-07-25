@@ -43,6 +43,17 @@
 
 {% block content %}
     <a href="{% url 'AllMyDataAsCSV' hashedVin %}"class="btn btn-info btn-sm">{% trans 'Download my Data' %}</a>
+                        <select id="DesiredPeriod">
+                            <option value="1">{% trans '1 Week' %}</option>
+                            <option value="2">{% trans '2 Weeks' %}</option>
+                            <option value="4" selected>{% trans '1 Month' %}</option>
+                            <option value="13">{% trans '3 Months' %}</option>
+                            <option value="26">{% trans '6 Months' %}</option>
+                            <option value="52">{% trans '1 Year' %}</option>
+                            <option value="104">{% trans '2 Years' %}</option>
+                            <option value="260">{% trans '5 Years' %}</option>
+                            <option value="520">{% trans '10 Years' %}</option>
+                        </select>
 
     <!--Inspired from https://getbootstrap.com/docs/4.4/examples/carousel/
     and extended to 4 parts-->
@@ -154,17 +165,20 @@
 /*also inspired from stackoverflow*/
 //For temperature carousel item
 var temperaturepictureList = [
-/*List same entries as in select temperatureGraphCriteria, but with the image URL*/
-"{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'driver_temp_setting' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'inside_temp' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'passenger_temp_setting' 5%}",
+/*List same entries as in select temperatureGraphCriteria, but with the image URL
+123456789 will be replaced by the desired period according to choice control
+in ChangeTemperatureImageSourceFunction*/
+"{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'driver_temp_setting' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'inside_temp' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'passenger_temp_setting' 123456789%}",
  ];
 
 function ChangeTemperatureImageSourceFunction()
 {
     var choiceSelectItem = parseInt($('#temperatureGraphCriteria').val());
-    $('#temperatureGraphImg').attr("src",temperaturepictureList[choiceSelectItem]);
+    var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
+    $('#temperatureGraphImg').attr("src",temperaturepictureList[choiceSelectItem].replace("123456789",choiceDesiredPeriod));
 }
 
 $('#temperatureGraphCriteria').change(ChangeTemperatureImageSourceFunction);
@@ -172,17 +186,18 @@ $('#temperatureGraphCriteria').change(ChangeTemperatureImageSourceFunction);
 //For drive carousel item
 var drivepictureList = [
 /*List same entries as in select driveGraphCriteria, but with the image URL*/
-"{% url 'StatsOnCarGraph' hashedVin 'odometer' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'speed' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'latitude' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'longitude' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'power' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'odometer' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'speed' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'latitude' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'longitude' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'power' 123456789%}",
  ];
 
 function ChangeDriveImageSourceFunction()
 {
     var choiceSelectItem = parseInt($('#driveGraphCriteria').val());
-    $('#driveGraphImg').attr("src",drivepictureList[choiceSelectItem]);
+    var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
+    $('#driveGraphImg').attr("src",drivepictureList[choiceSelectItem].replace("123456789",choiceDesiredPeriod));
 }
 
 $('#driveGraphCriteria').change(ChangeDriveImageSourceFunction);
@@ -190,22 +205,23 @@ $('#driveGraphCriteria').change(ChangeDriveImageSourceFunction);
 //For charge carousel item
 var chargepictureList = [
 /*List same entries as in select chargeGraphCriteria, but with the image URL*/
-"{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'battery_range' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'charge_limit_soc' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'charge_rate' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'charger_actual_current' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'charger_phases' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'charger_power' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'charger_voltage' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'est_battery_range' 5%}",
-"{% url 'StatsOnCarGraph' hashedVin 'usable_battery_level' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'battery_level' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'battery_range' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charge_limit_soc' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charge_rate' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charger_actual_current' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charger_phases' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charger_power' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charger_voltage' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'est_battery_range' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'usable_battery_level' 123456789%}",
  ];
 
 function ChangeChargeImageSourceFunction()
 {
     var choiceSelectItem = parseInt($('#chargeGraphCriteria').val());
-    $('#chargeGraphImg').attr("src",chargepictureList[choiceSelectItem]);
+    var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
+    $('#chargeGraphImg').attr("src",chargepictureList[choiceSelectItem].replace("123456789",choiceDesiredPeriod));
 }
 
 $('#chargeGraphCriteria').change(ChangeChargeImageSourceFunction);
@@ -218,16 +234,28 @@ var batterydegradationpictureList = [
 "{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer'%}",
 "{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'battery_level'%}",
 "{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'charge_limit_soc'%}",
-"{% url 'StatsOnCarGraph' hashedVin 'battery_degradation' 5%}",
+"{% url 'StatsOnCarGraph' hashedVin 'battery_degradation' 123456789%}",
  ];
 
 function ChangeBatteryDegradationImageSourceFunction()
 {
     var choiceSelectItem = parseInt($('#degradationGraphCriteria').val());
-    $('#degradationGraphImg').attr("src",batterydegradationpictureList[choiceSelectItem]);
+    var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
+    $('#degradationGraphImg').attr("src",batterydegradationpictureList[choiceSelectItem].replace("123456789",choiceDesiredPeriod));
 }
 
 $('#degradationGraphCriteria').change(ChangeBatteryDegradationImageSourceFunction);
+
+function ChangeDesiredPeriodFunction()
+{
+    //When period changes, all graphs must be refreshed to reflect new period
+    ChangeBatteryDegradationImageSourceFunction();
+    ChangeChargeImageSourceFunction();
+    ChangeTemperatureImageSourceFunction();
+    ChangeDriveImageSourceFunction();
+}
+
+$('#DesiredPeriod').change(ChangeDesiredPeriodFunction);
 
 </script>
 {% endblock %}

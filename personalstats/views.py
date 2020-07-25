@@ -16,6 +16,7 @@ from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.VinHash import IsValidHash
 from django.utils.translation import ugettext_lazy as _
+from datetime import timedelta, datetime
 
 # Create your views here.
 
@@ -111,10 +112,12 @@ def SecurityChecks(hashedVin, desiredfield):
         return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield), False
     return None, True
 
-
+# create a graph showing the evolution of field for a car identified by hashed
+# vin.
+# desiredperiod is expressed in weeks, 0 means all.
 # allow to disable cache when improving graphs and you want a constant reload
 # @never_cache
-def StatsOnCarGraph(request, hashedVin, desiredfield, numberofdays):
+def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
     response, isValid = SecurityChecks(hashedVin, desiredfield)
     if isValid is False:
         return response
@@ -122,10 +125,24 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, numberofdays):
     if count == 0:
         return GenerateDateGraph(None, None, None, None, desiredfield)
 
-    results = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin) \
-        .values('DateOnlyDay') \
-        .annotate(max_val=Max(desiredfield)).annotate(min_val=Min(desiredfield)). \
-        annotate(avg_val=Avg(desiredfield)).order_by('DateOnlyDay')
+    if desiredperiod is not None and desiredperiod > 0:
+        # most recent data
+        delta = timedelta(weeks=desiredperiod)
+        mindate = datetime.now()
+        mindate = mindate - delta
+        results = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin) \
+            .values('DateOnlyDay') \
+            .filter(DateOnlyDay__gte=mindate) \
+            .annotate(max_val=Max(desiredfield)).annotate(min_val=Min(desiredfield)). \
+            annotate(avg_val=Avg(desiredfield)).order_by('DateOnlyDay')
+    else:
+        # all data
+        results = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin) \
+            .values('DateOnlyDay') \
+            .filter() \
+            .annotate(max_val=Max(desiredfield)).annotate(min_val=Min(desiredfield)). \
+            annotate(avg_val=Avg(desiredfield)).order_by('DateOnlyDay')
+
     dates, maxvalues, minvalues, avgvalues = GetDatesAndValuesFromGroupByDateResult(results)
     return GenerateDateGraph(dates, maxvalues, minvalues, avgvalues, GetTitleForField(desiredfield))
 
