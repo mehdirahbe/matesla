@@ -155,6 +155,7 @@
                     <div class="commands_part">
                         <div class="commands_part_cmd"><a href="{% url 'flash_lights' %}" class="btn btn-primary btn-sm">{% trans 'Flash lights' %}</a></div>
                         <div class="commands_part_cmd"><a href="{% url 'honk_horn' %}" class="btn btn-primary btn-sm">{% trans 'Honk horn (not night when people sleep)' %}</a></div>
+                        <div class="commands_part_cmd"><a href="{% url 'remote_start_drive' %}" class="btn btn-primary btn-sm">{% trans 'Activate drive mode without phone/card' %}</a></div>
                         {% if charging_state != "Disconnected" %}
                         <div class="commands_part_cmd"><a href="{% url 'charge_start' %}" class="btn btn-primary btn-sm">{% trans 'Start charge' %}</a></div>
                         <div class="commands_part_cmd"><a href="{% url 'charge_stop' %}" class="btn btn-primary btn-sm">{% trans 'Stop charge' %}</a></div>
