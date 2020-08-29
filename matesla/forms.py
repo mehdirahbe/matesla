@@ -15,7 +15,7 @@ class DesiredTemperatureForm(forms.Form):
 
 class RemoteStartDriveForm(forms.Form):
     #Ask for tesla account password
-    TeslaPassword = forms.CharField(widget=forms.PasswordInput,label='Please enter your Tesla account password')
+    TeslaPassword = forms.CharField(widget=forms.PasswordInput,label=_('Please enter your Tesla account password'))
 
 class AddTeslaAccountForm(forms.Form):
     # required=False means that the field can be left empty
