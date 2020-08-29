@@ -8,7 +8,7 @@ from django.views.decorators.cache import never_cache
 import re
 from anonymisedstats.views import PrepareCSVFromQuery
 from matesla.TeslaConnect import *
-from .forms import DesiredChargeLevelForm, AddTeslaAccountForm, DesiredTemperatureForm
+from .forms import DesiredChargeLevelForm, AddTeslaAccountForm, DesiredTemperatureForm, RemoteStartDriveForm
 from .models.TeslaToken import TeslaToken
 from .models.VinHash import HashTheVin, IsValidHash
 
@@ -361,3 +361,24 @@ def view_charge_start(request):
 @never_cache
 def view_charge_stop(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'charge_stop'))
+
+# Activate remote drive, show a dialog asking PW
+@never_cache
+def view_remote_start_drive(request):
+    user = get_user(request)
+    if not user.is_authenticated:
+        return redirect('login')
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = RemoteStartDriveForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # redirect to a new URL:
+            ActivateRemoteStartDrive(form.cleaned_data["TeslaPassword"], user)
+            return redirect("tesla_status")
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = RemoteStartDriveForm(initial={'TeslaPassword': ''})
+    return render(request, 'matesla/getRemote_start_drivePassword.html', {'form': form})

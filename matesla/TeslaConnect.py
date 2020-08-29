@@ -251,6 +251,10 @@ def SetDriverTempCelcius(desiredtemperature, user):
     data = {'driver_temp': str(desiredtemperature)}
     SetTeslaParamater(data, user, 'set_temps')
 
+# See https://tesla-api.timdorr.com/vehicle/commands/remotestart
+def ActivateRemoteStartDrive(password, user):
+    data = {'password': str(password)}
+    SetTeslaParamater(data, user, 'remote_start_drive')
 
 # rem execute a command, see https://www.teslaapi.io/vehicles/commands for list
 def executeCommand(user, command, setOn=None):
