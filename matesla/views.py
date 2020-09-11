@@ -1,3 +1,5 @@
+import traceback
+
 from django.contrib.auth import get_user
 # Create your views here.
 from django.http import HttpResponse, JsonResponse
@@ -218,6 +220,7 @@ def singleActionJson(request, func):
     except requests.exceptions.ConnectionError:
         return JsonResponse({'error': 'ConnectionError'})
     except Exception as ex:
+        traceback.print_exc()
         return JsonResponse({'error': type(ex).__name__})
     return JsonResponse({'error': 'How did we arrive here?'})
 
@@ -253,6 +256,7 @@ def singleAction(request, func, shouldReturnFunc=False):
     except requests.exceptions.ConnectionError:
         return redirect('ConnectionError')
     except Exception as ex:
+        traceback.print_exc()
         return HttpResponse(type(ex).__name__)
     return redirect("tesla_status")
 
