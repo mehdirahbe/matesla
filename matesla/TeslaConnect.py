@@ -11,6 +11,22 @@ from .models.TeslaToken import TeslaToken
 from .models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from .models.TeslaCarInfo import TeslaCarInfo
 from matesla.TeslaState import TeslaState
+import os
+
+
+# proxy to use since someone in Tesla (grr) did block all cloud (ie amazon aws)
+# requests the 10/9/2020. If prod, define HTTPS_PROXY. I found that
+# proxies from https://proxy-seller.com works fine
+# HTTPS_PROXY must be something like: http://user on proxy:pw on proxy@IP address:port
+def GetProxyToUse():
+    try:
+        proxyStr = os.environ['HTTPS_PROXY']
+    except KeyError:
+        return None
+    if proxyStr is None:
+        return None
+    proxiesDict = {"https": proxyStr}
+    return proxiesDict
 
 
 class TeslaServerException(Exception):
@@ -52,7 +68,8 @@ def GetTokenFromLoginPW(teslalogin, teslapw):
     token_url = "https://owner-api.teslamotors.com/oauth/token"
     data = {'grant_type': 'password', 'client_id': client_id, 'client_secret': client_secret,
             'email': teslalogin, 'password': teslapw}
-    access_token_response = requests.post(token_url, data=data, verify=True, allow_redirects=False)
+    access_token_response = requests.post(token_url, proxies=GetProxyToUse(), data=data, verify=True,
+                                          allow_redirects=False)
     # Check if connection did fail
     if access_token_response is None or access_token_response.status_code != 200:
         return None
@@ -71,7 +88,8 @@ def GetTokenFromRefreshToken(refreshtoken):
     token_url = "https://owner-api.teslamotors.com/oauth/token"
     data = {'grant_type': 'refresh_token', 'client_id': client_id, 'client_secret': client_secret,
             'refresh_token': refreshtoken}
-    access_token_response = requests.post(token_url, data=data, verify=True, allow_redirects=False)
+    access_token_response = requests.post(token_url, proxies=GetProxyToUse(), data=data, verify=True,
+                                          allow_redirects=False)
     # Check if connection did fail
     if access_token_response is None or access_token_response.status_code != 200:
         return None
@@ -88,7 +106,9 @@ def GetTokenFromRefreshToken(refreshtoken):
 # Return the list of velicles or None if token is not valid
 def GetVehicles(access_token):
     api_call_headers = {'Authorization': 'Bearer ' + access_token}
-    api_call_response = requests.get("https://owner-api.teslamotors.com/api/1/vehicles", headers=api_call_headers,
+    api_call_response = requests.get("https://owner-api.teslamotors.com/api/1/vehicles",
+                                     proxies=GetProxyToUse(),
+                                     headers=api_call_headers,
                                      verify=True)
     if api_call_response is None or api_call_response.status_code != 200:
         return None
@@ -140,7 +160,7 @@ def SendWakeUpCommand(access_token, vehicle_id):
     api_call_headers = {'Authorization': 'Bearer ' + access_token}
     api_call_response = requests.post(
         "https://owner-api.teslamotors.com/api/1/vehicles/" + str(vehicle_id) + "/wake_up",
-        headers=api_call_headers, verify=True)
+        proxies=GetProxyToUse(), headers=api_call_headers, verify=True)
     return api_call_response
 
 
@@ -194,7 +214,7 @@ def ParamsConnectedTesla(user):
     api_call_headers = {'Authorization': 'Bearer ' + teslaatoken.access_token}
     api_call_response = requests.get(
         "https://owner-api.teslamotors.com/api/1/vehicles/" + str(teslaatoken.vehicle_id) + "/vehicle_data",
-        headers=api_call_headers, verify=True)
+        proxies=GetProxyToUse(), headers=api_call_headers, verify=True)
     if api_call_response is not None and api_call_response.status_code == 408:
         raise TeslaIsAsleepException
     if api_call_response is not None and api_call_response.status_code == 401:
@@ -233,7 +253,7 @@ def SetTeslaParamater(data, user, commandToCall):
     api_call_headers = {'Authorization': 'Bearer ' + teslaatoken.access_token}
     api_call_response = requests.post(
         "https://owner-api.teslamotors.com/api/1/vehicles/" + str(teslaatoken.vehicle_id) + "/command/" + commandToCall,
-        headers=api_call_headers, verify=True, data=data)
+        proxies=GetProxyToUse(), headers=api_call_headers, verify=True, data=data)
     if api_call_response is not None and api_call_response.status_code == 408:
         raise TeslaIsAsleepException
     if api_call_response is not None and api_call_response.status_code == 401:
@@ -251,10 +271,12 @@ def SetDriverTempCelcius(desiredtemperature, user):
     data = {'driver_temp': str(desiredtemperature)}
     SetTeslaParamater(data, user, 'set_temps')
 
+
 # See https://tesla-api.timdorr.com/vehicle/commands/remotestart
 def ActivateRemoteStartDrive(password, user):
     data = {'password': str(password)}
     SetTeslaParamater(data, user, 'remote_start_drive')
+
 
 # rem execute a command, see https://www.teslaapi.io/vehicles/commands for list
 def executeCommand(user, command, setOn=None):
@@ -263,12 +285,12 @@ def executeCommand(user, command, setOn=None):
     if setOn is None:
         api_call_response = requests.post(
             "https://owner-api.teslamotors.com/api/1/vehicles/" + str(teslaatoken.vehicle_id) + "/command/" + command,
-            headers=api_call_headers, verify=True)
+            proxies=GetProxyToUse(), headers=api_call_headers, verify=True)
     else:
         data = {'on': str(setOn)}
         api_call_response = requests.post(
             "https://owner-api.teslamotors.com/api/1/vehicles/" + str(teslaatoken.vehicle_id) + "/command/" + command,
-            headers=api_call_headers, verify=True, data=data)
+            proxies=GetProxyToUse(), headers=api_call_headers, verify=True, data=data)
     if api_call_response is not None and api_call_response.status_code == 408:
         raise TeslaIsAsleepException
     if api_call_response is not None and api_call_response.status_code == 401:

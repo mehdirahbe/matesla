@@ -6,6 +6,7 @@ import requests
 from django.core.management.base import BaseCommand
 
 from matesla.BatteryDegradation import ComputeBatteryDegradationFromEPARange, GetEPARangeFromCache, ComputeNumCycles
+from matesla.TeslaConnect import GetProxyToUse
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaToken import TeslaToken
 from matesla.models.VinHash import HashTheVin
@@ -27,7 +28,7 @@ class Command(BaseCommand):
         api_call_headers = {'Authorization': 'Bearer ' + access_token}
         api_call_response = requests.get(
             "https://owner-api.teslamotors.com/api/1/vehicles/" + str(vehicle_id) + "/vehicle_data",
-            headers=api_call_headers, verify=True)
+            proxies=GetProxyToUse(), headers=api_call_headers, verify=True)
         if api_call_response is None or api_call_response.status_code != 200:
             print("Give up this car, probably asleep\n")
             return  # some error

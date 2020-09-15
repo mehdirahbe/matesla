@@ -4,7 +4,7 @@ import time
 import requests
 from django.core.management.base import BaseCommand, CommandError
 
-from matesla.TeslaConnect import SendWakeUpCommand, SaveDataHistory
+from matesla.TeslaConnect import SendWakeUpCommand, SaveDataHistory, GetProxyToUse
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.TeslaCarInfo import TeslaCarInfo
 from matesla.models.TeslaToken import TeslaToken
@@ -40,7 +40,7 @@ class Command(BaseCommand):
                 return
             api_call_response = requests.get(
                 "https://owner-api.teslamotors.com/api/1/vehicles/" + str(vehicle_id) + "/vehicle_data",
-                headers=api_call_headers, verify=True)
+                proxies=GetProxyToUse(), headers=api_call_headers, verify=True)
             # If asleep, wait 1 second
             if api_call_response is not None and api_call_response.status_code == 408:
                 print("Car asleep, will try to wake it\n")
