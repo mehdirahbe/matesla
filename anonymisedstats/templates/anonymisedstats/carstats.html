@@ -46,8 +46,10 @@ proposed by chrome when doing tests on the page-->
 
 {% block content %}
     <!--Inspired from https://getbootstrap.com/docs/4.4/examples/carousel/
-    and extended to 4 parts-->
-    <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="10000">
+    and extended to 4 parts
+    data-interval put to 1 day because it is annoying to have that moving when you are looking
+    at something.-->
+    <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="86400000">
         <ol class="carousel-indicators">
             <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
             <li data-target="#myCarousel" data-slide-to="1"></li>
