@@ -3,6 +3,7 @@ import requests
 import json
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 
 from .BatteryDegradation import ComputeBatteryDegradation
 from .models.AddressFromLatLong import AddressFromLatLong, GetAddressFromLatLong
@@ -187,25 +188,28 @@ def WaitForWakeUp(teslaatoken: TeslaToken):
 
 # Save data history
 def SaveDataHistory(teslaState):
-    context = teslaState.vehicle_state["response"]
-    vehicle_config = context["vehicle_config"]
-    vehicle_state = context["vehicle_state"]
-    # Firmware updates
-    toSave = TeslaFirmwareHistory()
-    toSave.SaveIfDontExistsYet(teslaState.vin, vehicle_state["car_version"], vehicle_config["car_type"])
-    # Car infos
-    toSave = TeslaCarInfo()
-    toSave = toSave.SaveIfDontExistsYet(teslaState.vin, context)
-    # if we don't have epa range yet, this will force its recomputation
-    if toSave.EPARange is None:
-        chargestate = context["charge_state"]
+    try:
+        context = teslaState.vehicle_state["response"]
+        vehicle_config = context["vehicle_config"]
         vehicle_state = context["vehicle_state"]
-        ComputeBatteryDegradation(chargestate["battery_range"], chargestate["battery_level"],
-                                  teslaState.vin, vehicle_state['odometer'])
-    # Car variable infos
-    toSave = TeslaCarDataSnapshot()
-    toSave.SaveIfDontExistsYet(teslaState.vin, context)
-
+        # Firmware updates
+        toSave = TeslaFirmwareHistory()
+        toSave.SaveIfDontExistsYet(teslaState.vin, vehicle_state["car_version"], vehicle_config["car_type"])
+        # Car infos
+        toSave = TeslaCarInfo()
+        toSave = toSave.SaveIfDontExistsYet(teslaState.vin, context)
+        # if we don't have epa range yet, this will force its recomputation
+        if toSave.EPARange is None:
+            chargestate = context["charge_state"]
+            vehicle_state = context["vehicle_state"]
+            ComputeBatteryDegradation(chargestate["battery_range"], chargestate["battery_level"],
+                                      teslaState.vin, vehicle_state['odometer'])
+        # Car variable infos
+        toSave = TeslaCarDataSnapshot()
+        toSave.SaveIfDontExistsYet(teslaState.vin, context)
+    # during firmware update, some fields will be null-->don't crash, just ignore save of invalid data
+    except IntegrityError:
+        return
 
 # returns params as TeslaState
 def ParamsConnectedTesla(user):
@@ -279,18 +283,26 @@ def ActivateRemoteStartDrive(password, user):
 
 
 # rem execute a command, see https://www.teslaapi.io/vehicles/commands for list
-def executeCommand(user, command, setOn=None):
+def executeCommand(user, command, setOn=None, addParamName=None, addParamValue=None):
     teslaatoken = Connect(user)
     api_call_headers = {'Authorization': 'Bearer ' + teslaatoken.access_token}
-    if setOn is None:
+    if setOn is None and addParamName is None:
         api_call_response = requests.post(
             "https://owner-api.teslamotors.com/api/1/vehicles/" + str(teslaatoken.vehicle_id) + "/command/" + command,
             proxies=GetProxyToUse(), headers=api_call_headers, verify=True)
     else:
-        data = {'on': str(setOn)}
-        api_call_response = requests.post(
-            "https://owner-api.teslamotors.com/api/1/vehicles/" + str(teslaatoken.vehicle_id) + "/command/" + command,
-            proxies=GetProxyToUse(), headers=api_call_headers, verify=True, data=data)
+        if setOn is not None:
+            data = {'on': str(setOn)}
+            api_call_response = requests.post(
+                "https://owner-api.teslamotors.com/api/1/vehicles/" + str(
+                    teslaatoken.vehicle_id) + "/command/" + command,
+                proxies=GetProxyToUse(), headers=api_call_headers, verify=True, data=data)
+        else:
+            data = {addParamName: str(addParamValue)}
+            api_call_response = requests.post(
+                "https://owner-api.teslamotors.com/api/1/vehicles/" + str(
+                    teslaatoken.vehicle_id) + "/command/" + command,
+                proxies=GetProxyToUse(), headers=api_call_headers, verify=True, data=data)
     if api_call_response is not None and api_call_response.status_code == 408:
         raise TeslaIsAsleepException
     if api_call_response is not None and api_call_response.status_code == 401:

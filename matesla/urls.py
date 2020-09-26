@@ -28,4 +28,5 @@ urlpatterns = [
     path('matesla/charge_start', views.view_charge_start, name='charge_start'),
     path('matesla/charge_stop', views.view_charge_stop, name='charge_stop'),
     path('matesla/remote_start_drive', views.view_remote_start_drive, name='remote_start_drive'),
+    path('matesla/install_software_update', views.view_install_software_update, name='install_software_update'),
 ]

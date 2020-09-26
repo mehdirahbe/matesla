@@ -125,6 +125,27 @@ def returnColorFronContext(context):
     return colorcode
 
 
+# Return true if a firmware update is downloadeand ready to install.
+# arg is value return by the car and should contain something like this
+# download_perc-->100
+# status-->available
+# version-->2020.36.11
+def DoesHaveUpdateReady(software_update):
+    if software_update["download_perc"] == 100 and software_update["status"] == "available":
+        return True
+    return False
+
+def DoesHaveUpdateScheduled(software_update):
+    if software_update["download_perc"] == 100 and software_update["status"] == "scheduled":
+        return True
+    return False
+
+def DoesHaveUpdateInstalling(software_update):
+    if software_update["download_perc"] == 100 and software_update["status"] == "installing":
+        return True
+    return False
+
+
 # Prepare all entries used in the status page, given a request and logged user id
 def PreparestatusDictionary(request, user):
     params = ParamsConnectedTesla(user)
@@ -155,6 +176,20 @@ def PreparestatusDictionary(request, user):
     context["linktogooglemaps"] = "https://www.google.com/maps/search/?api=1&query=" + \
                                   '{:.6f}'.format(context["latitude"]) + ',' + \
                                   '{:.6f}'.format(context["longitude"])
+
+    # Will allow to know if a firmware update can be installed, if yes, propose option
+    context["hasUpdateReady"] = DoesHaveUpdateReady(context["software_update"])
+    if context["hasUpdateReady"]:
+        context["UpdateVersion"] = context["software_update"]["version"]
+    context["hasUpdateScheduled"] = DoesHaveUpdateScheduled(context["software_update"])
+    if context["hasUpdateScheduled"]:
+        context["UpdateVersion"] = context["software_update"]["version"]
+        context["UpdateVersionTimeSeconds"] = str(context["software_update"]["warning_time_remaining_ms"]/1000)
+    context["hasUpdateInstalling"] = DoesHaveUpdateInstalling(context["software_update"])
+    if context["hasUpdateInstalling"]:
+        context["UpdateVersion"] = context["software_update"]["version"]
+        context["UpdateVersionInstallPerc"] = str(context["software_update"]["install_perc"])
+
 
     # allow to check if we are on deployment test server, or localhost
     WebServerName = str(request.get_host())
@@ -365,6 +400,14 @@ def view_charge_start(request):
 @never_cache
 def view_charge_stop(request):
     return singleAction(request, lambda request, user: executeCommand(user, 'charge_stop'))
+
+
+# Start install of software update, with a 2 minutes timeout, as the car propose
+@never_cache
+def view_install_software_update(request):
+    return singleAction(request,
+                        lambda request, user: executeCommand(user, 'schedule_software_update', None, 'offset_sec', 120))
+
 
 # Activate remote drive, show a dialog asking PW
 @never_cache

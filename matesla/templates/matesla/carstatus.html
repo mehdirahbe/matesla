@@ -158,10 +158,6 @@
                         <div class="commands_part_cmd"><a href="{% url 'flash_lights' %}" class="btn btn-primary btn-sm">{% trans 'Flash lights' %}</a></div>
                         <div class="commands_part_cmd"><a href="{% url 'honk_horn' %}" class="btn btn-primary btn-sm">{% trans 'Honk horn (not night when people sleep)' %}</a></div>
                         <div class="commands_part_cmd"><a href="{% url 'remote_start_drive' %}" class="btn btn-primary btn-sm">{% trans 'Activate drive mode without phone/card' %}</a></div>
-                        {% if charging_state != "Disconnected" %}
-                        <div class="commands_part_cmd"><a href="{% url 'charge_start' %}" class="btn btn-primary btn-sm">{% trans 'Start charge' %}</a></div>
-                        <div class="commands_part_cmd"><a href="{% url 'charge_stop' %}" class="btn btn-primary btn-sm">{% trans 'Stop charge' %}</a></div>
-                        {% endif %}
                         <div class="commands_part_cmd"><a href="{% url 'PersoStats' hashedVin %}" target="_blank" class="btn btn-info btn-sm">{% trans 'My data' %}</a></div>
                         <div class="commands_part_cmd"><a href="{% url 'teslastatusJson' %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Json current data' %}</a></div>
                         <div class="commands_part_cmd"><a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Firmware history' %}</a></div>
@@ -211,6 +207,17 @@
                             <div class="info_label_value">
                                 <div class="info_label">{% trans 'Firmware version' %}</div>
                                 <div class="info_value">{{car_version}}</div>
+
+                            {% if hasUpdateReady %}
+                            <div class="commands_part_cmd"><a href="{% url 'install_software_update' %}" class="btn btn-primary btn-sm">{% trans 'Install ' %}{{UpdateVersion}}</a></div>
+                            {% endif %}
+                            {% if hasUpdateScheduled %}
+                                <div class="info_label">{% trans 'New firmware version' %} {{UpdateVersion}} {% trans 'is scheduled in ' %}{{UpdateVersionTimeSeconds}} {% trans 'seconds' %}</div>
+                            {% endif %}
+                            {% if hasUpdateInstalling %}
+                                <div class="info_label">{% trans 'New firmware version' %} {{UpdateVersion}} {% trans 'is installing, ' %}{{UpdateVersionInstallPerc}} {% trans '% already done' %}</div>
+                            {% endif %}
+
                             </div>
                             <div class="info_label_value">
                                 <div class="info_label">{% trans 'Sentry' %}</div>
@@ -302,6 +309,14 @@
                                 <div class="info_label">{% trans 'Time left in minutes' %}</div>
                                 <div class="info_value">{{minutes_to_full_charge}}</div>
                             </div>
+
+                            {% if charging_state != "Charging" %}
+                            <div class="commands_part_cmd"><a href="{% url 'charge_start' %}" class="btn btn-primary btn-sm">{% trans 'Start charge' %}</a></div>
+                            {% else %}
+                            <div class="commands_part_cmd"><a href="{% url 'charge_stop' %}" class="btn btn-primary btn-sm">{% trans 'Stop charge' %}</a></div>
+                            {% endif %}
+
+
                             {% endif %}
                         </div>
                     </div>
