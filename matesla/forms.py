@@ -19,14 +19,11 @@ class RemoteStartDriveForm(forms.Form):
 
 class AddTeslaAccountForm(forms.Form):
     # required=False means that the field can be left empty
-    TeslaUser = forms.CharField(widget=forms.TextInput, required=False, label=_('Tesla account user'))
-    TeslaPassword = forms.CharField(widget=forms.PasswordInput, required=False, label=_('Tesla account password'))
-    Token = forms.CharField(widget=forms.TextInput, max_length=64, required=False,
-                            label=_('Tesla token (only advanced users)'))
-    TokenRefresh = forms.CharField(widget=forms.TextInput, max_length=64, required=False,
-                                   label=_('Tesla refresh token (advanced users, optional)'))
-    CreateAt = forms.IntegerField(widget=forms.TextInput, required=False,
-                                  label=_('Tesla token creation time (advanced users, optional)'))
+    TeslaUser = forms.CharField(widget=forms.TextInput, required=False)
+    TeslaPassword = forms.CharField(widget=forms.PasswordInput, required=False)
+    Token = forms.CharField(widget=forms.TextInput, max_length=200, required=False)
+    TokenRefresh = forms.CharField(widget=forms.TextInput, max_length=200, required=False)
+    CreateAt = forms.IntegerField(widget=forms.TextInput, required=False)
     # Token retrieved during is valid
     token = TeslaToken()
 
@@ -45,7 +42,7 @@ class AddTeslaAccountForm(forms.Form):
                 self.token.vehicle_id = GetVehicle(GetVehicles(self.token.access_token))
                 return True  # Yes, valid
         # try on token
-        if len(self.data['Token']) == 64:
+        if len(self.data['Token']) >= 64 and len(self.data['Token']) < 200:
             vehicles = GetVehicles(self.data['Token'])
             if vehicles is not None:  # got vehicles, yes, valid
                 self.token = TeslaToken()
@@ -54,7 +51,7 @@ class AddTeslaAccountForm(forms.Form):
                 stating than not informatician are lost with refresh token and creation time
                 thus allow to only use token.
                 Thus story refresh and creation if we have them, do without else'''
-                if (len(self.data['TokenRefresh']) == 64):
+                if (len(self.data['TokenRefresh']) >= 64 and len(self.data['TokenRefresh']) < 200):
                     self.token.refresh_token = self.data['TokenRefresh']
                 else:
                     self.token.refresh_token = None

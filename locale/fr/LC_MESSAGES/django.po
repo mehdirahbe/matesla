@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-26 23:17+0000\n"
+"POT-Creation-Date: 2020-10-07 00:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -160,27 +160,7 @@ msgstr "Température pour le conducteur (°C)"
 msgid "Please enter your Tesla account password"
 msgstr "Veuillez entrer le mot de passe du compte Tesla"
 
-#: matesla/forms.py:22
-msgid "Tesla account user"
-msgstr "Utilisateur du compte Tesla"
-
-#: matesla/forms.py:23
-msgid "Tesla account password"
-msgstr "Mot de passe du compte Tesla"
-
-#: matesla/forms.py:25
-msgid "Tesla token (only advanced users)"
-msgstr "Jeton Tesla (utilisateurs avancés)"
-
-#: matesla/forms.py:27
-msgid "Tesla refresh token (advanced users, optional)"
-msgstr "Jeton de rafraîchissement Tesla (utilisateurs avancés, optionel)"
-
-#: matesla/forms.py:29
-msgid "Tesla token creation time (advanced users, optional)"
-msgstr "Moment de création du jeton Tesla (utilisateurs avancés, optionel)"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:5
+#: matesla/templates/matesla/AddTeslaAccount.html:45
 #: matesla/templates/matesla/ConnectionError.html:7
 #: matesla/templates/matesla/NoTeslaVehicules.html:7
 #: matesla/templates/matesla/TeslaServerCmdFail.html:7
@@ -193,7 +173,7 @@ msgstr "Moment de création du jeton Tesla (utilisateurs avancés, optionel)"
 msgid "logout"
 msgstr "Se déconnecter"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:6
+#: matesla/templates/matesla/AddTeslaAccount.html:46
 #: matesla/templates/matesla/ConnectionError.html:9
 #: matesla/templates/matesla/NoTeslaVehicules.html:9
 #: matesla/templates/matesla/TeslaServerCmdFail.html:9
@@ -207,21 +187,11 @@ msgstr "Se déconnecter"
 msgid "Firmware and cars Stats"
 msgstr "Stats du firmware Tesla et des voitures"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:13
-msgid "Please either enter (one of the 2 methods):"
-msgstr "Veuillez entrer (une des 2 méthodes):"
+#: matesla/templates/matesla/AddTeslaAccount.html:74
+msgid "Please enter your tesla credentials (recommanded method)"
+msgstr "Veuillez entrer vos informations de compte Tesla (méthode recommandée)"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:14
-msgid "a) your tesla credentials: user and password (recommanded method)"
-msgstr ""
-"a) Vos informations de compte Tesla: utilisateur et mot de passe (méthode "
-"recommandée)"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:15
-msgid "b) A token (advanced users)"
-msgstr "b) Un jeton (token), pour utilisateurs avancés"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:16
+#: matesla/templates/matesla/AddTeslaAccount.html:75
 msgid ""
 "If you submit your user, we will use it to generate a token and your user "
 "will NOT be stored."
@@ -229,22 +199,42 @@ msgstr ""
 "Si vous soumettez votre utilisateur, nous l'utiliserons pour générer un "
 "jeton et votre utilisateur ne SERA PAS stocké"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:17
+#: matesla/templates/matesla/AddTeslaAccount.html:76
 msgid ""
 "The token allow to connect to your Tesla car, it does expire after 45 days."
 msgstr ""
 "Le jeton permet de se connecter à votre voiture Tesla, il expire après 45 "
 "jours"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:18
+#: matesla/templates/matesla/AddTeslaAccount.html:77
 msgid "The token alone does not allow to put your car in drive mode."
 msgstr "Le jeton seul ne permet pas de mettre la voiture en mode conduite."
 
-#: matesla/templates/matesla/AddTeslaAccount.html:19
+#: matesla/templates/matesla/AddTeslaAccount.html:78
 msgid "Token is invalidated if you change your tesla password."
 msgstr "Le jeton est invalidé quand vous changez votre mot de passe"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:20
+#: matesla/templates/matesla/AddTeslaAccount.html:82
+msgid "Tesla account user"
+msgstr "Utilisateur du compte Tesla"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:89
+msgid "Tesla account password"
+msgstr "Mot de passe du compte Tesla"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:93
+#: matesla/templates/matesla/AddTeslaAccount.html:129
+#: matesla/templates/matesla/getRemote_start_drivePassword.html:16
+#: matesla/templates/matesla/getdesiredchargelevel.html:14
+#: matesla/templates/matesla/getdesiredtemperature.html:14
+msgid "Save"
+msgstr "Sauver"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:104
+msgid "Or please enter a token (advanced users)"
+msgstr "Ou un jeton (token), pour utilisateurs avancés"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:105
 msgid ""
 "If you did choose to provide a token, optionally, you can also provide token "
 "creation date to know when the token will expire."
@@ -253,7 +243,7 @@ msgstr ""
 "également fournir une date de création du jeton, de manière à savoir quand "
 "ce dernier expire."
 
-#: matesla/templates/matesla/AddTeslaAccount.html:21
+#: matesla/templates/matesla/AddTeslaAccount.html:106
 msgid ""
 "The optional refresh token then allow to get automatically a new one from "
 "Tesla."
@@ -261,7 +251,7 @@ msgstr ""
 "Le jeton de rafraîchissement permettra d'en obtenir automatiquement un "
 "nouveau de la part de Tesla"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:22
+#: matesla/templates/matesla/AddTeslaAccount.html:107
 msgid ""
 "If you only fill the token, we have no way to renew it, and this form will "
 "be presented again at expiration."
@@ -269,14 +259,25 @@ msgstr ""
 "Si vous remplissez uniquement le jeton, nous n'avons aucun moyen de le "
 "renouveler, et ce formulaire vous sera à nouveau présenté à l'expiration"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:25
-#: matesla/templates/matesla/getRemote_start_drivePassword.html:16
-#: matesla/templates/matesla/getdesiredchargelevel.html:14
-#: matesla/templates/matesla/getdesiredtemperature.html:14
-msgid "Save"
-msgstr "Sauver"
+#: matesla/templates/matesla/AddTeslaAccount.html:110
+#, fuzzy
+#| msgid "Tesla account"
+msgid "Tesla token"
+msgstr "Compte Tesla"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:29
+#: matesla/templates/matesla/AddTeslaAccount.html:117
+#, fuzzy
+#| msgid "Tesla refresh token (advanced users, optional)"
+msgid "Tesla refresh token (optional)"
+msgstr "Jeton de rafraîchissement Tesla (utilisateurs avancés, optionel)"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:124
+#, fuzzy
+#| msgid "Tesla token creation time (advanced users, optional)"
+msgid "Tesla token creation time (optional)"
+msgstr "Moment de création du jeton Tesla (utilisateurs avancés, optionel)"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:131
 msgid ""
 "For advanced users: you can run in any python console this code to obtain "
 "your token, refresh and creation time."
@@ -284,17 +285,21 @@ msgstr ""
 "Pour les utilisateurs avancés: vous pouvez exécuter ce code dans une console "
 "Python pour obtenir votre jeton, jeton de renouvellement et date de création."
 
-#: matesla/templates/matesla/AddTeslaAccount.html:30
+#: matesla/templates/matesla/AddTeslaAccount.html:132
 msgid "You have to install "
 msgstr "Vous devez installer "
 
-#: matesla/templates/matesla/AddTeslaAccount.html:32
+#: matesla/templates/matesla/AddTeslaAccount.html:134
 msgid " and "
 msgstr " et "
 
-#: matesla/templates/matesla/AddTeslaAccount.html:34
+#: matesla/templates/matesla/AddTeslaAccount.html:136
 msgid " package first."
 msgstr " en premier"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:137
+msgid "Copy code"
+msgstr "Copier le code"
 
 #: matesla/templates/matesla/ConnectionError.html:8
 #: matesla/templates/matesla/NoTeslaVehicules.html:8
@@ -741,6 +746,12 @@ msgstr ""
 #: templates/registration/login.html:29
 msgid "Have fun and you are the most welcome if you want to contribute :-)"
 msgstr "Amusez vous, vous êtes les bienvenus si vous voulez contribuer :-)"
+
+#~ msgid "Tesla token (only advanced users)"
+#~ msgstr "Jeton Tesla (utilisateurs avancés)"
+
+#~ msgid "Please either enter (one of the 2 methods):"
+#~ msgstr "Veuillez entrer (une des 2 méthodes):"
 
 #~ msgid "Name"
 #~ msgstr "Nom"
