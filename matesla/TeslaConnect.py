@@ -202,7 +202,7 @@ def SaveDataHistory(teslaState):
         if toSave.EPARange is None:
             chargestate = context["charge_state"]
             vehicle_state = context["vehicle_state"]
-            ComputeBatteryDegradation(chargestate["battery_range"], chargestate["battery_level"],
+            ComputeBatteryDegradation(chargestate["battery_range"], chargestate["usable_battery_level"],
                                       teslaState.vin, vehicle_state['odometer'])
         # Car variable infos
         toSave = TeslaCarDataSnapshot()
@@ -239,7 +239,7 @@ def ParamsConnectedTesla(user):
     vehicle_state = context["vehicle_state"]
     ret.batterydegradation, ret.NumberCycles, ret.EPARangeMiles = ComputeBatteryDegradation(
         chargestate["battery_range"],
-        chargestate["battery_level"],
+        chargestate["usable_battery_level"],
         ret.vin,
         vehicle_state['odometer'])
     drive_state = context["drive_state"]

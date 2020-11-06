@@ -100,6 +100,7 @@ def ComputeNumCycles(EPARange, odometerMiles):
 
 # return battery degradation and number of cycles of the battery+EPA Range in Miles
 # odometer is used to estimates number of cycles
+# usable_battery_level must be used.
 def ComputeBatteryDegradation(batteryrange, battery_level, vin, odometerMiles):
     EPARange, model, isDual, year = GetEPARange(vin)
     if EPARange is None:

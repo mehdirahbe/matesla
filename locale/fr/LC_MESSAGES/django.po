@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-07 00:55+0000\n"
+"POT-Creation-Date: 2020-11-06 01:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -56,7 +56,7 @@ msgstr "Date d'addition de la voiture"
 msgid "Car type"
 msgstr "Type de voiture"
 
-#: anonymisedstats/views.py:54 matesla/templates/matesla/carstatus.html:278
+#: anonymisedstats/views.py:54 matesla/templates/matesla/carstatus.html:282
 msgid "Charge port"
 msgstr "Port de charge"
 
@@ -104,7 +104,7 @@ msgstr "Option Conduite autonome (FSD) active"
 msgid "European union car"
 msgstr "Voiture européenne"
 
-#: anonymisedstats/views.py:66 matesla/templates/matesla/carstatus.html:352
+#: anonymisedstats/views.py:66 matesla/templates/matesla/carstatus.html:356
 msgid "EPA Range (miles)"
 msgstr "Range EPA (miles)"
 
@@ -132,7 +132,7 @@ msgstr "Niveau batterie (%)"
 msgid "Battery charge limit (%)"
 msgstr "Limite de charge de la batterie (%)"
 
-#: anonymisedstats/views.py:73 matesla/templates/matesla/carstatus.html:348
+#: anonymisedstats/views.py:73 matesla/templates/matesla/carstatus.html:352
 msgid "Estim. number of battery cycles"
 msgstr "Nombre de cycles estimé de la batterie"
 
@@ -200,41 +200,34 @@ msgstr ""
 "jeton et votre utilisateur ne SERA PAS stocké"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:76
-msgid ""
-"The token allow to connect to your Tesla car, it does expire after 45 days."
-msgstr ""
-"Le jeton permet de se connecter à votre voiture Tesla, il expire après 45 "
-"jours"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:77
 msgid "The token alone does not allow to put your car in drive mode."
 msgstr "Le jeton seul ne permet pas de mettre la voiture en mode conduite."
 
-#: matesla/templates/matesla/AddTeslaAccount.html:78
+#: matesla/templates/matesla/AddTeslaAccount.html:77
 msgid "Token is invalidated if you change your tesla password."
 msgstr "Le jeton est invalidé quand vous changez votre mot de passe"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:82
+#: matesla/templates/matesla/AddTeslaAccount.html:81
 msgid "Tesla account user"
 msgstr "Utilisateur du compte Tesla"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:89
+#: matesla/templates/matesla/AddTeslaAccount.html:88
 msgid "Tesla account password"
 msgstr "Mot de passe du compte Tesla"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:93
-#: matesla/templates/matesla/AddTeslaAccount.html:129
+#: matesla/templates/matesla/AddTeslaAccount.html:92
+#: matesla/templates/matesla/AddTeslaAccount.html:128
 #: matesla/templates/matesla/getRemote_start_drivePassword.html:16
 #: matesla/templates/matesla/getdesiredchargelevel.html:14
 #: matesla/templates/matesla/getdesiredtemperature.html:14
 msgid "Save"
 msgstr "Sauver"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:104
+#: matesla/templates/matesla/AddTeslaAccount.html:103
 msgid "Or please enter a token (advanced users)"
 msgstr "Ou un jeton (token), pour utilisateurs avancés"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:105
+#: matesla/templates/matesla/AddTeslaAccount.html:104
 msgid ""
 "If you did choose to provide a token, optionally, you can also provide token "
 "creation date to know when the token will expire."
@@ -243,7 +236,7 @@ msgstr ""
 "également fournir une date de création du jeton, de manière à savoir quand "
 "ce dernier expire."
 
-#: matesla/templates/matesla/AddTeslaAccount.html:106
+#: matesla/templates/matesla/AddTeslaAccount.html:105
 msgid ""
 "The optional refresh token then allow to get automatically a new one from "
 "Tesla."
@@ -251,7 +244,7 @@ msgstr ""
 "Le jeton de rafraîchissement permettra d'en obtenir automatiquement un "
 "nouveau de la part de Tesla"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:107
+#: matesla/templates/matesla/AddTeslaAccount.html:106
 msgid ""
 "If you only fill the token, we have no way to renew it, and this form will "
 "be presented again at expiration."
@@ -259,25 +252,25 @@ msgstr ""
 "Si vous remplissez uniquement le jeton, nous n'avons aucun moyen de le "
 "renouveler, et ce formulaire vous sera à nouveau présenté à l'expiration"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:110
+#: matesla/templates/matesla/AddTeslaAccount.html:109
 #, fuzzy
 #| msgid "Tesla account"
 msgid "Tesla token"
 msgstr "Compte Tesla"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:117
+#: matesla/templates/matesla/AddTeslaAccount.html:116
 #, fuzzy
 #| msgid "Tesla refresh token (advanced users, optional)"
 msgid "Tesla refresh token (optional)"
 msgstr "Jeton de rafraîchissement Tesla (utilisateurs avancés, optionel)"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:124
+#: matesla/templates/matesla/AddTeslaAccount.html:123
 #, fuzzy
 #| msgid "Tesla token creation time (advanced users, optional)"
 msgid "Tesla token creation time (optional)"
 msgstr "Moment de création du jeton Tesla (utilisateurs avancés, optionel)"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:131
+#: matesla/templates/matesla/AddTeslaAccount.html:130
 msgid ""
 "For advanced users: you can run in any python console this code to obtain "
 "your token, refresh and creation time."
@@ -285,19 +278,19 @@ msgstr ""
 "Pour les utilisateurs avancés: vous pouvez exécuter ce code dans une console "
 "Python pour obtenir votre jeton, jeton de renouvellement et date de création."
 
-#: matesla/templates/matesla/AddTeslaAccount.html:132
+#: matesla/templates/matesla/AddTeslaAccount.html:131
 msgid "You have to install "
 msgstr "Vous devez installer "
 
-#: matesla/templates/matesla/AddTeslaAccount.html:134
+#: matesla/templates/matesla/AddTeslaAccount.html:133
 msgid " and "
 msgstr " et "
 
-#: matesla/templates/matesla/AddTeslaAccount.html:136
+#: matesla/templates/matesla/AddTeslaAccount.html:135
 msgid " package first."
 msgstr " en premier"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:137
+#: matesla/templates/matesla/AddTeslaAccount.html:136
 msgid "Copy code"
 msgstr "Copier le code"
 
@@ -467,109 +460,113 @@ msgid "Charge status"
 msgstr "Status de charge"
 
 #: matesla/templates/matesla/carstatus.html:255
+msgid "Usable battery level (%%)"
+msgstr "Niveau utilisable batterie (%%)"
+
+#: matesla/templates/matesla/carstatus.html:259
 #, python-format
 msgid "Battery level (%%)"
 msgstr "Niveau batterie (%%)"
 
-#: matesla/templates/matesla/carstatus.html:259
+#: matesla/templates/matesla/carstatus.html:263
 msgid "Battery range km"
 msgstr "Range de la batterie km"
 
-#: matesla/templates/matesla/carstatus.html:263
+#: matesla/templates/matesla/carstatus.html:267
 msgid "Battery charge"
 msgstr "Batterie en charge"
 
-#: matesla/templates/matesla/carstatus.html:268
+#: matesla/templates/matesla/carstatus.html:272
 #, python-format
 msgid "Battery degradation (%%)"
 msgstr "Dégradation de la batterie (%%)"
 
-#: matesla/templates/matesla/carstatus.html:273
+#: matesla/templates/matesla/carstatus.html:277
 #, python-format
 msgid "Battery charge limit (%%)"
 msgstr "Limite de charge de la batterie (%%)"
 
-#: matesla/templates/matesla/carstatus.html:282
+#: matesla/templates/matesla/carstatus.html:286
 msgid "Is Charge port open"
 msgstr "Port de charge ouvert"
 
-#: matesla/templates/matesla/carstatus.html:285
+#: matesla/templates/matesla/carstatus.html:289
 msgid "Yes, close?"
 msgstr "Oui, fermer?"
 
-#: matesla/templates/matesla/carstatus.html:287
+#: matesla/templates/matesla/carstatus.html:291
 msgid "No, open?"
 msgstr "Non, ouvrir?"
 
-#: matesla/templates/matesla/carstatus.html:293
+#: matesla/templates/matesla/carstatus.html:297
 msgid "Voltage in V"
 msgstr "Voltage en V"
 
-#: matesla/templates/matesla/carstatus.html:297
+#: matesla/templates/matesla/carstatus.html:301
 msgid "Current in A"
 msgstr "Courant en A"
 
-#: matesla/templates/matesla/carstatus.html:301
+#: matesla/templates/matesla/carstatus.html:305
 msgid "Power in kW"
 msgstr "Puissance en kW"
 
-#: matesla/templates/matesla/carstatus.html:305
+#: matesla/templates/matesla/carstatus.html:309
 msgid "Number of phases"
 msgstr "Nombre de phases"
 
-#: matesla/templates/matesla/carstatus.html:309
+#: matesla/templates/matesla/carstatus.html:313
 msgid "Time left in minutes"
 msgstr "Temps restant en minutes"
 
-#: matesla/templates/matesla/carstatus.html:314
+#: matesla/templates/matesla/carstatus.html:318
 msgid "Start charge"
 msgstr "Démarrer la charge"
 
-#: matesla/templates/matesla/carstatus.html:316
+#: matesla/templates/matesla/carstatus.html:320
 msgid "Stop charge"
 msgstr "Arrêter la charge"
 
-#: matesla/templates/matesla/carstatus.html:332
+#: matesla/templates/matesla/carstatus.html:336
 msgid "Drive and location"
 msgstr "Conduite et emplacement"
 
-#: matesla/templates/matesla/carstatus.html:335 personalstats/views.py:34
+#: matesla/templates/matesla/carstatus.html:339 personalstats/views.py:34
 msgid "Speed"
 msgstr "Vitesse"
 
-#: matesla/templates/matesla/carstatus.html:339
+#: matesla/templates/matesla/carstatus.html:343
 msgid "Location"
 msgstr "Addresse"
 
-#: matesla/templates/matesla/carstatus.html:344
+#: matesla/templates/matesla/carstatus.html:348
 msgid "Odometer"
 msgstr "Odometre"
 
-#: matesla/templates/matesla/carstatus.html:366
+#: matesla/templates/matesla/carstatus.html:370
 msgid "Climate information"
 msgstr "Climatisation"
 
-#: matesla/templates/matesla/carstatus.html:369
+#: matesla/templates/matesla/carstatus.html:373
 msgid "Is climate on"
 msgstr "Climatisation"
 
-#: matesla/templates/matesla/carstatus.html:372
+#: matesla/templates/matesla/carstatus.html:376
 msgid "Yes, stop?"
 msgstr "Oui, arrêter?"
 
-#: matesla/templates/matesla/carstatus.html:374
+#: matesla/templates/matesla/carstatus.html:378
 msgid "No, start?"
 msgstr "Non, démarrer?"
 
-#: matesla/templates/matesla/carstatus.html:379
+#: matesla/templates/matesla/carstatus.html:383
 msgid "Inside temperature"
 msgstr "Température intérieure"
 
-#: matesla/templates/matesla/carstatus.html:383
+#: matesla/templates/matesla/carstatus.html:387
 msgid "Outside temperature"
 msgstr "Température extérieure"
 
-#: matesla/templates/matesla/carstatus.html:387
+#: matesla/templates/matesla/carstatus.html:391
 msgid "Driver Temperature setting"
 msgstr "Température pour le conducteur"
 
@@ -746,6 +743,13 @@ msgstr ""
 #: templates/registration/login.html:29
 msgid "Have fun and you are the most welcome if you want to contribute :-)"
 msgstr "Amusez vous, vous êtes les bienvenus si vous voulez contribuer :-)"
+
+#~ msgid ""
+#~ "The token allow to connect to your Tesla car, it does expire after 45 "
+#~ "days."
+#~ msgstr ""
+#~ "Le jeton permet de se connecter à votre voiture Tesla, il expire après 45 "
+#~ "jours"
 
 #~ msgid "Tesla token (only advanced users)"
 #~ msgstr "Jeton Tesla (utilisateurs avancés)"
