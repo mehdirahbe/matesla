@@ -121,6 +121,6 @@ class TeslaCarDataSnapshot(models.Model):
             EPARange = GetEPARangeFromCache(vin)
             self.NumberCycles = ComputeNumCycles(EPARange, self.odometer)
             self.battery_degradation = ComputeBatteryDegradationFromEPARange(
-                self.battery_range, self.battery_level, EPARange)
+                self.battery_range, self.usable_battery_level, EPARange)
             self.randomNr = random()
             self.save()
