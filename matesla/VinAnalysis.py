@@ -33,7 +33,8 @@ def IsDualMotor(vin):
     if len(vin) < 8:
         return None
     letter = vin[7]
-    if letter == "2" or letter == "B":
+    # 4=performance dual motor, cf teslatap
+    if letter == "2" or letter == "B" or letter == "4":
         return True
     if letter == "A":
         return False
