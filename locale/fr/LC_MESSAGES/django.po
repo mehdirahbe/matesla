@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-06 01:43+0000\n"
+"POT-Creation-Date: 2020-11-11 10:08+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -183,7 +183,7 @@ msgstr "Se déconnecter"
 #: matesla/templates/matesla/getRemote_start_drivePassword.html:8
 #: matesla/templates/matesla/getdesiredchargelevel.html:8
 #: matesla/templates/matesla/getdesiredtemperature.html:8
-#: templates/registration/login.html:10
+#: templates/registration/login.html:46
 msgid "Firmware and cars Stats"
 msgstr "Stats du firmware Tesla et des voitures"
 
@@ -460,6 +460,7 @@ msgid "Charge status"
 msgstr "Status de charge"
 
 #: matesla/templates/matesla/carstatus.html:255
+#, python-format
 msgid "Usable battery level (%%)"
 msgstr "Niveau utilisable batterie (%%)"
 
@@ -718,16 +719,16 @@ msgstr "Moyenne"
 msgid "Maximum"
 msgstr "Maximum"
 
-#: templates/registration/login.html:5 templates/registration/login.html:14
-#: templates/registration/login.html:24
+#: templates/registration/login.html:41 templates/registration/login.html:50
+#: templates/registration/login.html:60
 msgid "Login"
 msgstr "Se connecter"
 
-#: templates/registration/login.html:9
+#: templates/registration/login.html:45
 msgid "Signup"
 msgstr "Créer un compte"
 
-#: templates/registration/login.html:28
+#: templates/registration/login.html:64
 msgid ""
 "MaTesla is a Python/django free open source website using tesla api to "
 "connect to your marvellous Tesla car, have information on its state, "
@@ -740,9 +741,55 @@ msgstr ""
 "température,... Des statistiques sur les mises à jour du firmware sont "
 "également disponibles."
 
-#: templates/registration/login.html:29
+#: templates/registration/login.html:65
 msgid "Have fun and you are the most welcome if you want to contribute :-)"
 msgstr "Amusez vous, vous êtes les bienvenus si vous voulez contribuer :-)"
+
+#: templates/registration/login.html:90
+msgid ""
+"Evolution of battery degradation in function of time for my Tesla (minimum, "
+"maximum, average)"
+msgstr "Evolution de la dégradation de la batterie en fonction du temps (minimum, maximum, moyenne)"
+
+#: templates/registration/login.html:102
+msgid "Raw json data returned by your Tesla... if you are curious"
+msgstr "Données json brutes renvoyées par votre Tesla... si vous êtes curieux"
+
+#: templates/registration/login.html:114
+msgid "Battery degradation of the Tesla fleet according to number of cycles"
+msgstr "Dégradation des batteries sur la flotte de Tesla en fonction du nombre de cycles"
+
+#: templates/registration/login.html:126
+msgid ""
+"Charge information of your Tesla, including both real and usable battery "
+"levels, and estimated battery degradation"
+msgstr "Information sur la charge de votre Tesla, incluant la charge réelle et utilisable, et une estimation de la dégradation de la batterie"
+
+#: templates/registration/login.html:138
+msgid ""
+"Tesla fleet recent firmware updates. Ideal to know when a new firmware "
+"version is available."
+msgstr "Mises à jour du firmware sur la flotte. Idéal pour savoir quand une nouvelle version du firmware est disponible."
+
+#: templates/registration/login.html:150
+msgid ""
+"Tesla commands: honk, flash... and put the car in drive mode. Yes, a trusted "
+"friend/family member can do that for you if you are locked out of your Tesla"
+msgstr "Commendez votre Tesla: klaxon, phares...et mettez votre Tesla en mode conduite. Oui, un ami ou une personne de confiance peut faire ça pour vous si vous êtes bloqués hors de votre Tesla"
+
+#: templates/registration/login.html:162
+msgid "Your tesla odometer graph in function of time. Who drives the most?"
+msgstr "Le graphique de l'odomètre de votre Tesla en fonction du temps. Qui conduit le plus?"
+
+#: templates/registration/login.html:174
+msgid "Your tesla odometer and estimated battery number of cycles"
+msgstr "L'odomètre de votre Tesla et le nombre estimé de cycles de la batterie."
+
+#: templates/registration/login.html:186
+msgid ""
+"Your tesla firmware history. Want to know when a version was installed on "
+"your Tesla?"
+msgstr "L'historique du firmware de votre Tesla. Voulez-vous savoir quand une version particulière a été installée?"
 
 #~ msgid ""
 #~ "The token allow to connect to your Tesla car, it does expire after 45 "
