@@ -265,3 +265,13 @@ STATICFILES_DIRS = [
 INTERNAL_IPS = [
     '127.0.0.1',
 ]
+
+# to be able to send mail, see https://github.com/sklarsa/django-sendgrid-v5/blob/master/README.md
+
+# In local development, prepare this to have env variable
+# echo "export SENDGRID_API_KEY='YOUR_API_KEY'" > sendgrid.env
+# echo "sendgrid.env" >> .gitignore
+# source ./sendgrid.env
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False

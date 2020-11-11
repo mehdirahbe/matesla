@@ -144,3 +144,4 @@ dmypy.json
 
 # Database
 *.sqlite3
+sendgrid.env
