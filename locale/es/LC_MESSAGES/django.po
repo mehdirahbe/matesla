@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-11 10:08+0000\n"
+"POT-Creation-Date: 2020-11-13 23:18+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,8 +18,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: accounts/templates/signup.html:4 accounts/templates/signup.html:7
-#: accounts/templates/signup.html:16
+#: accounts/forms.py:7
+msgid "Required to be able to reset password."
+msgstr ""
+
+#: accounts/templates/signup.html:5 accounts/templates/signup.html:11
 msgid "Sign up"
 msgstr ""
 
@@ -185,7 +188,7 @@ msgstr ""
 #: matesla/templates/matesla/getRemote_start_drivePassword.html:8
 #: matesla/templates/matesla/getdesiredchargelevel.html:8
 #: matesla/templates/matesla/getdesiredtemperature.html:8
-#: templates/registration/login.html:46
+#: templates/registration/login.html:44
 msgid "Firmware and cars Stats"
 msgstr ""
 
@@ -692,16 +695,19 @@ msgstr ""
 msgid "Maximum"
 msgstr ""
 
-#: templates/registration/login.html:41 templates/registration/login.html:50
-#: templates/registration/login.html:60
-msgid "Login"
-msgstr ""
-
-#: templates/registration/login.html:45
+#: templates/registration/login.html:43
 msgid "Signup"
 msgstr ""
 
-#: templates/registration/login.html:64
+#: templates/registration/login.html:48 templates/registration/login.html:59
+msgid "Login"
+msgstr ""
+
+#: templates/registration/login.html:57
+msgid "Forgotten password?"
+msgstr ""
+
+#: templates/registration/login.html:63
 msgid ""
 "MaTesla is a Python/django free open source website using tesla api to "
 "connect to your marvellous Tesla car, have information on its state, "
@@ -709,52 +715,118 @@ msgid ""
 "updates are also available."
 msgstr ""
 
-#: templates/registration/login.html:65
+#: templates/registration/login.html:64
 msgid "Have fun and you are the most welcome if you want to contribute :-)"
 msgstr ""
 
-#: templates/registration/login.html:90
+#: templates/registration/login.html:89
 msgid ""
 "Evolution of battery degradation in function of time for my Tesla (minimum, "
 "maximum, average)"
 msgstr ""
 
-#: templates/registration/login.html:102
+#: templates/registration/login.html:101
 msgid "Raw json data returned by your Tesla... if you are curious"
 msgstr ""
 
-#: templates/registration/login.html:114
+#: templates/registration/login.html:113
 msgid "Battery degradation of the Tesla fleet according to number of cycles"
 msgstr ""
 
-#: templates/registration/login.html:126
+#: templates/registration/login.html:125
 msgid ""
 "Charge information of your Tesla, including both real and usable battery "
 "levels, and estimated battery degradation"
 msgstr ""
 
-#: templates/registration/login.html:138
+#: templates/registration/login.html:137
 msgid ""
 "Tesla fleet recent firmware updates. Ideal to know when a new firmware "
 "version is available."
 msgstr ""
 
-#: templates/registration/login.html:150
+#: templates/registration/login.html:149
 msgid ""
 "Tesla commands: honk, flash... and put the car in drive mode. Yes, a trusted "
 "friend/family member can do that for you if you are locked out of your Tesla"
 msgstr ""
 
-#: templates/registration/login.html:162
+#: templates/registration/login.html:161
 msgid "Your tesla odometer graph in function of time. Who drives the most?"
 msgstr ""
 
-#: templates/registration/login.html:174
+#: templates/registration/login.html:173
 msgid "Your tesla odometer and estimated battery number of cycles"
 msgstr ""
 
-#: templates/registration/login.html:186
+#: templates/registration/login.html:185
 msgid ""
 "Your tesla firmware history. Want to know when a version was installed on "
 "your Tesla?"
+msgstr ""
+
+#: templates/registration/password_reset_complete.html:7
+msgid "Your password has been set. You may go ahead and "
+msgstr ""
+
+#: templates/registration/password_reset_complete.html:7
+msgid "sign in"
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:7
+#: templates/registration/password_reset_confirm.html:11
+msgid "Change password"
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:15
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used. Please request a new password reset."
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:18
+#: templates/registration/password_reset_done.html:16
+msgid "You can now close this window"
+msgstr ""
+
+#: templates/registration/password_reset_done.html:7
+msgid "Password reset done"
+msgstr ""
+
+#: templates/registration/password_reset_done.html:9
+msgid ""
+"We&#39;ve emailed you instructions for setting your password, if an account "
+"exists with the email you entered. You should receive them shortly."
+msgstr ""
+
+#: templates/registration/password_reset_done.html:12
+msgid ""
+"If you don&#39;t receive an email, please make sure you&#39;ve entered the "
+"address you registered with, and check your spam folder."
+msgstr ""
+
+#: templates/registration/password_reset_email.html:3
+msgid "To initiate the password reset process for your"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:3
+msgid "MaTesla Account, click the link below:"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:7
+msgid ""
+"If clicking the link above doesn't work, please copy and paste the URL in a "
+"new browser window instead."
+msgstr ""
+
+#: templates/registration/password_reset_email.html:9
+msgid "Sincerely, The MaTesla Team"
+msgstr ""
+
+#: templates/registration/password_reset_form.html:6
+msgid "Password reset"
+msgstr ""
+
+#: templates/registration/password_reset_form.html:16
+msgid "Send e-mail"
 msgstr ""
