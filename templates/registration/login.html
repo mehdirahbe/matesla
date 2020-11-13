@@ -38,8 +38,6 @@
         }
 {% endblock %}
 
-{% block title %}{% trans 'Login' %}{% endblock %}
-
 {% block content %}
 <div class="form-group">
     <a href="{% url 'signup' %}"class="btn btn-primary btn-sm">{% trans 'Signup' %}</a>
@@ -49,17 +47,18 @@
 
 <h2>{% trans 'Login' %}</h2>
 <div class="form-group">
-<form method="post">
-  {% csrf_token %}
-    <div class="input-group">
-  <div class="input-group-prepend">
-    <span class="input-group-text"></span>
-  </div>
-  {{ form.as_p }}
+    <form method="post">
+        {% csrf_token %}
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text"></span>
+            </div>
+            {{ form.as_p }}
+            <a href="{% url 'password_reset' %}">{% trans 'Forgotten password?' %}</a>
+        </div>
+        <button type="submit" class="btn btn-primary">{% trans 'Login' %}</button>
+    </form>
 </div>
-  <button type="submit"class="btn btn-primary">{% trans 'Login' %}</button>
-</form>
-  </div>
 <div class="form-group">
 {% trans 'MaTesla is a Python/django free open source website using tesla api to connect to your marvellous Tesla car, have information on its state, location and remote control charge, temperature,... Statistics on firmware updates are also available.' %}
     <BR/>{% trans 'Have fun and you are the most welcome if you want to contribute :-)' %}

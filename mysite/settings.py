@@ -273,5 +273,9 @@ INTERNAL_IPS = [
 # echo "sendgrid.env" >> .gitignore
 # source ./sendgrid.env
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+if SENDGRID_API_KEY is None:
+    print("SENDGRID_API_KEY is missing, reset password will not work")
 EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
+# see https://docs.djangoproject.com/en/3.1/ref/settings/#std:setting-DEFAULT_FROM_EMAIL
+DEFAULT_FROM_EMAIL = 'mehdirahbvd@gmail.com'
