@@ -278,4 +278,4 @@ if SENDGRID_API_KEY is None:
 EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 # see https://docs.djangoproject.com/en/3.1/ref/settings/#std:setting-DEFAULT_FROM_EMAIL
-DEFAULT_FROM_EMAIL = 'mehdirahbvd@gmail.com'
+DEFAULT_FROM_EMAIL = 'noreply.matesla@gmail.com'
