@@ -1,5 +1,6 @@
 import io
 
+import numpy as np
 from django.db.models import Count, Max
 from django.template import loader
 from matplotlib.figure import Figure
@@ -9,7 +10,6 @@ from django.contrib.auth import get_user
 from django.db import connection
 import csv
 from django.utils.translation import ugettext_lazy as _
-from numpy.polynomial.polynomial import polyfit
 from datetime import timedelta
 from django.utils import timezone
 
@@ -127,7 +127,8 @@ def FirmwareUpdates(request):
     # query 10 most recent versions to not have an unreadable graph
     time_threshold = timezone.now() - timedelta(days=maxdaysinthepast)
     results = TeslaFirmwareHistory.objects.filter(
-        vin__in=TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold).values('vin')).filter(IsArchive=False).values(
+        vin__in=TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold).values('vin')).filter(
+        IsArchive=False).values(
         'Version').annotate(
         MostRecent=Max('Date')).annotate(
         total=Count('Version')).order_by('-MostRecent')[:10]
@@ -234,6 +235,11 @@ def GetXandYFromBatteryDegradResult(results, xfield):
         yvalues.append(entry['battery_degradation'])
     return xvalues, yvalues
 
+# I want 2 decimals, and scientific notation...when it has a meaning, because
+# 10 exponant 0 is not very helpfull
+def FormatDouble2Decimals(d):
+    return "{:.2e}".format(d).replace("e+00", "")
+
 
 def GenerateScatterGraph(xvalues, yvalues, title):
     # From https://matplotlib.org/3.2.1/api/_as_gen/matplotlib.pyplot.scatter.html
@@ -244,15 +250,16 @@ def GenerateScatterGraph(xvalues, yvalues, title):
         ax.scatter(xvalues, yvalues)
         # do regression polynomial, see https://stackoverflow.com/questions/19068862/how-to-overplot-a-line-on-a-scatter-plot-in-python
         # and https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
-        # a, b, c = polyfit(xvalues, yvalues, 2)
-        a, b = polyfit(xvalues, yvalues, 1)
-        regressy = []
-        xvalues.sort()
-        for x in xvalues:
-            # y = c * x * x + b * x + a
-            y = b * x + a
-            regressy.append(y)
-        ax.plot(xvalues, regressy, '-')
+        # and https://riptutorial.com/numpy/example/27442/using-np-polyfit
+        # returns params of the polynomial
+        p = np.polyfit(xvalues, yvalues, 2)  # Last argument is degree of polynomial
+        f = np.poly1d(p)  # So we can call f(x)
+        # draw it, after removing dups (for perf) and sorting it (to have continuous line)
+        sortedx = list(dict.fromkeys(xvalues))
+        sortedx.sort()
+        ax.plot(sortedx, f(sortedx), '-',
+                label=FormatDouble2Decimals(p[0]) + "x2+" + FormatDouble2Decimals(p[1]) + "x+" + FormatDouble2Decimals(p[2]))
+        ax.legend()
     fig.suptitle(title)
     return GeneratePngFromGraph(fig)
 
