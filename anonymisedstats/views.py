@@ -235,6 +235,7 @@ def GetXandYFromBatteryDegradResult(results, xfield):
         yvalues.append(entry['battery_degradation'])
     return xvalues, yvalues
 
+
 # I want 2 decimals, and scientific notation...when it has a meaning, because
 # 10 exponant 0 is not very helpfull
 def FormatDouble2Decimals(d):
@@ -251,14 +252,22 @@ def GenerateScatterGraph(xvalues, yvalues, title):
         # do regression polynomial, see https://stackoverflow.com/questions/19068862/how-to-overplot-a-line-on-a-scatter-plot-in-python
         # and https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
         # and https://riptutorial.com/numpy/example/27442/using-np-polyfit
+        # add a second order polynomial
         # returns params of the polynomial
-        p = np.polyfit(xvalues, yvalues, 2)  # Last argument is degree of polynomial
-        f = np.poly1d(p)  # So we can call f(x)
+        p2 = np.polyfit(xvalues, yvalues, 2)  # Last argument is degree of polynomial
+        f2 = np.poly1d(p2)  # So we can call f(x)
         # draw it, after removing dups (for perf) and sorting it (to have continuous line)
         sortedx = list(dict.fromkeys(xvalues))
         sortedx.sort()
-        ax.plot(sortedx, f(sortedx), '-',
-                label=FormatDouble2Decimals(p[0]) + "x2+" + FormatDouble2Decimals(p[1]) + "x+" + FormatDouble2Decimals(p[2]))
+        ax.plot(sortedx, f2(sortedx), '-',
+                label=FormatDouble2Decimals(p2[0]) + "x2+" + FormatDouble2Decimals(
+                    p2[1]) + "x+" + FormatDouble2Decimals(p2[2]))
+        # now add a linear fit, and user can see which match data the best
+        p1 = np.polyfit(xvalues, yvalues, 1)
+        f1 = np.poly1d(p1)
+        # draw it (dups removed above)
+        ax.plot(sortedx, f1(sortedx), '-',
+                label=FormatDouble2Decimals(p1[0]) + "x+" + FormatDouble2Decimals(p1[1]))
         ax.legend()
     fig.suptitle(title)
     return GeneratePngFromGraph(fig)
