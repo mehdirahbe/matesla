@@ -159,7 +159,7 @@ To use postgres local db.
     The name to use is just under Installed add-ons on heroku dashboard
     heroku pg:backups:capture -a matesla
     heroku pg:backups:download -a matesla
-    pg_restore --verbose --clean --no-acl --no-owner -h localhost -U mr -d mrtestdb latest.dump
+    pg_restore --verbose --clean --no-acl --no-owner -h localhost -U mr -d mrtestdb -p 5433 latest.dump
 
     Postgress 12 should have been installed first and user mr (put your ream user)
     created with ad hoc password, here dummy mr
