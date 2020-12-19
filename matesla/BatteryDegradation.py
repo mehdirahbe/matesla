@@ -50,8 +50,25 @@ def GetEPARange(vin):
         I thus assume that tesla continue to return the number of miles
         according to old epa
         See https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=41189 for <=2019
-        and https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=42274 for 2020'''
+        and https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=42274 for 2020
+        
+        And for 2021, with a new 82 kwH battery:
+        https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=43401  353 miles LR
+        https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=43402 315 perf
+        
+        But the 20 december 2020, I found in the site someone with a 2021 car
+        (vin 5YJ3E7EB0MF...) and its autonomy at 100% is about 541 km=338 miles
+        (325 km at 50%)
+        
+        And electrek (https://electrek.co/2020/12/18/tesla-increases-model-3-range-software-update/)
+        says that 2020.48.12 is bringing a range upgrade (the car has that version).
+        
+        So, what is the range??? In a first step, I will use 338. Will refine furter
+        when we know more.
+        '''
         EPARange = 310
+        if year is not None and year >= 2021:
+            EPARange = 338
     if model == "3" and isDual == False:
         # Same thing here... 2020 EPA range seems not used
         EPARange = 240  # https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=41416
