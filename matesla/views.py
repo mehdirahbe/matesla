@@ -7,12 +7,10 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 from django.template import loader
 from django.views.decorators.cache import never_cache
-import re
-from anonymisedstats.views import PrepareCSVFromQuery
 from matesla.TeslaConnect import *
 from .forms import DesiredChargeLevelForm, AddTeslaAccountForm, DesiredTemperatureForm, RemoteStartDriveForm
 from .models.TeslaToken import TeslaToken
-from .models.VinHash import HashTheVin, IsValidHash
+from .models.VinHash import HashTheVin
 
 
 @never_cache

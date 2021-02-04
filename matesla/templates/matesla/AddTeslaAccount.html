@@ -177,18 +177,7 @@ function copyTextToClipboard(text) {
 
 /*Copy python to clipboard.*/
 function CopyPythonToClipboard() {
-	copyTextToClipboard("" +
-		"import requests\n" +
-		"import json\n" +
-		"client_id = '81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384'\n" +
-		"client_secret = 'c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3'\n" +
-		"token_url = \"https://owner-api.teslamotors.com/oauth/token\"\n" +
-		"data = {'grant_type': 'password', 'client_id': client_id, 'client_secret': client_secret,'email': 'PUT HERE YOUR TESLA USER', 'password': 'PUT HERE YOUR TESLA PASSWORD'}\n" +
-		"access_token_response = requests.post(token_url, data=data, verify=True, allow_redirects=False)\n" +
-		"tokens = json.loads(access_token_response.text)\n" +
-		"print(\"access_token is \"+tokens[\"access_token\"])\n" +
-		"print(\"created_at is \"+str(tokens[\"created_at\"]))\n" +
-		"print(\"refresh_token is \"+tokens[\"refresh_token\"])");
+	copyTextToClipboard("Please see this nice Git project https://github.com/enode-engineering/tesla-oauth2");
 }
 </script>
 {% endblock %}

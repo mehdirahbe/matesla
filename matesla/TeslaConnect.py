@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 
 from .BatteryDegradation import ComputeBatteryDegradation
+from .GetTeslaToken import GetTokenFromRefreshToken
 from .models.AddressFromLatLong import AddressFromLatLong, GetAddressFromLatLong
 from .models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from .models.TeslaToken import TeslaToken
@@ -57,52 +58,6 @@ class TeslaNoVehiculeException(Exception):
 
 class TeslaIsAsleepException(Exception):
     pass
-
-
-# tesla client id and secret which are everywhere on internet
-client_id = '81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384'
-client_secret = 'c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3'
-
-
-# Either return a valid TeslaToken of None if login did fail
-def GetTokenFromLoginPW(teslalogin, teslapw):
-    token_url = "https://owner-api.teslamotors.com/oauth/token"
-    data = {'grant_type': 'password', 'client_id': client_id, 'client_secret': client_secret,
-            'email': teslalogin, 'password': teslapw}
-    access_token_response = requests.post(token_url, proxies=GetProxyToUse(), data=data, verify=True,
-                                          allow_redirects=False)
-    # Check if connection did fail
-    if access_token_response is None or access_token_response.status_code != 200:
-        return None
-    tokens = json.loads(access_token_response.text)
-    teslatoken = TeslaToken()
-    teslatoken.access_token = tokens["access_token"]
-    teslatoken.expires_in = int(tokens["expires_in"])
-    teslatoken.created_at = int(tokens["created_at"])
-    teslatoken.refresh_token = tokens["refresh_token"]
-    teslatoken.vehicle_id = None
-    return teslatoken
-
-
-# Either return a valid TeslaToken of None if login did fail
-def GetTokenFromRefreshToken(refreshtoken):
-    token_url = "https://owner-api.teslamotors.com/oauth/token"
-    data = {'grant_type': 'refresh_token', 'client_id': client_id, 'client_secret': client_secret,
-            'refresh_token': refreshtoken}
-    access_token_response = requests.post(token_url, proxies=GetProxyToUse(), data=data, verify=True,
-                                          allow_redirects=False)
-    # Check if connection did fail
-    if access_token_response is None or access_token_response.status_code != 200:
-        return None
-    tokens = json.loads(access_token_response.text)
-    teslatoken = TeslaToken()
-    teslatoken.access_token = tokens["access_token"]
-    teslatoken.expires_in = int(tokens["expires_in"])
-    teslatoken.created_at = int(tokens["created_at"])
-    teslatoken.refresh_token = tokens["refresh_token"]
-    teslatoken.vehicle_id = None
-    return teslatoken
-
 
 # Return the list of velicles or None if token is not valid
 def GetVehicles(access_token):

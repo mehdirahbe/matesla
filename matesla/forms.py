@@ -1,7 +1,8 @@
 from django import forms
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from matesla.TeslaConnect import GetTokenFromLoginPW, GetVehicles, GetVehicle
+from matesla.TeslaConnect import GetVehicles, GetVehicle
+from .GetTeslaToken import GetTokenFromLoginPW
 from .models.TeslaToken import TeslaToken
 from django.utils.translation import ugettext_lazy as _
 
