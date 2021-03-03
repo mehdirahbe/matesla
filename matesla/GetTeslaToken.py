@@ -23,6 +23,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 # buildpack is https://github.com/heroku/heroku-buildpack-chromedriver.git
 # 3) Ensure that heroku/python is not touched!
 
+# have this issue with chrome: https://github.com/heroku/heroku-buildpack-google-chrome/issues/59
+# solution must be around this: https://github.com/heroku/heroku-buildpack-apt
+
 from .GetProxyToUse import GetProxyToUse
 
 from .models.TeslaToken import TeslaToken
