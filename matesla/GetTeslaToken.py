@@ -16,12 +16,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 # get latest chrome driver by doing chromedriver download
 # install the zip via https://tecadmin.net/setup-selenium-chromedriver-on-ubuntu/
 # on heroku, we have to use buildpacks, see https://devcenter.heroku.com/articles/buildpacks
+# add them via "add builpack" button on Settings page
 # 1) https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-google-chrome
-# install chrome prod: heroku buildpacks:set https://github.com/heroku/heroku-buildpack-google-chrome.git -a matesla
-# install chrome dev: heroku buildpacks:set https://github.com/heroku/heroku-buildpack-google-chrome.git -a afternoon-scrubland-61531
+# buildpack is https://github.com/heroku/heroku-buildpack-google-chrome.git
 # 2) and driver https://github.com/heroku/heroku-buildpack-chromedriver
-# install chromedriver prod: heroku buildpacks:set https://github.com/heroku/heroku-buildpack-chromedriver.git -a matesla
-# install chromedriver dev: heroku buildpacks:set https://github.com/heroku/heroku-buildpack-chromedriver.git -a afternoon-scrubland-61531
+# buildpack is https://github.com/heroku/heroku-buildpack-chromedriver.git
+# 3) Ensure that heroku/python is not touched!
 
 from .GetProxyToUse import GetProxyToUse
 
