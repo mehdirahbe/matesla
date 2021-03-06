@@ -83,6 +83,11 @@ def GetTeslaTokenFromResponse(resp):
     return teslatoken
 
 
+# tesla does block some servers (ie amazon) from time to time and page never returns
+# So, we have to apply a timeout. ANd find a better solution for the future...
+timeout = 10  # in seconds
+
+
 # Either return a valid TeslaToken of None if login did fail
 def GetTokenFromLoginPW(teslalogin, teslapw):
     headers = {
@@ -109,90 +114,94 @@ def GetTokenFromLoginPW(teslalogin, teslapw):
     session = requests.Session()
     session.proxies.update(proxies=GetProxyToUse())
 
-    resp = session.get("https://auth.tesla.com/oauth2/v3/authorize", headers=headers,
-                       params=params)
+    try:  # to have catch timeouts
+        resp = session.get("https://auth.tesla.com/oauth2/v3/authorize", headers=headers,
+                           params=params, timeout=timeout)
 
-    if resp.ok and "<title>" not in resp.text:
-        print("tesla login, Tesla did return JS version of login page, we will use selenium and chrome")
-        driver = create_driver()
-        driver.get(resp.request.url)
-        WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "input[name=identity]")))
+        if resp.ok and "<title>" not in resp.text:
+            print("tesla login, Tesla did return JS version of login page, we will use selenium and chrome")
+            driver = create_driver()
+            driver.get(resp.request.url)
+            WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "input[name=identity]")))
 
-        # inject browser cookies to requests.Session
-        for cookie in driver.get_cookies():
-            session.cookies.set(cookie["name"], cookie["value"])
+            # inject browser cookies to requests.Session
+            for cookie in driver.get_cookies():
+                session.cookies.set(cookie["name"], cookie["value"])
 
-        csrf = driver.find_element_by_css_selector("input[name=_csrf]").get_attribute("value")
-        transaction_id = driver.find_element_by_css_selector("input[name=transaction_id]").get_attribute(
-            "value")
-        driver.quit()
-    else:
-        if resp.ok and "<title>" in resp.text:
-            print("tesla login, we did receive HTML page")
-            csrf = re.search(r'name="_csrf".+value="([^"]+)"', resp.text).group(1)
-            transaction_id = re.search(r'name="transaction_id".+value="([^"]+)"', resp.text).group(1)
+            csrf = driver.find_element_by_css_selector("input[name=_csrf]").get_attribute("value")
+            transaction_id = driver.find_element_by_css_selector("input[name=transaction_id]").get_attribute(
+                "value")
+            driver.quit()
         else:
-            print("Getting Tesla login page did fail")
-            print(resp.status_code)
+            if resp.ok and "<title>" in resp.text:
+                print("tesla login, we did receive HTML page")
+                csrf = re.search(r'name="_csrf".+value="([^"]+)"', resp.text).group(1)
+                transaction_id = re.search(r'name="transaction_id".+value="([^"]+)"', resp.text).group(1)
+            else:
+                print("Getting Tesla login page did fail")
+                print(resp.status_code)
+                return None
+
+        # Step 2: Obtain an authorization code
+        # This will simulate a user submitting the form from the previous request
+        # in their browser. Ensure that the hidden <input>s are provided as POST
+        # body parameters and the Cookie header is set
+        data = {
+            "_csrf": csrf,
+            "_phase": "authenticate",
+            "_process": "1",
+            "transaction_id": transaction_id,
+            "cancel": "",
+            "identity": teslalogin,
+            "credential": teslapw,
+        }
+
+        resp = session.post(
+            "https://auth.tesla.com/oauth2/v3/authorize", headers=headers, params=params,
+            data=data,
+            allow_redirects=False,
+            timeout=timeout
+        )
+        # This will respond with a 302 HTTP response code, which will attempt to
+        # redirect to the redirect_uri with additional query parameters added.
+        # Returns 200 if login/PW is invalid
+        if not (resp.ok and (resp.status_code == 302 or "<title>" in resp.text)):
+            print("Tesla login, there is no redirect, probably that login/PW is invalid")
             return None
 
-    # Step 2: Obtain an authorization code
-    # This will simulate a user submitting the form from the previous request
-    # in their browser. Ensure that the hidden <input>s are provided as POST
-    # body parameters and the Cookie header is set
-    data = {
-        "_csrf": csrf,
-        "_phase": "authenticate",
-        "_process": "1",
-        "transaction_id": transaction_id,
-        "cancel": "",
-        "identity": teslalogin,
-        "credential": teslapw,
-    }
+        # Step 3: Exchange authorization code for bearer token
+        # This new URL is located in the location header. You should not follow it, as
+        # it is non-existent. Instead, you should parse this URL and extract the
+        # code query parameter, which is your authorization code.
+        code = parse_qs(resp.headers["location"])["https://auth.tesla.com/void/callback?code"]
 
-    resp = session.post(
-        "https://auth.tesla.com/oauth2/v3/authorize", headers=headers, params=params,
-        data=data,
-        allow_redirects=False
-    )
-    # This will respond with a 302 HTTP response code, which will attempt to
-    # redirect to the redirect_uri with additional query parameters added.
-    # Returns 200 if login/PW is invalid
-    if not (resp.ok and (resp.status_code == 302 or "<title>" in resp.text)):
-        print("Tesla login, there is no redirect, probably that login/PW is invalid")
+        # This is a standard OAuth 2.0 Authorization Code exchange. This endpoint uses
+        # JSON for the request and response bodies
+        headers = {"user-agent": UA, "x-tesla-user-agent": X_TESLA_USER_AGENT}
+        payload = {
+            "grant_type": "authorization_code",
+            "client_id": "ownerapi",
+            "code_verifier": code_verifier.decode("utf-8"),
+            "code": code,
+            "redirect_uri": "https://auth.tesla.com/void/callback",
+        }
+
+        resp = session.post("https://auth.tesla.com/oauth2/v3/token", headers=headers,
+                            json=payload, timeout=timeout)
+        resp_json = resp.json()
+        access_token = resp_json["access_token"]
+
+        # Step 4: Exchange bearer token for access token
+        headers["authorization"] = "bearer " + access_token
+        payload = {
+            "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_id": CLIENT_ID,
+        }
+        resp = session.post("https://owner-api.teslamotors.com/oauth/token", headers=headers,
+                            json=payload, timeout=timeout)
+    except requests.exceptions.Timeout:  # Tesla did not answer in a timely maneer
         return None
-
-    # Step 3: Exchange authorization code for bearer token
-    # This new URL is located in the location header. You should not follow it, as
-    # it is non-existent. Instead, you should parse this URL and extract the
-    # code query parameter, which is your authorization code.
-    code = parse_qs(resp.headers["location"])["https://auth.tesla.com/void/callback?code"]
-
-    # This is a standard OAuth 2.0 Authorization Code exchange. This endpoint uses
-    # JSON for the request and response bodies
-    headers = {"user-agent": UA, "x-tesla-user-agent": X_TESLA_USER_AGENT}
-    payload = {
-        "grant_type": "authorization_code",
-        "client_id": "ownerapi",
-        "code_verifier": code_verifier.decode("utf-8"),
-        "code": code,
-        "redirect_uri": "https://auth.tesla.com/void/callback",
-    }
-
-    resp = session.post("https://auth.tesla.com/oauth2/v3/token", headers=headers,
-                        json=payload)
-    resp_json = resp.json()
-    access_token = resp_json["access_token"]
-
-    # Step 4: Exchange bearer token for access token
-    headers["authorization"] = "bearer " + access_token
-    payload = {
-        "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        "client_id": CLIENT_ID,
-    }
-    resp = session.post("https://owner-api.teslamotors.com/oauth/token", headers=headers,
-                        json=payload)
 
     # save our tokens
     return GetTeslaTokenFromResponse(resp)
@@ -210,23 +219,26 @@ def GetTokenFromRefreshToken(refreshtoken):
     session = requests.Session()
     session.proxies.update(proxies=GetProxyToUse())
 
-    resp = session.post("https://auth.tesla.com/oauth2/v3/token", headers=headers,
-                        json=payload)
-    resp_json = resp.json()
-    try:
-        # will not be found if refresh token was invalid
-        access_token = resp_json["access_token"]
-    except KeyError:
-        return None
+    try:  # to have catch timeouts
+        resp = session.post("https://auth.tesla.com/oauth2/v3/token", headers=headers,
+                            json=payload, timeout=timeout)
+        resp_json = resp.json()
+        try:
+            # will not be found if refresh token was invalid
+            access_token = resp_json["access_token"]
+        except KeyError:
+            return None
 
-    # Step 4: Exchange bearer token for access token
-    headers["authorization"] = "bearer " + access_token
-    payload = {
-        "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        "client_id": CLIENT_ID,
-    }
-    resp = session.post("https://owner-api.teslamotors.com/oauth/token", headers=headers,
-                        json=payload)
+        # Step 4: Exchange bearer token for access token
+        headers["authorization"] = "bearer " + access_token
+        payload = {
+            "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "client_id": CLIENT_ID,
+        }
+        resp = session.post("https://owner-api.teslamotors.com/oauth/token", headers=headers,
+                            json=payload, timeout=timeout)
+    except requests.exceptions.Timeout:  # Tesla did not answer in a timely maneer
+        return None
 
     # save our tokens
     return GetTeslaTokenFromResponse(resp)
