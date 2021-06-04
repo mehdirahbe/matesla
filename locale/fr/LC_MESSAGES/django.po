@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-13 23:18+0000\n"
+"POT-Creation-Date: 2021-06-04 02:28+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -38,7 +38,7 @@ msgid "Firmware version"
 msgstr "Version firmware"
 
 #: anonymisedstats/templates/anonymisedstats/carstats.html:90
-#: anonymisedstats/views.py:135
+#: anonymisedstats/views.py:136
 msgid "Most recent Firmware updates"
 msgstr "Mises à jour du firmware les plus récentes"
 
@@ -190,112 +190,50 @@ msgstr "Se déconnecter"
 msgid "Firmware and cars Stats"
 msgstr "Stats du firmware Tesla et des voitures"
 
+#: matesla/templates/matesla/AddTeslaAccount.html:73
+msgid "Please enter a tesla token"
+msgstr "Veuillez entrer un jeton tesla (token)"
+
 #: matesla/templates/matesla/AddTeslaAccount.html:74
-msgid "Please enter your tesla credentials (recommanded method)"
-msgstr "Veuillez entrer vos informations de compte Tesla (méthode recommandée)"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:75
-msgid ""
-"If you submit your user, we will use it to generate a token and your user "
-"will NOT be stored."
-msgstr ""
-"Si vous soumettez votre utilisateur, nous l'utiliserons pour générer un "
-"jeton et votre utilisateur ne SERA PAS stocké"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:76
 msgid "The token alone does not allow to put your car in drive mode."
 msgstr "Le jeton seul ne permet pas de mettre la voiture en mode conduite."
 
-#: matesla/templates/matesla/AddTeslaAccount.html:77
+#: matesla/templates/matesla/AddTeslaAccount.html:75
 msgid "Token is invalidated if you change your tesla password."
 msgstr "Le jeton est invalidé quand vous changez votre mot de passe"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:81
-msgid "Tesla account user"
-msgstr "Utilisateur du compte Tesla"
+#: matesla/templates/matesla/AddTeslaAccount.html:76
+msgid "This form will be presented again at token expiration."
+msgstr "Ce formulaire vous sera à nouveau présenté à l'expiration du jeton"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:88
-msgid "Tesla account password"
-msgstr "Mot de passe du compte Tesla"
+#: matesla/templates/matesla/AddTeslaAccount.html:79
+msgid "Tesla token"
+msgstr "Jeton Tesla"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:92
-#: matesla/templates/matesla/AddTeslaAccount.html:128
+#: matesla/templates/matesla/AddTeslaAccount.html:83
+msgid "To obtain a token, you have different methods."
+msgstr "Pour obtenir un jeton, vous disposez de plusieurs méthodes"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:84
+msgid "For Teslafi users, Teslafi can provide you a token for your car"
+msgstr ""
+"Pour les utilisateurs de Teslafi, Teslafi peut vous fournir un jeton pour "
+"votre voiture"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:85
+msgid "I can recommend this free mobile app"
+msgstr "Je peux recommander cette application mobile"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:86
+msgid "It is discussed here by the author Denouche"
+msgstr "Il y a une discussion dessus présentée par son auteur Denouche"
+
+#: matesla/templates/matesla/AddTeslaAccount.html:89
 #: matesla/templates/matesla/getRemote_start_drivePassword.html:16
 #: matesla/templates/matesla/getdesiredchargelevel.html:14
 #: matesla/templates/matesla/getdesiredtemperature.html:14
 msgid "Save"
 msgstr "Sauver"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:103
-msgid "Or please enter a token (advanced users)"
-msgstr "Ou un jeton (token), pour utilisateurs avancés"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:104
-msgid ""
-"If you did choose to provide a token, optionally, you can also provide token "
-"creation date to know when the token will expire."
-msgstr ""
-"Si vous avez choisi de fournir un  jeton, de manière optionelle, vous pouvez "
-"également fournir une date de création du jeton, de manière à savoir quand "
-"ce dernier expire."
-
-#: matesla/templates/matesla/AddTeslaAccount.html:105
-msgid ""
-"The optional refresh token then allow to get automatically a new one from "
-"Tesla."
-msgstr ""
-"Le jeton de rafraîchissement permettra d'en obtenir automatiquement un "
-"nouveau de la part de Tesla"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:106
-msgid ""
-"If you only fill the token, we have no way to renew it, and this form will "
-"be presented again at expiration."
-msgstr ""
-"Si vous remplissez uniquement le jeton, nous n'avons aucun moyen de le "
-"renouveler, et ce formulaire vous sera à nouveau présenté à l'expiration"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:109
-#, fuzzy
-#| msgid "Tesla account"
-msgid "Tesla token"
-msgstr "Compte Tesla"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:116
-#, fuzzy
-#| msgid "Tesla refresh token (advanced users, optional)"
-msgid "Tesla refresh token (optional)"
-msgstr "Jeton de rafraîchissement Tesla (utilisateurs avancés, optionel)"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:123
-#, fuzzy
-#| msgid "Tesla token creation time (advanced users, optional)"
-msgid "Tesla token creation time (optional)"
-msgstr "Moment de création du jeton Tesla (utilisateurs avancés, optionel)"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:130
-msgid ""
-"For advanced users: you can run in any python console this code to obtain "
-"your token, refresh and creation time."
-msgstr ""
-"Pour les utilisateurs avancés: vous pouvez exécuter ce code dans une console "
-"Python pour obtenir votre jeton, jeton de renouvellement et date de création."
-
-#: matesla/templates/matesla/AddTeslaAccount.html:131
-msgid "You have to install "
-msgstr "Vous devez installer "
-
-#: matesla/templates/matesla/AddTeslaAccount.html:133
-msgid " and "
-msgstr " et "
-
-#: matesla/templates/matesla/AddTeslaAccount.html:135
-msgid " package first."
-msgstr " en premier"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:136
-msgid "Copy code"
-msgstr "Copier le code"
 
 #: matesla/templates/matesla/ConnectionError.html:8
 #: matesla/templates/matesla/NoTeslaVehicules.html:8
@@ -582,15 +520,15 @@ msgstr ""
 "Une fois fait, vous avez 2 minutes pour démarrer la voiture. Veuillez aussi "
 "déverrouiller la voiture si nécessaire."
 
-#: mysite/settings.py:207
+#: mysite/settings.py:208
 msgid "English"
 msgstr "Anglais"
 
-#: mysite/settings.py:208
+#: mysite/settings.py:209
 msgid "Français"
 msgstr "Français"
 
-#: mysite/settings.py:209
+#: mysite/settings.py:210
 msgid "Espanol"
 msgstr "Espagnol"
 
@@ -830,7 +768,9 @@ msgstr "Changez le mot de passe"
 msgid ""
 "The password reset link was invalid, possibly because it has already been "
 "used. Please request a new password reset."
-msgstr "Le lien de réinitialisation du mot de passe était invalide, peut-être parce qu'il a déjà été utilisé. Veuillez en demander un nouveau."
+msgstr ""
+"Le lien de réinitialisation du mot de passe était invalide, peut-être parce "
+"qu'il a déjà été utilisé. Veuillez en demander un nouveau."
 
 #: templates/registration/password_reset_confirm.html:18
 #: templates/registration/password_reset_done.html:16
@@ -845,17 +785,24 @@ msgstr "Le mail de changement de mot de passe a été envoyé."
 msgid ""
 "We&#39;ve emailed you instructions for setting your password, if an account "
 "exists with the email you entered. You should receive them shortly."
-msgstr "Nous vous avons envoyé un e-mail avec les instructions pour changer votre mot de passe, pour autant qu'un compte avec le mail entré existe. Vous devriez le recevoir rapidement."
+msgstr ""
+"Nous vous avons envoyé un e-mail avec les instructions pour changer votre "
+"mot de passe, pour autant qu'un compte avec le mail entré existe. Vous "
+"devriez le recevoir rapidement."
 
 #: templates/registration/password_reset_done.html:12
 msgid ""
 "If you don&#39;t receive an email, please make sure you&#39;ve entered the "
 "address you registered with, and check your spam folder."
-msgstr "Si vous ne recevez pas de mail, veuillez vérifier que vous avez entré l’adresse avec laquelle vous vous êtes enregistré, et vérifiez votre dossier spam"
+msgstr ""
+"Si vous ne recevez pas de mail, veuillez vérifier que vous avez entré "
+"l’adresse avec laquelle vous vous êtes enregistré, et vérifiez votre dossier "
+"spam"
 
 #: templates/registration/password_reset_email.html:3
 msgid "To initiate the password reset process for your"
-msgstr "Pour lancer la procédure de changement de mot de passe pour votre utilisateur"
+msgstr ""
+"Pour lancer la procédure de changement de mot de passe pour votre utilisateur"
 
 #: templates/registration/password_reset_email.html:3
 msgid "MaTesla Account, click the link below:"
@@ -865,7 +812,9 @@ msgstr "MaTesla, veuillez cliquer sur le lien ci-dessous:"
 msgid ""
 "If clicking the link above doesn't work, please copy and paste the URL in a "
 "new browser window instead."
-msgstr "Si cliquer sur le lien ne fonctionne pas, veuillez copier et coller l'URL dans une nouvelle fenêtre de votre navigateur"
+msgstr ""
+"Si cliquer sur le lien ne fonctionne pas, veuillez copier et coller l'URL "
+"dans une nouvelle fenêtre de votre navigateur"
 
 #: templates/registration/password_reset_email.html:9
 msgid "Sincerely, The MaTesla Team"
@@ -885,12 +834,6 @@ msgstr "Envoyer le mail"
 #~ msgstr ""
 #~ "Le jeton permet de se connecter à votre voiture Tesla, il expire après 45 "
 #~ "jours"
-
-#~ msgid "Tesla token (only advanced users)"
-#~ msgstr "Jeton Tesla (utilisateurs avancés)"
-
-#~ msgid "Please either enter (one of the 2 methods):"
-#~ msgstr "Veuillez entrer (une des 2 méthodes):"
 
 #~ msgid "Name"
 #~ msgstr "Nom"

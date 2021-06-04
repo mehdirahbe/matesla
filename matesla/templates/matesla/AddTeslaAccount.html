@@ -55,13 +55,12 @@
 
 
     <!--Inspired from https://getbootstrap.com/docs/4.4/examples/carousel/
-    and extended to 2 parts
+    and extended to 1 part (was login+ token, only token left, but kept the structure just in case)
     data-interval put to 1 day because it is annoying to have that moving when you are looking
     at something.-->
     <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="86400000">
         <ol class="carousel-indicators">
             <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
-            <li data-target="#myCarousel" data-slide-to="1"></li>
         </ol>
         <div class="carousel-inner">
             <div class="carousel-item active">
@@ -71,70 +70,23 @@
                 </svg>
                 <div class="container">
                     <div class="carousel-caption text-center">
-                        <h5>{% trans 'Please enter your tesla credentials (recommanded method)'%}</h5>
-                        <BR/>{% trans 'If you submit your user, we will use it to generate a token and your user will NOT be stored.' %}<P/>
-                        <BR/><B>{% trans 'The token alone does not allow to put your car in drive mode.' %}</B>
-                        <BR/>{% trans 'Token is invalidated if you change your tesla password.' %}<P/>
-
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">{% trans 'Tesla account user'%}</span>
-                            </div>
-                            {{ tesla_account_form.TeslaUser }}
-                        </div>
-
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">{% trans 'Tesla account password'%}</span>
-                            </div>
-                            {{ tesla_account_form.TeslaPassword }}
-                        </div>
-                        <input type="submit" value="{% trans 'Save' %}" class="btn btn-primary">
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        <h5>{% trans 'Or please enter a token (advanced users)'%}</h5>
-                        <BR/>{% trans 'If you did choose to provide a token, optionally, you can also provide token creation date to know when the token will expire.' %}
-                        <BR/>{% trans 'The optional refresh token then allow to get automatically a new one from Tesla.' %}
-                        <BR/>{% trans 'If you only fill the token, we have no way to renew it, and this form will be presented again at expiration.' %}</p>
+                        <h5>{% trans 'Please enter a tesla token'%}</h5>
+                        <p><BR/>{% trans 'The token alone does not allow to put your car in drive mode.' %}
+                        <BR/>{% trans 'Token is invalidated if you change your tesla password.' %}
+                        <BR/>{% trans 'This form will be presented again at token expiration.' %}</p>
                         <div class="input-group mb-3">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">{% trans 'Tesla token'%}</span>
                             </div>
                             {{ tesla_account_form.Token }}
                         </div>
-
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">{% trans 'Tesla refresh token (optional)'%}</span>
-                            </div>
-                            {{ tesla_account_form.TokenRefresh }}
-                        </div>
-
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">{% trans 'Tesla token creation time (optional)'%}</span>
-                            </div>
-                            {{ tesla_account_form.CreateAt }}
-                        </div>
+                        <p><BR/>{% trans 'To obtain a token, you have different methods.' %}
+                        <BR/>{% trans 'For Teslafi users, Teslafi can provide you a token for your car' %}
+                            <BR/>{% trans 'I can recommend this free mobile app'%} <a target="_blank" href="https://play.google.com/store/apps/details?id=net.leveugle.teslatokens">https://play.google.com/store/apps/details?id=net.leveugle.teslatokens</a>
+                            <BR/>{% trans 'It is discussed here by the author Denouche'%} <a target="_blank" href="https://forums.automobile-propre.com/topic/app-tierce-tesla-tokens-android-33556/">https://forums.automobile-propre.com/topic/app-tierce-tesla-tokens-android-33556/</a>
+                        </p>
 
                         <input type="submit" value="{% trans 'Save' %}" class="btn btn-primary">
-
-                        <p>{% trans 'For advanced users: you can run in any python console this code to obtain your token, refresh and creation time.' %}
-                            {% trans 'You have to install '%}
-                            <a href="https://www.python.org/downloads/" rel="noopener noreferrer" target="_blank">Python</a>
-                                {% trans ' and '%}
-                                <a href="https://requests.readthedocs.io/en/master/user/install" rel="noopener noreferrer" target="_blank">Requests</a>
-                            {% trans ' package first.'%}</p>
-                            <button onclick="CopyPythonToClipboard()" class="btn btn-primary">{% trans 'Copy code'%}</button>
-
                     </div>
                 </div>
             </div>
@@ -152,32 +104,7 @@
 {% endblock %}
 
 
-
 {% block javascript %}
 <script>
-// From https://www.codegrepper.com/code-examples/javascript/copy+button+html
-// Since Async Clipboard API is not supported for all browser!
-function copyTextToClipboard(text) {
-	var textArea = document.createElement("textarea");
-	textArea.value = text;
-	document.body.appendChild(textArea);
-	textArea.focus();
-	textArea.select();
-
-	try {
-		var successful = document.execCommand('copy');
-		var msg = successful ? 'successful' : 'unsuccessful';
-		console.log('Copying text command was ' + msg);
-	} catch (err) {
-		console.log('Oops, unable to copy');
-	}
-
-	document.body.removeChild(textArea);
-}
-
-/*Copy python to clipboard.*/
-function CopyPythonToClipboard() {
-	copyTextToClipboard("Please see this nice Git project https://github.com/enode-engineering/tesla-oauth2");
-}
 </script>
 {% endblock %}

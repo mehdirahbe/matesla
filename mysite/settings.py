@@ -151,7 +151,7 @@ To use postgres local db.
         'USER': 'mr',
         'PASSWORD': 'mr',
         'HOST': 'localhost',
-        'PORT': '5433',
+        'PORT': '5432',
     }
     
     From https://devcenter.heroku.com/articles/heroku-postgresql#pg-push-and-pg-pull
@@ -159,15 +159,16 @@ To use postgres local db.
     The name to use is just under Installed add-ons on heroku dashboard
     heroku pg:backups:capture -a matesla
     heroku pg:backups:download -a matesla
-    pg_restore --verbose --clean --no-acl --no-owner -h localhost -U mr -d mrtestdb -p 5433 latest.dump
+    pg_restore --verbose --clean --no-acl --no-owner -h localhost -U mr -d mrtestdb -p 5432 latest.dump
 
     Postgress 12 should have been installed first and user mr (put your ream user)
     created with ad hoc password, here dummy mr
     Installing postgress on ubuntu is not so simple, see
     https://tecadmin.net/install-postgresql-server-on-ubuntu/
-    Contrary to previous versions, postgress 12 uses port 5433 (was 5432)
+    Postgress 12 uses port 5432 on ubuntu 20
     
     To start postgress server, it is sudo service postgresql start
+    
     You may have to check /etc/postgresql/12/main/pg_hba.conf
     to be able to connect in tcp
     And have a look in /var/log/postgresql/postgresql-12-main.log to see
@@ -180,7 +181,7 @@ DATABASES = {
         'USER': 'mr',
         'PASSWORD': 'mr',
         'HOST': 'localhost',
-        'PORT': '5433',
+        'PORT': '5432',
     }
 }
 

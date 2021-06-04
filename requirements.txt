@@ -24,5 +24,3 @@ future==0.18.2
 python-http-client==3.3.1
 sendgrid==6.4.7
 starkbank-ecdsa==1.1.0
-selenium==3.141.0
-chardet==4.0.0

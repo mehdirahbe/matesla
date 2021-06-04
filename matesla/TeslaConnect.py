@@ -8,7 +8,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 
 from .BatteryDegradation import ComputeBatteryDegradation
-from .GetTeslaToken import GetTokenFromRefreshToken
 from .models.AddressFromLatLong import AddressFromLatLong, GetAddressFromLatLong
 from .models.AllSuperchargers import AllSuperchargers
 from .models.SuperchargerUse import SuperchargerUse
@@ -70,36 +69,20 @@ def GetVehicle(vehicles):
 
 
 # return the tesla token object, having token and vehicule id (if a vehicle is associated to account)
+# 2 june 2021: previous token attempts always fail in cloud due to tesla blocking
+# heroku. Again a change of way-->too much is too much, I now expect token to be provided
+# by user, using an internet/mobile app tool. -->ignore date, refresh...
+# We have a valid token or not.
 def Connect(user):
     try:
         teslatoken = TeslaToken.objects.get(user_id=user.id)
     except ObjectDoesNotExist:
         raise TeslaNoUserException()
     # if we don't have way to compute expiry date or refresh token, continue we what we have
-    # And if tesla site eject us, we will arivve to tesla account page
-    if teslatoken.created_at is None or teslatoken.refresh_token is None:
-        if teslatoken.vehicle_id is None:
-            raise TeslaNoVehiculeException()
-        return teslatoken
-    # Do we have a token not expired (renew at mid life)?
-    if datetime.datetime.fromtimestamp(teslatoken.created_at + teslatoken.expires_in / 2) >= datetime.datetime.now():
-        # token is still valid
-        if teslatoken.vehicle_id is None:
-            raise TeslaNoVehiculeException()
-        return teslatoken
-    # Use renewal to generate a new token
-    newteslatoken = GetTokenFromRefreshToken(teslatoken.refresh_token)
-    teslatoken.delete()
-    if newteslatoken is None:
-        raise TeslaUnauthorisedException()  # refresh did fail
-    # save refreshed token
-    newteslatoken.user_id = user
-    newteslatoken.vehicle_id = GetVehicle(GetVehicles(newteslatoken.access_token))
-    newteslatoken.save()
-    # and return it as above
-    if newteslatoken.vehicle_id is None:
+    # And if tesla site eject us, we will arrive to tesla account page
+    if teslatoken.vehicle_id is None:
         raise TeslaNoVehiculeException()
-    return newteslatoken
+    return teslatoken
 
 
 def SendWakeUpCommand(access_token, vehicle_id):
