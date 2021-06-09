@@ -34,9 +34,17 @@ def IsDualMotor(vin):
         return None
     letter = vin[7]
     # 4=performance dual motor, cf teslatap
-    if letter == "2" or letter == "B" or letter == "4":
+    # 5 = P2 Dual Motor
+    # B = Dual Motor - Standard Model 3
+    # C = Dual Motor - Performance Model 3
+    # E = Dual Motor - Standard Model Y
+    # F = Dual Motor - Performance Model Y
+    # K = Dual Motor - China
+    if letter == "2" or letter == "5" or letter == "B" or letter == "C" or letter == "E" or letter == "F" or letter == "K" or letter == "4":
         return True
-    if letter == "A":
+    # A = Single Motor - Standard Model 3
+    # D = Single Motor - Standard or Performance Model Y
+    if letter == "A" or letter == "D":
         return False
     return None
 

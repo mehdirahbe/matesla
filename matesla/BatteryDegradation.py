@@ -65,10 +65,13 @@ def GetEPARange(vin):
         
         So, what is the range??? In a first step, I will use 338. Will refine furter
         when we know more.
+        
+        Edit june 2021: a new car delivered in june has 567 km=352 miles
+        EAP says 353. It does match, so lets use that
         '''
         EPARange = 310
         if year is not None and year >= 2021:
-            EPARange = 338
+            EPARange = 353  # https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=43401
     if model == "3" and isDual == False:
         # Same thing here... 2020 EPA range seems not used
         EPARange = 240  # https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=41416
