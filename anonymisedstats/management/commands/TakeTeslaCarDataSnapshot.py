@@ -1,12 +1,13 @@
 import json
 import time
+import traceback
 from random import random
 
 import requests
 from django.core.management.base import BaseCommand
 
 from matesla.BatteryDegradation import ComputeBatteryDegradationFromEPARange, GetEPARangeFromCache, ComputeNumCycles
-from matesla.TeslaConnect import GetProxyToUse
+from matesla.TeslaConnect import GetProxyToUse, SaveNearbyChargingSitesStats
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaToken import TeslaToken
 from matesla.models.VinHash import HashTheVin
@@ -37,6 +38,11 @@ class Command(BaseCommand):
         context = vehicle_state["response"]
         toSave = TeslaCarDataSnapshot()
         toSave.SaveIfDontExistsYet(context["vin"], context)
+        try:
+            SaveNearbyChargingSitesStats(access_token, vehicle_id, context["vin"])
+        except Exception as ex:  # it should not except here and I don't want to crash display for that
+            traceback.print_exc()  # but log the problem so that I am aware of it
+
         print("Info refreshed for " + context["display_name"] + "\n")
         return
 
