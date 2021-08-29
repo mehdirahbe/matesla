@@ -15,6 +15,7 @@ from .models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from .models.TeslaToken import TeslaToken
 from .models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from .models.TeslaCarInfo import TeslaCarInfo
+from .models.LastRequestSuperchargers import LastRequestSuperchargers
 from matesla.TeslaState import TeslaState
 from matesla.GetProxyToUse import GetProxyToUse
 
@@ -181,7 +182,7 @@ def ParamsConnectedTesla(user):
     SaveDataHistory(ret)
     # save nearby superchargers info for superchargers activity tracking
     try:
-        SaveNearbyChargingSitesStats(teslaatoken.access_token, teslaatoken.vehicle_id)
+        SaveNearbyChargingSitesStats(teslaatoken.access_token, teslaatoken.vehicle_id, ret.vin)
     except Exception as ex:  # it should not except here and I don't want to crash display for that
         traceback.print_exc()  # but log the problem so that I am aware of it
     return ret
@@ -271,9 +272,17 @@ def GetNearbyChargingSites(access_token, vehicle_id):
     return json.loads(api_call_response.content)["response"]["superchargers"]
 
 
-def SaveNearbyChargingSitesStats(access_token, vehicle_id):
-    return  # todo later, does not work yet
+def SaveNearbyChargingSitesStats(access_token, vehicle_id, vin):
+    # Get last call time
+    lastCall = LastRequestSuperchargers.objects.filter(vin=vin)
+    if lastCall.count() == 1:
+        # wait at least 15 minutes before new call
+        diffminutes = (datetime.datetime.now(datetime.timezone.utc) - lastCall[0].Date).seconds/60
+        if diffminutes < 15:
+            return
     chargers = GetNearbyChargingSites(access_token, vehicle_id)
+    toSave = LastRequestSuperchargers()
+    toSave.SaveIfDontExistsYet(vin)
     for charger in chargers:
         location = charger["location"]
         toSave = AllSuperchargers()
@@ -281,3 +290,16 @@ def SaveNearbyChargingSitesStats(access_token, vehicle_id):
                                           location["lat"], location["long"])
         toSave = SuperchargerUse()
         toSave.Save(charger["available_stalls"], charger["total_stalls"], charger["site_closed"], fkey)
+
+
+# for debug purposes
+def ShowNearbyChargingSitesStats(access_token, vehicle_id):
+    chargers = GetNearbyChargingSites(access_token, vehicle_id)
+    for charger in chargers:
+        location = charger["location"]
+        print(charger["name"])
+        print(charger["type"])
+        print(location)
+        print(charger["available_stalls"])
+        print(charger["total_stalls"])
+        print(charger["site_closed"])

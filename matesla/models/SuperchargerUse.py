@@ -9,7 +9,7 @@ class SuperchargerUse(models.Model):
     available_stalls = models.IntegerField()
     total_stalls = models.IntegerField()
     site_closed = models.BooleanField()
-    Date = models.DateField()  # Date of the data
+    Date = models.DateTimeField()  # Date of the data
     # allow to find the supercharger in AllSuperchargers table
     superchargerfkey = models.ForeignKey(AllSuperchargers, on_delete=models.CASCADE)
 
@@ -29,5 +29,5 @@ class SuperchargerUse(models.Model):
             self.total_stalls = newtotal_stalls
             self.site_closed = newsite_closed
             self.superchargerfkey = newsuperchargerfkey
-            self.Date = datetime.datetime.now()
+            self.Date = datetime.datetime.now(datetime.timezone.utc)
             self.save()

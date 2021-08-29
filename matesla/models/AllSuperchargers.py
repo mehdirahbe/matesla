@@ -12,7 +12,7 @@ class AllSuperchargers(models.Model):
 
     class Meta:
         # index definition, see https://docs.djangoproject.com/en/3.0/ref/models/options/#django.db.models.Options.indexes
-        # I also know that postgress has its own logic to decide if indexes are yo be user
+        # I also know that postgress has its own logic to decide if indexes are to be used
         # as anyway it has to check in table that row is still valid
         # so it may prefer to do a table scan even when index exists
         indexes = [
@@ -39,7 +39,8 @@ class AllSuperchargers(models.Model):
             self.longitude = newlongitude
             self.Date = datetime.datetime.now()
             self.save()
+            return self
         # return the pkey
-        pkey = AllSuperchargers.objects.filter(name=newname). \
-            filter(type=newtype).first.id
-        return pkey
+        found = AllSuperchargers.objects.filter(name=newname). \
+            filter(type=newtype).first()
+        return found
