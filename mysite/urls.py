@@ -40,7 +40,8 @@ urlpatterns += i18n_patterns(
     path('accounts/', include('django.contrib.auth.urls')),
     # TemplateView.as_view(template_name='the file to use.html')
     path('', include('matesla.urls')),
-    path('personalstats/', include('personalstats.urls'))
+    path('personalstats/', include('personalstats.urls')),
+    path('SuCStats/', include('SuCStats.urls'))
 )
 
 # see https://django-debug-toolbar.readthedocs.io/en/latest/installation.html

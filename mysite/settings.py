@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'carimage.apps.CarimageConfig',
     'anonymisedstats.apps.AnonymisedstatsConfig',
+    'SuCStats.apps.SucstatsConfig',
     'personalstats.apps.PersonalstatsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
