@@ -75,6 +75,8 @@ def GetEPARange(vin):
     if model == "3" and isDual == False:
         # Same thing here... 2020 EPA range seems not used
         EPARange = 240  # https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=41416
+        if year is not None and year >= 2021:
+            EPARange = 263  # https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=41416&id=43821
     if model == "S" and isDual == True:
         # no need to test year as 259 seems constant for 75D
         EPARange = 259  # for the 75D https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=39838
@@ -126,7 +128,10 @@ def ComputeBatteryDegradation(batteryrange, battery_level, vin, odometerMiles):
     if EPARange is None:
         return None, None, None
     batterydegradation = ComputeBatteryDegradationFromEPARange(batteryrange, battery_level, EPARange)
-    if model == "3" and isDual is False and batterydegradation < -5:
+    # note 15/9/2021: limit was -5%. Very dangerous, as SR+ went in 2021 from 240 to 263 miles and did fall in this code.
+    # Hence receiving 325 miles of autonomy and letting the user have an apparent 20% of degradation on his new battery
+    # so correction was double: adapt autonomy for SR from 2021 and add a far bigger percentage here (20 instead of 5)
+    if model == "3" and isDual is False and batterydegradation < -20:
         '''From https://en.wikipedia.org/wiki/Tesla_Model_3
         RWD: 325 miles (523 km) combined
         single motor with strongly negative battery degradatation means
