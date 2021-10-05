@@ -20,14 +20,19 @@ class SuperchargerUse(models.Model):
         # so it may prefer to do a table scan even when index exists
         indexes = [
             # to search by size
-            models.Index(fields=['total_stalls'])
+            models.Index(fields=['total_stalls']),
+            # to join suc list
+            models.Index(fields=['superchargerfkey']),
+            # used in group by to have stats per day
+            models.Index(fields=['id', 'Date', 'available_stalls', 'total_stalls']),
+            models.Index(fields=['Date', 'available_stalls', 'total_stalls'])
         ]
 
     # save
-    def Save(self, newavailable_stalls,newtotal_stalls,newsite_closed,newsuperchargerfkey):
-            self.available_stalls = newavailable_stalls
-            self.total_stalls = newtotal_stalls
-            self.site_closed = newsite_closed
-            self.superchargerfkey = newsuperchargerfkey
-            self.Date = datetime.datetime.now(datetime.timezone.utc)
-            self.save()
+    def Save(self, newavailable_stalls, newtotal_stalls, newsite_closed, newsuperchargerfkey):
+        self.available_stalls = newavailable_stalls
+        self.total_stalls = newtotal_stalls
+        self.site_closed = newsite_closed
+        self.superchargerfkey = newsuperchargerfkey
+        self.Date = datetime.datetime.now(datetime.timezone.utc)
+        self.save()

@@ -18,8 +18,13 @@ class AllSuperchargers(models.Model):
         indexes = [
             # to search by name
             models.Index(fields=['name']),
-            # To ensure unicity and SaveIfDontExistsYet
+            # To ensure unicity
             models.Index(fields=['latitude', 'longitude', 'name']),
+            # To help SaveIfDontExistsYet
+            models.Index(fields=['type', 'latitude', 'longitude', 'name']),
+            # for join with use table
+            models.Index(fields=['id', 'name']),
+            models.Index(fields=['id']),
         ]
         # avoid having dups in db
         constraints = [
