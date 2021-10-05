@@ -8,7 +8,7 @@ from anonymisedstats.views import PrepareCSVFromQuery
 queryToHaveAllSuCs = 'select matesla_allsuperchargers.name,count(*) Num_observations,' \
                      'max(matesla_superchargeruse.total_stalls) Total_stalls,' \
                      'min(matesla_superchargeruse.available_stalls) Min_available_stalls,' \
-                     'max(matesla_superchargeruse.available_stalls) Max_available_stalls,'\
+                     'max(matesla_superchargeruse.available_stalls) Max_available_stalls,' \
                      'matesla_allsuperchargers.latitude,matesla_allsuperchargers.longitude from matesla_superchargeruse ' \
                      'join matesla_allsuperchargers on matesla_allsuperchargers.id=matesla_superchargeruse.superchargerfkey_id ' \
                      'group by matesla_allsuperchargers.name,matesla_allsuperchargers.latitude,matesla_allsuperchargers.longitude ' \
@@ -28,3 +28,27 @@ def MonitoredSuCs(request):
 def MonitoredSuCsAsCSV(request):
     return PrepareCSVFromQuery(queryToHaveAllSuCs)
 
+
+# local test URL: 127.0.0.1:8000/fr/SuCStats/MonitoredSuCsRawDataAsCSV
+def MonitoredSuCsRawDataAsCSV(request):
+    return PrepareCSVFromQuery('SELECT min(available_stalls) min_available_stalls,max(available_stalls) '
+                               'max_available_stalls,max(total_stalls) total_stalls,"Date"::timestamp::date date,'
+                               'superchargerfkey_id FROM public.matesla_superchargeruse group by '
+                               '"Date"::timestamp::date,superchargerfkey_id')
+
+
+# local test URL: 127.0.0.1:8000/fr/SuCStats/MonitoredSuCsListAsCSV
+def MonitoredSuCsListAsCSV(request):
+    return PrepareCSVFromQuery('SELECT id, name, type, latitude, longitude, "Date"	FROM '
+                               'public.matesla_allsuperchargers;')
+
+
+# local test URL: 127.0.0.1:8000/fr/SuCStats/MonitoredSuCsRawDataWithNamesAsCSV
+def MonitoredSuCsRawDataWithNamesAsCSV(request):
+    return PrepareCSVFromQuery('SELECT min(matesla_superchargeruse.available_stalls) min_available_stalls, '
+                               'max(matesla_superchargeruse.available_stalls) max_available_stalls,'
+                               'max(matesla_superchargeruse.total_stalls) total_stalls, '
+                               'matesla_superchargeruse."Date"::timestamp::date date,matesla_allsuperchargers.name '
+                               'FROM matesla_superchargeruse join matesla_allsuperchargers on '
+                               'matesla_superchargeruse.superchargerfkey_id=matesla_allsuperchargers.id group by '
+                               'matesla_superchargeruse."Date"::timestamp::date,matesla_allsuperchargers.name')
