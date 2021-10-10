@@ -9,8 +9,5 @@ A request to /articles/2005/03/ would match the third entry in the list. Django
 
 urlpatterns = [
 path('MonitoredSuCs', views.MonitoredSuCs, name='SuCStatsMonitoredSuCs'),
-path('MonitoredSuCsAsCSV', views.MonitoredSuCsAsCSV, name='SuCStatsMonitoredSuCsAsCSV'),
-path('MonitoredSuCsRawDataAsCSV', views.MonitoredSuCsRawDataAsCSV, name='SuCStatsMonitoredSuCsRawDataAsCSV'),
-path('MonitoredSuCsListAsCSV', views.MonitoredSuCsListAsCSV, name='SuCStatsMonitoredSuCsListAsCSV'),
 path('MonitoredSuCsRawDataWithNamesAsCSV', views.MonitoredSuCsRawDataWithNamesAsCSV, name='SuCStatsMonitoredSuCsRawDataWithNamesAsCSV'),
 ]
