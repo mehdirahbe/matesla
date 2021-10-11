@@ -1,13 +1,11 @@
-from django.http import HttpResponse
-from django.db import connection
-from django.template import loader
-
 from anonymisedstats.views import PrepareCSVFromQuery
 from django.shortcuts import redirect
+from django.utils.translation import ugettext_lazy as _
 
 def MonitoredSuCs(request):
     # google data studio french url is https://datastudio.google.com/reporting/3cc14dae-6ea2-4f4b-869a-afc2c1e00489
-    return redirect('https://datastudio.google.com/reporting/3cc14dae-6ea2-4f4b-869a-afc2c1e00489')
+    # and english url https://datastudio.google.com/reporting/119103e1-6912-4b1c-890c-f02a6083fc8c
+    return redirect(_('https://datastudio.google.com/reporting/119103e1-6912-4b1c-890c-f02a6083fc8c'))
 
 # local test URL: 127.0.0.1:8000/fr/SuCStats/MonitoredSuCsRawDataWithNamesAsCSV
 def MonitoredSuCsRawDataWithNamesAsCSV(request):

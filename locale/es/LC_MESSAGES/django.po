@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-06-04 02:28+0000\n"
+"POT-Creation-Date: 2021-10-11 18:52+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: SuCStats/views.py:8
+msgid ""
+"https://datastudio.google.com/reporting/119103e1-6912-4b1c-890c-f02a6083fc8c"
+msgstr ""
 
 #: accounts/forms.py:7
 msgid "Required to be able to reset password if you forget it"
@@ -35,7 +40,7 @@ msgstr ""
 
 #: anonymisedstats/templates/anonymisedstats/carstats.html:87
 #: anonymisedstats/templates/anonymisedstats/carstats.html:88
-#: matesla/templates/matesla/carstatus.html:208
+#: matesla/templates/matesla/carstatus.html:209
 msgid "Firmware version"
 msgstr ""
 
@@ -57,15 +62,15 @@ msgstr ""
 msgid "Car addition Date"
 msgstr ""
 
-#: anonymisedstats/views.py:53 matesla/templates/matesla/carstatus.html:196
+#: anonymisedstats/views.py:53 matesla/templates/matesla/carstatus.html:197
 msgid "Car type"
 msgstr ""
 
-#: anonymisedstats/views.py:54 matesla/templates/matesla/carstatus.html:282
+#: anonymisedstats/views.py:54 matesla/templates/matesla/carstatus.html:283
 msgid "Charge port"
 msgstr ""
 
-#: anonymisedstats/views.py:55 matesla/templates/matesla/carstatus.html:200
+#: anonymisedstats/views.py:55 matesla/templates/matesla/carstatus.html:201
 msgid "Exterior color"
 msgstr ""
 
@@ -93,7 +98,7 @@ msgstr ""
 msgid "Roof color"
 msgstr ""
 
-#: anonymisedstats/views.py:62 matesla/templates/matesla/carstatus.html:204
+#: anonymisedstats/views.py:62 matesla/templates/matesla/carstatus.html:205
 msgid "Wheel"
 msgstr ""
 
@@ -109,7 +114,7 @@ msgstr ""
 msgid "European union car"
 msgstr ""
 
-#: anonymisedstats/views.py:66 matesla/templates/matesla/carstatus.html:356
+#: anonymisedstats/views.py:66 matesla/templates/matesla/carstatus.html:357
 msgid "EPA Range (miles)"
 msgstr ""
 
@@ -137,7 +142,7 @@ msgstr ""
 msgid "Battery charge limit (%)"
 msgstr ""
 
-#: anonymisedstats/views.py:73 matesla/templates/matesla/carstatus.html:352
+#: anonymisedstats/views.py:73 matesla/templates/matesla/carstatus.html:353
 msgid "Estim. number of battery cycles"
 msgstr ""
 
@@ -255,7 +260,7 @@ msgstr ""
 #: matesla/templates/matesla/NoTeslaVehicules.html:16
 #: matesla/templates/matesla/TeslaServerCmdFail.html:16
 #: matesla/templates/matesla/TeslaServerError.html:16
-#: matesla/templates/matesla/asleep.html:16
+#: matesla/templates/matesla/asleep.html:17
 msgid "Retry?"
 msgstr ""
 
@@ -273,232 +278,238 @@ msgstr ""
 msgid "Tesla server did return an error"
 msgstr ""
 
-#: matesla/templates/matesla/asleep.html:13
+#: matesla/templates/matesla/asleep.html:10
+#: matesla/templates/matesla/carstatus.html:122
+#: templates/registration/login.html:45
+msgid "Superchargers (SuCs)  Stats"
+msgstr ""
+
+#: matesla/templates/matesla/asleep.html:14
 msgid "Your tesla is asleep"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:126
+#: matesla/templates/matesla/carstatus.html:127
 msgid "You are on local computer, only used to test new developments."
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:127
-#: matesla/templates/matesla/carstatus.html:131
+#: matesla/templates/matesla/carstatus.html:128
+#: matesla/templates/matesla/carstatus.html:132
 msgid ""
 "Please go on official site instead <a href=\"https://matesla.herokuapp.com\" "
 "class=\"btn btn-danger btn-sm\">https://matesla.herokuapp.com</a></h6>"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:130
+#: matesla/templates/matesla/carstatus.html:131
 msgid ""
 "You are on afternoon-scrubland-61531.herokuapp.com, only used to test "
 "deployment."
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:155
+#: matesla/templates/matesla/carstatus.html:156
 msgid "Your car"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:158
+#: matesla/templates/matesla/carstatus.html:159
 msgid "Flash lights"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:159
+#: matesla/templates/matesla/carstatus.html:160
 msgid "Honk horn (not night when people sleep)"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:160
+#: matesla/templates/matesla/carstatus.html:161
 msgid "Activate drive mode without phone/card"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:161
+#: matesla/templates/matesla/carstatus.html:162
 msgid "My data"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:162
+#: matesla/templates/matesla/carstatus.html:163
 msgid "Json current data"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:163
+#: matesla/templates/matesla/carstatus.html:164
 msgid "Firmware history"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:175
+#: matesla/templates/matesla/carstatus.html:176
 msgid "General information"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:182
+#: matesla/templates/matesla/carstatus.html:183
 msgid "State"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:186
+#: matesla/templates/matesla/carstatus.html:187
 msgid "Is car locked"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:189
+#: matesla/templates/matesla/carstatus.html:190
 msgid "Yes, unlock?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:191
+#: matesla/templates/matesla/carstatus.html:192
 msgid "No, lock?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:212
+#: matesla/templates/matesla/carstatus.html:213
 msgid "Install "
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:215
-#: matesla/templates/matesla/carstatus.html:218
+#: matesla/templates/matesla/carstatus.html:216
+#: matesla/templates/matesla/carstatus.html:219
 msgid "New firmware version"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:215
+#: matesla/templates/matesla/carstatus.html:216
 msgid "is scheduled in "
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:215
+#: matesla/templates/matesla/carstatus.html:216
 msgid "seconds"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:218
+#: matesla/templates/matesla/carstatus.html:219
 msgid "is installing, "
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:218
+#: matesla/templates/matesla/carstatus.html:219
 #, python-format
 msgid "%% already done"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:223
+#: matesla/templates/matesla/carstatus.html:224
 msgid "Sentry"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:226
-#: matesla/templates/matesla/carstatus.html:235
+#: matesla/templates/matesla/carstatus.html:227
+#: matesla/templates/matesla/carstatus.html:236
 msgid "Active, stop?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:228
-#: matesla/templates/matesla/carstatus.html:237
+#: matesla/templates/matesla/carstatus.html:229
+#: matesla/templates/matesla/carstatus.html:238
 msgid "Inactive, start?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:233
+#: matesla/templates/matesla/carstatus.html:234
 msgid "Valet mode"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:252
+#: matesla/templates/matesla/carstatus.html:253
 msgid "Charge status"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:255
+#: matesla/templates/matesla/carstatus.html:256
 #, python-format
 msgid "Usable battery level (%%)"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:259
+#: matesla/templates/matesla/carstatus.html:260
 #, python-format
 msgid "Battery level (%%)"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:263
+#: matesla/templates/matesla/carstatus.html:264
 msgid "Battery range km"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:267
+#: matesla/templates/matesla/carstatus.html:268
 msgid "Battery charge"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:272
+#: matesla/templates/matesla/carstatus.html:273
 #, python-format
 msgid "Battery degradation (%%)"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:277
+#: matesla/templates/matesla/carstatus.html:278
 #, python-format
 msgid "Battery charge limit (%%)"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:286
+#: matesla/templates/matesla/carstatus.html:287
 msgid "Is Charge port open"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:289
+#: matesla/templates/matesla/carstatus.html:290
 msgid "Yes, close?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:291
+#: matesla/templates/matesla/carstatus.html:292
 msgid "No, open?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:297
+#: matesla/templates/matesla/carstatus.html:298
 msgid "Voltage in V"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:301
+#: matesla/templates/matesla/carstatus.html:302
 msgid "Current in A"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:305
+#: matesla/templates/matesla/carstatus.html:306
 msgid "Power in kW"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:309
+#: matesla/templates/matesla/carstatus.html:310
 msgid "Number of phases"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:313
+#: matesla/templates/matesla/carstatus.html:314
 msgid "Time left in minutes"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:318
+#: matesla/templates/matesla/carstatus.html:319
 msgid "Start charge"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:320
+#: matesla/templates/matesla/carstatus.html:321
 msgid "Stop charge"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:336
+#: matesla/templates/matesla/carstatus.html:337
 msgid "Drive and location"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:339 personalstats/views.py:34
+#: matesla/templates/matesla/carstatus.html:340 personalstats/views.py:34
 msgid "Speed"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:343
+#: matesla/templates/matesla/carstatus.html:344
 msgid "Location"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:348
+#: matesla/templates/matesla/carstatus.html:349
 msgid "Odometer"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:370
+#: matesla/templates/matesla/carstatus.html:371
 msgid "Climate information"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:373
+#: matesla/templates/matesla/carstatus.html:374
 msgid "Is climate on"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:376
+#: matesla/templates/matesla/carstatus.html:377
 msgid "Yes, stop?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:378
+#: matesla/templates/matesla/carstatus.html:379
 msgid "No, start?"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:383
+#: matesla/templates/matesla/carstatus.html:384
 msgid "Inside temperature"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:387
+#: matesla/templates/matesla/carstatus.html:388
 msgid "Outside temperature"
 msgstr ""
 
-#: matesla/templates/matesla/carstatus.html:391
+#: matesla/templates/matesla/carstatus.html:392
 msgid "Driver Temperature setting"
 msgstr ""
 
@@ -508,15 +519,15 @@ msgid ""
 "car if not yet done"
 msgstr ""
 
-#: mysite/settings.py:208
+#: mysite/settings.py:209
 msgid "English"
 msgstr ""
 
-#: mysite/settings.py:209
+#: mysite/settings.py:210
 msgid "Français"
 msgstr ""
 
-#: mysite/settings.py:210
+#: mysite/settings.py:211
 msgid "Espanol"
 msgstr ""
 
@@ -652,15 +663,15 @@ msgstr ""
 msgid "Signup"
 msgstr ""
 
-#: templates/registration/login.html:48 templates/registration/login.html:59
+#: templates/registration/login.html:49 templates/registration/login.html:60
 msgid "Login"
 msgstr ""
 
-#: templates/registration/login.html:57
+#: templates/registration/login.html:58
 msgid "Forgotten password?"
 msgstr ""
 
-#: templates/registration/login.html:63
+#: templates/registration/login.html:64
 msgid ""
 "MaTesla is a Python/django free open source website using tesla api to "
 "connect to your marvellous Tesla car, have information on its state, "
@@ -668,51 +679,51 @@ msgid ""
 "updates are also available."
 msgstr ""
 
-#: templates/registration/login.html:64
+#: templates/registration/login.html:65
 msgid "Have fun and you are the most welcome if you want to contribute :-)"
 msgstr ""
 
-#: templates/registration/login.html:89
+#: templates/registration/login.html:90
 msgid ""
 "Evolution of battery degradation in function of time for my Tesla (minimum, "
 "maximum, average)"
 msgstr ""
 
-#: templates/registration/login.html:101
+#: templates/registration/login.html:102
 msgid "Raw json data returned by your Tesla... if you are curious"
 msgstr ""
 
-#: templates/registration/login.html:113
+#: templates/registration/login.html:114
 msgid "Battery degradation of the Tesla fleet according to number of cycles"
 msgstr ""
 
-#: templates/registration/login.html:125
+#: templates/registration/login.html:126
 msgid ""
 "Charge information of your Tesla, including both real and usable battery "
 "levels, and estimated battery degradation"
 msgstr ""
 
-#: templates/registration/login.html:137
+#: templates/registration/login.html:138
 msgid ""
 "Tesla fleet recent firmware updates. Ideal to know when a new firmware "
 "version is available."
 msgstr ""
 
-#: templates/registration/login.html:149
+#: templates/registration/login.html:150
 msgid ""
 "Tesla commands: honk, flash... and put the car in drive mode. Yes, a trusted "
 "friend/family member can do that for you if you are locked out of your Tesla"
 msgstr ""
 
-#: templates/registration/login.html:161
+#: templates/registration/login.html:162
 msgid "Your tesla odometer graph in function of time. Who drives the most?"
 msgstr ""
 
-#: templates/registration/login.html:173
+#: templates/registration/login.html:174
 msgid "Your tesla odometer and estimated battery number of cycles"
 msgstr ""
 
-#: templates/registration/login.html:185
+#: templates/registration/login.html:186
 msgid ""
 "Your tesla firmware history. Want to know when a version was installed on "
 "your Tesla?"
@@ -821,61 +832,62 @@ msgstr ""
 msgid "Enter a valid URL."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:145
+#: venv/lib/python3.8/site-packages/django/core/validators.py:148
 msgid "Enter a valid integer."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:156
+#: venv/lib/python3.8/site-packages/django/core/validators.py:159
 msgid "Enter a valid email address."
 msgstr ""
 
 #. Translators: "letters" means latin letters: a-z and A-Z.
-#: venv/lib/python3.8/site-packages/django/core/validators.py:230
+#: venv/lib/python3.8/site-packages/django/core/validators.py:233
 msgid ""
 "Enter a valid “slug” consisting of letters, numbers, underscores or hyphens."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:237
+#: venv/lib/python3.8/site-packages/django/core/validators.py:240
 msgid ""
 "Enter a valid “slug” consisting of Unicode letters, numbers, underscores, or "
 "hyphens."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:246
-#: venv/lib/python3.8/site-packages/django/core/validators.py:266
+#: venv/lib/python3.8/site-packages/django/core/validators.py:249
+#: venv/lib/python3.8/site-packages/django/core/validators.py:259
+#: venv/lib/python3.8/site-packages/django/core/validators.py:281
 msgid "Enter a valid IPv4 address."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:251
-#: venv/lib/python3.8/site-packages/django/core/validators.py:267
+#: venv/lib/python3.8/site-packages/django/core/validators.py:266
+#: venv/lib/python3.8/site-packages/django/core/validators.py:282
 msgid "Enter a valid IPv6 address."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:261
-#: venv/lib/python3.8/site-packages/django/core/validators.py:265
+#: venv/lib/python3.8/site-packages/django/core/validators.py:276
+#: venv/lib/python3.8/site-packages/django/core/validators.py:280
 msgid "Enter a valid IPv4 or IPv6 address."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:295
+#: venv/lib/python3.8/site-packages/django/core/validators.py:310
 msgid "Enter only digits separated by commas."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:301
+#: venv/lib/python3.8/site-packages/django/core/validators.py:316
 #, python-format
 msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:334
+#: venv/lib/python3.8/site-packages/django/core/validators.py:349
 #, python-format
 msgid "Ensure this value is less than or equal to %(limit_value)s."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:343
+#: venv/lib/python3.8/site-packages/django/core/validators.py:358
 #, python-format
 msgid "Ensure this value is greater than or equal to %(limit_value)s."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:353
+#: venv/lib/python3.8/site-packages/django/core/validators.py:368
 #, python-format
 msgid ""
 "Ensure this value has at least %(limit_value)d character (it has "
@@ -886,7 +898,7 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:368
+#: venv/lib/python3.8/site-packages/django/core/validators.py:383
 #, python-format
 msgid ""
 "Ensure this value has at most %(limit_value)d character (it has "
@@ -897,27 +909,27 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:387
+#: venv/lib/python3.8/site-packages/django/core/validators.py:402
 #: venv/lib/python3.8/site-packages/django/forms/fields.py:292
 #: venv/lib/python3.8/site-packages/django/forms/fields.py:327
 msgid "Enter a number."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:389
+#: venv/lib/python3.8/site-packages/django/core/validators.py:404
 #, python-format
 msgid "Ensure that there are no more than %(max)s digit in total."
 msgid_plural "Ensure that there are no more than %(max)s digits in total."
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:394
+#: venv/lib/python3.8/site-packages/django/core/validators.py:409
 #, python-format
 msgid "Ensure that there are no more than %(max)s decimal place."
 msgid_plural "Ensure that there are no more than %(max)s decimal places."
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:399
+#: venv/lib/python3.8/site-packages/django/core/validators.py:414
 #, python-format
 msgid ""
 "Ensure that there are no more than %(max)s digit before the decimal point."
@@ -926,14 +938,14 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:461
+#: venv/lib/python3.8/site-packages/django/core/validators.py:476
 #, python-format
 msgid ""
 "File extension “%(extension)s” is not allowed. Allowed extensions are: "
 "%(allowed_extensions)s."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/core/validators.py:513
+#: venv/lib/python3.8/site-packages/django/core/validators.py:528
 msgid "Null characters are not allowed."
 msgstr ""
 
@@ -1166,11 +1178,11 @@ msgstr ""
 msgid "Universally unique identifier"
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/db/models/fields/files.py:231
+#: venv/lib/python3.8/site-packages/django/db/models/fields/files.py:232
 msgid "File"
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/db/models/fields/files.py:379
+#: venv/lib/python3.8/site-packages/django/db/models/fields/files.py:381
 msgid "Image"
 msgstr ""
 
@@ -1741,18 +1753,18 @@ msgstr ""
 msgid "This is not a valid IPv6 address."
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/utils/text.py:70
+#: venv/lib/python3.8/site-packages/django/utils/text.py:71
 #, python-format
 msgctxt "String to return when truncating text"
 msgid "%(truncated_text)s…"
 msgstr ""
 
-#: venv/lib/python3.8/site-packages/django/utils/text.py:236
+#: venv/lib/python3.8/site-packages/django/utils/text.py:240
 msgid "or"
 msgstr ""
 
 #. Translators: This string is used as a separator between list elements
-#: venv/lib/python3.8/site-packages/django/utils/text.py:255
+#: venv/lib/python3.8/site-packages/django/utils/text.py:259
 #: venv/lib/python3.8/site-packages/django/utils/timesince.py:83
 msgid ", "
 msgstr ""
