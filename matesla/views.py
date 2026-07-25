@@ -188,7 +188,18 @@ def PreparestatusDictionary(request, user):
     context = dict(params.vehicle_state.get("response") or {})
     vehicles = list_user_vehicles(user)
     active = resolve_active_vehicle(user, request)
-    context["user_vehicles"] = vehicles
+    # Dicts (not model instances) so statusJson can JSON-serialize the context
+    context["user_vehicles"] = [
+        {
+            "api_id": v.api_id,
+            "vin": v.vin,
+            "display_name": v.display_name,
+            "label": v.label,
+            "state": v.state,
+            "is_primary": v.is_primary,
+        }
+        for v in vehicles
+    ]
     context["active_vehicle_api_id"] = active.api_id if active else None
     context["active_vehicle_label"] = active.label if active else None
     context["display_name"] = params.name or context.get("display_name") or "Tesla"
