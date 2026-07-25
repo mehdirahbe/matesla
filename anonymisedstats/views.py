@@ -9,7 +9,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 from django.contrib.auth import get_user
 from django.db import connection
 import csv
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from datetime import timedelta
 from django.utils import timezone
 

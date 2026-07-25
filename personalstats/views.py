@@ -15,7 +15,7 @@ from anonymisedstats.views import PrepareCSVFromQuery, GetXandYFromBatteryDegrad
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.VinHash import IsValidHash
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from datetime import timedelta, datetime
 
 # Create your views here.

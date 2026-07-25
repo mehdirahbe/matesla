@@ -1,48 +1,85 @@
 from django import forms
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.translation import gettext_lazy as _
 
-from matesla.TeslaConnect import GetVehicles, GetVehicle
-from .models.TeslaToken import TeslaToken
-from django.utils.translation import ugettext_lazy as _
+from .models.TeslaAppSettings import TeslaAppSettings
+
+EU_API = "https://fleet-api.prd.eu.vn.cloud.tesla.com"
+NA_API = "https://fleet-api.prd.na.vn.cloud.tesla.com"
+CN_API = "https://fleet-api.prd.cn.vn.cloud.tesla.cn"
+
 
 class DesiredChargeLevelForm(forms.Form):
-    DesiredChargeLevel = forms.IntegerField(label=_('Desired Charge Level'),
-                                            validators=[MinValueValidator(50), MaxValueValidator(100)])
+    DesiredChargeLevel = forms.IntegerField(
+        label=_("Desired Charge Level"),
+        validators=[MinValueValidator(50), MaxValueValidator(100)],
+    )
+
+
 class DesiredTemperatureForm(forms.Form):
-    #28 °C is the max that my car accepts
-    DesiredTemperature = forms.IntegerField(label=_('Driver temperature'),
-                                            validators=[MinValueValidator(15), MaxValueValidator(28)])
+    DesiredTemperature = forms.IntegerField(
+        label=_("Driver temperature"),
+        validators=[MinValueValidator(15), MaxValueValidator(28)],
+    )
+
 
 class RemoteStartDriveForm(forms.Form):
-    #Ask for tesla account password
-    TeslaPassword = forms.CharField(widget=forms.PasswordInput,label=_('Please enter your Tesla account password'))
+    TeslaPassword = forms.CharField(
+        widget=forms.PasswordInput,
+        label=_("Please enter your Tesla account password"),
+    )
 
-class AddTeslaAccountForm(forms.Form):
-    # required=False means that the field can be left empty
-    Token = forms.CharField(widget=forms.TextInput, max_length=200, required=True)
-    # Token retrieved during is valid
-    token = TeslaToken()
 
-    # return True if content is valid (override of default method)
-    def is_valid(self):
-        self.token = None
-        valid = super(AddTeslaAccountForm, self).is_valid()
-        if not valid:
-            return valid
-        # try on token
-        if len(self.data['Token']) >= 64 and len(self.data['Token']) < 200:
-            vehicles = GetVehicles(self.data['Token'])
-            if vehicles is not None:  # got vehicles, yes, valid
-                self.token = TeslaToken()
-                self.token.access_token = self.data['Token']
-                # save vehicle id
-                self.token.vehicle_id = GetVehicle(vehicles)
-            return True
-        # something went wrong, not valid
-        return False
+class TeslaAppSettingsForm(forms.ModelForm):
+    """Developer app credentials (MyRobotCar) — saved once in the DB."""
 
-    def SaveModdel(self, user):
-        if self.token is None:
-            return
-        self.token.user_id = user
-        self.token.save()
+    class Meta:
+        model = TeslaAppSettings
+        fields = ("client_id", "client_secret", "redirect_uri", "api_base", "partner_domain")
+        labels = {
+            "client_id": _("Client ID"),
+            "client_secret": _("Client secret"),
+            "redirect_uri": _("OAuth redirect URI"),
+            "api_base": _("Fleet API region"),
+            "partner_domain": _("Domaine partner (HTTPS public)"),
+        }
+        help_texts = {
+            "partner_domain": _(
+                "Ex. robotcar.mondomaine.be — PAS localhost. "
+                "Doit aussi être en Allowed Origin sur developer.tesla.com"
+            ),
+        }
+        widgets = {
+            "client_id": forms.TextInput(attrs={"class": "form-control", "autocomplete": "off"}),
+            "client_secret": forms.PasswordInput(
+                attrs={"class": "form-control", "autocomplete": "new-password"},
+                render_value=True,
+            ),
+            "redirect_uri": forms.URLInput(attrs={"class": "form-control"}),
+            "api_base": forms.Select(
+                choices=[
+                    (EU_API, _("Europe / Middle East / Africa (recommended for Belgium)")),
+                    (NA_API, _("North America / Asia-Pacific (excl. China)")),
+                    (CN_API, _("China")),
+                ],
+                attrs={"class": "form-control"},
+            ),
+            "partner_domain": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "robotcar.example.com",
+                    "autocomplete": "off",
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk:
+            self.fields["redirect_uri"].initial = "http://localhost:8001/oauth/callback"
+            self.fields["api_base"].initial = EU_API
+
+    def clean_partner_domain(self):
+        domain = (self.cleaned_data.get("partner_domain") or "").strip().lower()
+        domain = domain.removeprefix("https://").removeprefix("http://").split("/")[0]
+        return domain

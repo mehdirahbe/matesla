@@ -121,6 +121,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# Tesla Fleet partner keys (private must never be committed)
+tesla_keys/
+
+
 # Spyder project settings
 .spyderproject
 .spyproject

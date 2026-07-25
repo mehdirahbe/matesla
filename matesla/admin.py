@@ -1,14 +1,18 @@
 from django.contrib import admin
 
-# Register your models here.
 from .models.AllSuperchargers import AllSuperchargers
 from .models.SuperchargerUse import SuperchargerUse
+from .models.TeslaAppSettings import TeslaAppSettings
 from .models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
-from .models.TeslaToken import TeslaToken
+from .models.TeslaOAuthPending import TeslaOAuthPending
+from .models.TeslaToken import TeslaToken, TeslaVehicle
 from .models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from .models.TeslaCarInfo import TeslaCarInfo
 
 admin.site.register(TeslaToken)
+admin.site.register(TeslaVehicle)
+admin.site.register(TeslaAppSettings)
+admin.site.register(TeslaOAuthPending)
 admin.site.register(TeslaFirmwareHistory)
 admin.site.register(TeslaCarInfo)
 admin.site.register(TeslaCarDataSnapshot)

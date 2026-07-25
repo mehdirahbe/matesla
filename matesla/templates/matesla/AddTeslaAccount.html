@@ -1,110 +1,212 @@
-<!--{% extends 'base.html' %}-->
+{% extends 'base.html' %}
 {% load i18n %}
+
+{% block title %}Connecter Tesla — MyRobotCar{% endblock %}
+
 {% block cssstyle %}
-        /*to avoid cut images, from https://www.w3schools.com/css/css_rwd_images.asp
-        +https://www.cssmine.com/ebook/css3-media-queries
-        Image is 1200 pixels wide, see figsize in view*/
-        @media (max-width: 1500px) {
-         img {
-                  width: 100%;
-                  height: auto;
-                }
-        }
-
-        <!--taken from bootstrap carousel sample,
-        https://getbootstrap.com/docs/4.4/examples/carousel/carousel.css-->
-        /* Carousel base class */
-        .carousel {
-          margin-bottom: 1rem;
-        }
-        /* Since positioning the image, we need to help out the caption */
-        .carousel-caption {
-          top: 0rem;
-          z-index: 10;
-        }
-
-        /* Declare heights because of positioning of img element */
-        /*The minimum to see all token page is 40,
-        when displayed in 1 col=devices with small width, ie smartphone held
-        vertically.*/
-        .carousel-item {
-          height: 40rem;
-        }
-        .carousel-item > img {
-          position: absolute;
-          top: 0;
-          left: 0;
-          min-width: 100%;
-        }
-
-
+.tesla-connect-card {
+    max-width: 44rem;
+    margin: 1.5rem auto;
+    background: #fff;
+    border-radius: .5rem;
+    box-shadow: 0 .125rem .5rem rgba(0,0,0,.08);
+    padding: 1.5rem;
+}
+.tesla-connect-card h1 { font-size: 1.4rem; margin-bottom: 1rem; }
+.tesla-connect-card h2 { font-size: 1.1rem; margin-top: 1.25rem; margin-bottom: .75rem; }
+.hint { color: #555; font-size: .9rem; }
+.status-ok { color: #155724; background: #d4edda; padding: .75rem 1rem; border-radius: .25rem; }
+.status-warn { color: #856404; background: #fff3cd; padding: .75rem 1rem; border-radius: .25rem; }
+.status-err { color: #721c24; background: #f8d7da; padding: .75rem 1rem; border-radius: .25rem; }
+.form-group { margin-bottom: .85rem; }
+.btn-tesla {
+    background: #cc0000;
+    border-color: #cc0000;
+    color: #fff;
+    font-weight: 600;
+}
+.btn-tesla:hover { background: #a00; border-color: #a00; color: #fff; }
+pre.key-box {
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    padding: .75rem;
+    font-size: .75rem;
+    max-height: 10rem;
+    overflow: auto;
+    white-space: pre-wrap;
+}
 {% endblock %}
 
 {% block content %}
-<div class="form-group">
-    <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
-    <a href="{% url 'AnonymisedStatsChoicePage' %}" class="btn btn-info btn-sm">{% trans 'Firmware and cars Stats' %}</a>
-    <a href="https://github.com/mehdirahbe/matesla" rel="noopener noreferrer" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
-</div>
+<div class="container">
+    <div class="form-group mt-2">
+        <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
+        <a href="{% url 'tesla_status' %}" class="btn btn-secondary btn-sm">Statut voiture</a>
+        <a href="{% url 'AnonymisedStatsChoicePage' %}" class="btn btn-info btn-sm">{% trans 'Firmware and cars Stats' %}</a>
+    </div>
 
-<form action="{% url 'AddTeslaAccount' %}" method="post">
-    {% csrf_token %}
+    <div class="tesla-connect-card">
+        <h1>Connexion Tesla (Fleet API)</h1>
+        <p class="hint">
+            OAuth → tokens en base. Ensuite Tesla exige un <strong>partner register</strong>
+            (domaine HTTPS + clé publique) avant de lister les véhicules.
+        </p>
 
-    <!--To display field by field https://simpleisbetterthancomplex.com/tutorial/2018/08/13/how-to-use-bootstrap-4-forms-with-django.html-->
-    <!--To display all forms field with no control{{ tesla_account_form }}-->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-2 {% if 'error' in message.tags %}status-err{% elif 'warning' in message.tags %}status-warn{% else %}status-ok{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% if oauth_error %}
+            <div class="status-err mb-2">{{ oauth_error }}</div>
+        {% endif %}
 
+        {% if tesla_token %}
+            <div class="status-ok mb-3">
+                <strong>Compte Tesla lié (OAuth OK).</strong><br>
+                {% if tesla_token.expires_at %}Access token expire : {{ tesla_token.expires_at }}<br>{% endif %}
+                {% if vehicles %}
+                    <strong>{{ vehicles|length }} véhicule(s) :</strong>
+                    <ul class="mb-0 mt-1">
+                    {% for v in vehicles %}
+                        <li>
+                            {{ v.label }}
+                            {% if active_vehicle and v.api_id == active_vehicle.api_id %}<strong>(actif)</strong>{% endif %}
+                            {% if v.is_primary %} · défaut{% endif %}
+                            — <span class="hint">{{ v.state|default:"?" }}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    Aucun véhicule synchronisé — fais l’étape 1.b (partner register) puis « Resync ».
+                {% endif %}
+            </div>
 
-    <!--Inspired from https://getbootstrap.com/docs/4.4/examples/carousel/
-    and extended to 1 part (was login+ token, only token left, but kept the structure just in case)
-    data-interval put to 1 day because it is annoying to have that moving when you are looking
-    at something.-->
-    <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="86400000">
-        <ol class="carousel-indicators">
-            <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
-        </ol>
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        <h5>{% trans 'Please enter a tesla token'%}</h5>
-                        <p><BR/>{% trans 'The token alone does not allow to put your car in drive mode.' %}
-                        <BR/>{% trans 'Token is invalidated if you change your tesla password.' %}
-                        <BR/>{% trans 'This form will be presented again at token expiration.' %}</p>
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">{% trans 'Tesla token'%}</span>
-                            </div>
-                            {{ tesla_account_form.Token }}
-                        </div>
-                        <p><BR/>{% trans 'To obtain a token, you have different methods.' %}
-                        <BR/>{% trans 'For Teslafi users, Teslafi can provide you a token for your car' %}
-                            <BR/>{% trans 'I can recommend this free mobile app'%} <a target="_blank" href="https://play.google.com/store/apps/details?id=net.leveugle.teslatokens">https://play.google.com/store/apps/details?id=net.leveugle.teslatokens</a>
-                            <BR/>{% trans 'It is discussed here by the author Denouche'%} <a target="_blank" href="https://forums.automobile-propre.com/topic/app-tierce-tesla-tokens-android-33556/">https://forums.automobile-propre.com/topic/app-tierce-tesla-tokens-android-33556/</a>
-                        </p>
-
-                        <input type="submit" value="{% trans 'Save' %}" class="btn btn-primary">
+            {% if vehicles|length > 1 %}
+            <form method="post" class="mb-3">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="select_vehicle">
+                <label for="vehicle_api_id">Véhicule actif</label>
+                <div class="input-group">
+                    <select name="vehicle_api_id" id="vehicle_api_id" class="form-control">
+                        {% for v in vehicles %}
+                        <option value="{{ v.api_id }}"
+                            {% if active_vehicle and v.api_id == active_vehicle.api_id %}selected{% endif %}>
+                            {{ v.label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-secondary">Utiliser</button>
                     </div>
                 </div>
+            </form>
+            {% endif %}
+
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="disconnect">
+                <button type="submit" class="btn btn-outline-danger btn-sm">Déconnecter Tesla</button>
+            </form>
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="resync_vehicles">
+                <button type="submit" class="btn btn-tesla btn-sm">Resync véhicules</button>
+            </form>
+            <a href="{% url 'tesla_oauth_start' %}" class="btn btn-outline-secondary btn-sm">Refaire OAuth</a>
+        {% endif %}
+
+        <h2>1. Application développeur</h2>
+        <p class="hint">
+            Client ID / Secret depuis
+            <a href="https://developer.tesla.com/dashboard" target="_blank" rel="noopener">developer.tesla.com</a>
+            (MyRobotCar). Stockés en base locale.
+        </p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_app">
+            {% for field in app_form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
+                    {% for err in field.errors %}<div class="status-err">{{ err }}</div>{% endfor %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </form>
+
+        <h2>1.b Partner register (obligatoire — ton erreur 412)</h2>
+        {% if partner_registered %}
+            <div class="status-ok mb-2">
+                App enregistrée comme partner pour le domaine
+                <code>{{ partner_domain }}</code>.
             </div>
-        </div>
-        <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="sr-only">Previous</span>
-        </a>
-        <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="sr-only">Next</span>
-        </a>
+        {% else %}
+            <div class="status-warn mb-2">
+                Tesla exige un <strong>partner register par région</strong> (ici EU).
+                Domaine : <code>mehdirahbe.github.io</code> (sans https://).
+                Allowed Origin dashboard : <code>https://mehdirahbe.github.io</code>.
+            </div>
+        {% endif %}
+
+        <ol class="hint">
+            <li>Domaine partner = <code>mehdirahbe.github.io</code> <strong>sans</strong> <code>https://</code>.</li>
+            <li>Clé déjà en ligne via GitHub Pages (voir URL ci‑dessous).</li>
+            <li>Dashboard Tesla → Allowed Origin : <code>https://mehdirahbe.github.io</code>
+                (+ garder localhost pour le redirect OAuth).</li>
+            <li>« Register partner (EU) » puis « Resync véhicules ».</li>
+        </ol>
+
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="generate_keys">
+            <button type="submit" class="btn btn-secondary btn-sm">Générer clé EC (prime256v1)</button>
+        </form>
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="check_public_key">
+            <input type="hidden" name="partner_domain" value="{{ partner_domain }}">
+            <button type="submit" class="btn btn-outline-secondary btn-sm" {% if not partner_domain %}disabled{% endif %}>
+                Vérifier la clé en ligne
+            </button>
+        </form>
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="register_partner">
+            <input type="hidden" name="partner_domain" value="{{ partner_domain }}">
+            <button type="submit" class="btn btn-warning btn-sm" {% if not partner_domain %}disabled{% endif %}>
+                Register partner (EU)
+            </button>
+        </form>
+
+        {% if public_key_url %}
+            <p class="hint mt-2">URL attendue par Tesla :<br><code>{{ public_key_url }}</code></p>
+        {% endif %}
+        {% if public_key_path %}
+            <p class="hint">Fichier local : <code>{{ public_key_path }}</code></p>
+        {% endif %}
+        {% if public_key_pem %}
+            <p class="hint mb-1">Contenu à publier :</p>
+            <pre class="key-box">{{ public_key_pem }}</pre>
+        {% endif %}
+
+        <h2>2. Compte véhicule (OAuth)</h2>
+        {% if app_configured %}
+            <p class="hint">
+                Redirect URI exact :
+                <code>http://localhost:8001/oauth/callback</code>
+            </p>
+            <a href="{% url 'tesla_oauth_start' %}" class="btn btn-tesla btn-lg">
+                Se connecter avec Tesla
+            </a>
+        {% else %}
+            <div class="status-warn">
+                Enregistre d’abord le Client ID / Secret (étape 1).
+            </div>
+        {% endif %}
     </div>
-</form>
-{% endblock %}
-
-
-{% block javascript %}
-<script>
-</script>
+</div>
 {% endblock %}

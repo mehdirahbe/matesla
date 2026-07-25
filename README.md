@@ -34,11 +34,12 @@ Todo:
 to add a new language. No need to be a programmer to do that, just ask me to prepare
 and I will prepare a text file to just translate.
 
-For developpers, how to run site locally:
-1) Install python, django and mandatory modules (see requirements.txt) 
-2) Run python3 manage.py migrate (configure postgress db first, see settings.py)
-3) Then python3 manage.py createsuperuser (optional)
-4) Then python3 manage.py collectstatic
-5) Check that all is fine: python3 manage.py test
-6) Run the site with: python3 manage.py runserver
+For developers, how to run site locally (Python 3.12+, Django 5.2 LTS):
+1) python3 -m venv .venv && source .venv/bin/activate
+2) pip install -U pip && pip install -r requirements.txt
+3) Optional: copy Tesla Fleet credentials into a `.env` file (see settings.py)
+4) python manage.py migrate   # SQLite by default (db.sqlite3); set DATABASE_URL for Postgres
+5) python manage.py createsuperuser  # optional
+6) python manage.py test
+7) python manage.py runserver 8001
 

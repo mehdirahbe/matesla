@@ -72,55 +72,55 @@ class TeslaCarDataSnapshot(models.Model):
             self.vin = vin
             self.hashedVin = HashTheVin(vin)
             self.DateOnlyDay = timezone.now().date()
-            # From charge_state
-            charge_state = context['charge_state']
-            self.battery_level = charge_state['battery_level']
-            self.battery_range = charge_state['battery_range']
-            self.charge_limit_soc = charge_state['charge_limit_soc']
-            self.charge_rate = charge_state['charge_rate']
-            self.charger_actual_current = charge_state['charger_actual_current']
-            self.charger_phases = charge_state['charger_phases']
-            if self.charger_phases is None:
-                self.charger_phases = 0
-            self.charger_power = charge_state['charger_power']
-            self.charger_voltage = charge_state['charger_voltage']
-            self.charging_state = charge_state['charging_state']
-            self.est_battery_range = charge_state['est_battery_range']
-            self.fast_charger_brand = charge_state['fast_charger_brand']
-            if self.fast_charger_brand == '<invalid>':
+            # From charge_state (Fleet omits some Owner-API fields)
+            charge_state = context.get("charge_state") or {}
+            self.battery_level = charge_state.get("battery_level")
+            self.battery_range = charge_state.get("battery_range")
+            self.charge_limit_soc = charge_state.get("charge_limit_soc")
+            self.charge_rate = charge_state.get("charge_rate")
+            self.charger_actual_current = charge_state.get("charger_actual_current")
+            self.charger_phases = charge_state.get("charger_phases") or 0
+            self.charger_power = charge_state.get("charger_power")
+            self.charger_voltage = charge_state.get("charger_voltage")
+            self.charging_state = charge_state.get("charging_state")
+            self.est_battery_range = charge_state.get("est_battery_range") or charge_state.get(
+                "battery_range"
+            )
+            self.fast_charger_brand = charge_state.get("fast_charger_brand")
+            if self.fast_charger_brand == "<invalid>":
                 self.fast_charger_brand = None
-            self.fast_charger_present = charge_state['fast_charger_present']
-            self.fast_charger_type = charge_state['fast_charger_type']
-            if self.fast_charger_type == '<invalid>':
+            self.fast_charger_present = charge_state.get("fast_charger_present")
+            self.fast_charger_type = charge_state.get("fast_charger_type")
+            if self.fast_charger_type == "<invalid>":
                 self.fast_charger_type = None
-            self.max_range_charge_counter = charge_state['max_range_charge_counter']
-            self.usable_battery_level = charge_state['usable_battery_level']
+            self.max_range_charge_counter = charge_state.get("max_range_charge_counter")
+            self.usable_battery_level = charge_state.get("usable_battery_level")
             # From climate_state
-            climate_state = context['climate_state']
-            # Why did tesla put a text value for this?
-            if climate_state['climate_keeper_mode'] == 'off':
+            climate_state = context.get("climate_state") or {}
+            if climate_state.get("climate_keeper_mode") == "off":
                 self.climate_keeper_mode = False
             else:
-                self.climate_keeper_mode = True
-            self.driver_temp_setting = climate_state['driver_temp_setting']
-            self.inside_temp = climate_state['inside_temp']
-            self.is_climate_on = climate_state['is_climate_on']
-            self.outside_temp = climate_state['outside_temp']
-            self.passenger_temp_setting = climate_state['passenger_temp_setting']
+                self.climate_keeper_mode = bool(climate_state.get("climate_keeper_mode"))
+            self.driver_temp_setting = climate_state.get("driver_temp_setting")
+            self.inside_temp = climate_state.get("inside_temp")
+            self.is_climate_on = climate_state.get("is_climate_on")
+            self.outside_temp = climate_state.get("outside_temp")
+            self.passenger_temp_setting = climate_state.get("passenger_temp_setting")
             # From drive_state
-            drive_state = context['drive_state']
-            self.latitude = drive_state['latitude']
-            self.longitude = drive_state['longitude']
-            self.power = drive_state['power']
-            self.speed = drive_state['speed']
-            if self.speed is None:
-                self.speed = 0
+            drive_state = context.get("drive_state") or {}
+            self.latitude = drive_state.get("latitude")
+            self.longitude = drive_state.get("longitude")
+            self.power = drive_state.get("power")
+            self.speed = drive_state.get("speed") or 0
             # from vehicle_state
-            vehicle_state = context['vehicle_state']
-            self.odometer = vehicle_state['odometer']
+            vehicle_state = context.get("vehicle_state") or {}
+            self.odometer = vehicle_state.get("odometer")
             EPARange = GetEPARangeFromCache(vin)
-            self.NumberCycles = ComputeNumCycles(EPARange, self.odometer)
-            self.battery_degradation = ComputeBatteryDegradationFromEPARange(
-                self.battery_range, self.usable_battery_level, EPARange)
+            if self.odometer is not None:
+                self.NumberCycles = ComputeNumCycles(EPARange, self.odometer)
+            if self.battery_range is not None and self.usable_battery_level is not None:
+                self.battery_degradation = ComputeBatteryDegradationFromEPARange(
+                    self.battery_range, self.usable_battery_level, EPARange
+                )
             self.randomNr = random()
             self.save()

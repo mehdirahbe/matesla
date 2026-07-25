@@ -1,6 +1,6 @@
 from anonymisedstats.views import PrepareCSVFromQuery
 from django.shortcuts import redirect
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 def MonitoredSuCs(request):
     # google data studio french url is https://datastudio.google.com/reporting/3cc14dae-6ea2-4f4b-869a-afc2c1e00489

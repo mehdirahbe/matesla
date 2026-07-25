@@ -13,11 +13,11 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.conf.urls import url
 from django.conf.urls.i18n import i18n_patterns
 from django.contrib import admin
 from django.urls import include, path
 
+from matesla.views import view_tesla_oauth_callback
 from mysite import settings
 
 '''For enabling multiple languages in admin panel, we’ll prefer i18n_patterns
@@ -29,7 +29,10 @@ with the current configuration having zh-cn and en activated, will have URLs as:
 /zh-cn/admin/*'''
 
 urlpatterns = [
-path('carimage/', include('carimage.urls')),
+    path('carimage/', include('carimage.urls')),
+    # Tesla OAuth callback — must match redirect_uri on developer.tesla.com
+    # exactly: http://localhost:8001/oauth/callback (no language prefix)
+    path('oauth/callback', view_tesla_oauth_callback, name='tesla_oauth_callback'),
 ]
 
 
