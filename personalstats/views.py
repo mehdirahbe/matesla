@@ -15,7 +15,7 @@ from anonymisedstats.views import PrepareCSVFromQuery, GetXandYFromBatteryDegrad
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.VinHash import IsValidHash
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 from datetime import timedelta, datetime
 
 # Create your views here.
@@ -62,10 +62,9 @@ def GetTitleForField(field):
 
 
 def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title):
-    # From https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.plot_date.html
+    # matplotlib 3.9+ removed Axes.plot_date — use plot() with date objects
     fig = Figure(figsize=[12, 5])
 
-    # format date acording to the language of the user
     language = django.utils.translation.get_language()
     if language is not None and language == 'fr':
         formatter = DateFormatter('%d/%m/%y')
@@ -73,15 +72,18 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title):
         formatter = DateFormatter('%m/%d/%y')
 
     ax = fig.subplots()
-    if datesList is not None and minvalues is not None:
-        # See for line styles: https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot.html#matplotlib.pyplot.plot
-        # and for possible args https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot_date.html#matplotlib.pyplot.plot_date
-        ax.plot_date(datesList, minvalues, linestyle='-', label=_('Minimum'))
-        ax.plot_date(datesList, avgvalues, linestyle='-', label=_('Average'))
-        ax.plot_date(datesList, maxvalues, linestyle='-', label=_('Maximum'))
-        ax.legend()  # https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.legend.html#matplotlib.axes.Axes.legend
+    if datesList is not None and minvalues is not None and len(datesList) > 0:
+        ax.plot(datesList, minvalues, linestyle='-', marker='o', markersize=3, label=_('Minimum'))
+        ax.plot(datesList, avgvalues, linestyle='-', marker='o', markersize=3, label=_('Average'))
+        ax.plot(datesList, maxvalues, linestyle='-', marker='o', markersize=3, label=_('Maximum'))
+        ax.legend()
         ax.xaxis.set_major_formatter(formatter)
+        # One day of data still plots fine; widen x-axis so a single point is not clipped
+        if len(datesList) == 1:
+            d = datesList[0]
+            ax.set_xlim(d - timedelta(days=1), d + timedelta(days=1))
         ax.ticklabel_format(axis='y', useOffset=False, style='plain')
+        fig.autofmt_xdate()
     fig.suptitle(title)
     return GeneratePngFromGraph(fig)
 
