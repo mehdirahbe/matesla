@@ -149,3 +149,7 @@ dmypy.json
 # Database
 *.sqlite3
 sendgrid.env
+
+# SQLite WAL side files
+db.sqlite3-wal
+db.sqlite3-shm

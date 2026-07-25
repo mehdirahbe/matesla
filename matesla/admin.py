@@ -1,7 +1,5 @@
 from django.contrib import admin
 
-from .models.AllSuperchargers import AllSuperchargers
-from .models.SuperchargerUse import SuperchargerUse
 from .models.TeslaAppSettings import TeslaAppSettings
 from .models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from .models.TeslaOAuthPending import TeslaOAuthPending
@@ -16,5 +14,3 @@ admin.site.register(TeslaOAuthPending)
 admin.site.register(TeslaFirmwareHistory)
 admin.site.register(TeslaCarInfo)
 admin.site.register(TeslaCarDataSnapshot)
-admin.site.register(AllSuperchargers)
-admin.site.register(SuperchargerUse)

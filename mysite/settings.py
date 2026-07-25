@@ -69,7 +69,6 @@ INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
     "carimage.apps.CarimageConfig",
     "anonymisedstats.apps.AnonymisedstatsConfig",
-    "SuCStats.apps.SucstatsConfig",
     "personalstats.apps.PersonalstatsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -121,10 +120,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ---------------------------------------------------------------------------
 # Database — SQLite local by default; Postgres if DATABASE_URL is set
 # ---------------------------------------------------------------------------
+# SQLite + multi-process (cron manage.py + web) is fragile. Prefer a single web
+# process (gunicorn --workers 1) and trigger capture via HTTP on that process.
+# WAL is enabled in matesla.apps (connection_created signal).
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        "OPTIONS": {
+            "timeout": 30,  # seconds to wait on locks instead of immediate OperationalError
+        },
     }
 }
 
@@ -135,6 +140,7 @@ if os.environ.get("DATABASE_URL"):
         conn_max_age=600,
         conn_health_checks=True,
     )
+
 
 # ---------------------------------------------------------------------------
 # Auth

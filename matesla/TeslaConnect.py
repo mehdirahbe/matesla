@@ -1,4 +1,3 @@
-import datetime
 import traceback
 
 import requests
@@ -9,13 +8,10 @@ from django.db import IntegrityError
 
 from .BatteryDegradation import ComputeBatteryDegradation
 from .models.AddressFromLatLong import AddressFromLatLong, GetAddressFromLatLong
-from .models.AllSuperchargers import AllSuperchargers
-from .models.SuperchargerUse import SuperchargerUse
 from .models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from .models.TeslaToken import TeslaToken, TeslaVehicle
 from .models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from .models.TeslaCarInfo import TeslaCarInfo
-from .models.LastRequestSuperchargers import LastRequestSuperchargers
 from .models.TeslaAppSettings import TeslaAppSettings
 from matesla.TeslaState import TeslaState
 from matesla.GetProxyToUse import GetProxyToUse
@@ -382,13 +378,6 @@ def ParamsConnectedTesla(user, request=None):
         SaveDataHistory(ret)
     except Exception:
         traceback.print_exc()
-    try:
-        if ret.vin:
-            SaveNearbyChargingSitesStats(
-                teslaatoken.access_token, teslaatoken.vehicle_id, ret.vin
-            )
-    except Exception:
-        traceback.print_exc()
     return ret
 
 
@@ -447,61 +436,3 @@ def executeCommand(user, command, setOn=None, addParamName=None, addParamValue=N
         raise TeslaUnauthorisedException
     if api_call_response is None or api_call_response.status_code != 200:
         raise TeslaCommandException()
-
-
-# See https://tesla-api.timdorr.com/vehicle/state/nearbychargingsites
-# Allow to receive all destination and superchargers
-# Returns a list of superchargers, with each entry
-# being a dico with those infos:
-# 'location' = {dict: 2} {'lat': 50.88771, 'long': 4.453051}
-# 'name' = {str} 'Machelen, Belgium'
-# 'type' = {str} 'supercharger'
-# 'distance_miles' = {float} 8.137976
-# 'available_stalls' = {int} 5
-# 'total_stalls' = {int} 8
-# 'site_closed' = {bool} False
-def GetNearbyChargingSites(access_token, vehicle_id):
-    api_call_headers = {'Authorization': 'Bearer ' + access_token}
-    api_call_response = requests.get(
-        api_url(f"/api/1/vehicles/{vehicle_id}/nearby_charging_sites"),
-        proxies=GetProxyToUse(), headers=api_call_headers, verify=True, timeout=60)
-    if api_call_response is not None and api_call_response.status_code == 408:
-        raise TeslaIsAsleepException
-    if api_call_response is not None and api_call_response.status_code == 401:
-        raise TeslaUnauthorisedException
-    if api_call_response is None or api_call_response.status_code != 200:
-        raise TeslaCommandException()
-    return json.loads(api_call_response.content)["response"]["superchargers"]
-
-
-def SaveNearbyChargingSitesStats(access_token, vehicle_id, vin):
-    # Get last call time
-    lastCall = LastRequestSuperchargers.objects.filter(vin=vin)
-    if lastCall.count() == 1:
-        # wait at least 15 minutes before new call
-        diffminutes = (datetime.datetime.now(datetime.timezone.utc) - lastCall[0].Date).seconds/60
-        if diffminutes < 15:
-            return
-    chargers = GetNearbyChargingSites(access_token, vehicle_id)
-    toSave = LastRequestSuperchargers()
-    toSave.SaveIfDontExistsYet(vin)
-    for charger in chargers:
-        location = charger["location"]
-        toSave = AllSuperchargers()
-        fkey = toSave.SaveIfDontExistsYet(charger["name"], charger["type"],
-                                          location["lat"], location["long"])
-        toSave = SuperchargerUse()
-        toSave.Save(charger["available_stalls"], charger["total_stalls"], charger["site_closed"], fkey)
-
-
-# for debug purposes
-def ShowNearbyChargingSitesStats(access_token, vehicle_id):
-    chargers = GetNearbyChargingSites(access_token, vehicle_id)
-    for charger in chargers:
-        location = charger["location"]
-        print(charger["name"])
-        print(charger["type"])
-        print(location)
-        print(charger["available_stalls"])
-        print(charger["total_stalls"])
-        print(charger["site_closed"])

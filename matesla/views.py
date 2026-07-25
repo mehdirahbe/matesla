@@ -8,6 +8,7 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 from django.template import loader
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods
 
 from matesla.TeslaConnect import *  # noqa: F403
@@ -38,6 +39,24 @@ from .models.TeslaAppSettings import TeslaAppSettings
 from .models.TeslaOAuthPending import TeslaOAuthPending
 from .models.TeslaToken import TeslaToken, TeslaVehicle
 from .models.VinHash import HashTheVin
+
+
+@csrf_exempt
+@never_cache
+@require_http_methods(["GET", "POST"])
+def view_internal_capture(request):
+    """
+    Run TeslaFi capture inside the web process (same SQLite connection).
+
+    Prefer this from cron instead of `manage.py TakeTeslaCarDataSnapshot`, which
+    starts a second Python process and can lock SQLite while gunicorn serves.
+
+    No auth: intended for localhost-only installs (not exposed to the internet).
+    """
+    from matesla.capture import capture_all_online_vehicles
+
+    stats = capture_all_online_vehicles()
+    return JsonResponse(stats)
 
 
 @never_cache
