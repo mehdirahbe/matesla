@@ -1,0 +1,26 @@
+{% load i18n %}
+<div class="form-group">
+    <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
+    <a href="{% url 'AddTeslaAccount' %}" class="btn btn-primary btn-sm">{% trans 'Tesla account' %}</a>
+    <a href="{% url 'tesla_status' %}" class="btn btn-secondary btn-sm">Statut</a>
+    <a href="{% url 'AnonymisedStatsChoicePage' %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Firmware and cars Stats' %}</a>
+    <a href="https://github.com/mehdirahbe/matesla" rel="noopener noreferrer" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
+</div>
+{% if user_vehicles and user_vehicles|length > 0 %}
+<form action="{% url 'select_vehicle' %}" method="post" class="form-inline mb-2">
+    {% csrf_token %}
+    <label class="mr-2" for="vehicle_api_id">Véhicule</label>
+    <select name="vehicle_api_id" id="vehicle_api_id" class="form-control form-control-sm mr-2"
+            onchange="this.form.submit()">
+        {% for v in user_vehicles %}
+        <option value="{{ v.api_id }}"
+            {% if active_vehicle_api_id == v.api_id %}selected{% endif %}>
+            {{ v.label }}{% if v.state %} ({{ v.state }}){% endif %}
+        </option>
+        {% endfor %}
+    </select>
+    <noscript><button type="submit" class="btn btn-sm btn-secondary">OK</button></noscript>
+</form>
+{% elif active_vehicle_label %}
+<p class="text-muted small mb-2">Véhicule : {{ active_vehicle_label }}</p>
+{% endif %}

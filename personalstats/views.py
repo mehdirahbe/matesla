@@ -156,9 +156,28 @@ def Stats(request, hashedVin):
         # means invalid hashedVin field was passed
         return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
     template = loader.get_template('personalstats/carstats.html')
-    context = {}
-    context["hashedVin"] = hashedVin
+    context = {"hashedVin": hashedVin}
     context.update(GetTitleForFieldDico())
+    # Multi-vehicle selector when user is logged in
+    user = request.user
+    if user.is_authenticated:
+        from matesla.TeslaConnect import list_user_vehicles, resolve_active_vehicle
+
+        vehicles = list_user_vehicles(user)
+        active = resolve_active_vehicle(user, request)
+        context["user_vehicles"] = [
+            {
+                "api_id": v.api_id,
+                "vin": v.vin,
+                "display_name": v.display_name,
+                "label": v.label,
+                "state": v.state,
+                "is_primary": v.is_primary,
+            }
+            for v in vehicles
+        ]
+        context["active_vehicle_api_id"] = active.api_id if active else None
+        context["active_vehicle_label"] = active.label if active else None
     return HttpResponse(template.render(context, request))
 
 

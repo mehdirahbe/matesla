@@ -109,15 +109,8 @@ def view_teslacss(request):
 # Vehicle is sleeping — matesla never wakes (no billable wake_up).
 @never_cache
 def asleep(request):
-    user = get_user(request)
-    if not user.is_authenticated:
-        return redirect("login")
-    active = resolve_active_vehicle(user, request)
-    return render(
-        request,
-        "matesla/asleep.html",
-        {"active_vehicle_label": active.label if active else None},
-    )
+    # Dead-end page removed: offline mode is handled by the vehicle hub (status).
+    return redirect("tesla_status")
 
 
 @never_cache
@@ -286,24 +279,76 @@ def PreparestatusDictionary(request, user):
     return context
 
 
-# Prepare the status page, given a request and logged user id
+def _vehicle_list_context(user, request):
+    """Shared multi-vehicle selector context (JSON-serializable vehicle dicts)."""
+    vehicles = list_user_vehicles(user)
+    active = resolve_active_vehicle(user, request)
+    return {
+        "user_vehicles": [
+            {
+                "api_id": v.api_id,
+                "vin": v.vin,
+                "display_name": v.display_name,
+                "label": v.label,
+                "state": v.state,
+                "is_primary": v.is_primary,
+            }
+            for v in vehicles
+        ],
+        "active_vehicle_api_id": active.api_id if active else None,
+        "active_vehicle_label": active.label if active else None,
+        "active_vehicle": active,
+    }
+
+
 def Preparestatus(request, user):
+    """Online hub: live controls + status."""
     context = PreparestatusDictionary(request, user)
-    template = loader.get_template('matesla/carstatus.html')
+    context["hub_mode"] = "live"
+    template = loader.get_template("matesla/vehicle_hub.html")
     return HttpResponse(template.render(context, request))
 
 
-# Get the status page data as Json, given a request and logged user id
+def PrepareOfflineHub(request, user):
+    """
+    Offline/asleep hub: same vehicle selector, personal stats body (no live API).
+    """
+    from personalstats.views import GetTitleForFieldDico
+
+    sel = _vehicle_list_context(user, request)
+    active = sel["active_vehicle"]
+    if active is None:
+        raise TeslaNoVehiculeException()
+
+    vin = active.vin or ""
+    hashed = HashTheVin(vin) if vin else ""
+    context = {
+        **sel,
+        "hub_mode": "offline",
+        "hashedVin": hashed,
+        "display_name": active.display_name or active.label,
+    }
+    context.update(GetTitleForFieldDico())
+    template = loader.get_template("matesla/vehicle_hub.html")
+    return HttpResponse(template.render(context, request))
+
+
 def PreparestatusJson(request, user):
     context = PreparestatusDictionary(request, user)
-    # See https://simpleisbetterthancomplex.com/tutorial/2016/07/27/how-to-return-json-encoded-response.html
     return JsonResponse(context)
 
 
-# The status view
+# The status view — hub: live controls if online, personal stats if asleep.
+# Asleep is handled inside the callback so singleAction still owns login + other errors.
 @never_cache
 def status(request):
-    return singleAction(request, lambda request, user: Preparestatus(request, user), True)
+    def _hub(request, user):
+        try:
+            return Preparestatus(request, user)
+        except TeslaIsAsleepException:
+            return PrepareOfflineHub(request, user)
+
+    return singleAction(request, _hub, True)
 
 
 # The status json data
@@ -359,7 +404,8 @@ def singleAction(request, func, shouldReturnFunc=False):
         if shouldReturnFunc == True:
             return ret
     except TeslaIsAsleepException:
-        return redirect('teslaasleep')
+        # Hub shows offline/stats mode — never trap the user on a dead-end page
+        return redirect('tesla_status')
     except TeslaNoUserException:
         return redirect('AddTeslaAccount')
     except TeslaUnauthorisedException:
