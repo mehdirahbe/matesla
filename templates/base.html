@@ -1,76 +1,113 @@
 {% load i18n %}
 {% load static %}
+{% get_current_language as LANGUAGE_CODE %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}">
 
 <head>
-    <title>{% block title %}Ma tesla{% endblock %}</title>
-    <meta name="google-site-verification" content="YJMZYLL5w_hJjFbWg3qKcmk2paMcJT4rHn9VSX7dZTc" />
-    <meta name="generator" content="Bluefish 2.2.10">
-    <meta name="author" content="Mehdi Rahman">
-    <meta name="date" content="2020-05-04T23:23:16+0200">
-    <meta name="keywords" content="tesla">
-    <meta name="description" content="MaTesla est un site web Python/django libre utilisant l'API de Tesla pour se connecter à votre merveilleuse voiture Tesla, obtenir des informations sur son état, sa position, et contrôller à distance sa charge, sa température,... Des statistiques sur les voitures et les mises à jour du firmware sont également disponibles MaTesla is a Python/django free open source website using tesla api to connect to your marvellous Tesla car, have information on its state, location and remote control charge, temperature,... Statistics on tesla cars and firmware updates are also available. ">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8">
-    <meta http-equiv="expires" content="0">
     <meta charset="UTF-8">
-    <!--use bootstrap for nicer look. Good idea from David.
-    See for details: https://getbootstrap.com/docs/4.5/getting-started/introduction/
-    Using static local version works in 5 ms instead of up to 900 on stackpath.bootstrapcdn.com
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#08090b">
+    <meta name="google-site-verification" content="YJMZYLL5w_hJjFbWg3qKcmk2paMcJT4rHn9VSX7dZTc">
+    <meta name="author" content="Mehdi Rahman">
+    <meta name="keywords" content="tesla, matesla, fleet api, vehicle telemetry">
+    <meta name="description" content="MaTesla rassemble l'état, les commandes et l'historique de votre Tesla dans une interface privée et open source.">
+    <title>{% block title %}MaTesla{% endblock %}</title>
 
-    To save bandwith, https://purifycss.online/# was used to keep only what is usefull
-    thus save 81 % of size without side effects from what I see
-    -->
-    <link rel="stylesheet" href="{% static "bootstrap.min.css" %}"  crossorigin="anonymous">
-    {# Extra <link rel="stylesheet"> (not inside the <style> block below) #}
+    <link rel="stylesheet" href="{% static 'bootstrap.min.css' %}" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/matesla.css' %}">
     {% block extracss %}{% endblock %}
-    <style>
-        body {
-            background: #f5f8ff
-        }
-        {# Inline page CSS rules only — never put <link> tags here #}
-        {% block cssstyle %}
-        {% endblock %}
-
-    </style>
+    <style>{% block cssstyle %}{% endblock %}</style>
 </head>
 
-<body>
-    <main>
-        {% if messages %}
-        <div class="container mt-2">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">{{ message }}</div>
-            {% endfor %}
+<body class="{% block body_class %}{% endblock %}">
+    <a class="skip-link" href="#main-content">{% trans 'Skip to content' %}</a>
+
+    <header class="app-header" data-app-header>
+        <div class="app-header__inner">
+            <a class="app-brand" href="{% url 'tesla_status' %}" aria-label="MaTesla">
+                <span class="app-brand__mark" aria-hidden="true"><span>M</span></span>
+                <span class="app-brand__copy">
+                    <span class="app-brand__name">MaTesla</span>
+                    <span class="app-brand__tagline">Open vehicle companion</span>
+                </span>
+            </a>
+
+            <nav class="app-nav" aria-label="{% trans 'Main navigation' %}">
+                {% if user.is_authenticated %}
+                <a href="{% url 'tesla_status' %}" {% if request.resolver_match.url_name == 'tesla_status' %}aria-current="page"{% endif %}>{% trans 'Status' %}</a>
+                <a href="{% url 'AddTeslaAccount' %}" {% if request.resolver_match.url_name == 'AddTeslaAccount' %}aria-current="page"{% endif %}>{% trans 'Tesla account' %}</a>
+                <a href="{% url 'AnonymisedStatsChoicePage' %}">{% trans 'Fleet stats' %}</a>
+                {% else %}
+                <a href="{% url 'login' %}" {% if request.resolver_match.url_name == 'login' %}aria-current="page"{% endif %}>{% trans 'Login' %}</a>
+                <a href="{% url 'signup' %}" {% if request.resolver_match.url_name == 'signup' %}aria-current="page"{% endif %}>{% trans 'Signup' %}</a>
+                <a href="{% url 'AnonymisedStatsChoicePage' %}">{% trans 'Fleet stats' %}</a>
+                {% endif %}
+            </nav>
+
+            <div class="app-header__actions">
+                <a class="header-link" href="https://github.com/mehdirahbe/matesla" target="_blank" rel="noopener noreferrer">
+                    GitHub <span aria-hidden="true">↗</span>
+                </a>
+                {% if user.is_authenticated %}
+                <span class="user-chip" title="{{ user.get_username }}">{{ user.get_username|slice:":1"|upper }}</span>
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button class="header-logout" type="submit">{% trans 'logout' %}</button>
+                </form>
+                {% endif %}
+            </div>
+
+            <details class="mobile-menu">
+                <summary aria-label="{% trans 'Open navigation' %}"><span></span><span></span></summary>
+                <nav aria-label="{% trans 'Mobile navigation' %}">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'tesla_status' %}">{% trans 'Status' %}</a>
+                    <a href="{% url 'AddTeslaAccount' %}">{% trans 'Tesla account' %}</a>
+                    <a href="{% url 'AnonymisedStatsChoicePage' %}">{% trans 'Fleet stats' %}</a>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit">{% trans 'logout' %}</button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'login' %}">{% trans 'Login' %}</a>
+                    <a href="{% url 'signup' %}">{% trans 'Signup' %}</a>
+                    <a href="{% url 'AnonymisedStatsChoicePage' %}">{% trans 'Fleet stats' %}</a>
+                    {% endif %}
+                    <a href="https://github.com/mehdirahbe/matesla" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+                </nav>
+            </details>
         </div>
-        {% endif %}
-        {% block content %}
-        {% endblock %}
+    </header>
+
+    {% if messages %}
+    <div class="toast-stack" aria-live="polite" aria-atomic="true">
+        {% for message in messages %}
+        <div class="app-alert app-alert--{{ message.tags|default:'info' }}" role="status">
+            <span class="app-alert__dot" aria-hidden="true"></span>
+            <div>{{ message }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main id="main-content" class="{% block main_class %}app-main{% endblock %}">
+        {% block content %}{% endblock %}
     </main>
-    <!--See above
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
 
-    I discover that using async is a bad idea for jquery and dependent scripts
-    as load order is important (tab and combo did not work  to workanymore)
-    defer must also be removed to have combo
-    -->
-<script src="{% static "jquery-3.5.1.slim.min.js" %}"  crossorigin="anonymous"></script>
-<script src="{% static "popper.min.js" %}"  crossorigin="anonymous"></script>
-<script src="{% static "bootstrap.min.js" %}"  crossorigin="anonymous"></script>
-<!--this comes from https://web.dev/codelab-use-lazysizes-to-lazyload-images/,
-proposed by chrome when doing tests on the page
-Original is https://raw.githubusercontent.com/aFarkas/lazysizes/gh-pages/lazysizes.min.js
--->
-  <script src="{% static "lazysizes.min.js" %}" async defer></script>
+    <footer class="app-footer">
+        <span>MaTesla</span>
+        <span class="app-footer__dot" aria-hidden="true"></span>
+        <span>Private by design · Open source</span>
+        <a href="https://github.com/mehdirahbe/matesla" target="_blank" rel="noopener noreferrer">Source ↗</a>
+    </footer>
 
-
-        {% block javascript %}
-        {% endblock %}
+    <script src="{% static 'jquery-3.5.1.slim.min.js' %}" crossorigin="anonymous"></script>
+    <script src="{% static 'popper.min.js' %}" crossorigin="anonymous"></script>
+    <script src="{% static 'bootstrap.min.js' %}" crossorigin="anonymous"></script>
+    <script src="{% static 'lazysizes.min.js' %}" async></script>
+    <script src="{% static 'js/matesla.js' %}" defer></script>
+    {% block javascript %}{% endblock %}
 </body>
 
 </html>

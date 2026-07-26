@@ -1,38 +1,18 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}Véhicule endormi{% endblock %}
+{% block title %}{% trans 'Your tesla is asleep' %} · MaTesla{% endblock %}
 
 {% block content %}
-<div class="container mt-3" style="max-width: 36rem;">
-    <div class="form-group mb-3">
-        <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
-        <a href="{% url 'AddTeslaAccount' %}" class="btn btn-primary btn-sm">{% trans 'Tesla account' %}</a>
-        <a href="{% url 'tesla_status' %}" class="btn btn-secondary btn-sm">Statut</a>
+{% include 'matesla/_vehicle_chrome.html' %}
+<section class="form-card">
+    <p class="eyebrow">Sleep mode</p>
+    <h1>{% trans 'Your tesla is asleep' %}</h1>
+    {% if active_vehicle_label %}<p class="form-card__intro">{{ active_vehicle_label }}</p>{% endif %}
+    <div class="status-warn">
+        La voiture n’est pas joignable actuellement. MaTesla ne la réveille jamais automatiquement afin d’éviter une consommation inutile.
     </div>
-
-    <div class="card p-3">
-        <h5>{% trans 'Your tesla is asleep' %}</h5>
-        {% if active_vehicle_label %}
-        <p class="text-muted">{{ active_vehicle_label }}</p>
-        {% endif %}
-        <p>
-            La voiture n’est pas joignable via l’API en ce moment
-            (état <em>asleep</em> ou données live indisponibles).
-            <strong>matesla ne la réveille jamais</strong> (wakes Fleet payants).
-        </p>
-        <p>
-            Si l’app Tesla montre qu’elle est réveillée : change de véhicule dans le
-            sélecteur (page connexion), ou réessaie dans quelques secondes.
-            Sinon ouvre l’<strong>app Tesla</strong> puis «&nbsp;Réessayer&nbsp;».
-        </p>
-
-
-        <div class="mt-3">
-            <a href="{% url 'tesla_status' %}" class="btn btn-primary">
-                {% trans 'Retry?' %}
-            </a>
-        </div>
-    </div>
-</div>
+    <p class="text-muted">Ouvrez l’app Tesla si vous avez besoin de la réveiller, puis revenez actualiser le statut.</p>
+    <a href="{% url 'tesla_status' %}" class="btn btn-primary">{% trans 'Retry?' %}</a>
+</section>
 {% endblock %}

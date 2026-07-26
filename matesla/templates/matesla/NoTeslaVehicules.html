@@ -1,20 +1,16 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
+{% block title %}{% trans 'No vehicles' %} · MaTesla{% endblock %}
 
 {% block content %}
-<div class="form-group">
-    <a href="{% url 'logout' %}"class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
-    <a href="{% url 'AddTeslaAccount' %}"class="btn btn-primary btn-sm">{% trans 'Tesla account' %}</a>
-    <a href="{% url 'AnonymisedStatsChoicePage' %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Firmware and cars Stats' %}</a>
-    <a href="https://github.com/mehdirahbe/matesla" rel="noopener noreferrer" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
-  </div>
-<div class="form-group">
-  {% trans 'No vehicles are associated to your account. Please retry when your car will be there.' %}
-  </div>
-<div class="form-group">
-  <a href="{% url 'tesla_status' %}"class="btn btn-primary">{% trans 'Retry?' %}</a>
-  </div>
-
+<section class="form-card">
+    <p class="eyebrow">Empty garage</p>
+    <h1>{% trans 'No vehicles' %}</h1>
+    <p class="form-card__intro">{% trans 'No vehicles are associated to your account. Please retry when your car will be there.' %}</p>
+    <div class="button-row">
+        <a href="{% url 'AddTeslaAccount' %}" class="btn btn-primary">{% trans 'Tesla account' %}</a>
+        <a href="{% url 'tesla_status' %}" class="btn btn-secondary">{% trans 'Retry?' %}</a>
+    </div>
+</section>
 {% endblock %}
-

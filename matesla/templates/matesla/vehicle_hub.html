@@ -2,108 +2,46 @@
 {% load i18n %}
 
 {% block title %}
-{% if hub_mode == 'live' %}{% trans 'Your car' %} {{ display_name }}{% else %}{% trans 'Your tesla is asleep' %} — {{ active_vehicle_label }}{% endif %}
-{% endblock %}
-
-{% block cssstyle %}
-{% if hub_mode == 'live' %}
-        @media (max-width: 400px) {
-         img { width: 100%; height: auto; }
-        }
-        .parameters_page_part {
-            display: inline-grid;
-            padding: 1mm;
-            grid-auto-flow: row;
-        }
-        .login_part, .generalinfos_part, .charge_part, .drive_part, .clim_part {
-            display: inline-grid;
-            padding: 1mm;
-            grid-auto-flow: row;
-        }
-        @media (min-width: 600px) {
-            .charge_part { grid-template-columns: auto auto; }
-        }
-        .info_label_value {
-            display: inline-grid;
-            grid-template-columns: auto auto;
-            padding: 1mm;
-        }
-        .info_label { padding: 1mm; text-align: left; }
-        .info_value {
-            font-style: italic;
-            font-variant-caps: all-small-caps;
-            padding: 1mm;
-            text-align: right;
-        }
-        .commands_part {
-            display: inline-grid;
-            grid-template-columns: auto;
-            grid-template-rows: auto auto;
-            grid-auto-flow: row;
-            padding: 1mm;
-        }
-        .commands_part_cmd { padding: 5px; text-align: center; }
-        .carousel { margin-bottom: 4rem; }
-        .carousel-caption { top: 0rem; z-index: 10; }
-        .carousel-item { height: 40rem; }
-        @media (min-width: 600px) {
-            .carousel-item { height: 30rem; }
-        }
-        .carousel-item > img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            min-width: 100%;
-        }
-{% else %}
-        @media (max-width: 1500px) {
-         img { width: 100%; height: auto; }
-        }
-        .carousel { margin-bottom: 1rem; }
-        .carousel-caption { top: 0rem; z-index: 10; }
-        .carousel-item { height: 40rem; }
-        .carousel-item > img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            min-width: 100%;
-        }
-        .offline-banner {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffc107;
-            border-radius: .25rem;
-            padding: .75rem 1rem;
-            margin-bottom: 1rem;
-            max-width: 48rem;
-        }
-{% endif %}
+{% if hub_mode == 'live' %}{{ display_name }} · MaTesla{% else %}{% trans 'Your tesla is asleep' %} · MaTesla{% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="parameters_page_part">
-    {% include 'matesla/_vehicle_chrome.html' %}
+{% include 'matesla/_vehicle_chrome.html' %}
 
-    {% if hub_mode == 'live' %}
-        {% include 'matesla/_carstatus_body.html' %}
-    {% else %}
-        <div class="offline-banner">
+{% if hub_mode == 'live' %}
+    {% include 'matesla/_carstatus_body.html' %}
+{% else %}
+    <div class="page-heading">
+        <div class="page-heading__copy">
+            <p class="eyebrow">History mode</p>
+            <h1 class="page-title page-title--compact">
+                {% if active_vehicle_label %}{{ active_vehicle_label }}{% else %}{% trans 'Your tesla is asleep' %}{% endif %}
+            </h1>
+            <p class="page-subtitle">La voiture se repose. MaTesla affiche son historique sans jamais la réveiller.</p>
+        </div>
+    </div>
+
+    <div class="offline-banner">
+        <span class="offline-banner__dot" aria-hidden="true"></span>
+        <div>
             <strong>{% trans 'Your tesla is asleep' %}</strong>
-            {% if active_vehicle_label %} — {{ active_vehicle_label }}{% endif %}
-            <p class="mb-1 mt-2">
-                Pas de données live (matesla ne réveille jamais la voiture).
-                Historique et graphiques ci‑dessous. Change de véhicule ci‑dessus
-                ou réveille via l’app Tesla puis
-                <a href="{% url 'tesla_status' %}">{% trans 'Retry?' %}</a>.
+            <p>
+                Pas de données en direct pour le moment. Réveillez la voiture depuis l’app Tesla si nécessaire,
+                puis actualisez son statut ici.
             </p>
         </div>
-        {% if hashedVin %}
-            {% include 'personalstats/_carstats_body.html' %}
-        {% else %}
-            <p class="text-muted">VIN inconnu pour cette voiture — pas de stats encore.</p>
-        {% endif %}
+        <a href="{% url 'tesla_status' %}" class="btn btn-secondary">{% trans 'Retry?' %}</a>
+    </div>
+
+    {% if hashedVin %}
+        {% include 'personalstats/_carstats_body.html' %}
+    {% else %}
+        <div class="empty-state">
+            <strong>Pas encore d’historique</strong>
+            <p class="text-muted mb-0">Le VIN de ce véhicule n’est pas encore connu de MaTesla.</p>
+        </div>
     {% endif %}
-</div>
+{% endif %}
 {% endblock %}
 
 {% block javascript %}

@@ -1,225 +1,161 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-<!--lazy load comes from https://web.dev/codelab-use-lazysizes-to-lazyload-images/,
-proposed by chrome when doing tests on the page-->
-
-{% block cssstyle %}
-        /*to avoid cut images, from https://www.w3schools.com/css/css_rwd_images.asp
-        +https://www.cssmine.com/ebook/css3-media-queries
-        Image is 1200 pixels wide, see figsize in view*/
-        @media (max-width: 1500px) {
-         img {
-                  width: 100%;
-                  height: auto;
-                }
-        }
-
-        <!--taken from bootstrap carousel sample,
-        https://getbootstrap.com/docs/4.4/examples/carousel/carousel.css-->
-        /* Carousel base class */
-        .carousel {
-          margin-bottom: 1rem;
-        }
-        /* Since positioning the image, we need to help out the caption */
-        .carousel-caption {
-          top: 0rem;
-          z-index: 10;
-        }
-
-        /* Declare heights because of positioning of img element */
-        /*The minimum to see all in charge item (when car is in charge) is 40,
-        when displayed in 1 col=devices with small width, ie smartphone held
-        vertically.*/
-        .carousel-item {
-          height: 40rem;
-        }
-        .carousel-item > img {
-          position: absolute;
-          top: 0;
-          left: 0;
-          min-width: 100%;
-        }
-
-
-{% endblock %}
+{% block title %}{% trans 'Firmware and cars Stats' %} · MaTesla{% endblock %}
 
 {% block content %}
-    <!--Inspired from https://getbootstrap.com/docs/4.4/examples/carousel/
-    and extended to 4 parts
-    data-interval put to 1 day because it is annoying to have that moving when you are looking
-    at something.-->
-    <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="86400000">
-        <ol class="carousel-indicators">
-            <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
-            <li data-target="#myCarousel" data-slide-to="1"></li>
-            <li data-target="#myCarousel" data-slide-to="2"></li>
-        </ol>
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        <h5>{%trans 'Battery degradation graphs'%}</h5>
-                        <img id="degradationGraphImg" class="lazyload" alt="{%trans 'Battery degradation graphs'%}" data-src="{% url 'AnonymisedStatsBatteryDegradationGraph' 'NumberCycles' %} " width="1200" height="500"/>
-                        <!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
-                        and tested with fiddle http://jsfiddle.net-->
-                        <select id="degradationGraphCriteria">
-                            <option value="0" selected>{{NumberCycles}}</option>
-                            <option value="1">{{odometer}}</option>
-                            <option value="2">{{outside_temp}}</option>
-                            <option value="3">{{battery_level}}</option>
-                            <option value="4">{{charge_limit_soc}}</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        <h5>{%trans 'Firmware version'%}</h5>
-                        <img id="FirmwareGraphImg" class="lazyload" alt="{%trans 'Firmware version'%}" data-src="{% url 'AnonymisedFirmwareUpdates' %}" width="1200" height="300"/>
-                        <select id="FirmwareGraphCriteria">
-                            <option value="0" selected>{%trans 'Most recent Firmware updates'%}</option>
-                        </select>
-                        <a href="{% url 'AnonymisedFirmwareUpdatesAsCSV' %}"class="btn btn-info btn-sm">{% trans 'Download Firmware Stats' %}</a>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        <h5>{%trans 'Cars statistics'%}</h5>
-                        <img id="CarStatsGraphImg" class="lazyload" alt="{%trans 'Cars statistics'%}" data-src="{% url 'AnonymisedStatsOnCarByModel' 'car_type' %}" width="1200" height="300"/>
-                        <select id="CarStatsGraphCriteria">
-                            <option value="0" selected>{{car_type}}</option>
-                            <option value="1">{{smart_summon_available}}</option>
-                            <option value="2">{{eu_vehicle}}</option>
-                            <option value="3">{{EPARange}}</option>
-                            <option value="4">{{isDualMotor}}</option>
-                            <option value="5">{{modelYear}}</option>
-                            <option value="6">{{exterior_color}}</option>
-                            <option value="7">{{charge_port_type}}</option>
-                            <option value="8">{{has_air_suspension}}</option>
-                            <option value="9">{{has_ludicrous_mode}}</option>
-                            <option value="10">{{motorized_charge_port}}</option>
-                            <option value="11">{{rear_seat_heaters}}</option>
-                            <option value="12">{{rhd}}</option>
-                            <option value="13">{{roof_color}}</option>
-                            <option value="14">{{wheel_type}}</option>
-                            <option value="15">{{sentry_mode_available}}</option>
-                            <option value="16">{{Date}}</option>
-                        </select>
-                        <select id="choiceSecondCriteriacar_type">
-                            <option value="-1" selected>All</option>
-                            <option value="0">model3</option>
-                            <option value="1">models2</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="sr-only">Previous</span>
-        </a>
-        <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="sr-only">Next</span>
-        </a>
+<div class="page-heading">
+    <div class="page-heading__copy">
+        <p class="eyebrow">Fleet intelligence</p>
+        <h1 class="page-title page-title--compact">{% trans 'Firmware and cars Stats' %}</h1>
+        <p class="page-subtitle">Une vue anonymisée de la flotte pour situer batterie, équipement et versions logicielles.</p>
     </div>
+    <a href="{% url 'tesla_status' %}" class="btn btn-secondary">{% trans 'Back to my car' %}</a>
+</div>
 
+<section class="graph-grid" aria-label="{% trans 'Fleet charts' %}">
+    <article class="graph-card graph-card--full">
+        <header class="graph-card__header">
+            <div>
+                <span class="graph-card__index">01 · BATTERY HEALTH</span>
+                <h2>{% trans 'Battery degradation graphs' %}</h2>
+            </div>
+        </header>
+        <div class="graph-card__controls">
+            <label class="sr-only" for="degradationGraphCriteria">{% trans 'Battery graph' %}</label>
+            <select id="degradationGraphCriteria">
+                <option value="0" selected>{{ NumberCycles }}</option>
+                <option value="1">{{ odometer }}</option>
+                <option value="2">{{ outside_temp }}</option>
+                <option value="3">{{ battery_level }}</option>
+                <option value="4">{{ charge_limit_soc }}</option>
+            </select>
+        </div>
+        <div class="graph-card__media">
+            <img id="degradationGraphImg" class="lazyload" alt="{% trans 'Battery degradation graphs' %}"
+                 data-src="{% url 'AnonymisedStatsBatteryDegradationGraph' 'NumberCycles' %}" width="1200" height="500">
+        </div>
+    </article>
+
+    <article class="graph-card">
+        <header class="graph-card__header">
+            <div>
+                <span class="graph-card__index">02 · SOFTWARE</span>
+                <h2>{% trans 'Firmware version' %}</h2>
+            </div>
+        </header>
+        <div class="graph-card__controls">
+            <select id="FirmwareGraphCriteria" aria-label="{% trans 'Firmware graph' %}">
+                <option value="0" selected>{% trans 'Most recent Firmware updates' %}</option>
+            </select>
+            <a href="{% url 'AnonymisedFirmwareUpdatesAsCSV' %}" class="btn btn-sm btn-secondary">{% trans 'Download Firmware Stats' %}</a>
+        </div>
+        <div class="graph-card__media">
+            <img id="FirmwareGraphImg" class="lazyload" alt="{% trans 'Firmware version' %}"
+                 data-src="{% url 'AnonymisedFirmwareUpdates' %}" width="1200" height="300">
+        </div>
+    </article>
+
+    <article class="graph-card">
+        <header class="graph-card__header">
+            <div>
+                <span class="graph-card__index">03 · FLEET</span>
+                <h2>{% trans 'Cars statistics' %}</h2>
+            </div>
+        </header>
+        <div class="graph-card__controls">
+            <label class="sr-only" for="CarStatsGraphCriteria">{% trans 'Car criterion' %}</label>
+            <select id="CarStatsGraphCriteria">
+                <option value="0" selected>{{ car_type }}</option>
+                <option value="1">{{ smart_summon_available }}</option>
+                <option value="2">{{ eu_vehicle }}</option>
+                <option value="3">{{ EPARange }}</option>
+                <option value="4">{{ isDualMotor }}</option>
+                <option value="5">{{ modelYear }}</option>
+                <option value="6">{{ exterior_color }}</option>
+                <option value="7">{{ charge_port_type }}</option>
+                <option value="8">{{ has_air_suspension }}</option>
+                <option value="9">{{ has_ludicrous_mode }}</option>
+                <option value="10">{{ motorized_charge_port }}</option>
+                <option value="11">{{ rear_seat_heaters }}</option>
+                <option value="12">{{ rhd }}</option>
+                <option value="13">{{ roof_color }}</option>
+                <option value="14">{{ wheel_type }}</option>
+                <option value="15">{{ sentry_mode_available }}</option>
+                <option value="16">{{ Date }}</option>
+            </select>
+            <label class="sr-only" for="choiceSecondCriteriacar_type">{% trans 'Car model' %}</label>
+            <select id="choiceSecondCriteriacar_type">
+                <option value="-1" selected>{% trans 'All models' %}</option>
+                <option value="0">Model 3</option>
+                <option value="1">Model S</option>
+            </select>
+        </div>
+        <div class="graph-card__media">
+            <img id="CarStatsGraphImg" class="lazyload" alt="{% trans 'Cars statistics' %}"
+                 data-src="{% url 'AnonymisedStatsOnCarByModel' 'car_type' %}" width="1200" height="300">
+        </div>
+    </article>
+</section>
 {% endblock %}
 
 {% block javascript %}
 <script>
-/*also inspired from stackoverflow*/
+(function () {
+    "use strict";
 
-//For Firmware carousel item
-var FirmwarepictureList = [
-    /*List same entries as in select FirmwareGraphCriteria, but with the image URL*/
-    "{% url 'AnonymisedFirmwareUpdates' %}",
- ];
+    var firmwarePictures = ["{% url 'AnonymisedFirmwareUpdates' %}"];
+    var carPictures = [
+        "{% url 'AnonymisedStatsOnCarByModel' 'car_type' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'smart_summon_available' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'eu_vehicle' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'EPARange' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'isDualMotor' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'modelYear' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'exterior_color' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'charge_port_type' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'has_air_suspension' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'has_ludicrous_mode' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'motorized_charge_port' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'rear_seat_heaters' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'rhd' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'roof_color' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'wheel_type' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'sentry_mode_available' %}",
+        "{% url 'AnonymisedStatsOnCarByModel' 'Date' %}"
+    ];
+    var modelNames = ["model3", "models2"];
+    var batteryPictures = [
+        "{% url 'AnonymisedStatsBatteryDegradationGraph' 'NumberCycles' %}",
+        "{% url 'AnonymisedStatsBatteryDegradationGraph' 'odometer' %}",
+        "{% url 'AnonymisedStatsBatteryDegradationGraph' 'outside_temp' %}",
+        "{% url 'AnonymisedStatsBatteryDegradationGraph' 'battery_level' %}",
+        "{% url 'AnonymisedStatsBatteryDegradationGraph' 'charge_limit_soc' %}"
+    ];
 
-function ChangeFirmwareImageSourceFunction()
-{
-    var choiceSelectItem = parseInt($('#FirmwareGraphCriteria').val());
-    $('#FirmwareGraphImg').attr("src",FirmwarepictureList[choiceSelectItem]);
-}
+    function changeImage(selectId, imageId, pictures) {
+        var select = document.getElementById(selectId);
+        var image = document.getElementById(imageId);
+        if (!select || !image) return;
+        select.addEventListener("change", function () {
+            image.src = pictures[parseInt(select.value, 10)];
+        });
+    }
 
-$('#FirmwareGraphCriteria').change(ChangeFirmwareImageSourceFunction);
+    changeImage("FirmwareGraphCriteria", "FirmwareGraphImg", firmwarePictures);
+    changeImage("degradationGraphCriteria", "degradationGraphImg", batteryPictures);
 
-//For CarStats carousel item
-var CarStatspictureList = [
-    /*List same entries as in select CarStatsGraphCriteria, but with the image URL*/
-    "{% url 'AnonymisedStatsOnCarByModel' 'car_type' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'smart_summon_available' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'eu_vehicle' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'EPARange' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'isDualMotor' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'modelYear' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'exterior_color' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'charge_port_type' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'has_air_suspension' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'has_ludicrous_mode' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'motorized_charge_port' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'rear_seat_heaters' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'rhd' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'roof_color' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'wheel_type' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'sentry_mode_available' %}",
-    "{% url 'AnonymisedStatsOnCarByModel' 'Date' %}",
- ];
-
-var SecondCriteriacar_typeList = [
-/*List same entries as in select choiceSecondCriteriacar_type, but with the last part of the URL*/
-"model3",
-"models2",
- ];
-
-function ChangeCarStatsImageSourceFunction()
-{
-    var choiceSelectItem = parseInt($('#CarStatsGraphCriteria').val());
-    var choiceSecondCriteriacar_typeSelectItem = parseInt($('#choiceSecondCriteriacar_type').val());
-    /*If we don't have second car type criteria*/
-    if (choiceSecondCriteriacar_typeSelectItem<0)
-        $('#CarStatsGraphImg').attr("src",CarStatspictureList[choiceSelectItem]);
-    else
-        $('#CarStatsGraphImg').attr("src",CarStatspictureList[choiceSelectItem]+"\\"+SecondCriteriacar_typeList[choiceSecondCriteriacar_typeSelectItem]);
-}
-
-$('#CarStatsGraphCriteria').change(ChangeCarStatsImageSourceFunction);
-$('#choiceSecondCriteriacar_type').change(ChangeCarStatsImageSourceFunction);
-
-
-//For battery degradation carousel item
-var batterydegradationpictureList = [
-    /*List same entries as in select degradationGraphCriteria, but with the image URL*/
-    "{% url 'AnonymisedStatsBatteryDegradationGraph' 'NumberCycles' %}",
-    "{% url 'AnonymisedStatsBatteryDegradationGraph' 'odometer' %}",
-    "{% url 'AnonymisedStatsBatteryDegradationGraph' 'outside_temp' %}",
-    "{% url 'AnonymisedStatsBatteryDegradationGraph' 'battery_level' %}",
-    "{% url 'AnonymisedStatsBatteryDegradationGraph' 'charge_limit_soc' %}",
- ];
-
-function ChangeBatteryDegradationImageSourceFunction()
-{
-    var choiceSelectItem = parseInt($('#degradationGraphCriteria').val());
-    $('#degradationGraphImg').attr("src",batterydegradationpictureList[choiceSelectItem]);
-}
-
-$('#degradationGraphCriteria').change(ChangeBatteryDegradationImageSourceFunction);
-
+    var carSelect = document.getElementById("CarStatsGraphCriteria");
+    var modelSelect = document.getElementById("choiceSecondCriteriacar_type");
+    var carImage = document.getElementById("CarStatsGraphImg");
+    function changeCarImage() {
+        if (!carSelect || !modelSelect || !carImage) return;
+        var source = carPictures[parseInt(carSelect.value, 10)];
+        var modelIndex = parseInt(modelSelect.value, 10);
+        carImage.src = modelIndex < 0 ? source : source + "/" + modelNames[modelIndex];
+    }
+    if (carSelect) carSelect.addEventListener("change", changeCarImage);
+    if (modelSelect) modelSelect.addEventListener("change", changeCarImage);
+})();
 </script>
 {% endblock %}

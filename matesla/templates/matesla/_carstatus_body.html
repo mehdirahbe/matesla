@@ -1,274 +1,274 @@
 {% load i18n %}
-    <!--Inspired from https://getbootstrap.com/docs/4.4/examples/carousel/
-    and extended to 5 parts
-    data-interval put to 1 day because it is annoying to have that moving when you are looking
-    at something.-->
-    <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="86400000">
-        <ol class="carousel-indicators">
-            <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
-            <li data-target="#myCarousel" data-slide-to="1"></li>
-            <li data-target="#myCarousel" data-slide-to="2"></li>
-            <li data-target="#myCarousel" data-slide-to="3"></li>
-            <li data-target="#myCarousel" data-slide-to="4"></li>
-        </ol>
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        <h5>{%trans 'Your car'%} {{display_name}}</h5>
-                        <img src="{% url 'CarImageFromTesla' colorcode wheel_type car_type %}" alt="Image of your tesla" width="400" height="224">
-                    <div class="commands_part">
-                        <div class="commands_part_cmd"><a href="{% url 'flash_lights' %}" class="btn btn-primary btn-sm">{% trans 'Flash lights' %}</a></div>
-                        <div class="commands_part_cmd"><a href="{% url 'honk_horn' %}" class="btn btn-primary btn-sm">{% trans 'Honk horn (not night when people sleep)' %}</a></div>
-                        <div class="commands_part_cmd"><a href="{% url 'remote_start_drive' %}" class="btn btn-primary btn-sm">{% trans 'Activate drive mode without phone/card' %}</a></div>
-                        <div class="commands_part_cmd"><a href="{% url 'PersoStats' hashedVin %}" target="_blank" class="btn btn-info btn-sm">{% trans 'My data' %}</a></div>
-                        <div class="commands_part_cmd"><a href="{% url 'teslastatusJson' %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Json current data' %}</a></div>
-                        <div class="commands_part_cmd"><a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Firmware history' %}</a></div>
-                    </div>
-                </div>
+
+<section class="vehicle-overview" aria-labelledby="vehicle-name">
+    <div class="vehicle-stage">
+        <div class="vehicle-stage__top">
+            <div>
+                <p class="eyebrow"><span class="live-status">{% trans 'Live' %}</span></p>
+                <h1 class="vehicle-stage__name" id="vehicle-name">{% if display_name %}{{ display_name }}{% else %}{% trans 'Your car' %}{% endif %}</h1>
+                <div class="vehicle-stage__meta">
+                    <span>{{ car_type }}</span>
+                    <span>{{ exterior_color }}</span>
+                    <span>{{ wheel_type }}</span>
                 </div>
             </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-left">
-                        <h5>{%trans 'General information'%}</h5>
-                        <div class="generalinfos_part">
-                            <div class="info_label_value">
-                                <div class="info_label"><a href="https://teslatap.com/vin-decoder/" rel="noopener noreferrer" target="_blank" class="btn btn-secondary btn-sm">Vin</a></div>
-                                <div class="info_value">{{vin}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'State' %}</div>
-                                <div class="info_value">{{state}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Is car locked' %}</div>
-                                <div class="info_value">
-                                    {% if locked is True %}
-                                    <a href="{% url 'unlock_car' %}" class="btn btn-secondary btn-sm">{% trans 'Yes, unlock?' %}</a>
-                                    {% else %}
-                                    <a href="{% url 'lock_car' %}" class="btn btn-secondary btn-sm">{% trans 'No, lock?' %}</a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Car type' %}</div>
-                                <div class="info_value">{{car_type}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Exterior color' %}</div>
-                                <div class="info_value">{{exterior_color}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Wheel' %}</div>
-                                <div class="info_value">{{wheel_type}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Firmware version' %}</div>
-                                <div class="info_value">{{car_version}}</div>
+            <span class="state-pill">{{ state|default:"online" }}</span>
+        </div>
 
-                            {% if hasUpdateReady %}
-                            <div class="commands_part_cmd"><a href="{% url 'install_software_update' %}" class="btn btn-primary btn-sm">{% trans 'Install ' %}{{UpdateVersion}}</a></div>
-                            {% endif %}
-                            {% if hasUpdateScheduled %}
-                                <div class="info_label">{% trans 'New firmware version' %} {{UpdateVersion}} {% trans 'is scheduled in ' %}{{UpdateVersionTimeSeconds}} {% trans 'seconds' %}</div>
-                            {% endif %}
-                            {% if hasUpdateInstalling %}
-                                <div class="info_label">{% trans 'New firmware version' %} {{UpdateVersion}} {% trans 'is installing, ' %}{{UpdateVersionInstallPerc}} {% trans '% already done' %}</div>
-                            {% endif %}
+        <div class="vehicle-stage__image">
+            <img src="{% url 'CarImageFromTesla' colorcode wheel_type car_type %}"
+                 alt="{% blocktrans with name=display_name %}{{ name }} vehicle{% endblocktrans %}"
+                 width="760" height="426">
+        </div>
 
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Sentry' %}</div>
-                                <div class="info_value">
-                                    {% if sentry_mode is True %}
-                                    <a href="{% url 'sentry_stop' %}" class="btn btn-secondary btn-sm">{% trans 'Active, stop?' %}</a>
-                                    {% else %}
-                                    <a href="{% url 'sentry_start' %}" class="btn btn-secondary btn-sm">{% trans 'Inactive, start?' %}</a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Valet mode' %}</div>
-                                <div class="info_value">{% if valet_mode is True %}
-                                    <a href="{% url 'valet_stop' %}" class="btn btn-secondary btn-sm">{% trans 'Active, stop?' %}</a>
-                                    {% else %}
-                                    <a href="{% url 'valet_start' %}" class="btn btn-secondary btn-sm">{% trans 'Inactive, start?' %}</a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-left">
-                        <h5>{%trans 'Charge status'%}</h5>
-                        <div class="charge_part">
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Usable battery level (%)' %}</div>
-                                <div class="info_value">{{usable_battery_level}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Battery level (%)' %}</div>
-                                <div class="info_value">{{battery_level}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Battery range km' %}</div>
-                                <div class="info_value">{{batteryrange}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Battery charge' %}</div>
-                                <div class="info_value">{{charging_state}}</div>
-                            </div>
-                            {%if batterydegradation is not None%}
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Battery degradation (%)' %}</div>
-                                <div class="info_value">{{batterydegradation}}</div>
-                            </div>
-                            {%endif%}
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Battery charge limit (%)' %}</div>
-                                <div class="info_value"><a href="{% url 'getdesiredchargelevel' %}" class="btn btn-secondary btn-sm">{{charge_limit_soc}}</a>
-                                </div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Charge port' %}</div>
-                                <div class="info_value">{{charge_port_type}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Is Charge port open' %}</div>
-                                <div class="info_value">
-                                    {% if charge_port_door_open is True %}
-                                    <a href="{% url 'chargeport_close' %}" class="btn btn-secondary bt n-sm">{% trans 'Yes, close?'%}</a>
-                                    {% else %}
-                                    <a href="{% url 'chargeport_open' %}" class="btn btn-secondary btn-sm">{% trans 'No, open?' %}</a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% if charging_state != "Disconnected" %}
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Voltage in V' %}</div>
-                                <div class="info_value">{{charger_voltage}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Current in A' %}</div>
-                                <div class="info_value">{{charger_actual_current}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Power in kW' %}</div>
-                                <div class="info_value">{{charger_power}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Number of phases' %}</div>
-                                <div class="info_value">{{charger_phases}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Time left in minutes' %}</div>
-                                <div class="info_value">{{minutes_to_full_charge}}</div>
-                            </div>
+        <div class="vehicle-stage__footer">
+            {% if hashedVin %}
+            <a href="{% url 'PersoStats' hashedVin %}" class="app-button">{% trans 'My data' %} <span aria-hidden="true">↗</span></a>
+            <a href="{% url 'PersoDayMap' hashedVin %}" class="app-button app-button--ghost">{% trans 'Day map' %}</a>
+            <a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}" class="app-button app-button--ghost">{% trans 'Firmware history' %}</a>
+            {% endif %}
+        </div>
+    </div>
 
-                            {% if charging_state != "Charging" %}
-                            <div class="commands_part_cmd"><a href="{% url 'charge_start' %}" class="btn btn-primary btn-sm">{% trans 'Start charge' %}</a></div>
-                            {% else %}
-                            <div class="commands_part_cmd"><a href="{% url 'charge_stop' %}" class="btn btn-primary btn-sm">{% trans 'Stop charge' %}</a></div>
-                            {% endif %}
-
-
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-left">
-                        <h5>{%trans 'Drive and location'%}</h5>
-                        <div class="drive_part">
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Speed' %}</div>
-                                <div class="info_value">{{speed}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Location' %}</div>
-                                <div class="info_value"><a href="{{linktogooglemaps}}" rel="noopener noreferrer" target="_blank" class="btn btn-secondary btn-sm">{{location}}</a>
-                                </div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Odometer' %}</div>
-                                <div class="info_value">{{OdometerInKm}} km</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'Estim. number of battery cycles' %}</div>
-                                <div class="info_value">{{NumberCycles}}</div>
-                            </div>
-                            <div class="info_label_value">
-                                <div class="info_label">{% trans 'EPA Range (miles)' %}</div>
-                                <div class="info_value"><a href="https://www.fueleconomy.gov/feg/Find.do?action=sbs&id=41189" rel="noopener noreferrer" target="_blank" class="btn btn-secondary btn-sm">{{EPARangeMiles}}</a></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-left">
-                        <h5>{%trans 'Climate information'%}</h5>
-                        <div class="clim_part">
-                          <div class="info_label_value">
-                              <div class="info_label">{% trans 'Is climate on' %}</div>
-                              <div class="info_value">
-                                  {% if is_climate_on is True %}
-                                  <a href="{% url 'stop_climate' %}" class="btn btn-secondary btn-sm">{% trans 'Yes, stop?' %}</a>
-                                  {% else %}
-                                  <a href="{% url 'start_climate' %}" class="btn btn-secondary btn-sm">{% trans 'No, start?' %}</a>
-                                  {% endif %}
-                              </div>
-                          </div>
-                          <div class="info_label_value">
-                              <div class="info_label">{% trans 'Inside temperature' %}</div>
-                              <div class="info_value">{{inside_temp}}</div>
-                          </div>
-                          <div class="info_label_value">
-                              <div class="info_label">{% trans 'Outside temperature' %}</div>
-                              <div class="info_value">{{outside_temp}}</div>
-                          </div>
-                          <div class="info_label_value">
-                              <div class="info_label">{% trans 'Driver Temperature setting' %}</div>
-                              <div class="info_value"><a href="{% url 'getdesiredtemperature' %}" class="btn btn-secondary btn-sm">{{driver_temp_setting}}</a>
-                          </div>
-                      </div>
-                    </div>
+    <aside class="vehicle-summary" aria-label="{% trans 'Battery summary' %}">
+        <div class="battery-gauge">
+            <div class="battery-gauge__ring" style="--battery: {{ battery_level|default:0 }};">
+                <div class="battery-gauge__inner">
+                    <span class="battery-gauge__value">{{ battery_level|default:"—" }}<small>%</small></span>
+                    <span class="battery-gauge__label">{% trans 'Battery' %}</span>
                 </div>
             </div>
         </div>
-        <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="sr-only">Previous</span>
-        </a>
-        <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="sr-only">Next</span>
-        </a>
+
+        <div class="summary-metrics">
+            <div class="summary-metric">
+                <span class="summary-metric__value">{{ batteryrange|default:"—" }}</span>
+                <span class="summary-metric__label">{% trans 'Range' %} · km</span>
+            </div>
+            <div class="summary-metric">
+                <span class="summary-metric__value">{{ outside_temp|default:"—" }}°</span>
+                <span class="summary-metric__label">{% trans 'Outside' %}</span>
+            </div>
+            <div class="summary-metric">
+                <span class="summary-metric__value">{{ OdometerInKm|default:"—" }}</span>
+                <span class="summary-metric__label">{% trans 'Odometer' %} · km</span>
+            </div>
+            <div class="summary-metric">
+                <span class="summary-metric__value">{{ car_version|default:"—" }}</span>
+                <span class="summary-metric__label">{% trans 'Firmware' %}</span>
+            </div>
+        </div>
+
+        <div class="summary-charge">
+            <div class="summary-charge__state">
+                <span>{% trans 'Charge status' %}</span>
+                <strong>{{ charging_state|default:"—" }}</strong>
+            </div>
+        </div>
+    </aside>
+</section>
+
+<div class="section-heading">
+    <div>
+        <span class="section-kicker">Remote control</span>
+        <h2>{% trans 'Quick commands' %}</h2>
+        <p>Les commandes les plus utiles, sans détour.</p>
     </div>
+</div>
+
+<section class="action-grid" aria-label="{% trans 'Remote commands' %}">
+    {% if locked is True %}
+    <a href="{% url 'unlock_car' %}" class="action-tile">
+        <span class="action-tile__top"><span class="action-tile__code">LOCK · ON</span><span class="action-tile__arrow">→</span></span>
+        <span><strong>{% trans 'Unlock car' %}</strong><small>{% trans 'Car is currently locked' %}</small></span>
+    </a>
+    {% else %}
+    <a href="{% url 'lock_car' %}" class="action-tile">
+        <span class="action-tile__top"><span class="action-tile__code">LOCK · OFF</span><span class="action-tile__arrow">→</span></span>
+        <span><strong>{% trans 'Lock car' %}</strong><small>{% trans 'Car is currently unlocked' %}</small></span>
+    </a>
+    {% endif %}
+
+    {% if is_climate_on is True %}
+    <a href="{% url 'stop_climate' %}" class="action-tile">
+        <span class="action-tile__top"><span class="action-tile__code">CLIMATE · ON</span><span class="action-tile__arrow">→</span></span>
+        <span><strong>{% trans 'Stop climate' %}</strong><small>{{ inside_temp }}° · {{ driver_temp_setting }}°</small></span>
+    </a>
+    {% else %}
+    <a href="{% url 'start_climate' %}" class="action-tile">
+        <span class="action-tile__top"><span class="action-tile__code">CLIMATE · OFF</span><span class="action-tile__arrow">→</span></span>
+        <span><strong>{% trans 'Start climate' %}</strong><small>{{ inside_temp }}° · {{ driver_temp_setting }}°</small></span>
+    </a>
+    {% endif %}
+
+    {% if charge_port_door_open is True %}
+    <a href="{% url 'chargeport_close' %}" class="action-tile">
+        <span class="action-tile__top"><span class="action-tile__code">PORT · OPEN</span><span class="action-tile__arrow">→</span></span>
+        <span><strong>{% trans 'Close charge port' %}</strong><small>{{ charging_state }}</small></span>
+    </a>
+    {% else %}
+    <a href="{% url 'chargeport_open' %}" class="action-tile">
+        <span class="action-tile__top"><span class="action-tile__code">PORT · CLOSED</span><span class="action-tile__arrow">→</span></span>
+        <span><strong>{% trans 'Open charge port' %}</strong><small>{{ charging_state }}</small></span>
+    </a>
+    {% endif %}
+
+    <a href="{% url 'flash_lights' %}" class="action-tile">
+        <span class="action-tile__top"><span class="action-tile__code">LIGHTS</span><span class="action-tile__arrow">→</span></span>
+        <span><strong>{% trans 'Flash lights' %}</strong><small>{% trans 'Locate the car visually' %}</small></span>
+    </a>
+
+    <a href="{% url 'honk_horn' %}" class="action-tile"
+       data-confirm="{% trans 'Sound the horn now?' %}">
+        <span class="action-tile__top"><span class="action-tile__code">HORN</span><span class="action-tile__arrow">→</span></span>
+        <span><strong>{% trans 'Honk horn' %}</strong><small>{% trans 'Use with consideration' %}</small></span>
+    </a>
+
+    <a href="{% url 'remote_start_drive' %}" class="action-tile"
+       data-confirm="{% trans 'Continue to remote drive activation?' %}">
+        <span class="action-tile__top"><span class="action-tile__code">REMOTE DRIVE</span><span class="action-tile__arrow">→</span></span>
+        <span><strong>{% trans 'Start without key' %}</strong><small>{% trans 'Requires account password' %}</small></span>
+    </a>
+</section>
+
+<div class="section-heading">
+    <div>
+        <span class="section-kicker">Telemetry</span>
+        <h2>{% trans 'Vehicle details' %}</h2>
+        <p>Tout ce qui compte, organisé par usage.</p>
+    </div>
+    <a href="{% url 'teslastatusJson' %}" target="_blank" rel="noopener" class="btn btn-sm btn-secondary">{% trans 'Raw JSON' %} ↗</a>
+</div>
+
+<section class="dashboard-grid">
+    <article class="dashboard-card">
+        <header class="dashboard-card__header">
+            <h3>{% trans 'General information' %}</h3>
+            <span>Identity</span>
+        </header>
+        <dl class="data-list">
+            <div class="data-row">
+                <dt>VIN</dt>
+                <dd><a href="https://teslatap.com/vin-decoder/" target="_blank" rel="noopener noreferrer">{{ vin }}</a></dd>
+            </div>
+            <div class="data-row"><dt>{% trans 'State' %}</dt><dd>{{ state }}</dd></div>
+            <div class="data-row"><dt>{% trans 'Car type' %}</dt><dd>{{ car_type }}</dd></div>
+            <div class="data-row"><dt>{% trans 'Exterior color' %}</dt><dd>{{ exterior_color }}</dd></div>
+            <div class="data-row"><dt>{% trans 'Wheel' %}</dt><dd>{{ wheel_type }}</dd></div>
+            <div class="data-row">
+                <dt>{% trans 'Sentry' %}</dt>
+                <dd>
+                    {% if sentry_mode is True %}
+                    <a href="{% url 'sentry_stop' %}" class="btn btn-sm btn-secondary">{% trans 'Active, stop?' %}</a>
+                    {% else %}
+                    <a href="{% url 'sentry_start' %}" class="btn btn-sm btn-secondary">{% trans 'Inactive, start?' %}</a>
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="data-row">
+                <dt>{% trans 'Valet mode' %}</dt>
+                <dd>
+                    {% if valet_mode is True %}
+                    <a href="{% url 'valet_stop' %}" class="btn btn-sm btn-secondary">{% trans 'Active, stop?' %}</a>
+                    {% else %}
+                    <a href="{% url 'valet_start' %}" class="btn btn-sm btn-secondary">{% trans 'Inactive, start?' %}</a>
+                    {% endif %}
+                </dd>
+            </div>
+        </dl>
+    </article>
+
+    <article class="dashboard-card dashboard-card--wide">
+        <header class="dashboard-card__header">
+            <h3>{% trans 'Charge status' %}</h3>
+            <span>{{ charging_state }}</span>
+        </header>
+        <div class="dashboard-grid">
+            <dl class="data-list data-column">
+                <div class="data-row data-row--hero"><dt>{% trans 'Battery level' %}</dt><dd>{{ battery_level }}%</dd></div>
+                <div class="data-row"><dt>{% trans 'Usable battery level (%)' %}</dt><dd>{{ usable_battery_level }}%</dd></div>
+                <div class="data-row"><dt>{% trans 'Battery range km' %}</dt><dd>{{ batteryrange }} km</dd></div>
+                {% if batterydegradation is not None %}
+                <div class="data-row"><dt>{% trans 'Battery degradation (%)' %}</dt><dd>{{ batterydegradation }}%</dd></div>
+                {% endif %}
+                <div class="data-row">
+                    <dt>{% trans 'Battery charge limit (%)' %}</dt>
+                    <dd><a href="{% url 'getdesiredchargelevel' %}" class="btn btn-sm btn-secondary">{{ charge_limit_soc }}% · {% trans 'Change' %}</a></dd>
+                </div>
+            </dl>
+            <dl class="data-list data-column">
+                <div class="data-row"><dt>{% trans 'Charge port' %}</dt><dd>{{ charge_port_type }}</dd></div>
+                {% if charging_state != "Disconnected" %}
+                <div class="data-row"><dt>{% trans 'Voltage in V' %}</dt><dd>{{ charger_voltage }} V</dd></div>
+                <div class="data-row"><dt>{% trans 'Current in A' %}</dt><dd>{{ charger_actual_current }} A</dd></div>
+                <div class="data-row"><dt>{% trans 'Power in kW' %}</dt><dd>{{ charger_power }} kW</dd></div>
+                <div class="data-row"><dt>{% trans 'Number of phases' %}</dt><dd>{{ charger_phases }}</dd></div>
+                <div class="data-row"><dt>{% trans 'Time left in minutes' %}</dt><dd>{{ minutes_to_full_charge }} min</dd></div>
+                <div class="data-row">
+                    <dt>{% trans 'Charging' %}</dt>
+                    <dd>
+                        {% if charging_state != "Charging" %}
+                        <a href="{% url 'charge_start' %}" class="btn btn-sm btn-primary">{% trans 'Start charge' %}</a>
+                        {% else %}
+                        <a href="{% url 'charge_stop' %}" class="btn btn-sm btn-danger" data-confirm="{% trans 'Stop charging now?' %}">{% trans 'Stop charge' %}</a>
+                        {% endif %}
+                    </dd>
+                </div>
+                {% else %}
+                <div class="empty-state"><span class="text-muted">{% trans 'Vehicle is unplugged' %}</span></div>
+                {% endif %}
+            </dl>
+        </div>
+    </article>
+
+    <article class="dashboard-card">
+        <header class="dashboard-card__header">
+            <h3>{% trans 'Drive and location' %}</h3>
+            <span>Mobility</span>
+        </header>
+        <dl class="data-list">
+            <div class="data-row data-row--hero"><dt>{% trans 'Speed' %}</dt><dd>{{ speed|default:"0" }}</dd></div>
+            <div class="data-row"><dt>{% trans 'Location' %}</dt><dd><a href="{{ linktogooglemaps }}" target="_blank" rel="noopener noreferrer">{{ location|default:"Map" }} ↗</a></dd></div>
+            <div class="data-row"><dt>{% trans 'Odometer' %}</dt><dd>{{ OdometerInKm }} km</dd></div>
+            <div class="data-row"><dt>{% trans 'Estim. number of battery cycles' %}</dt><dd>{{ NumberCycles }}</dd></div>
+            <div class="data-row"><dt>{% trans 'EPA Range (miles)' %}</dt><dd>{{ EPARangeMiles }}</dd></div>
+        </dl>
+    </article>
+
+    <article class="dashboard-card">
+        <header class="dashboard-card__header">
+            <h3>{% trans 'Climate information' %}</h3>
+            <span>{% if is_climate_on is True %}ON{% else %}OFF{% endif %}</span>
+        </header>
+        <dl class="data-list">
+            <div class="data-row data-row--hero"><dt>{% trans 'Inside temperature' %}</dt><dd>{{ inside_temp }}°</dd></div>
+            <div class="data-row"><dt>{% trans 'Outside temperature' %}</dt><dd>{{ outside_temp }}°</dd></div>
+            <div class="data-row">
+                <dt>{% trans 'Driver Temperature setting' %}</dt>
+                <dd><a href="{% url 'getdesiredtemperature' %}" class="btn btn-sm btn-secondary">{{ driver_temp_setting }}° · {% trans 'Change' %}</a></dd>
+            </div>
+        </dl>
+    </article>
+
+    <article class="dashboard-card">
+        <header class="dashboard-card__header">
+            <h3>{% trans 'Software' %}</h3>
+            <span>{{ car_version }}</span>
+        </header>
+        <dl class="data-list">
+            <div class="data-row"><dt>{% trans 'Firmware version' %}</dt><dd>{{ car_version }}</dd></div>
+            {% if hasUpdateReady %}
+            <div class="data-row"><dt>{% trans 'Update ready' %}</dt><dd><a href="{% url 'install_software_update' %}" class="btn btn-sm btn-primary">{% trans 'Install' %} {{ UpdateVersion }}</a></dd></div>
+            {% endif %}
+            {% if hasUpdateScheduled %}
+            <div class="data-row"><dt>{% trans 'Scheduled update' %}</dt><dd>{{ UpdateVersion }} · {{ UpdateVersionTimeSeconds }} s</dd></div>
+            {% endif %}
+            {% if hasUpdateInstalling %}
+            <div class="data-row"><dt>{% trans 'Installing' %}</dt><dd>{{ UpdateVersionInstallPerc }}%</dd></div>
+            {% endif %}
+            {% if hashedVin %}
+            <div class="data-row"><dt>{% trans 'History' %}</dt><dd><a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}">{% trans 'View history' %} ↗</a></dd></div>
+            {% endif %}
+        </dl>
+    </article>
+</section>

@@ -2,202 +2,89 @@
 {% load i18n %}
 {% load static %}
 
-{% block cssstyle %}
-        /*to avoid cut images, from https://www.w3schools.com/css/css_rwd_images.asp
-        +https://www.cssmine.com/ebook/css3-media-queries
-        Image is variable in height, width was forced to 400 pixels wide either by crop or scale*/
-        @media (max-width: 500px) {
-         img {
-                  width: 100%;
-                  height: auto;
-                }
-        }
-
-        <!--taken from bootstrap carousel sample,
-        https://getbootstrap.com/docs/4.4/examples/carousel/carousel.css-->
-        /* Carousel base class */
-        .carousel {
-          margin-bottom: 1rem;
-        }
-        /* Since positioning the image, we need to help out the caption */
-        .carousel-caption {
-          top: 0rem;
-          z-index: 10;
-        }
-
-        /* Declare heights because of positioning of img element */
-        /*The minimum to see all images*/
-        .carousel-item {
-          height: 30rem;
-        }
-        .carousel-item > img {
-          position: absolute;
-          top: 0;
-          left: 0;
-          min-width: 100%;
-        }
-{% endblock %}
+{% block title %}MaTesla · {% trans 'Login' %}{% endblock %}
+{% block body_class %}public-page{% endblock %}
+{% block main_class %}auth-main{% endblock %}
 
 {% block content %}
-<div class="form-group">
-    <a href="{% url 'signup' %}"class="btn btn-primary btn-sm">{% trans 'Signup' %}</a>
-    <a href="{% url 'AnonymisedStatsChoicePage' %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Firmware and cars Stats' %}</a>
-    <a href="https://github.com/mehdirahbe/matesla" rel="noopener noreferrer" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
-  </div>
+<section class="login-hero">
+    <div class="login-hero__inner">
+        <div class="login-hero__copy">
+            <p class="eyebrow">Your car. Your data.</p>
+            <h1 class="login-title">The quiet<br><span>co-pilot.</span></h1>
+            <p class="login-lede">
+                {% trans 'MaTesla is a Python/django free open source website using tesla api to connect to your marvellous Tesla car, have information on its state, location and remote control charge, temperature,... Statistics on firmware updates are also available.' %}
+            </p>
+            <div class="privacy-note">Open source · your telemetry stays under your control</div>
+        </div>
 
-<h2>{% trans 'Login' %}</h2>
-<div class="form-group">
-    <form method="post">
-        {% csrf_token %}
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <span class="input-group-text"></span>
-            </div>
-            {{ form.as_p }}
-            <a href="{% url 'password_reset' %}">{% trans 'Forgotten password?' %}</a>
-        </div>
-        <button type="submit" class="btn btn-primary">{% trans 'Login' %}</button>
-    </form>
-</div>
-<div class="form-group">
-{% trans 'MaTesla is a Python/django free open source website using tesla api to connect to your marvellous Tesla car, have information on its state, location and remote control charge, temperature,... Statistics on firmware updates are also available.' %}
-    <BR/>{% trans 'Have fun and you are the most welcome if you want to contribute :-)' %}
-  </div>
-    <!--Inspired from https://getbootstrap.com/docs/4.4/examples/carousel/
-    and extended to 9 parts
-    data-interval put to 3 seconds, goal is that the user see all is available and has time to see it-->
-    <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="3000">
-        <ol class="carousel-indicators">
-            <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
-            <li data-target="#myCarousel" data-slide-to="1"></li>
-            <li data-target="#myCarousel" data-slide-to="2"></li>
-            <li data-target="#myCarousel" data-slide-to="3"></li>
-            <li data-target="#myCarousel" data-slide-to="4"></li>
-            <li data-target="#myCarousel" data-slide-to="5"></li>
-            <li data-target="#myCarousel" data-slide-to="6"></li>
-            <li data-target="#myCarousel" data-slide-to="7"></li>
-            <li data-target="#myCarousel" data-slide-to="8"></li>
-        </ol>
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        {% trans 'Evolution of battery degradation in function of time for my Tesla (minimum, maximum, average)' %}
-<BR/><img class="lazyload" alt="" data-src="{% static "demo_battery_degradation.png" %}" width="399" height="193"/>
-                    </div>
+        <div class="auth-card">
+            <div class="auth-card__topline">
+                <div>
+                    <p class="eyebrow">{% trans 'Private space' %}</p>
+                    <h2>{% trans 'Login' %}</h2>
+                    <p class="auth-card__hint">Retrouvez votre véhicule et son historique.</p>
                 </div>
             </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-{% trans 'Raw json data returned by your Tesla... if you are curious' %}
-                        <BR/><img class="lazyload" alt="" data-src="{% static "demo_raw_json_data.png" %}" width="400" height="329"/>
-                    </div>
+
+            {% if form.non_field_errors %}
+            <div class="status-err">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<div class="helptext">{{ field.help_text }}</div>{% endif %}
+                    {{ field.errors }}
                 </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        {% trans 'Battery degradation of the Tesla fleet according to number of cycles' %}
-<BR/><img class="lazyload" alt="" data-src="{% static "demo_battery_degradation_vs_cycles.png" %}" width="400" height="191"/>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        {% trans 'Charge information of your Tesla, including both real and usable battery levels, and estimated battery degradation' %}
-<BR/><img class="lazyload" alt="" data-src="{% static "demo_tab_charge.png" %}" width="400" height="322"/>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        {% trans 'Tesla fleet recent firmware updates. Ideal to know when a new firmware version is available.' %}
-<BR/><img class="lazyload" alt="" data-src="{% static "demo_firmwareupdates.png" %}" width="400" height="165"/>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        {% trans 'Tesla commands: honk, flash... and put the car in drive mode. Yes, a trusted friend/family member can do that for you if you are locked out of your Tesla' %}
-<BR/><img class="lazyload" alt="" data-src="{% static "demo_tab_commands.png" %}" width="401" height="330"/>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        {% trans 'Your tesla odometer graph in function of time. Who drives the most?' %}
-<BR/><img class="lazyload" alt="" data-src="{% static "demo_odometer_miles.png" %}" width="400" height="167"/>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        {% trans 'Your tesla odometer and estimated battery number of cycles' %}
-<BR/><img class="lazyload" alt="" data-src="{% static "demo_tab_odometer_cycles.png" %}" width="400" height="293"/>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        {% trans 'Your tesla firmware history. Want to know when a version was installed on your Tesla?' %}
-                <BR/><img class="lazyload" alt="" data-src="{% static "demo_my_firmware_history.png" %}" width="399" height="354"/>
-                    </div>
-                </div>
+                {% endfor %}
+                {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+                <button type="submit" class="app-button app-button--primary">{% trans 'Login' %} <span aria-hidden="true">→</span></button>
+            </form>
+
+            <div class="auth-card__meta">
+                <a href="{% url 'password_reset' %}">{% trans 'Forgotten password?' %}</a>
+                <a href="{% url 'signup' %}">{% trans 'Signup' %} <span aria-hidden="true">↗</span></a>
             </div>
         </div>
-        <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="sr-only">Previous</span>
-        </a>
-        <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="sr-only">Next</span>
-        </a>
+    </div>
+</section>
+
+<section class="showcase" aria-labelledby="showcase-title">
+    <div class="showcase__heading">
+        <p class="eyebrow">One dashboard, the full story</p>
+        <h2 id="showcase-title">Beyond a status screen.</h2>
+        <p>Suivez la santé de la batterie, les trajets et les versions logicielles sans perdre votre temps dans des menus.</p>
     </div>
 
-
-
+    <div class="showcase-grid">
+        <article class="showcase-card">
+            <span class="showcase-card__index">01 · BATTERY</span>
+            <h3>{% trans 'Battery degradation graphs' %}</h3>
+            <p>Une lecture claire de l’évolution réelle de votre autonomie.</p>
+            <div class="showcase-card__media">
+                <img class="lazyload" data-src="{% static 'demo_battery_degradation.png' %}" alt="{% trans 'Battery degradation graphs' %}" width="399" height="193">
+            </div>
+        </article>
+        <article class="showcase-card">
+            <span class="showcase-card__index">02 · DRIVE</span>
+            <h3>Trajets &amp; localisation</h3>
+            <p>Retrouvez kilomètres, cycles et journées de conduite.</p>
+            <div class="showcase-card__media">
+                <img class="lazyload" data-src="{% static 'demo_odometer_miles.png' %}" alt="{% trans 'Your tesla odometer graph in function of time. Who drives the most?' %}" width="400" height="167">
+            </div>
+        </article>
+        <article class="showcase-card">
+            <span class="showcase-card__index">03 · SOFTWARE</span>
+            <h3>{% trans 'Firmware history' %}</h3>
+            <p>Chaque mise à jour, replacée dans le temps.</p>
+            <div class="showcase-card__media">
+                <img class="lazyload" data-src="{% static 'demo_my_firmware_history.png' %}" alt="{% trans 'Firmware history' %}" width="399" height="354">
+            </div>
+        </article>
+    </div>
+</section>
 {% endblock %}

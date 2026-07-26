@@ -1,13 +1,35 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
+{% block title %}MaTesla · {% trans 'Sign up' %}{% endblock %}
+
 {% block content %}
-  <h2>{% trans 'Sign up' %}</h2>
-  <form method="post">
-    {% csrf_token %}
+<section class="auth-page">
+    <div class="page-heading">
+        <div class="page-heading__copy">
+            <p class="eyebrow">MaTesla</p>
+            <h1 class="page-title page-title--compact">{% trans 'Sign up' %}</h1>
+            <p class="page-subtitle">Créez votre espace privé, puis reliez votre compte Tesla en quelques étapes.</p>
+        </div>
+    </div>
 
-  {{ form.as_p }}
-
-    <button type="submit"class="btn btn-primary">{% trans 'Sign up' %}</button>
-  </form>
+    <div class="auth-card">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="helptext">{{ field.help_text }}</div>{% endif %}
+                {{ field.errors }}
+            </div>
+            {% endfor %}
+            <button type="submit" class="app-button app-button--primary">{% trans 'Sign up' %} <span aria-hidden="true">→</span></button>
+        </form>
+        <div class="auth-card__meta">
+            <span>Déjà inscrit ?</span>
+            <a href="{% url 'login' %}">{% trans 'Login' %}</a>
+        </div>
+    </div>
+</section>
 {% endblock %}
