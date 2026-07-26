@@ -1,165 +1,125 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}Connecter Tesla — MyRobotCar{% endblock %}
-
-{% block cssstyle %}
-.tesla-connect-card {
-    max-width: 44rem;
-    margin: 1.5rem auto;
-    background: #fff;
-    border-radius: .5rem;
-    box-shadow: 0 .125rem .5rem rgba(0,0,0,.08);
-    padding: 1.5rem;
-}
-.tesla-connect-card h1 { font-size: 1.4rem; margin-bottom: 1rem; }
-.tesla-connect-card h2 { font-size: 1.1rem; margin-top: 1.25rem; margin-bottom: .75rem; }
-.hint { color: #555; font-size: .9rem; }
-.status-ok { color: #155724; background: #d4edda; padding: .75rem 1rem; border-radius: .25rem; }
-.status-warn { color: #856404; background: #fff3cd; padding: .75rem 1rem; border-radius: .25rem; }
-.status-err { color: #721c24; background: #f8d7da; padding: .75rem 1rem; border-radius: .25rem; }
-.form-group { margin-bottom: .85rem; }
-.btn-tesla {
-    background: #cc0000;
-    border-color: #cc0000;
-    color: #fff;
-    font-weight: 600;
-}
-.btn-tesla:hover { background: #a00; border-color: #a00; color: #fff; }
-pre.key-box {
-    background: #f4f4f4;
-    border: 1px solid #ddd;
-    padding: .75rem;
-    font-size: .75rem;
-    max-height: 10rem;
-    overflow: auto;
-    white-space: pre-wrap;
-}
-{% endblock %}
+{% block title %}Connecter Tesla — MaTesla{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="form-group mt-2">
-        <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
-        <a href="{% url 'tesla_status' %}" class="btn btn-secondary btn-sm">Statut voiture</a>
-        <a href="{% url 'AnonymisedStatsChoicePage' %}" class="btn btn-info btn-sm">{% trans 'Firmware and cars Stats' %}</a>
-    </div>
+<div class="page-heading">
+    <p class="eyebrow">Fleet API</p>
+    <h1 class="page-title">Connexion Tesla</h1>
+    <p class="page-subtitle">
+        OAuth → tokens en base. Ensuite Tesla exige un <strong>partner register</strong>
+        (domaine HTTPS + clé publique) avant de lister les véhicules.
+    </p>
+</div>
 
-    <div class="tesla-connect-card">
-        <h1>Connexion Tesla (Fleet API)</h1>
-        <p class="hint">
-            OAuth → tokens en base. Ensuite Tesla exige un <strong>partner register</strong>
-            (domaine HTTPS + clé publique) avant de lister les véhicules.
-        </p>
+{% if oauth_error %}
+<div class="banner" style="border-color:rgba(255,92,106,0.4);background:rgba(255,92,106,0.12);color:#ffb0b8;">{{ oauth_error }}</div>
+{% endif %}
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="mb-2 {% if 'error' in message.tags %}status-err{% elif 'warning' in message.tags %}status-warn{% else %}status-ok{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-        {% if oauth_error %}
-            <div class="status-err mb-2">{{ oauth_error }}</div>
-        {% endif %}
-
-        {% if tesla_token %}
-            <div class="status-ok mb-3">
-                <strong>Compte Tesla lié (OAuth OK).</strong><br>
-                {% if tesla_token.expires_at %}Access token expire : {{ tesla_token.expires_at }}<br>{% endif %}
-                {% if vehicles %}
-                    <strong>{{ vehicles|length }} véhicule(s) :</strong>
-                    <ul class="mb-0 mt-1">
-                    {% for v in vehicles %}
-                        <li>
-                            {{ v.label }}
-                            {% if active_vehicle and v.api_id == active_vehicle.api_id %}<strong>(actif)</strong>{% endif %}
-                            {% if v.is_primary %} · défaut{% endif %}
-                            — <span class="hint">{{ v.state|default:"?" }}</span>
-                        </li>
-                    {% endfor %}
-                    </ul>
-                {% else %}
-                    Aucun véhicule synchronisé — fais l’étape 1.b (partner register) puis « Resync ».
-                {% endif %}
-            </div>
-
-            {% if vehicles|length > 1 %}
-            <form method="post" class="mb-3">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="select_vehicle">
-                <label for="vehicle_api_id">Véhicule actif</label>
-                <div class="input-group">
-                    <select name="vehicle_api_id" id="vehicle_api_id" class="form-control">
-                        {% for v in vehicles %}
-                        <option value="{{ v.api_id }}"
-                            {% if active_vehicle and v.api_id == active_vehicle.api_id %}selected{% endif %}>
-                            {{ v.label }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-secondary">Utiliser</button>
-                    </div>
-                </div>
-            </form>
+<div class="app-card">
+    {% if tesla_token %}
+        <div class="banner banner--info mb-3">
+            <strong>Compte Tesla lié (OAuth OK).</strong><br>
+            {% if tesla_token.expires_at %}Access token expire : {{ tesla_token.expires_at }}<br>{% endif %}
+            {% if vehicles %}
+                <strong>{{ vehicles|length }} véhicule(s) :</strong>
+                <ul class="mb-0 mt-1">
+                {% for v in vehicles %}
+                    <li>
+                        {{ v.label }}
+                        {% if active_vehicle and v.api_id == active_vehicle.api_id %}<strong>(actif)</strong>{% endif %}
+                        {% if v.is_primary %} · défaut{% endif %}
+                        — <span class="text-muted">{{ v.state|default:"?" }}</span>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                Aucun véhicule synchronisé — fais l’étape 1.b (partner register) puis « Resync ».
             {% endif %}
+        </div>
 
+        {% if vehicles|length > 1 %}
+        <form method="post" class="mb-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="select_vehicle">
+            <label for="vehicle_api_id">Véhicule actif</label>
+            <div class="stats-toolbar">
+                <select name="vehicle_api_id" id="vehicle_api_id" class="form-control" style="max-width:20rem;">
+                    {% for v in vehicles %}
+                    <option value="{{ v.api_id }}"
+                        {% if active_vehicle and v.api_id == active_vehicle.api_id %}selected{% endif %}>
+                        {{ v.label }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-secondary">Utiliser</button>
+            </div>
+        </form>
+        {% endif %}
+
+        <div class="stats-toolbar mb-3">
             <form method="post" class="d-inline">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="disconnect">
-                <button type="submit" class="btn btn-outline-danger btn-sm">Déconnecter Tesla</button>
+                <button type="submit" class="btn btn-danger btn-sm">Déconnecter Tesla</button>
             </form>
             <form method="post" class="d-inline">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="resync_vehicles">
-                <button type="submit" class="btn btn-tesla btn-sm">Resync véhicules</button>
+                <button type="submit" class="btn btn-primary btn-sm">Resync véhicules</button>
             </form>
-            <a href="{% url 'tesla_oauth_start' %}" class="btn btn-outline-secondary btn-sm">Refaire OAuth</a>
-        {% endif %}
+            <a href="{% url 'tesla_oauth_start' %}" class="btn btn-secondary btn-sm">Refaire OAuth</a>
+        </div>
+    {% endif %}
+</div>
 
-        <h2>1. Application développeur</h2>
-        <p class="hint">
-            Client ID / Secret depuis
-            <a href="https://developer.tesla.com/dashboard" target="_blank" rel="noopener">developer.tesla.com</a>
-            (MyRobotCar). Stockés en base locale.
-        </p>
-        <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="save_app">
-            {% for field in app_form %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
-                    {% for err in field.errors %}<div class="status-err">{{ err }}</div>{% endfor %}
-                </div>
-            {% endfor %}
-            <button type="submit" class="btn btn-primary">Enregistrer</button>
-        </form>
-
-        <h2>1.b Partner register (obligatoire — ton erreur 412)</h2>
-        {% if partner_registered %}
-            <div class="status-ok mb-2">
-                App enregistrée comme partner pour le domaine
-                <code>{{ partner_domain }}</code>.
+<div class="app-card">
+    <h2 class="app-card__title">1. Application développeur</h2>
+    <p class="text-muted">
+        Client ID / Secret depuis
+        <a href="https://developer.tesla.com/dashboard" target="_blank" rel="noopener">developer.tesla.com</a>
+        (MyRobotCar). Stockés en base locale.
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_app">
+        {% for field in app_form %}
+            <div class="form-group mb-3">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<small class="form-text text-muted d-block">{{ field.help_text }}</small>{% endif %}
+                {% for err in field.errors %}<div class="text-danger">{{ err }}</div>{% endfor %}
             </div>
-        {% else %}
-            <div class="status-warn mb-2">
-                Tesla exige un <strong>partner register par région</strong> (ici EU).
-                Domaine : <code>mehdirahbe.github.io</code> (sans https://).
-                Allowed Origin dashboard : <code>https://mehdirahbe.github.io</code>.
-            </div>
-        {% endif %}
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+    </form>
+</div>
 
-        <ol class="hint">
-            <li>Domaine partner = <code>mehdirahbe.github.io</code> <strong>sans</strong> <code>https://</code>.</li>
-            <li>Clé déjà en ligne via GitHub Pages (voir URL ci‑dessous).</li>
-            <li>Dashboard Tesla → Allowed Origin : <code>https://mehdirahbe.github.io</code>
-                (+ garder localhost pour le redirect OAuth).</li>
-            <li>« Register partner (EU) » puis « Resync véhicules ».</li>
-        </ol>
+<div class="app-card">
+    <h2 class="app-card__title">1.b Partner register (obligatoire)</h2>
+    {% if partner_registered %}
+        <div class="banner banner--info mb-2">
+            App enregistrée comme partner pour le domaine
+            <code>{{ partner_domain }}</code>.
+        </div>
+    {% else %}
+        <div class="banner mb-2">
+            Tesla exige un <strong>partner register par région</strong> (ici EU).
+            Domaine : <code>mehdirahbe.github.io</code> (sans https://).
+            Allowed Origin dashboard : <code>https://mehdirahbe.github.io</code>.
+        </div>
+    {% endif %}
 
+    <ol class="text-muted">
+        <li>Domaine partner = <code>mehdirahbe.github.io</code> <strong>sans</strong> <code>https://</code>.</li>
+        <li>Clé déjà en ligne via GitHub Pages (voir URL ci‑dessous).</li>
+        <li>Dashboard Tesla → Allowed Origin : <code>https://mehdirahbe.github.io</code>
+            (+ garder localhost pour le redirect OAuth).</li>
+        <li>« Register partner (EU) » puis « Resync véhicules ».</li>
+    </ol>
+
+    <div class="stats-toolbar mb-2">
         <form method="post" class="d-inline">
             {% csrf_token %}
             <input type="hidden" name="action" value="generate_keys">
@@ -169,7 +129,7 @@ pre.key-box {
             {% csrf_token %}
             <input type="hidden" name="action" value="check_public_key">
             <input type="hidden" name="partner_domain" value="{{ partner_domain }}">
-            <button type="submit" class="btn btn-outline-secondary btn-sm" {% if not partner_domain %}disabled{% endif %}>
+            <button type="submit" class="btn btn-secondary btn-sm" {% if not partner_domain %}disabled{% endif %}>
                 Vérifier la clé en ligne
             </button>
         </form>
@@ -177,36 +137,38 @@ pre.key-box {
             {% csrf_token %}
             <input type="hidden" name="action" value="register_partner">
             <input type="hidden" name="partner_domain" value="{{ partner_domain }}">
-            <button type="submit" class="btn btn-warning btn-sm" {% if not partner_domain %}disabled{% endif %}>
+            <button type="submit" class="btn btn-primary btn-sm" {% if not partner_domain %}disabled{% endif %}>
                 Register partner (EU)
             </button>
         </form>
-
-        {% if public_key_url %}
-            <p class="hint mt-2">URL attendue par Tesla :<br><code>{{ public_key_url }}</code></p>
-        {% endif %}
-        {% if public_key_path %}
-            <p class="hint">Fichier local : <code>{{ public_key_path }}</code></p>
-        {% endif %}
-        {% if public_key_pem %}
-            <p class="hint mb-1">Contenu à publier :</p>
-            <pre class="key-box">{{ public_key_pem }}</pre>
-        {% endif %}
-
-        <h2>2. Compte véhicule (OAuth)</h2>
-        {% if app_configured %}
-            <p class="hint">
-                Redirect URI exact :
-                <code>http://localhost:8001/oauth/callback</code>
-            </p>
-            <a href="{% url 'tesla_oauth_start' %}" class="btn btn-tesla btn-lg">
-                Se connecter avec Tesla
-            </a>
-        {% else %}
-            <div class="status-warn">
-                Enregistre d’abord le Client ID / Secret (étape 1).
-            </div>
-        {% endif %}
     </div>
+
+    {% if public_key_url %}
+        <p class="text-muted mt-2">URL attendue par Tesla :<br><code>{{ public_key_url }}</code></p>
+    {% endif %}
+    {% if public_key_path %}
+        <p class="text-muted">Fichier local : <code>{{ public_key_path }}</code></p>
+    {% endif %}
+    {% if public_key_pem %}
+        <p class="text-muted mb-1">Contenu à publier :</p>
+        <pre class="key-box">{{ public_key_pem }}</pre>
+    {% endif %}
+</div>
+
+<div class="app-card">
+    <h2 class="app-card__title">2. Compte véhicule (OAuth)</h2>
+    {% if app_configured %}
+        <p class="text-muted">
+            Redirect URI exact :
+            <code>http://localhost:8001/oauth/callback</code>
+        </p>
+        <a href="{% url 'tesla_oauth_start' %}" class="btn btn-primary btn-lg">
+            Se connecter avec Tesla
+        </a>
+    {% else %}
+        <div class="banner">
+            Enregistre d’abord le Client ID / Secret (étape 1).
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

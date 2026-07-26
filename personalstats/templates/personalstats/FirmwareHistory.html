@@ -2,15 +2,18 @@
 {% load i18n %}
 {% load render_table from django_tables2 %}
 
+{% block title %}{% trans 'Firmware history' %} — MaTesla{% endblock %}
 
 {% block content %}
-<div class="form-group">
-    <a href="{% url 'PersoStatsFirmwareHistoryCSV' hashedVin %}"class="btn btn-info btn-sm">{% trans 'Download my Data' %}</a>
-  </div>
-<div class="form-group">
+{% include 'matesla/_vehicle_chrome.html' %}
+<div class="page-heading">
+    <p class="eyebrow">{% trans 'History' %}</p>
+    <h1 class="page-title">{% trans 'Firmware history' %}</h1>
+</div>
+<div class="stats-toolbar">
+    <a href="{% url 'PersoStatsFirmwareHistoryCSV' hashedVin %}" class="btn btn-info btn-sm">{% trans 'Download my Data' %}</a>
+</div>
+<div class="app-card table-responsive">
     {% render_table table %}
-    {% endblock %}
-
-
-
-
+</div>
+{% endblock %}

@@ -1,26 +1,39 @@
 {% load i18n %}
-<div class="form-group">
-    <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
-    <a href="{% url 'AddTeslaAccount' %}" class="btn btn-primary btn-sm">{% trans 'Tesla account' %}</a>
-    <a href="{% url 'tesla_status' %}" class="btn btn-secondary btn-sm">Statut</a>
-    <a href="{% url 'AnonymisedStatsChoicePage' %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Firmware and cars Stats' %}</a>
-    <a href="https://github.com/mehdirahbe/matesla" rel="noopener noreferrer" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
+<div class="vehicle-bar">
+    <div>
+        <div class="vehicle-bar__label">{% trans 'Vehicle' %}</div>
+        {% if user_vehicles and user_vehicles|length > 0 %}
+        <form action="{% url 'select_vehicle' %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <select name="vehicle_api_id" id="vehicle_api_id" class="form-control form-control-sm"
+                    onchange="this.form.submit()" aria-label="{% trans 'Vehicle' %}">
+                {% for v in user_vehicles %}
+                <option value="{{ v.api_id }}"
+                    {% if active_vehicle_api_id == v.api_id %}selected{% endif %}>
+                    {{ v.label }}{% if v.state %} · {{ v.state }}{% endif %}
+                </option>
+                {% endfor %}
+            </select>
+            <noscript><button type="submit" class="btn btn-sm btn-secondary">OK</button></noscript>
+        </form>
+        {% elif active_vehicle_label %}
+        <strong>{{ active_vehicle_label }}</strong>
+        {% else %}
+        <span class="text-muted">{% trans 'No vehicle selected' %}</span>
+        {% endif %}
+    </div>
+
+    {% if state or active_vehicle_label %}
+    <span class="vehicle-state {% if state == 'online' %}vehicle-state--online{% elif state == 'asleep' or state == 'offline' %}vehicle-state--asleep{% endif %}">
+        {% if state %}{{ state }}{% else %}—{% endif %}
+    </span>
+    {% endif %}
+
+    {% if hashedVin %}
+    <div class="vehicle-bar__actions" style="margin-left:auto;display:flex;flex-wrap:wrap;gap:8px;">
+        <a href="{% url 'PersoStats' hashedVin %}" class="btn btn-info btn-sm">{% trans 'My data' %}</a>
+        <a href="{% url 'PersoDayMap' hashedVin %}" class="btn btn-success btn-sm">{% trans 'Day map' %}</a>
+        <a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}" class="btn btn-secondary btn-sm">{% trans 'Firmware history' %}</a>
+    </div>
+    {% endif %}
 </div>
-{% if user_vehicles and user_vehicles|length > 0 %}
-<form action="{% url 'select_vehicle' %}" method="post" class="form-inline mb-2">
-    {% csrf_token %}
-    <label class="mr-2" for="vehicle_api_id">Véhicule</label>
-    <select name="vehicle_api_id" id="vehicle_api_id" class="form-control form-control-sm mr-2"
-            onchange="this.form.submit()">
-        {% for v in user_vehicles %}
-        <option value="{{ v.api_id }}"
-            {% if active_vehicle_api_id == v.api_id %}selected{% endif %}>
-            {{ v.label }}{% if v.state %} ({{ v.state }}){% endif %}
-        </option>
-        {% endfor %}
-    </select>
-    <noscript><button type="submit" class="btn btn-sm btn-secondary">OK</button></noscript>
-</form>
-{% elif active_vehicle_label %}
-<p class="text-muted small mb-2">Véhicule : {{ active_vehicle_label }}</p>
-{% endif %}

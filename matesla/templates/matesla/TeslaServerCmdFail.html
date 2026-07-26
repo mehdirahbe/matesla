@@ -1,20 +1,13 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
+{% block title %}{% trans 'Command failed' %} — MaTesla{% endblock %}
 
 {% block content %}
-<div class="form-group">
-    <a href="{% url 'logout' %}"class="btn btn-danger btn-sm">{% trans 'logout' %}</a>
-    <a href="{% url 'AddTeslaAccount' %}"class="btn btn-primary btn-sm">{% trans 'Tesla account' %}</a>
-    <a href="{% url 'AnonymisedStatsChoicePage' %}" target="_blank" class="btn btn-info btn-sm">{% trans 'Firmware and cars Stats' %}</a>
-    <a href="https://github.com/mehdirahbe/matesla" rel="noopener noreferrer" target="_blank" class="btn btn-primary btn-sm">Matesla Github</a>
-  </div>
-<div class="form-group">
-  {% trans 'Tesla server did return an error when executing a command' %}
-  </div>
-<div class="form-group">
-  <a href="{% url 'tesla_status' %}"class="btn btn-primary">{% trans 'Retry?' %}</a>
-  </div>
-
+<div class="app-card" style="max-width:32rem;">
+    <h1 class="page-title" style="font-size:1.4rem;">{% trans 'Tesla server did return an error when executing a command' %}</h1>
+    <div class="auth-actions mt-3">
+        <a href="{% url 'tesla_status' %}" class="btn btn-primary">{% trans 'Retry?' %}</a>
+    </div>
+</div>
 {% endblock %}
-

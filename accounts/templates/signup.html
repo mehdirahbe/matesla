@@ -1,13 +1,22 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
+{% block title %}{% trans 'Sign up' %} — MaTesla{% endblock %}
+
 {% block content %}
-  <h2>{% trans 'Sign up' %}</h2>
-  <form method="post">
-    {% csrf_token %}
-
-  {{ form.as_p }}
-
-    <button type="submit"class="btn btn-primary">{% trans 'Sign up' %}</button>
-  </form>
+<div class="auth-shell" style="max-width:28rem;margin:0 auto;">
+    <div class="auth-card">
+        <p class="eyebrow">{% trans 'Account' %}</p>
+        <h2>{% trans 'Sign up' %}</h2>
+        <p class="lede">{% trans 'Create an account to connect your Tesla and explore personal stats.' %}</p>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="auth-actions">
+                <button type="submit" class="btn btn-primary">{% trans 'Sign up' %}</button>
+                <a href="{% url 'login' %}" class="btn btn-secondary">{% trans 'Login' %}</a>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

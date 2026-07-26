@@ -5,77 +5,36 @@
 {% block title %}{% trans 'Day map' %} — {{ day_display }}{% endblock %}
 
 {% block extracss %}
-{# Leaflet must be a real <link> in <head>, not inside base.html's <style> block #}
 <link rel="stylesheet" href="{% static 'leaflet/leaflet.css' %}">
 {% endblock %}
 
 {% block cssstyle %}
-    .daymap-toolbar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: .5rem;
-        margin-bottom: 1rem;
-    }
-    .daymap-toolbar form {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: .4rem;
-        margin: 0;
-    }
-    #daymap {
-        height: min(70vh, 640px);
-        width: 100%;
-        max-width: 1100px;
-        border-radius: .35rem;
-        border: 1px solid #ccc;
-        /* contain Leaflet panes; avoid tiles painting over the whole page */
-        position: relative;
-        z-index: 0;
-        overflow: hidden;
-        background: #e9ecef;
-    }
-    .daymap-meta {
-        max-width: 1100px;
-        margin-top: .75rem;
-    }
-    .daymap-stops {
-        max-width: 1100px;
-        margin-top: 1rem;
-    }
-    .daymap-stops table {
-        width: 100%;
-        font-size: .95rem;
-    }
-    .daymap-empty {
-        padding: 1rem;
-        background: #f8f9fa;
-        border-radius: .35rem;
-        max-width: 1100px;
-    }
-    /* Coords shown until async reverse-geocode fills the label */
-    a.gmaps-pending {
-        font-variant-numeric: tabular-nums;
-        opacity: 0.85;
-        font-style: italic;
-    }
+#daymap {
+    height: min(70vh, 640px);
+    width: 100%;
+    position: relative;
+    z-index: 0;
+    overflow: hidden;
+}
 {% endblock %}
 
 {% block content %}
 {% include 'matesla/_vehicle_chrome.html' %}
 
-<div class="daymap-toolbar">
+<div class="page-heading">
+    <p class="eyebrow">{% trans 'Map' %}</p>
+    <h1 class="page-title">{% trans 'Where was the car' %}</h1>
+    <p class="page-subtitle">{{ day_display }} · {{ tz_name }}</p>
+</div>
+
+<div class="daymap-toolbar app-card" style="padding:12px 16px;">
     <a href="{% url 'PersoStats' hashedVin %}" class="btn btn-secondary btn-sm">{% trans 'Personal stats' %}</a>
     <a href="{% url 'PersoDayMapDay' hashedVin prev_day_iso %}" class="btn btn-outline-primary btn-sm" title="{% trans 'Previous day' %}">←</a>
 
     <form method="get" action="{% url 'PersoDayMap' hashedVin %}" id="daymap-form">
-        {# Native picker (YYYY-MM-DD) #}
         <label class="sr-only" for="date_iso">{% trans 'Date' %}</label>
         <input type="date" name="date" id="date_iso" class="form-control form-control-sm"
-               value="{{ day_iso }}" required
-               title="{% trans 'Pick a date' %}">
-        {# Free-text European date for keyboard fans #}
+               value="{{ day_iso }}" required title="{% trans 'Pick a date' %}">
         <label class="sr-only" for="date_text">{% trans 'Date as text' %}</label>
         <input type="text" id="date_text" class="form-control form-control-sm"
                placeholder="31/12/2024" value="{{ day_display }}"
@@ -86,22 +45,20 @@
     </form>
 
     <a href="{% url 'PersoDayMapDay' hashedVin next_day_iso %}" class="btn btn-outline-primary btn-sm" title="{% trans 'Next day' %}">→</a>
-    <span class="text-muted small">{{ tz_name }}</span>
 </div>
 
 {% if parse_error %}
-<div class="alert alert-warning" style="max-width: 1100px;">{{ parse_error }}</div>
+<div class="alert alert-warning">{{ parse_error }}</div>
 {% endif %}
-
-<h4>{% trans 'Where was the car' %} — {{ day_display }}</h4>
 
 {% if has_track %}
 {% if has_gps %}
-<div id="daymap"></div>
+<div id="daymap" class="mb-3"></div>
 {% else %}
-<div class="daymap-empty"><p class="mb-0">{% trans 'No GPS points for this day (telemetry only).' %}</p></div>
+<div class="daymap-empty app-card"><p class="mb-0">{% trans 'No GPS points for this day (telemetry only).' %}</p></div>
 {% endif %}
-<div class="daymap-meta">
+
+<div class="daymap-meta app-card">
     <p class="mb-1">
         <strong>{% trans 'GPS points' %}:</strong> {{ total_points }}
         {% if path_points != total_points and path_points %}
@@ -124,9 +81,8 @@
     </p>
     {% endif %}
 
-    {# Day totals — same columns as the drives table #}
     <div class="table-responsive mb-2">
-    <table class="table table-sm table-bordered mb-1" style="max-width: 1100px;">
+    <table class="table table-sm table-bordered mb-1">
         <thead>
         <tr>
             <th>{% trans 'Distance' %}</th>
@@ -162,8 +118,8 @@
 </div>
 
 {% if drives %}
-<div class="daymap-stops">
-    <h5>{% trans 'Drives' %}</h5>
+<div class="daymap-stops app-card">
+    <h3 class="app-card__title">{% trans 'Drives' %}</h3>
     <div class="table-responsive">
     <table class="table table-sm table-striped">
         <thead>
@@ -212,8 +168,8 @@
 {% endif %}
 
 {% if charges %}
-<div class="daymap-stops">
-    <h5>{% trans 'Charging stops' %}</h5>
+<div class="daymap-stops app-card">
+    <h3 class="app-card__title">{% trans 'Charging stops' %}</h3>
     <div class="table-responsive">
     <table class="table table-sm table-striped">
         <thead>
@@ -250,13 +206,13 @@
 {% endif %}
 
 {% if not drives and not charges %}
-<div class="daymap-empty mt-2">
+<div class="daymap-empty app-card">
     <p class="mb-0">{% trans 'No drive or charge segments detected for this day.' %}</p>
 </div>
 {% endif %}
 
 {% else %}
-<div class="daymap-empty">
+<div class="daymap-empty app-card">
     <p class="mb-0">{% trans 'No data for this day.' %}</p>
     <p class="text-muted small mb-0">{% trans 'Try another date with the arrows or by typing DD/MM/YYYY.' %}</p>
 </div>
@@ -268,23 +224,18 @@
 <script src="{% static 'leaflet/leaflet.js' %}"></script>
 <script>
 (function () {
-    // Prefer typed European date when submitted
     var form = document.getElementById('daymap-form');
     var dateIso = document.getElementById('date_iso');
     var dateText = document.getElementById('date_text');
     if (form && dateIso && dateText) {
-        form.addEventListener('submit', function (ev) {
+        form.addEventListener('submit', function () {
             var t = (dateText.value || '').trim();
             var m = t.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
             if (m) {
-                var d = m[1].padStart(2, '0');
-                var mo = m[2].padStart(2, '0');
-                var y = m[3];
-                dateIso.value = y + '-' + mo + '-' + d;
+                dateIso.value = m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
             }
         });
         dateIso.addEventListener('change', function () {
-            // mirror ISO → DD/MM/YYYY for the text field
             if (!dateIso.value) return;
             var p = dateIso.value.split('-');
             if (p.length === 3) {
@@ -293,11 +244,9 @@
         });
     }
 
-    // --- Async reverse-geocode: page shows lat/lon first, labels fill in later ---
     var resolveUrl = "{% url 'PersoResolveAddress' %}";
     var pending = document.querySelectorAll('a.gmaps-link[data-geocode="1"]');
     if (pending.length) {
-        // Dedupe by lat,lon so one HTTP fills every matching link
         var queue = [];
         var seen = {};
         pending.forEach(function (el) {
@@ -311,7 +260,6 @@
             }
         });
         function applyAddress(lat, lon, address) {
-            // Match by the same data-lat/data-lon strings we put in the HTML
             document.querySelectorAll('a.gmaps-link[data-geocode="1"]').forEach(function (el) {
                 if (el.getAttribute('data-lat') === lat && el.getAttribute('data-lon') === lon) {
                     el.textContent = address;
@@ -329,15 +277,11 @@
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
                     if (data && data.ok && data.address) {
-                        // Use request keys (HTML data-*), not server-rounded floats
                         applyAddress(item.lat, item.lon, data.address);
                     }
                 })
-                .catch(function () { /* keep coords */ })
-                .finally(function () {
-                    // Server already enforces ~1 req/s; small gap keeps UI responsive
-                    setTimeout(next, 50);
-                });
+                .catch(function () {})
+                .finally(function () { setTimeout(next, 50); });
         }
         next();
     }
@@ -345,7 +289,6 @@
     {% if has_gps %}
     var path = {{ path_json|safe }};
     if (!path || !path.length || typeof L === 'undefined') return;
-    // Default marker icons: absolute URLs under our static tree (not CDN)
     var leafletIconBase = "{% static 'leaflet/images/' %}";
     L.Icon.Default.mergeOptions({
         iconUrl: leafletIconBase + 'marker-icon.png',
@@ -353,14 +296,12 @@
         shadowUrl: leafletIconBase + 'marker-shadow.png'
     });
     var map = L.map('daymap');
-    // Raster tiles still come from OSM at runtime (not a vendored JS/CSS asset;
-    // self-hosting the planet is out of scope). Library code is fully local.
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
     var latlngs = path.map(function (p) { return [p.lat, p.lon]; });
-    var line = L.polyline(latlngs, { color: '#0d6efd', weight: 4, opacity: 0.85 }).addTo(map);
+    var line = L.polyline(latlngs, { color: '#3d9cff', weight: 4, opacity: 0.9 }).addTo(map);
     var start = path[0];
     var end = path[path.length - 1];
     L.marker([start.lat, start.lon]).addTo(map).bindPopup('{% trans "Start" %}: ' + start.t);
@@ -368,7 +309,6 @@
         L.marker([end.lat, end.lon]).addTo(map).bindPopup('{% trans "End" %}: ' + end.t);
     }
     map.fitBounds(line.getBounds(), { padding: [30, 30] });
-    // Container may have been layout-incomplete at init; force correct size
     setTimeout(function () { map.invalidateSize(); }, 0);
     {% endif %}
 })();

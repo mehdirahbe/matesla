@@ -1,115 +1,88 @@
 {% load i18n %}
 
-    {# Default period = 4 weeks ("1 Month") — must match data-src on graphs below and JS #}
-    <a href="{% url 'AllMyDataAsCSV' hashedVin %}"class="btn btn-info btn-sm">{% trans 'Download my Data' %}</a>
+<div class="stats-toolbar">
+    <a href="{% url 'AllMyDataAsCSV' hashedVin %}" class="btn btn-info btn-sm">{% trans 'Download my Data' %}</a>
     <a href="{% url 'PersoDayMap' hashedVin %}" class="btn btn-success btn-sm">{% trans 'Day map' %}</a>
-                        <select id="DesiredPeriod">
-                            <option value="1">{% trans '1 Week' %}</option>
-                            <option value="2">{% trans '2 Weeks' %}</option>
-                            <option value="4" selected>{% trans '1 Month' %}</option>
-                            <option value="13">{% trans '3 Months' %}</option>
-                            <option value="26">{% trans '6 Months' %}</option>
-                            <option value="52">{% trans '1 Year' %}</option>
-                            <option value="104">{% trans '2 Years' %}</option>
-                            <option value="260">{% trans '5 Years' %}</option>
-                            <option value="520">{% trans '10 Years' %}</option>
-                        </select>
+    <label class="sr-only" for="DesiredPeriod">{% trans 'Period' %}</label>
+    <select id="DesiredPeriod" class="form-control form-control-sm" style="width:auto;">
+        <option value="1">{% trans '1 Week' %}</option>
+        <option value="2">{% trans '2 Weeks' %}</option>
+        <option value="4" selected>{% trans '1 Month' %}</option>
+        <option value="13">{% trans '3 Months' %}</option>
+        <option value="26">{% trans '6 Months' %}</option>
+        <option value="52">{% trans '1 Year' %}</option>
+        <option value="104">{% trans '2 Years' %}</option>
+        <option value="260">{% trans '5 Years' %}</option>
+        <option value="520">{% trans '10 Years' %}</option>
+    </select>
+</div>
 
-    <!--Inspired from https://getbootstrap.com/docs/4.4/examples/carousel/
-    and extended to 4 parts
-    data-interval put to 1 day because it is annoying to have that moving when you are looking
-    at something.-->
-    <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="86400000">
-        <ol class="carousel-indicators">
-            <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
-            <li data-target="#myCarousel" data-slide-to="1"></li>
-            <li data-target="#myCarousel" data-slide-to="2"></li>
-            <li data-target="#myCarousel" data-slide-to="3"></li>
-        </ol>
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        <h5>{%trans 'Battery degradation graphs'%}</h5>
-                        <img id="degradationGraphImg" class="lazyload" alt="{%trans 'Battery degradation graphs'%}" data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer' 4 %}" width="1200" height="500"/>
-                        <!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
-                        and tested with fiddle http://jsfiddle.net-->
-                        <select id="degradationGraphCriteria">
-                            {# Avoid bare %% in msgid — it triggers python-format and breaks gettext lookup #}
-                            <option value="0" selected>{% trans 'Degradation vs odometer' %}</option>
-                            <option value="1">{% trans 'Degradation over time' %}</option>
-                            <option value="2">{% trans 'Range at full charge vs odometer' %}</option>
-                            <option value="3">{% trans 'Range at full charge over time' %}</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        <h5>{%trans 'Charge related graphs'%}</h5>
-                        <img id="chargeGraphImg" class="lazyload" alt="{%trans 'Charge related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 4 %}" width="1200" height="500"/>
-                        <select id="chargeGraphCriteria">
-                            {# Same order as chargepictureList in _carstats_js.html #}
-                            <option value="0" selected>{{battery_level}}</option>
-                            <option value="1">{{battery_range}}</option>
-                            <option value="2">{{charge_limit_soc}}</option>
-                            <option value="3">{{charge_rate}}</option>
-                            <option value="4">{{charger_power}}</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        <h5>{%trans 'Temperature related graphs'%}</h5>
-                        <img id="temperatureGraphImg" class="lazyload" alt="{%trans 'Temperature related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 4 %}" width="1200" height="500"/>
-                        <select id="temperatureGraphCriteria">
-                            {# Same order as temperaturepictureList; no battery pack temp in Fleet/TeslaFi exports #}
-                            <option value="0" selected>{{outside_temp}}</option>
-                            <option value="1">{{inside_temp}}</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
-                     preserveAspectRatio="xMidYMid slice" focusable="false" role="img">
-                    <rect width="100%" height="100%" fill="#443737"/>
-                </svg>
-                <div class="container">
-                    <div class="carousel-caption text-center">
-                        <h5>{%trans 'Drive related graphs'%}</h5>
-                        <img id="driveGraphImg" class="lazyload" alt="{%trans 'Drive related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' 4 %}"  width="1200" height="500"/>
-                        <select id="driveGraphCriteria">
-                            {# Same order as drivepictureList #}
-                            <option value="0" selected>{{odometer}}</option>
-                            <option value="1">{{speed}}</option>
-                            <option value="2">{{power}}</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="sr-only">Previous</span>
-        </a>
-        <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="sr-only">Next</span>
-        </a>
+<section class="graph-panel app-card">
+    <h3 class="app-card__title">{% trans 'Battery degradation graphs' %}</h3>
+    <div class="graph-panel__controls">
+        <select id="degradationGraphCriteria" class="form-control form-control-sm">
+            <option value="0" selected>{% trans 'Degradation vs odometer' %}</option>
+            <option value="1">{% trans 'Degradation over time' %}</option>
+            <option value="2">{% trans 'Range at full charge vs odometer' %}</option>
+            <option value="3">{% trans 'Range at full charge over time' %}</option>
+        </select>
     </div>
+    <div class="graph-panel__figure">
+        <img id="degradationGraphImg" class="lazyload graph-img"
+             alt="{% trans 'Battery degradation graphs' %}"
+             data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer' 4 %}"
+             width="1200" height="500">
+    </div>
+</section>
+
+<section class="graph-panel app-card">
+    <h3 class="app-card__title">{% trans 'Charge related graphs' %}</h3>
+    <div class="graph-panel__controls">
+        <select id="chargeGraphCriteria" class="form-control form-control-sm">
+            <option value="0" selected>{{ battery_level }}</option>
+            <option value="1">{{ battery_range }}</option>
+            <option value="2">{{ charge_limit_soc }}</option>
+            <option value="3">{{ charge_rate }}</option>
+            <option value="4">{{ charger_power }}</option>
+        </select>
+    </div>
+    <div class="graph-panel__figure">
+        <img id="chargeGraphImg" class="lazyload graph-img"
+             alt="{% trans 'Charge related graphs' %}"
+             data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 4 %}"
+             width="1200" height="500">
+    </div>
+</section>
+
+<section class="graph-panel app-card">
+    <h3 class="app-card__title">{% trans 'Temperature related graphs' %}</h3>
+    <div class="graph-panel__controls">
+        <select id="temperatureGraphCriteria" class="form-control form-control-sm">
+            <option value="0" selected>{{ outside_temp }}</option>
+            <option value="1">{{ inside_temp }}</option>
+        </select>
+    </div>
+    <div class="graph-panel__figure">
+        <img id="temperatureGraphImg" class="lazyload graph-img"
+             alt="{% trans 'Temperature related graphs' %}"
+             data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 4 %}"
+             width="1200" height="500">
+    </div>
+</section>
+
+<section class="graph-panel app-card">
+    <h3 class="app-card__title">{% trans 'Drive related graphs' %}</h3>
+    <div class="graph-panel__controls">
+        <select id="driveGraphCriteria" class="form-control form-control-sm">
+            <option value="0" selected>{{ odometer }}</option>
+            <option value="1">{{ speed }}</option>
+            <option value="2">{{ power }}</option>
+        </select>
+    </div>
+    <div class="graph-panel__figure">
+        <img id="driveGraphImg" class="lazyload graph-img"
+             alt="{% trans 'Drive related graphs' %}"
+             data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' 4 %}"
+             width="1200" height="500">
+    </div>
+</section>

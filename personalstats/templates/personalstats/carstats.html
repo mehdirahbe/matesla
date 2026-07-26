@@ -1,23 +1,15 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block cssstyle %}
-        @media (max-width: 1500px) {
-         img { width: 100%; height: auto; }
-        }
-        .carousel { margin-bottom: 1rem; }
-        .carousel-caption { top: 0rem; z-index: 10; }
-        .carousel-item { height: 40rem; }
-        .carousel-item > img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            min-width: 100%;
-        }
-{% endblock %}
+{% block title %}{% trans 'My data' %}{% endblock %}
 
 {% block content %}
 {% include 'matesla/_vehicle_chrome.html' %}
+<div class="page-heading">
+    <p class="eyebrow">{% trans 'Personal' %}</p>
+    <h1 class="page-title">{% trans 'My data' %}</h1>
+    <p class="page-subtitle">{% trans 'Battery, charge, climate and drive history for your vehicle.' %}</p>
+</div>
 {% include 'personalstats/_carstats_body.html' %}
 {% endblock %}
 
