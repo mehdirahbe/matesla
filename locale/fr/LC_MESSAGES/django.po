@@ -911,3 +911,72 @@ msgstr "Envoyer le mail"
 
 #~ msgid "Other commands"
 #~ msgstr "Autres commandes"
+
+msgid "Day map"
+msgstr "Carte du jour"
+
+msgid "Previous day"
+msgstr "Jour précédent"
+
+msgid "Next day"
+msgstr "Jour suivant"
+
+msgid "Pick a date"
+msgstr "Choisir une date"
+
+msgid "Or type DD/MM/YYYY"
+msgstr "Ou taper JJ/MM/AAAA"
+
+msgid "Go"
+msgstr "Aller"
+
+msgid "Where was the car"
+msgstr "Où était la voiture"
+
+msgid "Points"
+msgstr "Points"
+
+msgid "Track"
+msgstr "Trajet"
+
+msgid "Distance"
+msgstr "Distance"
+
+msgid "Start"
+msgstr "Départ"
+
+msgid "End"
+msgstr "Arrivée"
+
+msgid "Stops"
+msgstr "Arrêts"
+
+msgid "From"
+msgstr "De"
+
+msgid "To"
+msgstr "À"
+
+msgid "Duration"
+msgstr "Durée"
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "No GPS points for this day."
+msgstr "Aucun point GPS pour ce jour."
+
+msgid "Try another date with the arrows or by typing DD/MM/YYYY."
+msgstr "Essayez une autre date avec les flèches ou en tapant JJ/MM/AAAA."
+
+msgid "Personal stats"
+msgstr "Stats personnelles"
+
+msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
+msgstr "Date invalide. Utilisez JJ/MM/AAAA ou AAAA-MM-JJ."
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Date as text"
+msgstr "Date en texte"

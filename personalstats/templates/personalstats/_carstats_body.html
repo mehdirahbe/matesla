@@ -2,6 +2,7 @@
 
     {# Default period = 4 weeks ("1 Month") — must match data-src on graphs below and JS #}
     <a href="{% url 'AllMyDataAsCSV' hashedVin %}"class="btn btn-info btn-sm">{% trans 'Download my Data' %}</a>
+    <a href="{% url 'PersoDayMap' hashedVin %}" class="btn btn-success btn-sm">{% trans 'Day map' %}</a>
                         <select id="DesiredPeriod">
                             <option value="1">{% trans '1 Week' %}</option>
                             <option value="2">{% trans '2 Weeks' %}</option>

@@ -10,6 +10,9 @@ A request to /articles/2005/03/ would match the third entry in the list. Django
 
 urlpatterns = [
 path('Stats/<str:hashedVin>', views.Stats, name='PersoStats'),
+# Day path / map: type a calendar day (or use prev/next arrows)
+path('DayMap/<str:hashedVin>', views.DayMap, name='PersoDayMap'),
+path('DayMap/<str:hashedVin>/<str:day>', views.DayMap, name='PersoDayMapDay'),
 # desiredperiod is weeks (0 = all history); keep in sync with #DesiredPeriod in the UI
 path(
     'BatteryDegradationGraph/<str:hashedVin>/<str:desiredfield>/<int:desiredperiod>',

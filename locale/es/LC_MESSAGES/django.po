@@ -2010,3 +2010,27 @@ msgstr "Autonomía a carga completa (millas)"
 #: personalstats
 msgid "Range at full charge vs odometer (miles)"
 msgstr "Autonomía a carga completa vs odómetro (millas)"
+
+msgid "Day map"
+msgstr "Mapa del día"
+
+msgid "Previous day"
+msgstr "Día anterior"
+
+msgid "Next day"
+msgstr "Día siguiente"
+
+msgid "Go"
+msgstr "Ir"
+
+msgid "Where was the car"
+msgstr "Dónde estaba el coche"
+
+msgid "No GPS points for this day."
+msgstr "No hay puntos GPS para este día."
+
+msgid "Personal stats"
+msgstr "Estadísticas personales"
+
+msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
+msgstr "Fecha no válida. Use DD/MM/AAAA o AAAA-MM-DD."

@@ -1,0 +1,15 @@
+{% load l10n %}
+{% comment %}
+Link label (address or coords) to Google Maps via lat/lon.
+Decimal separator in the URL must always be a period (Google Maps), even in fr locale.
+Usage: {% include 'personalstats/_gmaps_link.html' with lat=... lon=... label=... %}
+{% endcomment %}
+{% if lat is not None and lon is not None %}
+<a href="https://www.google.com/maps?q={% localize off %}{{ lat }},{{ lon }}{% endlocalize %}"
+   target="_blank" rel="noopener noreferrer"
+   title="Google Maps">{% if label %}{{ label }}{% else %}{% localize off %}{{ lat }}, {{ lon }}{% endlocalize %}{% endif %}</a>
+{% elif label %}
+{{ label }}
+{% else %}
+—
+{% endif %}

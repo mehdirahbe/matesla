@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans 'Day map' %} — {{ day_display }}{% endblock %}
+
+{% block extracss %}
+{# Leaflet must be a real <link> in <head>, not inside base.html's <style> block #}
+<link rel="stylesheet" href="{% static 'leaflet/leaflet.css' %}">
+{% endblock %}
+
+{% block cssstyle %}
+    .daymap-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .5rem;
+        margin-bottom: 1rem;
+    }
+    .daymap-toolbar form {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .4rem;
+        margin: 0;
+    }
+    #daymap {
+        height: min(70vh, 640px);
+        width: 100%;
+        max-width: 1100px;
+        border-radius: .35rem;
+        border: 1px solid #ccc;
+        /* contain Leaflet panes; avoid tiles painting over the whole page */
+        position: relative;
+        z-index: 0;
+        overflow: hidden;
+        background: #e9ecef;
+    }
+    .daymap-meta {
+        max-width: 1100px;
+        margin-top: .75rem;
+    }
+    .daymap-stops {
+        max-width: 1100px;
+        margin-top: 1rem;
+    }
+    .daymap-stops table {
+        width: 100%;
+        font-size: .95rem;
+    }
+    .daymap-empty {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: .35rem;
+        max-width: 1100px;
+    }
+{% endblock %}
+
+{% block content %}
+{% include 'matesla/_vehicle_chrome.html' %}
+
+<div class="daymap-toolbar">
+    <a href="{% url 'PersoStats' hashedVin %}" class="btn btn-secondary btn-sm">{% trans 'Personal stats' %}</a>
+    <a href="{% url 'PersoDayMapDay' hashedVin prev_day_iso %}" class="btn btn-outline-primary btn-sm" title="{% trans 'Previous day' %}">←</a>
+
+    <form method="get" action="{% url 'PersoDayMap' hashedVin %}" id="daymap-form">
+        {# Native picker (YYYY-MM-DD) #}
+        <label class="sr-only" for="date_iso">{% trans 'Date' %}</label>
+        <input type="date" name="date" id="date_iso" class="form-control form-control-sm"
+               value="{{ day_iso }}" required
+               title="{% trans 'Pick a date' %}">
+        {# Free-text European date for keyboard fans #}
+        <label class="sr-only" for="date_text">{% trans 'Date as text' %}</label>
+        <input type="text" id="date_text" class="form-control form-control-sm"
+               placeholder="31/12/2024" value="{{ day_display }}"
+               pattern="\d{1,2}[/.\\-]\d{1,2}[/.\\-]\d{4}"
+               title="{% trans 'Or type DD/MM/YYYY' %}"
+               style="width: 8rem;">
+        <button type="submit" class="btn btn-primary btn-sm">{% trans 'Go' %}</button>
+    </form>
+
+    <a href="{% url 'PersoDayMapDay' hashedVin next_day_iso %}" class="btn btn-outline-primary btn-sm" title="{% trans 'Next day' %}">→</a>
+    <span class="text-muted small">{{ tz_name }}</span>
+</div>
+
+{% if parse_error %}
+<div class="alert alert-warning" style="max-width: 1100px;">{{ parse_error }}</div>
+{% endif %}
+
+<h4>{% trans 'Where was the car' %} — {{ day_display }}</h4>
+
+{% if has_track %}
+{% if has_gps %}
+<div id="daymap"></div>
+{% else %}
+<div class="daymap-empty"><p class="mb-0">{% trans 'No GPS points for this day (telemetry only).' %}</p></div>
+{% endif %}
+<div class="daymap-meta">
+    <p class="mb-1">
+        <strong>{% trans 'GPS points' %}:</strong> {{ total_points }}
+        {% if path_points != total_points and path_points %}
+        <span class="text-muted">({% blocktrans with n=path_points %}{{ n }} drawn on map{% endblocktrans %})</span>
+        {% endif %}
+        {% if start_time and end_time %}
+        · <strong>{% trans 'Track' %}:</strong> {{ start_time }} → {{ end_time }}
+        {% endif %}
+        · <strong>{% trans 'Drives' %}:</strong> {{ drives|length }}
+        · <strong>{% trans 'Charges' %}:</strong> {{ charges|length }}
+    </p>
+    {% if start_lat is not None %}
+    <p class="mb-1"><strong>{% trans 'Start' %}:</strong>
+        {% include 'personalstats/_gmaps_link.html' with lat=start_lat lon=start_lon label=start_addr %}
+    </p>
+    {% endif %}
+    {% if end_lat is not None %}
+    <p class="mb-1"><strong>{% trans 'End' %}:</strong>
+        {% include 'personalstats/_gmaps_link.html' with lat=end_lat lon=end_lon label=end_addr %}
+    </p>
+    {% endif %}
+
+    {# Day totals — same columns as the drives table #}
+    <div class="table-responsive mb-2">
+    <table class="table table-sm table-bordered mb-1" style="max-width: 1100px;">
+        <thead>
+        <tr>
+            <th>{% trans 'Distance' %}</th>
+            <th>{% trans 'Avg speed' %}</th>
+            <th>{% trans 'SoC start' %}</th>
+            <th>{% trans 'SoC end' %}</th>
+            <th>{% trans 'SoC used' %}</th>
+            <th>{% trans 'kWh/100 km' %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>
+                {% if miles_driven_km is not None %}{{ miles_driven_km|floatformat:1 }} km{% else %}—{% endif %}
+                {% if miles_driven is not None %}<span class="text-muted small">({{ miles_driven|floatformat:1 }} mi)</span>{% endif %}
+            </td>
+            <td>
+                {% if day_avg_kmh is not None %}{{ day_avg_kmh|floatformat:0 }} km/h{% else %}—{% endif %}
+                {% if day_avg_mph is not None %}<span class="text-muted small">({{ day_avg_mph|floatformat:0 }} mi/h)</span>{% endif %}
+            </td>
+            <td>{% if day_soc_start is not None %}{{ day_soc_start|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td>{% if day_soc_end is not None %}{{ day_soc_end|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td>{% if day_soc_used is not None %}{{ day_soc_used|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td>{% if day_kwh_per_100km is not None %}{{ day_kwh_per_100km|floatformat:1 }}{% else %}—{% endif %}</td>
+        </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <p class="text-muted small mb-0">
+        {% blocktrans with kwh=pack_kwh_estimate|floatformat:0 %}kWh estimates use ~{{ kwh }} kWh pack (from EPA range).{% endblocktrans %}
+    </p>
+</div>
+
+{% if drives %}
+<div class="daymap-stops">
+    <h5>{% trans 'Drives' %}</h5>
+    <div class="table-responsive">
+    <table class="table table-sm table-striped">
+        <thead>
+        <tr>
+            <th>{% trans 'Departure' %}</th>
+            <th>{% trans 'Arrival' %}</th>
+            <th>{% trans 'Duration' %}</th>
+            <th>{% trans 'Distance' %}</th>
+            <th>{% trans 'Avg speed' %}</th>
+            <th>{% trans 'SoC start' %}</th>
+            <th>{% trans 'SoC end' %}</th>
+            <th>{% trans 'SoC used' %}</th>
+            <th>{% trans 'kWh/100 km' %}</th>
+            <th>{% trans 'From → to' %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for d in drives %}
+        <tr>
+            <td>{{ d.start_local }}</td>
+            <td>{{ d.end_local }}</td>
+            <td>{{ d.minutes }} min</td>
+            <td>
+                {% if d.km is not None %}{{ d.km|floatformat:1 }} km{% else %}—{% endif %}
+                {% if d.miles is not None %}<span class="text-muted small">({{ d.miles|floatformat:1 }} mi)</span>{% endif %}
+            </td>
+            <td>
+                {% if d.avg_kmh is not None %}{{ d.avg_kmh|floatformat:0 }} km/h{% else %}—{% endif %}
+                {% if d.avg_mph is not None %}<span class="text-muted small">({{ d.avg_mph|floatformat:0 }} mi/h)</span>{% endif %}
+            </td>
+            <td>{% if d.soc_start is not None %}{{ d.soc_start|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td>{% if d.soc_end is not None %}{{ d.soc_end|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td>{% if d.soc_used is not None %}{{ d.soc_used|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td>{% if d.kwh_per_100km is not None %}{{ d.kwh_per_100km|floatformat:1 }}{% else %}—{% endif %}</td>
+            <td class="small">
+                {% include 'personalstats/_gmaps_link.html' with lat=d.lat lon=d.lon label=d.start_address %}
+                →
+                {% include 'personalstats/_gmaps_link.html' with lat=d.end_lat lon=d.end_lon label=d.end_address %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endif %}
+
+{% if charges %}
+<div class="daymap-stops">
+    <h5>{% trans 'Charging stops' %}</h5>
+    <div class="table-responsive">
+    <table class="table table-sm table-striped">
+        <thead>
+        <tr>
+            <th>{% trans 'Start' %}</th>
+            <th>{% trans 'End' %}</th>
+            <th>{% trans 'Duration' %}</th>
+            <th>{% trans 'SoC start' %}</th>
+            <th>{% trans 'SoC end' %}</th>
+            <th>{% trans 'SoC added' %}</th>
+            <th>{% trans 'kWh added' %}</th>
+            <th>{% trans 'Max power' %}</th>
+            <th>{% trans 'Address' %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for c in charges %}
+        <tr>
+            <td>{{ c.start_local }}</td>
+            <td>{{ c.end_local }}</td>
+            <td>{{ c.minutes }} min</td>
+            <td>{% if c.soc_start is not None %}{{ c.soc_start|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td>{% if c.soc_end is not None %}{{ c.soc_end|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td>{% if c.soc_added is not None %}+{{ c.soc_added|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td>{% if c.kwh_added is not None %}{{ c.kwh_added|floatformat:2 }} kWh{% else %}—{% endif %}</td>
+            <td>{% if c.max_power_kw is not None %}{{ c.max_power_kw|floatformat:1 }} kW{% else %}—{% endif %}</td>
+            <td class="small">{% include 'personalstats/_gmaps_link.html' with lat=c.lat lon=c.lon label=c.address %}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endif %}
+
+{% if not drives and not charges %}
+<div class="daymap-empty mt-2">
+    <p class="mb-0">{% trans 'No drive or charge segments detected for this day.' %}</p>
+</div>
+{% endif %}
+
+{% else %}
+<div class="daymap-empty">
+    <p class="mb-0">{% trans 'No data for this day.' %}</p>
+    <p class="text-muted small mb-0">{% trans 'Try another date with the arrows or by typing DD/MM/YYYY.' %}</p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'leaflet/leaflet.js' %}"></script>
+<script>
+(function () {
+    // Prefer typed European date when submitted
+    var form = document.getElementById('daymap-form');
+    var dateIso = document.getElementById('date_iso');
+    var dateText = document.getElementById('date_text');
+    if (form && dateIso && dateText) {
+        form.addEventListener('submit', function (ev) {
+            var t = (dateText.value || '').trim();
+            var m = t.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
+            if (m) {
+                var d = m[1].padStart(2, '0');
+                var mo = m[2].padStart(2, '0');
+                var y = m[3];
+                dateIso.value = y + '-' + mo + '-' + d;
+            }
+        });
+        dateIso.addEventListener('change', function () {
+            // mirror ISO → DD/MM/YYYY for the text field
+            if (!dateIso.value) return;
+            var p = dateIso.value.split('-');
+            if (p.length === 3) {
+                dateText.value = p[2] + '/' + p[1] + '/' + p[0];
+            }
+        });
+    }
+
+    {% if has_gps %}
+    var path = {{ path_json|safe }};
+    if (!path || !path.length || typeof L === 'undefined') return;
+    // Default marker icons: absolute URLs under our static tree (not CDN)
+    var leafletIconBase = "{% static 'leaflet/images/' %}";
+    L.Icon.Default.mergeOptions({
+        iconUrl: leafletIconBase + 'marker-icon.png',
+        iconRetinaUrl: leafletIconBase + 'marker-icon-2x.png',
+        shadowUrl: leafletIconBase + 'marker-shadow.png'
+    });
+    var map = L.map('daymap');
+    // Raster tiles still come from OSM at runtime (not a vendored JS/CSS asset;
+    // self-hosting the planet is out of scope). Library code is fully local.
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    var latlngs = path.map(function (p) { return [p.lat, p.lon]; });
+    var line = L.polyline(latlngs, { color: '#0d6efd', weight: 4, opacity: 0.85 }).addTo(map);
+    var start = path[0];
+    var end = path[path.length - 1];
+    L.marker([start.lat, start.lon]).addTo(map).bindPopup('{% trans "Start" %}: ' + start.t);
+    if (path.length > 1) {
+        L.marker([end.lat, end.lon]).addTo(map).bindPopup('{% trans "End" %}: ' + end.t);
+    }
+    map.fitBounds(line.getBounds(), { padding: [30, 30] });
+    // Container may have been layout-incomplete at init; force correct size
+    setTimeout(function () { map.invalidateSize(); }, 0);
+    {% endif %}
+})();
+</script>
+{% endblock %}

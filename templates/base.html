@@ -25,10 +25,13 @@
     thus save 81 % of size without side effects from what I see
     -->
     <link rel="stylesheet" href="{% static "bootstrap.min.css" %}"  crossorigin="anonymous">
+    {# Extra <link rel="stylesheet"> (not inside the <style> block below) #}
+    {% block extracss %}{% endblock %}
     <style>
         body {
             background: #f5f8ff
         }
+        {# Inline page CSS rules only — never put <link> tags here #}
         {% block cssstyle %}
         {% endblock %}
 
