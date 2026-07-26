@@ -227,7 +227,7 @@ def SaveDataHistory(teslaState):
         context = (teslaState.vehicle_state or {}).get("response") or {}
         vehicle_config = context.get("vehicle_config") or {}
         vehicle_state = context.get("vehicle_state") or {}
-        chargestate = context.get("charge_state") or {}
+        charge_state = context.get("charge_state") or {}
         if not teslaState.vin:
             return
         # Firmware updates
@@ -241,8 +241,8 @@ def SaveDataHistory(teslaState):
         toSave = toSave.SaveIfDontExistsYet(teslaState.vin, context)
         # if we don't have epa range yet, this will force its recomputation
         if toSave and toSave.EPARange is None:
-            br = chargestate.get("battery_range")
-            usable = chargestate.get("usable_battery_level")
+            br = charge_state.get("battery_range")
+            usable = charge_state.get("usable_battery_level")
             odo = vehicle_state.get("odometer")
             if br is not None and usable is not None and odo is not None:
                 ComputeBatteryDegradation(br, usable, teslaState.vin, odo)
@@ -331,18 +331,18 @@ def ParamsConnectedTesla(user, request=None):
     if not ret.isOnline:
         return ret
 
-    chargestate = context.get("charge_state") or {}
+    charge_state = context.get("charge_state") or {}
     vehicle_state = context.get("vehicle_state") or {}
     drive_state = context.get("drive_state") or {}
 
-    battery_range = chargestate.get("battery_range")
+    battery_range = charge_state.get("battery_range")
     if battery_range is not None:
         ret.batteryrange = battery_range * 1.609344
     else:
         ret.batteryrange = 0.0
 
     odometer = vehicle_state.get("odometer")
-    usable = chargestate.get("usable_battery_level")
+    usable = charge_state.get("usable_battery_level")
     if battery_range is not None and usable is not None and odometer is not None and ret.vin:
         ret.batterydegradation, ret.NumberCycles, ret.EPARangeMiles = ComputeBatteryDegradation(
             battery_range, usable, ret.vin, odometer
@@ -367,7 +367,7 @@ def ParamsConnectedTesla(user, request=None):
         context["longitude"] = None
 
     # Keep nested dicts present for the status page merge
-    context.setdefault("charge_state", chargestate)
+    context.setdefault("charge_state", charge_state)
     context.setdefault("climate_state", context.get("climate_state") or {})
     context.setdefault("drive_state", drive_state)
     context.setdefault("vehicle_config", context.get("vehicle_config") or {})
