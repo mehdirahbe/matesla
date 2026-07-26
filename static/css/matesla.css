@@ -1,26 +1,27 @@
 :root {
-    --app-bg: #343a40;
-    --app-bg-raised: #3a3f44;
-    --app-surface: #3a3f44;
-    --app-surface-2: #495057;
-    --app-surface-3: #5a6268;
-    --app-line: rgba(255, 255, 255, 0.12);
-    --app-line-strong: #6c757d;
-    --app-text: #ffffff;
-    --app-muted: #dee2e6;
-    --app-subtle: #adb5bd;
-    --app-red: #007bff;
-    --app-red-bright: #17a2b8;
-    --app-red-soft: rgba(23, 162, 184, 0.16);
-    --app-energy: #17a2b8;
-    --app-energy-soft: rgba(23, 162, 184, 0.16);
-    --app-blue: #17a2b8;
-    --app-warning: #ffc107;
-    --app-danger: #dc3545;
+    /* Deep, saturated dark shell — still high contrast for text */
+    --app-bg: #060a12;
+    --app-bg-raised: #0b1220;
+    --app-surface: #101a2b;
+    --app-surface-2: #162338;
+    --app-surface-3: #1d2d48;
+    --app-line: rgba(130, 180, 255, 0.12);
+    --app-line-strong: rgba(150, 195, 255, 0.22);
+    --app-text: #eef4ff;
+    --app-muted: #a8bcd6;
+    --app-subtle: #7d93b0;
+    --app-red: #2f8fff;
+    --app-red-bright: #3ec9e0;
+    --app-red-soft: rgba(62, 201, 224, 0.16);
+    --app-energy: #2fd4a1;
+    --app-energy-soft: rgba(47, 212, 161, 0.16);
+    --app-blue: #4db4ff;
+    --app-warning: #f0b429;
+    --app-danger: #ff5c6a;
     --app-radius-sm: 12px;
     --app-radius: 18px;
     --app-radius-lg: 28px;
-    --app-shadow: 0 22px 58px rgba(0, 0, 0, 0.3);
+    --app-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
     --app-header-height: 72px;
     --app-content-width: 1440px;
     color-scheme: dark;
@@ -28,7 +29,7 @@
 
 * {
     box-sizing: border-box;
-    scrollbar-color: #6c757d transparent;
+    scrollbar-color: #3a506e transparent;
     scrollbar-width: thin;
 }
 
@@ -43,8 +44,9 @@ body {
     margin: 0;
     overflow-x: hidden;
     background:
-        radial-gradient(circle at 85% -8%, rgba(23, 162, 184, 0.11), transparent 31rem),
-        radial-gradient(circle at -10% 32%, rgba(0, 123, 255, 0.08), transparent 34rem),
+        radial-gradient(circle at 88% -10%, rgba(47, 143, 255, 0.22), transparent 34rem),
+        radial-gradient(circle at -8% 28%, rgba(47, 212, 161, 0.12), transparent 32rem),
+        radial-gradient(circle at 50% 110%, rgba(62, 201, 224, 0.08), transparent 28rem),
         var(--app-bg);
     color: var(--app-text);
     font-family: "Segoe UI Variable", "Aptos", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -58,7 +60,7 @@ body::before {
     position: fixed;
     z-index: -1;
     inset: 0;
-    background-image: linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px);
+    background-image: linear-gradient(rgba(150, 195, 255, .03) 1px, transparent 1px);
     background-size: 100% 48px;
     content: "";
     pointer-events: none;
@@ -87,7 +89,7 @@ input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
 summary:focus-visible {
-    outline: 3px solid rgba(23, 162, 184, 0.55);
+    outline: 3px solid rgba(77, 180, 255, 0.55);
     outline-offset: 3px;
 }
 
@@ -118,15 +120,15 @@ img {
     top: 0;
     height: var(--app-header-height);
     border-bottom: 1px solid transparent;
-    background: rgba(52, 58, 64, 0.84);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
-    backdrop-filter: blur(18px) saturate(140%);
+    background: rgba(6, 10, 18, 0.82);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    backdrop-filter: blur(18px) saturate(150%);
     transition: border-color 180ms ease, background-color 180ms ease;
 }
 
 .app-header.is-scrolled {
     border-color: var(--app-line);
-    background: rgba(52, 58, 64, 0.97);
+    background: rgba(6, 10, 18, 0.96);
 }
 
 .app-header__inner {
@@ -155,7 +157,7 @@ img {
     overflow: hidden;
     border: 1px solid rgba(23, 162, 184, 0.58);
     border-radius: 13px;
-    background: linear-gradient(145deg, rgba(23, 162, 184, 0.34), rgba(0, 123, 255, 0.12));
+    background: linear-gradient(145deg, rgba(62, 201, 224, 0.28), rgba(47, 143, 255, 0.14));
     color: #fff;
     box-shadow: inset 0 1px rgba(255,255,255,.08);
     font-size: 0.94rem;
@@ -170,7 +172,7 @@ img {
     width: 18px;
     height: 34px;
     transform: rotate(38deg);
-    background: rgba(0, 123, 255, 0.78);
+    background: rgba(47, 143, 255, 0.82);
     content: "";
 }
 
@@ -314,7 +316,7 @@ img {
     display: grid;
     border: 1px solid var(--app-line-strong);
     border-radius: 16px;
-    background: rgba(58, 63, 68, 0.99);
+    background: rgba(16, 26, 43, 0.98);
     box-shadow: var(--app-shadow);
 }
 
@@ -400,7 +402,7 @@ img {
     gap: 11px;
     border: 1px solid var(--app-line-strong);
     border-radius: 14px;
-    background: rgba(58, 63, 68, 0.98);
+    background: rgba(16, 26, 43, 0.96);
     box-shadow: var(--app-shadow);
     color: var(--app-text);
     font-size: 0.9rem;
@@ -543,7 +545,7 @@ img {
 
 .app-button--energy:hover,
 .btn-success:hover {
-    background: #138496;
+    background: #1aa0b5;
     color: #ffffff;
 }
 
@@ -618,7 +620,7 @@ select {
     padding: 9px 12px;
     border: 1px solid var(--app-line-strong);
     border-radius: 12px;
-    background: #495057;
+    background: var(--app-surface-2);
     color: var(--app-text);
     box-shadow: none;
     color-scheme: dark;
@@ -627,21 +629,21 @@ select {
 .form-control option,
 .custom-select option,
 select option {
-    background-color: #495057;
+    background-color: var(--app-surface-2);
     color: #ffffff;
 }
 
 .form-control option:checked,
 .custom-select option:checked,
 select option:checked {
-    background-color: #17a2b8;
-    color: #ffffff;
+    background-color: var(--app-energy);
+    color: #061018;
 }
 
 .form-control::placeholder,
 input::placeholder,
 textarea::placeholder {
-    color: #ced4da;
+    color: var(--app-subtle);
 }
 
 .form-control:focus,
@@ -649,10 +651,10 @@ textarea::placeholder {
 input:focus,
 textarea:focus,
 select:focus {
-    border-color: #17a2b8;
-    background: #495057;
+    border-color: var(--app-blue);
+    background: var(--app-surface-2);
     color: var(--app-text);
-    box-shadow: 0 0 0 4px rgba(23, 162, 184, 0.2);
+    box-shadow: 0 0 0 4px rgba(77, 180, 255, 0.22);
 }
 
 label {
@@ -737,7 +739,7 @@ button:disabled,
     width: 60%;
     height: 130%;
     transform: skewX(-17deg);
-    background: linear-gradient(150deg, transparent, rgba(23,162,184,.12), transparent 75%);
+    background: linear-gradient(150deg, transparent, rgba(62, 201, 224, .16), transparent 75%);
     content: "";
 }
 
@@ -788,7 +790,7 @@ button:disabled,
     overflow: hidden;
     border: 1px solid var(--app-line-strong);
     border-radius: var(--app-radius-lg);
-    background: rgba(58, 63, 68, 0.94);
+    background: rgba(16, 26, 43, 0.94);
     box-shadow: var(--app-shadow);
     -webkit-backdrop-filter: blur(18px);
     backdrop-filter: blur(18px);
@@ -921,8 +923,8 @@ button:disabled,
     overflow: hidden;
     border-top: 1px solid var(--app-line);
     background:
-        radial-gradient(circle at 50% 40%, rgba(23,162,184,.18), transparent 58%),
-        #343a40;
+        radial-gradient(circle at 50% 40%, rgba(62, 201, 224, .2), transparent 58%),
+        var(--app-bg-raised);
 }
 
 .showcase-card__media img {
@@ -955,7 +957,7 @@ button:disabled,
     gap: 16px;
     border: 1px solid var(--app-line);
     border-radius: 16px;
-    background: rgba(58, 63, 68, 0.9);
+    background: rgba(16, 26, 43, 0.92);
 }
 
 .vehicle-switcher {
@@ -989,14 +991,14 @@ button:disabled,
     min-height: 36px;
     padding: 5px 32px 5px 10px;
     border: 1px solid var(--app-line-strong);
-    background-color: #495057;
+    background-color: var(--app-surface-2);
     color: var(--app-text);
     font-size: 0.86rem;
     font-weight: 680;
 }
 
 .vehicle-switcher select option {
-    background-color: #495057;
+    background-color: var(--app-surface-2);
     color: #ffffff;
 }
 
@@ -1052,7 +1054,7 @@ button:disabled,
     grid-template-columns: minmax(0, 1.7fr) minmax(300px, .72fr);
     border: 1px solid var(--app-line);
     border-radius: var(--app-radius-lg);
-    background: #343a40;
+    background: var(--app-surface);
     box-shadow: var(--app-shadow);
 }
 
@@ -1065,8 +1067,8 @@ button:disabled,
     flex-direction: column;
     overflow: hidden;
     background:
-        linear-gradient(115deg, rgba(0,123,255,.14), transparent 40%),
-        radial-gradient(ellipse at 48% 62%, rgba(23,162,184,.15), transparent 48%);
+        linear-gradient(115deg, rgba(47, 143, 255, .18), transparent 42%),
+        radial-gradient(ellipse at 48% 62%, rgba(47, 212, 161, .14), transparent 50%);
 }
 
 .vehicle-stage::before {
@@ -1112,7 +1114,7 @@ button:disabled,
 
 .state-pill {
     padding: 7px 11px;
-    border: 1px solid rgba(23,162,184,.42);
+    border: 1px solid rgba(62, 201, 224, .42);
     border-radius: 999px;
     background: var(--app-energy-soft);
     color: var(--app-energy);
@@ -1152,7 +1154,7 @@ button:disabled,
     flex-direction: column;
     justify-content: space-between;
     border-left: 1px solid var(--app-line);
-    background: rgba(73, 80, 87, 0.72);
+    background: rgba(11, 18, 32, 0.88);
 }
 
 .battery-gauge {
@@ -1168,7 +1170,7 @@ button:disabled,
     place-items: center;
     border-radius: 50%;
     background: conic-gradient(var(--app-energy) calc(var(--battery) * 1%), rgba(255,255,255,.075) 0);
-    box-shadow: 0 0 50px rgba(23,162,184,.16);
+    box-shadow: 0 0 50px rgba(47, 212, 161, .18);
 }
 
 .battery-gauge__inner {
@@ -1273,7 +1275,7 @@ button:disabled,
 
 .action-tile:hover {
     transform: translateY(-3px);
-    border-color: rgba(23,162,184,.48);
+    border-color: rgba(62, 201, 224, .48);
     background: var(--app-surface-2);
 }
 
@@ -1392,7 +1394,7 @@ button:disabled,
 .data-row dd a:not(.btn) {
     color: var(--app-text);
     text-decoration: underline;
-    text-decoration-color: rgba(23,162,184,.7);
+    text-decoration-color: rgba(62, 201, 224, .7);
     text-underline-offset: 3px;
 }
 
@@ -1526,7 +1528,8 @@ button:disabled,
     display: grid;
     place-items: center;
     border-top: 1px solid var(--app-line);
-    background: #f3f4f1;
+    /* Dark surround; chart images keep their own light plot area */
+    background: var(--app-bg-raised);
 }
 
 .graph-card__media img {
@@ -1671,7 +1674,7 @@ button:disabled,
 }
 
 .status-ok {
-    border-color: rgba(23,162,184,.42);
+    border-color: rgba(62, 201, 224, .42);
     background: var(--app-energy-soft);
 }
 
@@ -1727,7 +1730,7 @@ pre.key-box {
     overflow: auto;
     border: 1px solid var(--app-line);
     border-radius: 12px;
-    background: #343a40;
+    background: var(--app-bg-raised);
     white-space: pre-wrap;
     font-size: 0.72rem;
 }
