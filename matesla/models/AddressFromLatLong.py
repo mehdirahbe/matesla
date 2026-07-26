@@ -1,9 +1,20 @@
-from django.db import models
+"""
+Reverse geocoding (lat/lon → address) via OpenStreetMap Nominatim.
+
+- Results are cached in the local DB (empty after a fresh install → real HTTP calls).
+- Nominatim usage policy: identify the app, max ~1 request/second, no bulk abuse.
+  We enforce a min interval + a daily cap so a personal matesla instance is not blocked.
+"""
+
+from __future__ import annotations
+
+import time
+from datetime import date
+
+from django.conf import settings
+from django.db import models, transaction
 from django.utils.timezone import now
 from geopy.geocoders import Nominatim
-
-
-# Get address from latitude+longitude, avoid a nearly 1 sec lookup to geopy each time
 
 
 class AddressFromLatLong(models.Model):
@@ -13,18 +24,86 @@ class AddressFromLatLong(models.Model):
     date = models.DateField()
 
     class Meta:
-        # index definition, see https://docs.djangoproject.com/en/3.0/ref/models/options/#django.db.models.Options.indexes
         indexes = [
-            # to retrieve easily address
             models.Index(fields=["latitude", "longitude"]),
         ]
-        # avoid having dups in db
         constraints = [
             models.UniqueConstraint(
                 fields=["latitude", "longitude"],
                 name="AddressFromLatLong: unique address for same latitude and longiture",
             )
         ]
+
+
+class NominatimDailyQuota(models.Model):
+    """Tracks how many Nominatim HTTP calls we made today (local rate limit)."""
+
+    day = models.DateField(unique=True)
+    call_count = models.PositiveIntegerField(default=0)
+    last_call_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.day}: {self.call_count} calls"
+
+
+def _nominatim_max_per_day() -> int:
+    # Personal app default: generous enough for a few day-map views, low enough
+    # to stay polite to public Nominatim (override in settings if you self-host).
+    return int(getattr(settings, "NOMINATIM_MAX_PER_DAY", 250))
+
+
+def _nominatim_min_interval_sec() -> float:
+    # Official guidance is max 1 req/s
+    return float(getattr(settings, "NOMINATIM_MIN_INTERVAL_SEC", 1.1))
+
+
+def _acquire_nominatim_slot() -> bool:
+    """
+    Reserve one Nominatim HTTP call under daily + per-second limits.
+    Returns False if the daily budget is exhausted.
+    """
+    today = date.today()
+    min_interval = _nominatim_min_interval_sec()
+    max_day = _nominatim_max_per_day()
+
+    with transaction.atomic():
+        row, _ = NominatimDailyQuota.objects.select_for_update().get_or_create(
+            day=today, defaults={"call_count": 0}
+        )
+        if row.call_count >= max_day:
+            return False
+        if row.last_call_at is not None:
+            elapsed = (now() - row.last_call_at).total_seconds()
+            if elapsed < min_interval:
+                # release lock before sleeping
+                wait = min_interval - elapsed
+            else:
+                wait = 0
+        else:
+            wait = 0
+        # bump optimistically after wait outside lock if needed
+        call_count = row.call_count
+        last_at = row.last_call_at
+
+    if wait > 0:
+        time.sleep(wait)
+
+    with transaction.atomic():
+        row, _ = NominatimDailyQuota.objects.select_for_update().get_or_create(
+            day=today, defaults={"call_count": 0}
+        )
+        if row.call_count >= max_day:
+            return False
+        # re-check interval after sleep (another worker may have called)
+        if row.last_call_at is not None:
+            elapsed = (now() - row.last_call_at).total_seconds()
+            if elapsed < min_interval:
+                time.sleep(min_interval - elapsed)
+                row.refresh_from_db()
+        row.call_count += 1
+        row.last_call_at = now()
+        row.save(update_fields=["call_count", "last_call_at"])
+    return True
 
 
 def _pick_one_language(part, prefer_fr=True):
@@ -44,7 +123,6 @@ def _pick_one_language(part, prefer_fr=True):
     if len(options) == 1:
         return options[0]
     if prefer_fr:
-        # Exact known FR country/region tokens first
         preferred = {
             "Belgique",
             "France",
@@ -57,7 +135,6 @@ def _pick_one_language(part, prefer_fr=True):
         for o in options:
             if o in preferred:
                 return o
-        # Heuristic: French-looking accents / words
         fr_markers = (
             "é",
             "è",
@@ -108,7 +185,6 @@ def _prefer_language_code():
         lang = (get_language() or "fr")[:2].lower()
     except Exception:
         lang = "fr"
-    # Nominatim: comma-separated preference list
     if lang == "fr":
         return "fr,en"
     if lang == "nl":
@@ -121,28 +197,36 @@ def _prefer_language_code():
 
 
 def _format_from_components(raw_address):
-    """
-    Build a short street-style line from Nominatim structured fields.
-    raw_address is location.raw.get('address') dict.
-    """
+    """Build a short street-style line from Nominatim structured fields."""
     if not raw_address:
         return None
-    # House + road
     road = (
         raw_address.get("road")
         or raw_address.get("pedestrian")
         or raw_address.get("footway")
         or raw_address.get("path")
         or raw_address.get("cycleway")
+        or raw_address.get("residential")
+    )
+    place = (
+        raw_address.get("park")
+        or raw_address.get("leisure")
+        or raw_address.get("attraction")
+        or raw_address.get("amenity")
+        or raw_address.get("building")
+        or raw_address.get("tourism")
     )
     house = raw_address.get("house_number")
-    street = None
     if road and house:
         street = f"{house}, {road}"
     elif road:
         street = road
+    elif place:
+        street = place
     elif house:
         street = house
+    else:
+        street = None
 
     locality = (
         raw_address.get("city")
@@ -152,7 +236,6 @@ def _format_from_components(raw_address):
         or raw_address.get("city_district")
         or raw_address.get("suburb")
     )
-    # neighbourhood / suburb as extra if different
     suburb = raw_address.get("suburb") or raw_address.get("neighbourhood")
     postcode = raw_address.get("postcode")
     country = raw_address.get("country")
@@ -160,6 +243,8 @@ def _format_from_components(raw_address):
     bits = []
     if street:
         bits.append(street)
+    if place and place != street:
+        bits.append(place)
     if suburb and suburb != locality and suburb not in (street or ""):
         bits.append(suburb)
     if locality:
@@ -173,28 +258,85 @@ def _format_from_components(raw_address):
     return CleanAddressDisplay(", ".join(bits))
 
 
-def GetAddressFromLatLong(latitude, longitude):
-    results = AddressFromLatLong.objects.filter(latitude=latitude).filter(
-        longitude=longitude
-    )
-    if len(results) == 1:
-        # Always clean on read so old bilingual cache rows look decent
-        return CleanAddressDisplay(results[0].address)
-    try:
-        # not yet known-->add it
-        geolocator = Nominatim(user_agent="matesla-daymap")
-        location = geolocator.reverse(
-            f"{latitude},{longitude}",
-            language=_prefer_language_code(),
-            addressdetails=True,
-            exactly_one=True,
-            timeout=10,
+def _has_street_detail(raw_address: dict) -> bool:
+    return any(
+        raw_address.get(k)
+        for k in (
+            "road",
+            "pedestrian",
+            "footway",
+            "path",
+            "park",
+            "leisure",
+            "house_number",
+            "amenity",
         )
-        if location is None:
+    )
+
+
+def _nominatim_reverse(latitude, longitude, zoom=18):
+    if not _acquire_nominatim_slot():
+        return None
+    geolocator = Nominatim(user_agent="matesla-personal-tesla-stats/1.0")
+    return geolocator.reverse(
+        f"{latitude},{longitude}",
+        language=_prefer_language_code(),
+        addressdetails=True,
+        exactly_one=True,
+        timeout=12,
+        zoom=zoom,
+    )
+
+
+def LookupCachedAddress(latitude, longitude):
+    """
+    Fast path: return a cleaned address only if already in the local DB.
+    Never hits Nominatim (page render must stay instant).
+    """
+    row = AddressFromLatLong.objects.filter(
+        latitude=latitude, longitude=longitude
+    ).first()
+    if not row:
+        return None
+    cleaned = CleanAddressDisplay(row.address)
+    if not cleaned or cleaned == "Unknown":
+        return None
+    return cleaned
+
+
+def GetAddressFromLatLong(latitude, longitude):
+    """
+    Reverse-geocode lat/lon via Nominatim; cache successful results in local DB.
+
+    Empty DB after project revive → real HTTP calls until the point is cached.
+    Daily cap + 1 req/s so we stay within public Nominatim politeness rules.
+    Prefer LookupCachedAddress() on hot page renders; call this from async API.
+    """
+    cached = LookupCachedAddress(latitude, longitude)
+    if cached is not None:
+        return cached
+
+    try:
+        display = None
+        # At most 2 HTTP calls: fine zoom (parks/side streets), then coarser
+        for zoom in (18, 16):
+            location = _nominatim_reverse(latitude, longitude, zoom=zoom)
+            if location is None:
+                # quota exhausted or network failure
+                break
+            raw = getattr(location, "raw", None) or {}
+            addr_bits = raw.get("address") or {}
+            structured = _format_from_components(addr_bits)
+            candidate = structured or CleanAddressDisplay(location.address or "")
+            if not candidate or candidate == "Unknown":
+                continue
+            display = candidate
+            if _has_street_detail(addr_bits) or zoom <= 16:
+                break
+
+        if not display:
             return "Unknown"
-        raw = getattr(location, "raw", None) or {}
-        structured = _format_from_components(raw.get("address") or {})
-        display = structured or CleanAddressDisplay(location.address or "Unknown")
+
         add = AddressFromLatLong()
         add.latitude = latitude
         add.longitude = longitude
@@ -203,5 +345,4 @@ def GetAddressFromLatLong(latitude, longitude):
         add.save()
         return display
     except Exception:
-        # return unknown and don't save it of course
         return "Unknown"

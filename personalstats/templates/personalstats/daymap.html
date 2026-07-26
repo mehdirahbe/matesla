@@ -54,6 +54,12 @@
         border-radius: .35rem;
         max-width: 1100px;
     }
+    /* Coords shown until async reverse-geocode fills the label */
+    a.gmaps-pending {
+        font-variant-numeric: tabular-nums;
+        opacity: 0.85;
+        font-style: italic;
+    }
 {% endblock %}
 
 {% block content %}
@@ -285,6 +291,55 @@
                 dateText.value = p[2] + '/' + p[1] + '/' + p[0];
             }
         });
+    }
+
+    // --- Async reverse-geocode: page shows lat/lon first, labels fill in later ---
+    var resolveUrl = "{% url 'PersoResolveAddress' %}";
+    var pending = document.querySelectorAll('a.gmaps-link[data-geocode="1"]');
+    if (pending.length) {
+        // Dedupe by lat,lon so one HTTP fills every matching link
+        var queue = [];
+        var seen = {};
+        pending.forEach(function (el) {
+            var key = el.getAttribute('data-lat') + ',' + el.getAttribute('data-lon');
+            if (!seen[key]) {
+                seen[key] = true;
+                queue.push({
+                    lat: el.getAttribute('data-lat'),
+                    lon: el.getAttribute('data-lon')
+                });
+            }
+        });
+        function applyAddress(lat, lon, address) {
+            // Match by the same data-lat/data-lon strings we put in the HTML
+            document.querySelectorAll('a.gmaps-link[data-geocode="1"]').forEach(function (el) {
+                if (el.getAttribute('data-lat') === lat && el.getAttribute('data-lon') === lon) {
+                    el.textContent = address;
+                    el.removeAttribute('data-geocode');
+                    el.classList.remove('gmaps-pending');
+                }
+            });
+        }
+        function next() {
+            if (!queue.length) return;
+            var item = queue.shift();
+            var url = resolveUrl + '?lat=' + encodeURIComponent(item.lat)
+                + '&lon=' + encodeURIComponent(item.lon);
+            fetch(url, { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data && data.ok && data.address) {
+                        // Use request keys (HTML data-*), not server-rounded floats
+                        applyAddress(item.lat, item.lon, data.address);
+                    }
+                })
+                .catch(function () { /* keep coords */ })
+                .finally(function () {
+                    // Server already enforces ~1 req/s; small gap keeps UI responsive
+                    setTimeout(next, 50);
+                });
+        }
+        next();
     }
 
     {% if has_gps %}

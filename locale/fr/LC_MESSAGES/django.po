@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-26 12:23+0000\n"
+"POT-Creation-Date: 2026-07-26 15:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -26,8 +26,8 @@ msgstr "Créer un compte"
 
 #: anonymisedstats/templates/anonymisedstats/carstats.html:66
 #: anonymisedstats/templates/anonymisedstats/carstats.html:67
-#: personalstats/templates/personalstats/_carstats_body.html:35
-#: personalstats/templates/personalstats/_carstats_body.html:36
+#: personalstats/templates/personalstats/_carstats_body.html:37
+#: personalstats/templates/personalstats/_carstats_body.html:38
 msgid "Battery degradation graphs"
 msgstr "Graphes de dégradation de la batterie"
 
@@ -124,19 +124,19 @@ msgstr "Double motorisation"
 msgid "Car year"
 msgstr "Année de la voiture"
 
-#: anonymisedstats/views.py:69 personalstats/views.py:33
+#: anonymisedstats/views.py:69 personalstats/views.py:45
 msgid "Outside temperature (°C)"
 msgstr "Température extérieure (°C)"
 
-#: anonymisedstats/views.py:70 personalstats/views.py:37
+#: anonymisedstats/views.py:70 personalstats/views.py:49
 msgid "Odometer (miles)"
 msgstr "Odometre (miles)"
 
-#: anonymisedstats/views.py:71 personalstats/views.py:42
+#: anonymisedstats/views.py:71 personalstats/views.py:56
 msgid "Battery level (%)"
 msgstr "Niveau batterie (%)"
 
-#: anonymisedstats/views.py:72 personalstats/views.py:44
+#: anonymisedstats/views.py:72 personalstats/views.py:58
 msgid "Battery charge limit (%)"
 msgstr "Limite de charge de la batterie (%)"
 
@@ -444,12 +444,9 @@ msgstr "Arrêter la charge"
 msgid "Drive and location"
 msgstr "Conduite et emplacement"
 
-#: matesla/templates/matesla/_carstatus_body.html:206 personalstats/views.py:38
+#: matesla/templates/matesla/_carstatus_body.html:206
 msgid "Speed"
 msgstr "Vitesse"
-
-msgid "Speed (mi/h)"
-msgstr "Vitesse (mi/h)"
 
 #: matesla/templates/matesla/_carstatus_body.html:210
 msgid "Location"
@@ -520,159 +517,329 @@ msgid "Espanol"
 msgstr "Espagnol"
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:8
-#: personalstats/templates/personalstats/_carstats_body.html:3
+#: personalstats/templates/personalstats/_carstats_body.html:4
 msgid "Download my Data"
 msgstr "Télécharger mes données"
 
 #: personalstats/templates/personalstats/_carstats_body.html:5
+#: personalstats/templates/personalstats/daymap.html:5
+msgid "Day map"
+msgstr "Carte du jour"
+
+#: personalstats/templates/personalstats/_carstats_body.html:7
 msgid "1 Week"
 msgstr "1 semaine"
 
-#: personalstats/templates/personalstats/_carstats_body.html:6
+#: personalstats/templates/personalstats/_carstats_body.html:8
 msgid "2 Weeks"
 msgstr "2 semaines"
 
-#: personalstats/templates/personalstats/_carstats_body.html:7
+#: personalstats/templates/personalstats/_carstats_body.html:9
 msgid "1 Month"
 msgstr "1 mois"
 
-#: personalstats/templates/personalstats/_carstats_body.html:8
+#: personalstats/templates/personalstats/_carstats_body.html:10
 msgid "3 Months"
 msgstr "3 mois"
 
-#: personalstats/templates/personalstats/_carstats_body.html:9
+#: personalstats/templates/personalstats/_carstats_body.html:11
 msgid "6 Months"
 msgstr "6 mois"
 
-#: personalstats/templates/personalstats/_carstats_body.html:10
+#: personalstats/templates/personalstats/_carstats_body.html:12
 msgid "1 Year"
 msgstr "1 an"
 
-#: personalstats/templates/personalstats/_carstats_body.html:11
+#: personalstats/templates/personalstats/_carstats_body.html:13
 msgid "2 Years"
 msgstr "2 ans"
 
-#: personalstats/templates/personalstats/_carstats_body.html:12
+#: personalstats/templates/personalstats/_carstats_body.html:14
 msgid "5 Years"
 msgstr "5 ans"
 
-#: personalstats/templates/personalstats/_carstats_body.html:13
+#: personalstats/templates/personalstats/_carstats_body.html:15
 msgid "10 Years"
 msgstr "10 ans"
 
-#: personalstats/templates/personalstats/_carstats_body.html:41
+#: personalstats/templates/personalstats/_carstats_body.html:43
 msgid "Degradation vs odometer"
 msgstr "Dégradation vs odomètre"
 
-#: personalstats/templates/personalstats/_carstats_body.html:42
+#: personalstats/templates/personalstats/_carstats_body.html:44
 msgid "Degradation over time"
 msgstr "Dégradation dans le temps"
 
-#: personalstats/templates/personalstats/_carstats_body.html:43
+#: personalstats/templates/personalstats/_carstats_body.html:45
 msgid "Range at full charge vs odometer"
 msgstr "Autonomie à charge pleine vs odomètre"
 
-#: personalstats/templates/personalstats/_carstats_body.html:44
+#: personalstats/templates/personalstats/_carstats_body.html:46
 msgid "Range at full charge over time"
 msgstr "Autonomie à charge pleine dans le temps"
 
-#: personalstats/templates/personalstats/_carstats_body.html:56
-#: personalstats/templates/personalstats/_carstats_body.html:57
+#: personalstats/templates/personalstats/_carstats_body.html:58
+#: personalstats/templates/personalstats/_carstats_body.html:59
 msgid "Charge related graphs"
 msgstr "Graphes liés à la charge"
 
-#: personalstats/templates/personalstats/_carstats_body.html:80
-#: personalstats/templates/personalstats/_carstats_body.html:81
+#: personalstats/templates/personalstats/_carstats_body.html:78
+#: personalstats/templates/personalstats/_carstats_body.html:79
 msgid "Temperature related graphs"
 msgstr "Graphes liés à la température"
 
-#: personalstats/templates/personalstats/_carstats_body.html:98
-#: personalstats/templates/personalstats/_carstats_body.html:99
+#: personalstats/templates/personalstats/_carstats_body.html:95
+#: personalstats/templates/personalstats/_carstats_body.html:96
 msgid "Drive related graphs"
 msgstr "Graphes liés à la conduite"
 
-#: personalstats/views.py:34
+#: personalstats/templates/personalstats/daymap.html:63
+msgid "Personal stats"
+msgstr "Stats personnelles"
+
+#: personalstats/templates/personalstats/daymap.html:64
+msgid "Previous day"
+msgstr "Jour précédent"
+
+#: personalstats/templates/personalstats/daymap.html:68
+msgid "Date"
+msgstr "Date"
+
+#: personalstats/templates/personalstats/daymap.html:71
+msgid "Pick a date"
+msgstr "Choisir une date"
+
+#: personalstats/templates/personalstats/daymap.html:73
+msgid "Date as text"
+msgstr "Date en texte"
+
+#: personalstats/templates/personalstats/daymap.html:77
+msgid "Or type DD/MM/YYYY"
+msgstr "Ou taper JJ/MM/AAAA"
+
+#: personalstats/templates/personalstats/daymap.html:79
+msgid "Go"
+msgstr "Aller"
+
+#: personalstats/templates/personalstats/daymap.html:82
+msgid "Next day"
+msgstr "Jour suivant"
+
+#: personalstats/templates/personalstats/daymap.html:90
+msgid "Where was the car"
+msgstr "Où était la voiture"
+
+#: personalstats/templates/personalstats/daymap.html:96
+msgid "No GPS points for this day (telemetry only)."
+msgstr "Aucun point GPS pour ce jour (télémétrie seule)."
+
+#: personalstats/templates/personalstats/daymap.html:100
+msgid "GPS points"
+msgstr "Points GPS"
+
+#: personalstats/templates/personalstats/daymap.html:102
+#, python-format
+msgid "%(n)s drawn on map"
+msgstr "%(n)s affichés sur la carte"
+
+#: personalstats/templates/personalstats/daymap.html:105
+msgid "Track"
+msgstr "Trajet"
+
+#: personalstats/templates/personalstats/daymap.html:107
+#: personalstats/templates/personalstats/daymap.html:160
+msgid "Drives"
+msgstr "Trajets"
+
+#: personalstats/templates/personalstats/daymap.html:108
+msgid "Charges"
+msgstr "Recharges"
+
+#: personalstats/templates/personalstats/daymap.html:111
+#: personalstats/templates/personalstats/daymap.html:215
+#: personalstats/templates/personalstats/daymap.html:311
+msgid "Start"
+msgstr "Départ"
+
+#: personalstats/templates/personalstats/daymap.html:116
+#: personalstats/templates/personalstats/daymap.html:216
+#: personalstats/templates/personalstats/daymap.html:313
+msgid "End"
+msgstr "Arrivée"
+
+#: personalstats/templates/personalstats/daymap.html:126
+#: personalstats/templates/personalstats/daymap.html:168
+msgid "Distance"
+msgstr "Distance"
+
+#: personalstats/templates/personalstats/daymap.html:127
+#: personalstats/templates/personalstats/daymap.html:169
+msgid "Avg speed"
+msgstr "Vitesse moyenne"
+
+#: personalstats/templates/personalstats/daymap.html:128
+#: personalstats/templates/personalstats/daymap.html:170
+#: personalstats/templates/personalstats/daymap.html:218
+msgid "SoC start"
+msgstr "SoC début"
+
+#: personalstats/templates/personalstats/daymap.html:129
+#: personalstats/templates/personalstats/daymap.html:171
+#: personalstats/templates/personalstats/daymap.html:219
+msgid "SoC end"
+msgstr "SoC fin"
+
+#: personalstats/templates/personalstats/daymap.html:130
+#: personalstats/templates/personalstats/daymap.html:172
+msgid "SoC used"
+msgstr "SoC consommé"
+
+#: personalstats/templates/personalstats/daymap.html:131
+#: personalstats/templates/personalstats/daymap.html:173
+msgid "kWh/100 km"
+msgstr "kWh/100 km"
+
+#: personalstats/templates/personalstats/daymap.html:154
+#, python-format
+msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range)."
+msgstr "Estimations kWh basées sur un pack d’environ %(kwh)s kWh (d’après l’autonomie EPA)."
+
+#: personalstats/templates/personalstats/daymap.html:165
+msgid "Departure"
+msgstr "Départ"
+
+#: personalstats/templates/personalstats/daymap.html:166
+msgid "Arrival"
+msgstr "Arrivée"
+
+#: personalstats/templates/personalstats/daymap.html:167
+#: personalstats/templates/personalstats/daymap.html:217
+msgid "Duration"
+msgstr "Durée"
+
+#: personalstats/templates/personalstats/daymap.html:174
+msgid "From → to"
+msgstr "De → à"
+
+#: personalstats/templates/personalstats/daymap.html:210
+msgid "Charging stops"
+msgstr "Arrêts recharge"
+
+#: personalstats/templates/personalstats/daymap.html:220
+msgid "SoC added"
+msgstr "SoC ajouté"
+
+#: personalstats/templates/personalstats/daymap.html:221
+msgid "kWh added"
+msgstr "kWh ajoutés"
+
+#: personalstats/templates/personalstats/daymap.html:222
+msgid "Max power"
+msgstr "Puissance max"
+
+#: personalstats/templates/personalstats/daymap.html:223
+msgid "Address"
+msgstr "Adresse"
+
+#: personalstats/templates/personalstats/daymap.html:248
+msgid "No drive or charge segments detected for this day."
+msgstr "Aucun trajet ni recharge détecté pour ce jour."
+
+#: personalstats/templates/personalstats/daymap.html:254
+msgid "No data for this day."
+msgstr "Aucune donnée pour ce jour."
+
+#: personalstats/templates/personalstats/daymap.html:255
+msgid "Try another date with the arrows or by typing DD/MM/YYYY."
+msgstr "Essayez une autre date avec les flèches ou en tapant JJ/MM/AAAA."
+
+#: personalstats/views.py:46
 msgid "Driver temperature (°C)"
 msgstr "Température pour le conducteur (°C)"
 
-#: personalstats/views.py:35
+#: personalstats/views.py:47
 msgid "Inside temperature (°C)"
 msgstr "Température intérieure (°C)"
 
-#: personalstats/views.py:36
+#: personalstats/views.py:48
 msgid "Passenger temperature (°C)"
 msgstr "Température du passager (°C)"
 
-#: personalstats/views.py:39
+#: personalstats/views.py:51
+msgid "Speed (mi/h)"
+msgstr "Vitesse (mi/h)"
+
+#: personalstats/views.py:52
 msgid "Latitude"
 msgstr "Latitude"
 
-#: personalstats/views.py:40
+#: personalstats/views.py:53
 msgid "Longitude"
 msgstr "Longitude"
 
-#: personalstats/views.py:41
-msgid "Power"
-msgstr "Puissance"
-
+#: personalstats/views.py:55
 msgid "Power (kW)"
 msgstr "Puissance (kW)"
 
-#: personalstats/views.py:43
+#: personalstats/views.py:57
 msgid "Battery range (miles)"
 msgstr "Range de la batterie (miles)"
 
-#: personalstats/views.py:45
+#: personalstats/views.py:60
 msgid "Charge rate (mi/h)"
 msgstr "Vitesse de charge (mi/h)"
 
-#: personalstats/views.py:46
+#: personalstats/views.py:61
 msgid "Charger actual current (A)"
 msgstr "Courant actuel de charge (A)"
 
-#: personalstats/views.py:47
+#: personalstats/views.py:62
 msgid "Charger phases"
 msgstr "Nombre de phases"
 
-#: personalstats/views.py:48
+#: personalstats/views.py:63
 msgid "Charger power (kW)"
 msgstr "Puissance de charge (kW)"
 
-#: personalstats/views.py:49
+#: personalstats/views.py:64
 msgid "Charger voltage (V)"
 msgstr "Voltage de charge (V)"
 
-#: personalstats/views.py:50
+#: personalstats/views.py:65
 msgid "Estimated battery range (miles)"
 msgstr "Range estimé de la batterie (miles)"
 
-#: personalstats/views.py:51
+#: personalstats/views.py:66
 msgid "Usable battery level (%)"
 msgstr "Niveau utilisable batterie (%)"
 
-#: personalstats/views.py:52
+#: personalstats/views.py:67
 msgid "Battery degradation (%)"
 msgstr "Dégradation de la batterie (%)"
 
-#: personalstats/views.py:55
+#: personalstats/views.py:70
 msgid "Range at full charge (miles)"
 msgstr "Autonomie à charge pleine (miles)"
 
-#: personalstats/views.py:56
+#: personalstats/views.py:71
 msgid "Range at full charge vs odometer (miles)"
 msgstr "Autonomie à charge pleine vs odomètre (miles)"
 
-#: personalstats/views.py:128
+#: personalstats/views.py:143
 msgid "Minimum"
 msgstr "Minimum"
 
-#: personalstats/views.py:129
+#: personalstats/views.py:144
 msgid "Average"
 msgstr "Moyenne"
 
-#: personalstats/views.py:130
+#: personalstats/views.py:145
 msgid "Maximum"
 msgstr "Maximum"
+
+#: personalstats/views.py:482
+msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
+msgstr "Date invalide. Utilisez JJ/MM/AAAA ou AAAA-MM-JJ."
 
 #: templates/registration/login.html:43
 msgid "Signup"
@@ -842,6 +1009,9 @@ msgstr "Réinitialisation du mot de passe"
 msgid "Send e-mail"
 msgstr "Envoyer le mail"
 
+#~ msgid "Power"
+#~ msgstr "Puissance"
+
 #~ msgid ""
 #~ "https://datastudio.google.com/reporting/119103e1-6912-4b1c-890c-"
 #~ "f02a6083fc8c"
@@ -912,71 +1082,11 @@ msgstr "Envoyer le mail"
 #~ msgid "Other commands"
 #~ msgstr "Autres commandes"
 
-msgid "Day map"
-msgstr "Carte du jour"
+#~ msgid "Stops"
+#~ msgstr "Arrêts"
 
-msgid "Previous day"
-msgstr "Jour précédent"
+#~ msgid "From"
+#~ msgstr "De"
 
-msgid "Next day"
-msgstr "Jour suivant"
-
-msgid "Pick a date"
-msgstr "Choisir une date"
-
-msgid "Or type DD/MM/YYYY"
-msgstr "Ou taper JJ/MM/AAAA"
-
-msgid "Go"
-msgstr "Aller"
-
-msgid "Where was the car"
-msgstr "Où était la voiture"
-
-msgid "Points"
-msgstr "Points"
-
-msgid "Track"
-msgstr "Trajet"
-
-msgid "Distance"
-msgstr "Distance"
-
-msgid "Start"
-msgstr "Départ"
-
-msgid "End"
-msgstr "Arrivée"
-
-msgid "Stops"
-msgstr "Arrêts"
-
-msgid "From"
-msgstr "De"
-
-msgid "To"
-msgstr "À"
-
-msgid "Duration"
-msgstr "Durée"
-
-msgid "Address"
-msgstr "Adresse"
-
-msgid "No GPS points for this day."
-msgstr "Aucun point GPS pour ce jour."
-
-msgid "Try another date with the arrows or by typing DD/MM/YYYY."
-msgstr "Essayez une autre date avec les flèches ou en tapant JJ/MM/AAAA."
-
-msgid "Personal stats"
-msgstr "Stats personnelles"
-
-msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
-msgstr "Date invalide. Utilisez JJ/MM/AAAA ou AAAA-MM-JJ."
-
-msgid "Date"
-msgstr "Date"
-
-msgid "Date as text"
-msgstr "Date en texte"
+#~ msgid "To"
+#~ msgstr "À"

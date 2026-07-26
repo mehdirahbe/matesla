@@ -1,8 +1,9 @@
 import django
 from django.db.models import Max, Min, Avg, F, FloatField, Case, When
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import render
 from django.template import loader
+from django.views.decorators.http import require_GET
 from django_tables2 import SingleTableView
 from matplotlib.dates import DateFormatter
 from matplotlib.figure import Figure
@@ -574,26 +575,15 @@ def DayMap(request, hashedVin, day=None):
 
     drives, charges = _segment_day(raw_rows, pack_kwh)
 
-    # Addresses: GetAddressFromLatLong cleans bilingual Nominatim labels on read;
-    # only call it when allow_network or when a cache row already exists.
-    from matesla.models.AddressFromLatLong import (
-        AddressFromLatLong,
-        CleanAddressDisplay,
-        GetAddressFromLatLong,
-    )
+    # Page render: cache only (instant). Missing labels are filled by JS via
+    # ResolveAddress → GetAddressFromLatLong (rate-limited Nominatim).
+    from matesla.models.AddressFromLatLong import LookupCachedAddress
 
-    def addr(lat, lon, allow_network=False):
+    def addr_cached(lat, lon):
         if lat is None or lon is None:
             return None
-        la, lo = round(float(lat), 4), round(float(lon), 4)
-        cached = AddressFromLatLong.objects.filter(latitude=la, longitude=lo).first()
-        if cached:
-            # Always clean (old rows still store full bilingual Nominatim strings)
-            return CleanAddressDisplay(cached.address)
-        if not allow_network:
-            return None
         try:
-            return GetAddressFromLatLong(la, lo)
+            return LookupCachedAddress(round(float(lat), 4), round(float(lon), 4))
         except Exception:
             return None
 
@@ -602,14 +592,13 @@ def DayMap(request, hashedVin, day=None):
     if gps_rows:
         start_lat, start_lon = gps_rows[0]["lat"], gps_rows[0]["lon"]
         end_lat, end_lon = gps_rows[-1]["lat"], gps_rows[-1]["lon"]
-        start_addr = addr(start_lat, start_lon, allow_network=True)
-        end_addr = addr(end_lat, end_lon, allow_network=True)
+        start_addr = addr_cached(start_lat, start_lon)
+        end_addr = addr_cached(end_lat, end_lon)
     for d in drives:
-        d["start_address"] = addr(d.get("lat"), d.get("lon"), allow_network=False)
-        d["end_address"] = addr(d.get("end_lat"), d.get("end_lon"), allow_network=False)
-    for i, c in enumerate(charges):
-        # reverse-geocode a few charge locations (most useful)
-        c["address"] = addr(c.get("lat"), c.get("lon"), allow_network=(i < 5))
+        d["start_address"] = addr_cached(d.get("lat"), d.get("lon"))
+        d["end_address"] = addr_cached(d.get("end_lat"), d.get("end_lon"))
+    for c in charges:
+        c["address"] = addr_cached(c.get("lat"), c.get("lon"))
 
     # Day totals from drives (same metrics as the drives table)
     miles_driven = sum(d["miles"] or 0 for d in drives) or None
@@ -698,6 +687,54 @@ def DayMap(request, hashedVin, day=None):
         }
     )
     return render(request, "personalstats/daymap.html", context)
+
+
+@require_GET
+def ResolveAddress(request):
+    """
+    Async reverse-geocode for DayMap (and similar).
+
+    Query: ?lat=50.7868&lon=4.3517
+    Returns JSON: {ok, lat, lon, address, cached, error?}
+    Cache hits are instant; misses call Nominatim under the daily/1-req-s quota.
+    """
+    try:
+        lat = float(request.GET.get("lat", ""))
+        lon = float(request.GET.get("lon", ""))
+    except (TypeError, ValueError):
+        return JsonResponse(
+            {"ok": False, "error": "invalid_coords"}, status=400
+        )
+    if not (-90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0):
+        return JsonResponse({"ok": False, "error": "out_of_range"}, status=400)
+
+    la, lo = round(lat, 4), round(lon, 4)
+    from matesla.models.AddressFromLatLong import (
+        LookupCachedAddress,
+        GetAddressFromLatLong,
+    )
+
+    cached = LookupCachedAddress(la, lo)
+    if cached is not None:
+        return JsonResponse(
+            {"ok": True, "lat": la, "lon": lo, "address": cached, "cached": True}
+        )
+
+    address = GetAddressFromLatLong(la, lo)
+    if not address or address == "Unknown":
+        return JsonResponse(
+            {
+                "ok": False,
+                "lat": la,
+                "lon": lo,
+                "address": None,
+                "cached": False,
+                "error": "unresolved_or_quota",
+            }
+        )
+    return JsonResponse(
+        {"ok": True, "lat": la, "lon": lo, "address": address, "cached": False}
+    )
 
 
 # returns data stored in db for the user is CSV-->the only info from the car

@@ -1074,7 +1074,7 @@ msgstr ""
 
 #: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1539
 msgid "Duration"
-msgstr ""
+msgstr "Duración"
 
 #: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1589
 msgid "Email address"
@@ -2034,3 +2034,93 @@ msgstr "Estadísticas personales"
 
 msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
 msgstr "Fecha no válida. Use DD/MM/AAAA o AAAA-MM-DD."
+
+msgid "Pick a date"
+msgstr "Elegir una fecha"
+
+msgid "Or type DD/MM/YYYY"
+msgstr "O escribir DD/MM/AAAA"
+
+msgid "GPS points"
+msgstr "Puntos GPS"
+
+msgid "Track"
+msgstr "Recorrido"
+
+msgid "Drives"
+msgstr "Trayectos"
+
+msgid "Charges"
+msgstr "Cargas"
+
+msgid "Start"
+msgstr "Inicio"
+
+msgid "End"
+msgstr "Fin"
+
+msgid "Distance"
+msgstr "Distancia"
+
+msgid "Avg speed"
+msgstr "Velocidad media"
+
+msgid "SoC start"
+msgstr "SoC inicio"
+
+msgid "SoC end"
+msgstr "SoC fin"
+
+msgid "SoC used"
+msgstr "SoC consumido"
+
+msgid "kWh/100 km"
+msgstr "kWh/100 km"
+
+msgid "Departure"
+msgstr "Salida"
+
+msgid "Arrival"
+msgstr "Llegada"
+
+msgid "From → to"
+msgstr "De → a"
+
+msgid "Charging stops"
+msgstr "Paradas de carga"
+
+msgid "SoC added"
+msgstr "SoC añadido"
+
+msgid "kWh added"
+msgstr "kWh añadidos"
+
+msgid "Max power"
+msgstr "Potencia máx."
+
+msgid "Address"
+msgstr "Dirección"
+
+msgid "Date"
+msgstr "Fecha"
+
+msgid "Date as text"
+msgstr "Fecha en texto"
+
+msgid "No GPS points for this day (telemetry only)."
+msgstr "No hay puntos GPS para este día (solo telemetría)."
+
+msgid "No drive or charge segments detected for this day."
+msgstr "No se detectaron trayectos ni cargas este día."
+
+msgid "No data for this day."
+msgstr "No hay datos para este día."
+
+msgid "Try another date with the arrows or by typing DD/MM/YYYY."
+msgstr "Prueba otra fecha con las flechas o escribiendo DD/MM/AAAA."
+
+msgid "%(n)s drawn on map"
+msgstr "%(n)s dibujados en el mapa"
+
+msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range)."
+msgstr "Estimaciones kWh con un pack de ~%(kwh)s kWh (según autonomía EPA)."
