@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-11 18:52+0000\n"
+"POT-Creation-Date: 2026-07-26 12:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -15,10 +15,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-
-#: SuCStats/views.py:8
-msgid "https://datastudio.google.com/reporting/119103e1-6912-4b1c-890c-f02a6083fc8c"
-msgstr "https://datastudio.google.com/reporting/3cc14dae-6ea2-4f4b-869a-afc2c1e00489"
 
 #: accounts/forms.py:7
 msgid "Required to be able to reset password if you forget it"
@@ -30,14 +26,14 @@ msgstr "Créer un compte"
 
 #: anonymisedstats/templates/anonymisedstats/carstats.html:66
 #: anonymisedstats/templates/anonymisedstats/carstats.html:67
-#: personalstats/templates/personalstats/carstats.html:77
-#: personalstats/templates/personalstats/carstats.html:78
+#: personalstats/templates/personalstats/_carstats_body.html:35
+#: personalstats/templates/personalstats/_carstats_body.html:36
 msgid "Battery degradation graphs"
 msgstr "Graphes de dégradation de la batterie"
 
 #: anonymisedstats/templates/anonymisedstats/carstats.html:87
 #: anonymisedstats/templates/anonymisedstats/carstats.html:88
-#: matesla/templates/matesla/carstatus.html:209
+#: matesla/templates/matesla/_carstatus_body.html:75
 msgid "Firmware version"
 msgstr "Version firmware"
 
@@ -59,15 +55,18 @@ msgstr "Statistiques des voitures"
 msgid "Car addition Date"
 msgstr "Date d'addition de la voiture"
 
-#: anonymisedstats/views.py:53 matesla/templates/matesla/carstatus.html:197
+#: anonymisedstats/views.py:53
+#: matesla/templates/matesla/_carstatus_body.html:63
 msgid "Car type"
 msgstr "Type de voiture"
 
-#: anonymisedstats/views.py:54 matesla/templates/matesla/carstatus.html:283
+#: anonymisedstats/views.py:54
+#: matesla/templates/matesla/_carstatus_body.html:149
 msgid "Charge port"
 msgstr "Port de charge"
 
-#: anonymisedstats/views.py:55 matesla/templates/matesla/carstatus.html:201
+#: anonymisedstats/views.py:55
+#: matesla/templates/matesla/_carstatus_body.html:67
 msgid "Exterior color"
 msgstr "Couleur extérieure"
 
@@ -95,7 +94,8 @@ msgstr "Conduite à gauche"
 msgid "Roof color"
 msgstr "Couleur du toît"
 
-#: anonymisedstats/views.py:62 matesla/templates/matesla/carstatus.html:205
+#: anonymisedstats/views.py:62
+#: matesla/templates/matesla/_carstatus_body.html:71
 msgid "Wheel"
 msgstr "Roues"
 
@@ -111,7 +111,8 @@ msgstr "Option Conduite autonome (FSD) active"
 msgid "European union car"
 msgstr "Voiture européenne"
 
-#: anonymisedstats/views.py:66 matesla/templates/matesla/carstatus.html:357
+#: anonymisedstats/views.py:66
+#: matesla/templates/matesla/_carstatus_body.html:223
 msgid "EPA Range (miles)"
 msgstr "Range EPA (miles)"
 
@@ -123,23 +124,24 @@ msgstr "Double motorisation"
 msgid "Car year"
 msgstr "Année de la voiture"
 
-#: anonymisedstats/views.py:69 personalstats/views.py:29
+#: anonymisedstats/views.py:69 personalstats/views.py:33
 msgid "Outside temperature (°C)"
 msgstr "Température extérieure (°C)"
 
-#: anonymisedstats/views.py:70 personalstats/views.py:33
+#: anonymisedstats/views.py:70 personalstats/views.py:37
 msgid "Odometer (miles)"
 msgstr "Odometre (miles)"
 
-#: anonymisedstats/views.py:71 personalstats/views.py:38
+#: anonymisedstats/views.py:71 personalstats/views.py:42
 msgid "Battery level (%)"
 msgstr "Niveau batterie (%)"
 
-#: anonymisedstats/views.py:72 personalstats/views.py:40
+#: anonymisedstats/views.py:72 personalstats/views.py:44
 msgid "Battery charge limit (%)"
 msgstr "Limite de charge de la batterie (%)"
 
-#: anonymisedstats/views.py:73 matesla/templates/matesla/carstatus.html:353
+#: anonymisedstats/views.py:73
+#: matesla/templates/matesla/_carstatus_body.html:219
 msgid "Estim. number of battery cycles"
 msgstr "Nombre de cycles estimé de la batterie"
 
@@ -155,38 +157,75 @@ msgstr "Vrai"
 msgid "False"
 msgstr "Faux"
 
-#: matesla/forms.py:9
+#: matesla/forms.py:14
 msgid "Desired Charge Level"
 msgstr "Niveau de charge désiré"
 
-#: matesla/forms.py:13
+#: matesla/forms.py:21
 msgid "Driver temperature"
 msgstr "Température pour le conducteur (°C)"
 
-#: matesla/forms.py:18
+#: matesla/forms.py:29
 msgid "Please enter your Tesla account password"
 msgstr "Veuillez entrer le mot de passe du compte Tesla"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:45
+#: matesla/forms.py:40
+msgid "Client ID"
+msgstr ""
+
+#: matesla/forms.py:41
+msgid "Client secret"
+msgstr ""
+
+#: matesla/forms.py:42
+msgid "OAuth redirect URI"
+msgstr ""
+
+#: matesla/forms.py:43
+msgid "Fleet API region"
+msgstr ""
+
+#: matesla/forms.py:44
+msgid "Domaine partner (HTTPS public)"
+msgstr ""
+
+#: matesla/forms.py:48
+msgid ""
+"Ex. robotcar.mondomaine.be — PAS localhost. Doit aussi être en Allowed "
+"Origin sur developer.tesla.com"
+msgstr ""
+
+#: matesla/forms.py:61
+msgid "Europe / Middle East / Africa (recommended for Belgium)"
+msgstr ""
+
+#: matesla/forms.py:62
+msgid "North America / Asia-Pacific (excl. China)"
+msgstr ""
+
+#: matesla/forms.py:63
+msgid "China"
+msgstr ""
+
+#: matesla/templates/matesla/AddTeslaAccount.html:43
 #: matesla/templates/matesla/ConnectionError.html:7
 #: matesla/templates/matesla/NoTeslaVehicules.html:7
 #: matesla/templates/matesla/TeslaServerCmdFail.html:7
 #: matesla/templates/matesla/TeslaServerError.html:7
-#: matesla/templates/matesla/asleep.html:7
-#: matesla/templates/matesla/carstatus.html:119
+#: matesla/templates/matesla/_vehicle_chrome.html:3
+#: matesla/templates/matesla/asleep.html:9
 #: matesla/templates/matesla/getRemote_start_drivePassword.html:6
 #: matesla/templates/matesla/getdesiredchargelevel.html:6
 #: matesla/templates/matesla/getdesiredtemperature.html:6
 msgid "logout"
 msgstr "Se déconnecter"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:46
+#: matesla/templates/matesla/AddTeslaAccount.html:45
 #: matesla/templates/matesla/ConnectionError.html:9
 #: matesla/templates/matesla/NoTeslaVehicules.html:9
 #: matesla/templates/matesla/TeslaServerCmdFail.html:9
 #: matesla/templates/matesla/TeslaServerError.html:9
-#: matesla/templates/matesla/asleep.html:9
-#: matesla/templates/matesla/carstatus.html:121
+#: matesla/templates/matesla/_vehicle_chrome.html:6
 #: matesla/templates/matesla/getRemote_start_drivePassword.html:8
 #: matesla/templates/matesla/getdesiredchargelevel.html:8
 #: matesla/templates/matesla/getdesiredtemperature.html:8
@@ -194,57 +233,12 @@ msgstr "Se déconnecter"
 msgid "Firmware and cars Stats"
 msgstr "Stats du firmware Tesla et des voitures"
 
-#: matesla/templates/matesla/AddTeslaAccount.html:73
-msgid "Please enter a tesla token"
-msgstr "Veuillez entrer un jeton tesla (token)"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:74
-msgid "The token alone does not allow to put your car in drive mode."
-msgstr "Le jeton seul ne permet pas de mettre la voiture en mode conduite."
-
-#: matesla/templates/matesla/AddTeslaAccount.html:75
-msgid "Token is invalidated if you change your tesla password."
-msgstr "Le jeton est invalidé quand vous changez votre mot de passe"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:76
-msgid "This form will be presented again at token expiration."
-msgstr "Ce formulaire vous sera à nouveau présenté à l'expiration du jeton"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:79
-msgid "Tesla token"
-msgstr "Jeton Tesla"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:83
-msgid "To obtain a token, you have different methods."
-msgstr "Pour obtenir un jeton, vous disposez de plusieurs méthodes"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:84
-msgid "For Teslafi users, Teslafi can provide you a token for your car"
-msgstr ""
-"Pour les utilisateurs de Teslafi, Teslafi peut vous fournir un jeton pour "
-"votre voiture"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:85
-msgid "I can recommend this free mobile app"
-msgstr "Je peux recommander cette application mobile"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:86
-msgid "It is discussed here by the author Denouche"
-msgstr "Il y a une discussion dessus présentée par son auteur Denouche"
-
-#: matesla/templates/matesla/AddTeslaAccount.html:89
-#: matesla/templates/matesla/getRemote_start_drivePassword.html:16
-#: matesla/templates/matesla/getdesiredchargelevel.html:14
-#: matesla/templates/matesla/getdesiredtemperature.html:14
-msgid "Save"
-msgstr "Sauver"
-
 #: matesla/templates/matesla/ConnectionError.html:8
 #: matesla/templates/matesla/NoTeslaVehicules.html:8
 #: matesla/templates/matesla/TeslaServerCmdFail.html:8
 #: matesla/templates/matesla/TeslaServerError.html:8
-#: matesla/templates/matesla/asleep.html:8
-#: matesla/templates/matesla/carstatus.html:120
+#: matesla/templates/matesla/_vehicle_chrome.html:4
+#: matesla/templates/matesla/asleep.html:10
 #: matesla/templates/matesla/getRemote_start_drivePassword.html:7
 #: matesla/templates/matesla/getdesiredchargelevel.html:7
 #: matesla/templates/matesla/getdesiredtemperature.html:7
@@ -259,7 +253,8 @@ msgstr "Erreur de connection. Veuillez vérifier votre connection internet."
 #: matesla/templates/matesla/NoTeslaVehicules.html:16
 #: matesla/templates/matesla/TeslaServerCmdFail.html:16
 #: matesla/templates/matesla/TeslaServerError.html:16
-#: matesla/templates/matesla/asleep.html:17
+#: matesla/templates/matesla/asleep.html:33
+#: matesla/templates/matesla/vehicle_hub.html:97
 msgid "Retry?"
 msgstr "Réessayer?"
 
@@ -280,247 +275,220 @@ msgstr ""
 msgid "Tesla server did return an error"
 msgstr "Le serveur Tesla a renvoyé une erreur"
 
-#: matesla/templates/matesla/asleep.html:10
-#: matesla/templates/matesla/carstatus.html:122
-#: templates/registration/login.html:45
-msgid "Superchargers (SuCs)  Stats"
-msgstr ""
-
-#: matesla/templates/matesla/asleep.html:14
-msgid "Your tesla is asleep"
-msgstr "Votre tesla est endormie"
-
-#: matesla/templates/matesla/carstatus.html:127
-msgid "You are on local computer, only used to test new developments."
-msgstr ""
-"Vous êtes sur l'ordinateur local, utilisé uniquement pour tester de nouveaux "
-"développements.."
-
-#: matesla/templates/matesla/carstatus.html:128
-#: matesla/templates/matesla/carstatus.html:132
-msgid ""
-"Please go on official site instead <a href=\"https://matesla.herokuapp.com\" "
-"class=\"btn btn-danger btn-sm\">https://matesla.herokuapp.com</a></h6>"
-msgstr ""
-"Veuillez aller à la place sur le site officiel <a href=\"https://matesla."
-"herokuapp.com\" class=\"btn btn-danger btn-sm\">https://matesla.herokuapp."
-"com</a></h6>"
-
-#: matesla/templates/matesla/carstatus.html:131
-msgid ""
-"You are on afternoon-scrubland-61531.herokuapp.com, only used to test "
-"deployment."
-msgstr ""
-"Vous êtes sur afternoon-scrubland-61531.herokuapp.com, utilisé uniquement "
-"pour tester le déploiement."
-
-#: matesla/templates/matesla/carstatus.html:156
+#: matesla/templates/matesla/_carstatus_body.html:22
+#: matesla/templates/matesla/vehicle_hub.html:5
 msgid "Your car"
 msgstr "Votre voiture"
 
-#: matesla/templates/matesla/carstatus.html:159
+#: matesla/templates/matesla/_carstatus_body.html:25
 msgid "Flash lights"
 msgstr "Faire clignoter les phares"
 
-#: matesla/templates/matesla/carstatus.html:160
+#: matesla/templates/matesla/_carstatus_body.html:26
 msgid "Honk horn (not night when people sleep)"
 msgstr "Faire klaxoner (pas la nuit quand les gens dorment)"
 
-#: matesla/templates/matesla/carstatus.html:161
+#: matesla/templates/matesla/_carstatus_body.html:27
 msgid "Activate drive mode without phone/card"
 msgstr "Activer le mode conduite sans téléphone ni carte"
 
-#: matesla/templates/matesla/carstatus.html:162
+#: matesla/templates/matesla/_carstatus_body.html:28
 msgid "My data"
 msgstr "Mes données"
 
-#: matesla/templates/matesla/carstatus.html:163
+#: matesla/templates/matesla/_carstatus_body.html:29
 msgid "Json current data"
 msgstr "Données courantes en Json"
 
-#: matesla/templates/matesla/carstatus.html:164
+#: matesla/templates/matesla/_carstatus_body.html:30
 msgid "Firmware history"
 msgstr "Historique firmware"
 
-#: matesla/templates/matesla/carstatus.html:176
+#: matesla/templates/matesla/_carstatus_body.html:42
 msgid "General information"
 msgstr "Informations générales"
 
-#: matesla/templates/matesla/carstatus.html:183
+#: matesla/templates/matesla/_carstatus_body.html:49
 msgid "State"
 msgstr "Etat"
 
-#: matesla/templates/matesla/carstatus.html:187
+#: matesla/templates/matesla/_carstatus_body.html:53
 msgid "Is car locked"
 msgstr "Verrouillée?"
 
-#: matesla/templates/matesla/carstatus.html:190
+#: matesla/templates/matesla/_carstatus_body.html:56
 msgid "Yes, unlock?"
 msgstr "Oui, déverrouiller?"
 
-#: matesla/templates/matesla/carstatus.html:192
+#: matesla/templates/matesla/_carstatus_body.html:58
 msgid "No, lock?"
 msgstr "Non, verrouiller?"
 
-#: matesla/templates/matesla/carstatus.html:213
+#: matesla/templates/matesla/_carstatus_body.html:79
 msgid "Install "
 msgstr "Installer"
 
-#: matesla/templates/matesla/carstatus.html:216
-#: matesla/templates/matesla/carstatus.html:219
+#: matesla/templates/matesla/_carstatus_body.html:82
+#: matesla/templates/matesla/_carstatus_body.html:85
 msgid "New firmware version"
 msgstr "La nouvelle version du firmware"
 
-#: matesla/templates/matesla/carstatus.html:216
+#: matesla/templates/matesla/_carstatus_body.html:82
 msgid "is scheduled in "
 msgstr "est prévue dans "
 
-#: matesla/templates/matesla/carstatus.html:216
+#: matesla/templates/matesla/_carstatus_body.html:82
 msgid "seconds"
 msgstr "secondes"
 
-#: matesla/templates/matesla/carstatus.html:219
+#: matesla/templates/matesla/_carstatus_body.html:85
 msgid "is installing, "
 msgstr "s'installe, "
 
-#: matesla/templates/matesla/carstatus.html:219
+#: matesla/templates/matesla/_carstatus_body.html:85
 #, python-format
 msgid "%% already done"
 msgstr "%% déjà effectué"
 
-#: matesla/templates/matesla/carstatus.html:224
+#: matesla/templates/matesla/_carstatus_body.html:90
 msgid "Sentry"
 msgstr "Sentry"
 
-#: matesla/templates/matesla/carstatus.html:227
-#: matesla/templates/matesla/carstatus.html:236
+#: matesla/templates/matesla/_carstatus_body.html:93
+#: matesla/templates/matesla/_carstatus_body.html:102
 msgid "Active, stop?"
 msgstr "Actif, stop?"
 
-#: matesla/templates/matesla/carstatus.html:229
-#: matesla/templates/matesla/carstatus.html:238
+#: matesla/templates/matesla/_carstatus_body.html:95
+#: matesla/templates/matesla/_carstatus_body.html:104
 msgid "Inactive, start?"
 msgstr "Inactif, démarrer?"
 
-#: matesla/templates/matesla/carstatus.html:234
+#: matesla/templates/matesla/_carstatus_body.html:100
 msgid "Valet mode"
 msgstr "Mode valet"
 
-#: matesla/templates/matesla/carstatus.html:253
+#: matesla/templates/matesla/_carstatus_body.html:119
 msgid "Charge status"
 msgstr "Status de charge"
 
-#: matesla/templates/matesla/carstatus.html:256
+#: matesla/templates/matesla/_carstatus_body.html:122
 #, python-format
 msgid "Usable battery level (%%)"
 msgstr "Niveau utilisable batterie (%%)"
 
-#: matesla/templates/matesla/carstatus.html:260
+#: matesla/templates/matesla/_carstatus_body.html:126
 #, python-format
 msgid "Battery level (%%)"
 msgstr "Niveau batterie (%%)"
 
-#: matesla/templates/matesla/carstatus.html:264
+#: matesla/templates/matesla/_carstatus_body.html:130
 msgid "Battery range km"
 msgstr "Range de la batterie km"
 
-#: matesla/templates/matesla/carstatus.html:268
+#: matesla/templates/matesla/_carstatus_body.html:134
 msgid "Battery charge"
 msgstr "Batterie en charge"
 
-#: matesla/templates/matesla/carstatus.html:273
+#: matesla/templates/matesla/_carstatus_body.html:139
 #, python-format
 msgid "Battery degradation (%%)"
 msgstr "Dégradation de la batterie (%%)"
 
-#: matesla/templates/matesla/carstatus.html:278
+#: matesla/templates/matesla/_carstatus_body.html:144
 #, python-format
 msgid "Battery charge limit (%%)"
 msgstr "Limite de charge de la batterie (%%)"
 
-#: matesla/templates/matesla/carstatus.html:287
+#: matesla/templates/matesla/_carstatus_body.html:153
 msgid "Is Charge port open"
 msgstr "Port de charge ouvert"
 
-#: matesla/templates/matesla/carstatus.html:290
+#: matesla/templates/matesla/_carstatus_body.html:156
 msgid "Yes, close?"
 msgstr "Oui, fermer?"
 
-#: matesla/templates/matesla/carstatus.html:292
+#: matesla/templates/matesla/_carstatus_body.html:158
 msgid "No, open?"
 msgstr "Non, ouvrir?"
 
-#: matesla/templates/matesla/carstatus.html:298
+#: matesla/templates/matesla/_carstatus_body.html:164
 msgid "Voltage in V"
 msgstr "Voltage en V"
 
-#: matesla/templates/matesla/carstatus.html:302
+#: matesla/templates/matesla/_carstatus_body.html:168
 msgid "Current in A"
 msgstr "Courant en A"
 
-#: matesla/templates/matesla/carstatus.html:306
+#: matesla/templates/matesla/_carstatus_body.html:172
 msgid "Power in kW"
 msgstr "Puissance en kW"
 
-#: matesla/templates/matesla/carstatus.html:310
+#: matesla/templates/matesla/_carstatus_body.html:176
 msgid "Number of phases"
 msgstr "Nombre de phases"
 
-#: matesla/templates/matesla/carstatus.html:314
+#: matesla/templates/matesla/_carstatus_body.html:180
 msgid "Time left in minutes"
 msgstr "Temps restant en minutes"
 
-#: matesla/templates/matesla/carstatus.html:319
+#: matesla/templates/matesla/_carstatus_body.html:185
 msgid "Start charge"
 msgstr "Démarrer la charge"
 
-#: matesla/templates/matesla/carstatus.html:321
+#: matesla/templates/matesla/_carstatus_body.html:187
 msgid "Stop charge"
 msgstr "Arrêter la charge"
 
-#: matesla/templates/matesla/carstatus.html:337
+#: matesla/templates/matesla/_carstatus_body.html:203
 msgid "Drive and location"
 msgstr "Conduite et emplacement"
 
-#: matesla/templates/matesla/carstatus.html:340 personalstats/views.py:34
+#: matesla/templates/matesla/_carstatus_body.html:206 personalstats/views.py:38
 msgid "Speed"
 msgstr "Vitesse"
 
-#: matesla/templates/matesla/carstatus.html:344
+#: matesla/templates/matesla/_carstatus_body.html:210
 msgid "Location"
 msgstr "Addresse"
 
-#: matesla/templates/matesla/carstatus.html:349
+#: matesla/templates/matesla/_carstatus_body.html:215
 msgid "Odometer"
 msgstr "Odometre"
 
-#: matesla/templates/matesla/carstatus.html:371
+#: matesla/templates/matesla/_carstatus_body.html:237
 msgid "Climate information"
 msgstr "Climatisation"
 
-#: matesla/templates/matesla/carstatus.html:374
+#: matesla/templates/matesla/_carstatus_body.html:240
 msgid "Is climate on"
 msgstr "Climatisation"
 
-#: matesla/templates/matesla/carstatus.html:377
+#: matesla/templates/matesla/_carstatus_body.html:243
 msgid "Yes, stop?"
 msgstr "Oui, arrêter?"
 
-#: matesla/templates/matesla/carstatus.html:379
+#: matesla/templates/matesla/_carstatus_body.html:245
 msgid "No, start?"
 msgstr "Non, démarrer?"
 
-#: matesla/templates/matesla/carstatus.html:384
+#: matesla/templates/matesla/_carstatus_body.html:250
 msgid "Inside temperature"
 msgstr "Température intérieure"
 
-#: matesla/templates/matesla/carstatus.html:388
+#: matesla/templates/matesla/_carstatus_body.html:254
 msgid "Outside temperature"
 msgstr "Température extérieure"
 
-#: matesla/templates/matesla/carstatus.html:392
+#: matesla/templates/matesla/_carstatus_body.html:258
 msgid "Driver Temperature setting"
 msgstr "Température pour le conducteur"
+
+#: matesla/templates/matesla/asleep.html:15
+#: matesla/templates/matesla/vehicle_hub.html:5
+#: matesla/templates/matesla/vehicle_hub.html:91
+msgid "Your tesla is asleep"
+msgstr "Votre tesla est endormie"
 
 #: matesla/templates/matesla/getRemote_start_drivePassword.html:14
 msgid ""
@@ -530,143 +498,173 @@ msgstr ""
 "Une fois fait, vous avez 2 minutes pour démarrer la voiture. Veuillez aussi "
 "déverrouiller la voiture si nécessaire."
 
-#: mysite/settings.py:209
+#: matesla/templates/matesla/getRemote_start_drivePassword.html:16
+#: matesla/templates/matesla/getdesiredchargelevel.html:14
+#: matesla/templates/matesla/getdesiredtemperature.html:14
+msgid "Save"
+msgstr "Sauver"
+
+#: mysite/settings.py:159
 msgid "English"
 msgstr "Anglais"
 
-#: mysite/settings.py:210
+#: mysite/settings.py:160
 msgid "Français"
 msgstr "Français"
 
-#: mysite/settings.py:211
+#: mysite/settings.py:161
 msgid "Espanol"
 msgstr "Espagnol"
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:8
-#: personalstats/templates/personalstats/carstats.html:45
+#: personalstats/templates/personalstats/_carstats_body.html:3
 msgid "Download my Data"
 msgstr "Télécharger mes données"
 
-#: personalstats/templates/personalstats/carstats.html:47
+#: personalstats/templates/personalstats/_carstats_body.html:5
 msgid "1 Week"
 msgstr "1 semaine"
 
-#: personalstats/templates/personalstats/carstats.html:48
+#: personalstats/templates/personalstats/_carstats_body.html:6
 msgid "2 Weeks"
 msgstr "2 semaines"
 
-#: personalstats/templates/personalstats/carstats.html:49
+#: personalstats/templates/personalstats/_carstats_body.html:7
 msgid "1 Month"
 msgstr "1 mois"
 
-#: personalstats/templates/personalstats/carstats.html:50
+#: personalstats/templates/personalstats/_carstats_body.html:8
 msgid "3 Months"
 msgstr "3 mois"
 
-#: personalstats/templates/personalstats/carstats.html:51
+#: personalstats/templates/personalstats/_carstats_body.html:9
 msgid "6 Months"
 msgstr "6 mois"
 
-#: personalstats/templates/personalstats/carstats.html:52
+#: personalstats/templates/personalstats/_carstats_body.html:10
 msgid "1 Year"
 msgstr "1 an"
 
-#: personalstats/templates/personalstats/carstats.html:53
+#: personalstats/templates/personalstats/_carstats_body.html:11
 msgid "2 Years"
 msgstr "2 ans"
 
-#: personalstats/templates/personalstats/carstats.html:54
+#: personalstats/templates/personalstats/_carstats_body.html:12
 msgid "5 Years"
 msgstr "5 ans"
 
-#: personalstats/templates/personalstats/carstats.html:55
+#: personalstats/templates/personalstats/_carstats_body.html:13
 msgid "10 Years"
 msgstr "10 ans"
 
-#: personalstats/templates/personalstats/carstats.html:98
-#: personalstats/templates/personalstats/carstats.html:99
+#: personalstats/templates/personalstats/_carstats_body.html:41
+msgid "Degradation vs odometer"
+msgstr "Dégradation vs odomètre"
+
+#: personalstats/templates/personalstats/_carstats_body.html:42
+msgid "Degradation over time"
+msgstr "Dégradation dans le temps"
+
+#: personalstats/templates/personalstats/_carstats_body.html:43
+msgid "Range at full charge vs odometer"
+msgstr "Autonomie à charge pleine vs odomètre"
+
+#: personalstats/templates/personalstats/_carstats_body.html:44
+msgid "Range at full charge over time"
+msgstr "Autonomie à charge pleine dans le temps"
+
+#: personalstats/templates/personalstats/_carstats_body.html:56
+#: personalstats/templates/personalstats/_carstats_body.html:57
 msgid "Charge related graphs"
 msgstr "Graphes liés à la charge"
 
-#: personalstats/templates/personalstats/carstats.html:122
-#: personalstats/templates/personalstats/carstats.html:123
+#: personalstats/templates/personalstats/_carstats_body.html:80
+#: personalstats/templates/personalstats/_carstats_body.html:81
 msgid "Temperature related graphs"
 msgstr "Graphes liés à la température"
 
-#: personalstats/templates/personalstats/carstats.html:140
-#: personalstats/templates/personalstats/carstats.html:141
+#: personalstats/templates/personalstats/_carstats_body.html:98
+#: personalstats/templates/personalstats/_carstats_body.html:99
 msgid "Drive related graphs"
 msgstr "Graphes liés à la conduite"
 
-#: personalstats/views.py:30
+#: personalstats/views.py:34
 msgid "Driver temperature (°C)"
 msgstr "Température pour le conducteur (°C)"
 
-#: personalstats/views.py:31
+#: personalstats/views.py:35
 msgid "Inside temperature (°C)"
 msgstr "Température intérieure (°C)"
 
-#: personalstats/views.py:32
+#: personalstats/views.py:36
 msgid "Passenger temperature (°C)"
 msgstr "Température du passager (°C)"
 
-#: personalstats/views.py:35
+#: personalstats/views.py:39
 msgid "Latitude"
 msgstr "Latitude"
 
-#: personalstats/views.py:36
+#: personalstats/views.py:40
 msgid "Longitude"
 msgstr "Longitude"
 
-#: personalstats/views.py:37
+#: personalstats/views.py:41
 msgid "Power"
 msgstr "Puissance"
 
-#: personalstats/views.py:39
+#: personalstats/views.py:43
 msgid "Battery range (miles)"
 msgstr "Range de la batterie (miles)"
 
-#: personalstats/views.py:41
+#: personalstats/views.py:45
 msgid "Charge rate"
 msgstr "Vitesse de charge"
 
-#: personalstats/views.py:42
+#: personalstats/views.py:46
 msgid "Charger actual current (A)"
 msgstr "Courant actuel de charge (A)"
 
-#: personalstats/views.py:43
+#: personalstats/views.py:47
 msgid "Charger phases"
 msgstr "Nombre de phases"
 
-#: personalstats/views.py:44
+#: personalstats/views.py:48
 msgid "Charger power (kW)"
 msgstr "Puissance de charge (kW)"
 
-#: personalstats/views.py:45
+#: personalstats/views.py:49
 msgid "Charger voltage (V)"
 msgstr "Voltage de charge (V)"
 
-#: personalstats/views.py:46
+#: personalstats/views.py:50
 msgid "Estimated battery range (miles)"
 msgstr "Range estimé de la batterie (miles)"
 
-#: personalstats/views.py:47
+#: personalstats/views.py:51
 msgid "Usable battery level (%)"
 msgstr "Niveau utilisable batterie (%)"
 
-#: personalstats/views.py:48
+#: personalstats/views.py:52
 msgid "Battery degradation (%)"
 msgstr "Dégradation de la batterie (%)"
 
-#: personalstats/views.py:79
+#: personalstats/views.py:55
+msgid "Range at full charge (miles)"
+msgstr "Autonomie à charge pleine (miles)"
+
+#: personalstats/views.py:56
+msgid "Range at full charge vs odometer (miles)"
+msgstr "Autonomie à charge pleine vs odomètre (miles)"
+
+#: personalstats/views.py:128
 msgid "Minimum"
 msgstr "Minimum"
 
-#: personalstats/views.py:80
+#: personalstats/views.py:129
 msgid "Average"
 msgstr "Moyenne"
 
-#: personalstats/views.py:81
+#: personalstats/views.py:130
 msgid "Maximum"
 msgstr "Maximum"
 
@@ -674,15 +672,15 @@ msgstr "Maximum"
 msgid "Signup"
 msgstr "Créer un compte"
 
-#: templates/registration/login.html:49 templates/registration/login.html:60
+#: templates/registration/login.html:48 templates/registration/login.html:59
 msgid "Login"
 msgstr "Se connecter"
 
-#: templates/registration/login.html:58
+#: templates/registration/login.html:57
 msgid "Forgotten password?"
 msgstr "Mot de passe oublié?"
 
-#: templates/registration/login.html:64
+#: templates/registration/login.html:63
 msgid ""
 "MaTesla is a Python/django free open source website using tesla api to "
 "connect to your marvellous Tesla car, have information on its state, "
@@ -695,11 +693,11 @@ msgstr ""
 "température,... Des statistiques sur les mises à jour du firmware sont "
 "également disponibles."
 
-#: templates/registration/login.html:65
+#: templates/registration/login.html:64
 msgid "Have fun and you are the most welcome if you want to contribute :-)"
 msgstr "Amusez vous, vous êtes les bienvenus si vous voulez contribuer :-)"
 
-#: templates/registration/login.html:90
+#: templates/registration/login.html:89
 msgid ""
 "Evolution of battery degradation in function of time for my Tesla (minimum, "
 "maximum, average)"
@@ -707,17 +705,17 @@ msgstr ""
 "Evolution de la dégradation de la batterie en fonction du temps (minimum, "
 "maximum, moyenne)"
 
-#: templates/registration/login.html:102
+#: templates/registration/login.html:101
 msgid "Raw json data returned by your Tesla... if you are curious"
 msgstr "Données json brutes renvoyées par votre Tesla... si vous êtes curieux"
 
-#: templates/registration/login.html:114
+#: templates/registration/login.html:113
 msgid "Battery degradation of the Tesla fleet according to number of cycles"
 msgstr ""
 "Dégradation des batteries sur la flotte de Tesla en fonction du nombre de "
 "cycles"
 
-#: templates/registration/login.html:126
+#: templates/registration/login.html:125
 msgid ""
 "Charge information of your Tesla, including both real and usable battery "
 "levels, and estimated battery degradation"
@@ -725,7 +723,7 @@ msgstr ""
 "Information sur la charge de votre Tesla, incluant la charge réelle et "
 "utilisable, et une estimation de la dégradation de la batterie"
 
-#: templates/registration/login.html:138
+#: templates/registration/login.html:137
 msgid ""
 "Tesla fleet recent firmware updates. Ideal to know when a new firmware "
 "version is available."
@@ -733,7 +731,7 @@ msgstr ""
 "Mises à jour du firmware sur la flotte. Idéal pour savoir quand une nouvelle "
 "version du firmware est disponible."
 
-#: templates/registration/login.html:150
+#: templates/registration/login.html:149
 msgid ""
 "Tesla commands: honk, flash... and put the car in drive mode. Yes, a trusted "
 "friend/family member can do that for you if you are locked out of your Tesla"
@@ -742,18 +740,18 @@ msgstr ""
 "conduite. Oui, un ami ou une personne de confiance peut faire ça pour vous "
 "si vous êtes bloqués hors de votre Tesla"
 
-#: templates/registration/login.html:162
+#: templates/registration/login.html:161
 msgid "Your tesla odometer graph in function of time. Who drives the most?"
 msgstr ""
 "Le graphique de l'odomètre de votre Tesla en fonction du temps. Qui conduit "
 "le plus?"
 
-#: templates/registration/login.html:174
+#: templates/registration/login.html:173
 msgid "Your tesla odometer and estimated battery number of cycles"
 msgstr ""
 "L'odomètre de votre Tesla et le nombre estimé de cycles de la batterie."
 
-#: templates/registration/login.html:186
+#: templates/registration/login.html:185
 msgid ""
 "Your tesla firmware history. Want to know when a version was installed on "
 "your Tesla?"
@@ -837,6 +835,63 @@ msgstr "Réinitialisation du mot de passe"
 #: templates/registration/password_reset_form.html:16
 msgid "Send e-mail"
 msgstr "Envoyer le mail"
+
+#~ msgid ""
+#~ "https://datastudio.google.com/reporting/119103e1-6912-4b1c-890c-"
+#~ "f02a6083fc8c"
+#~ msgstr ""
+#~ "https://datastudio.google.com/reporting/3cc14dae-6ea2-4f4b-869a-"
+#~ "afc2c1e00489"
+
+#~ msgid "Please enter a tesla token"
+#~ msgstr "Veuillez entrer un jeton tesla (token)"
+
+#~ msgid "The token alone does not allow to put your car in drive mode."
+#~ msgstr "Le jeton seul ne permet pas de mettre la voiture en mode conduite."
+
+#~ msgid "Token is invalidated if you change your tesla password."
+#~ msgstr "Le jeton est invalidé quand vous changez votre mot de passe"
+
+#~ msgid "This form will be presented again at token expiration."
+#~ msgstr "Ce formulaire vous sera à nouveau présenté à l'expiration du jeton"
+
+#~ msgid "Tesla token"
+#~ msgstr "Jeton Tesla"
+
+#~ msgid "To obtain a token, you have different methods."
+#~ msgstr "Pour obtenir un jeton, vous disposez de plusieurs méthodes"
+
+#~ msgid "For Teslafi users, Teslafi can provide you a token for your car"
+#~ msgstr ""
+#~ "Pour les utilisateurs de Teslafi, Teslafi peut vous fournir un jeton pour "
+#~ "votre voiture"
+
+#~ msgid "I can recommend this free mobile app"
+#~ msgstr "Je peux recommander cette application mobile"
+
+#~ msgid "It is discussed here by the author Denouche"
+#~ msgstr "Il y a une discussion dessus présentée par son auteur Denouche"
+
+#~ msgid "You are on local computer, only used to test new developments."
+#~ msgstr ""
+#~ "Vous êtes sur l'ordinateur local, utilisé uniquement pour tester de "
+#~ "nouveaux développements.."
+
+#~ msgid ""
+#~ "Please go on official site instead <a href=\"https://matesla.herokuapp."
+#~ "com\" class=\"btn btn-danger btn-sm\">https://matesla.herokuapp.com</a></"
+#~ "h6>"
+#~ msgstr ""
+#~ "Veuillez aller à la place sur le site officiel <a href=\"https://matesla."
+#~ "herokuapp.com\" class=\"btn btn-danger btn-sm\">https://matesla.herokuapp."
+#~ "com</a></h6>"
+
+#~ msgid ""
+#~ "You are on afternoon-scrubland-61531.herokuapp.com, only used to test "
+#~ "deployment."
+#~ msgstr ""
+#~ "Vous êtes sur afternoon-scrubland-61531.herokuapp.com, utilisé uniquement "
+#~ "pour tester le déploiement."
 
 #~ msgid ""
 #~ "The token allow to connect to your Tesla car, it does expire after 45 "

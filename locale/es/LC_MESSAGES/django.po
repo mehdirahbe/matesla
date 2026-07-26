@@ -1980,3 +1980,27 @@ msgstr ""
 #: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:409
 msgid "Connect, get help, or contribute"
 msgstr ""
+
+#: personalstats
+msgid "Degradation vs odometer"
+msgstr "Degradación vs odómetro"
+
+#: personalstats
+msgid "Degradation over time"
+msgstr "Degradación en el tiempo"
+
+#: personalstats
+msgid "Range at full charge vs odometer"
+msgstr "Autonomía a carga completa vs odómetro"
+
+#: personalstats
+msgid "Range at full charge over time"
+msgstr "Autonomía a carga completa en el tiempo"
+
+#: personalstats
+msgid "Range at full charge (miles)"
+msgstr "Autonomía a carga completa (millas)"
+
+#: personalstats
+msgid "Range at full charge vs odometer (miles)"
+msgstr "Autonomía a carga completa vs odómetro (millas)"

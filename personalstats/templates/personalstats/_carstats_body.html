@@ -1,5 +1,6 @@
 {% load i18n %}
 
+    {# Default period = 4 weeks ("1 Month") — must match data-src on graphs below and JS #}
     <a href="{% url 'AllMyDataAsCSV' hashedVin %}"class="btn btn-info btn-sm">{% trans 'Download my Data' %}</a>
                         <select id="DesiredPeriod">
                             <option value="1">{% trans '1 Week' %}</option>
@@ -33,15 +34,15 @@
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Battery degradation graphs'%}</h5>
-                        <img id="degradationGraphImg" class="lazyload" alt="{%trans 'Battery degradation graphs'%}" data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'outside_temp'%}" width="1200" height="500"/>
+                        <img id="degradationGraphImg" class="lazyload" alt="{%trans 'Battery degradation graphs'%}" data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer' 4 %}" width="1200" height="500"/>
                         <!--from https://stackoverflow.com/questions/22254608/change-image-based-on-dropdown-using-javascript
                         and tested with fiddle http://jsfiddle.net-->
                         <select id="degradationGraphCriteria">
-                            <option value="0" selected>{{outside_temp}}</option>
-                            <option value="1">{{odometer}}</option>
-                            <option value="2">{{battery_level}}</option>
-                            <option value="3">{{charge_limit_soc}}</option>
-                            <option value="4">{{battery_degradation}}</option>
+                            {# Avoid bare %% in msgid — it triggers python-format and breaks gettext lookup #}
+                            <option value="0" selected>{% trans 'Degradation vs odometer' %}</option>
+                            <option value="1">{% trans 'Degradation over time' %}</option>
+                            <option value="2">{% trans 'Range at full charge vs odometer' %}</option>
+                            <option value="3">{% trans 'Range at full charge over time' %}</option>
                         </select>
                     </div>
                 </div>
@@ -54,7 +55,7 @@
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Charge related graphs'%}</h5>
-                        <img id="chargeGraphImg" class="lazyload" alt="{%trans 'Charge related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 5%}" width="1200" height="500"/>
+                        <img id="chargeGraphImg" class="lazyload" alt="{%trans 'Charge related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 4 %}" width="1200" height="500"/>
                         <select id="chargeGraphCriteria">
                             <option value="0" selected>{{battery_level}}</option>
                             <option value="1">{{battery_range}}</option>
@@ -78,7 +79,7 @@
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Temperature related graphs'%}</h5>
-                        <img id="temperatureGraphImg" class="lazyload" alt="{%trans 'Temperature related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 5%}" width="1200" height="500"/>
+                        <img id="temperatureGraphImg" class="lazyload" alt="{%trans 'Temperature related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 4 %}" width="1200" height="500"/>
                         <select id="temperatureGraphCriteria">
                             <option value="0" selected>{{outside_temp}}</option>
                             <option value="1">{{driver_temp_setting}}</option>
@@ -96,7 +97,7 @@
                 <div class="container">
                     <div class="carousel-caption text-center">
                         <h5>{%trans 'Drive related graphs'%}</h5>
-                        <img id="driveGraphImg" class="lazyload" alt="{%trans 'Drive related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' 5%}"  width="1200" height="500"/>
+                        <img id="driveGraphImg" class="lazyload" alt="{%trans 'Drive related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' 4 %}"  width="1200" height="500"/>
                         <select id="driveGraphCriteria">
                             <option value="0" selected>{{odometer}}</option>
                             <option value="1">{{speed}}</option>

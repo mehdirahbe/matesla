@@ -1,6 +1,9 @@
 {% load i18n %}
 <script>
 /*also inspired from stackoverflow*/
+// Placeholder 123456789 in URLs is replaced by #DesiredPeriod (weeks).
+// Default select is 4 (1 month) — keep data-src on images in sync.
+
 //For temperature carousel item
 var temperaturepictureList = [
 /*List same entries as in select temperatureGraphCriteria, but with the image URL
@@ -16,7 +19,9 @@ function ChangeTemperatureImageSourceFunction()
 {
     var choiceSelectItem = parseInt($('#temperatureGraphCriteria').val());
     var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
-    $('#temperatureGraphImg').attr("src",temperaturepictureList[choiceSelectItem].replace("123456789",choiceDesiredPeriod));
+    var url = temperaturepictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod);
+    // set both: lazysizes uses data-src; src forces immediate reload when user changes period
+    $('#temperatureGraphImg').attr({"data-src": url, "src": url});
 }
 
 $('#temperatureGraphCriteria').change(ChangeTemperatureImageSourceFunction);
@@ -35,7 +40,8 @@ function ChangeDriveImageSourceFunction()
 {
     var choiceSelectItem = parseInt($('#driveGraphCriteria').val());
     var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
-    $('#driveGraphImg').attr("src",drivepictureList[choiceSelectItem].replace("123456789",choiceDesiredPeriod));
+    var url = drivepictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod);
+    $('#driveGraphImg').attr({"data-src": url, "src": url});
 }
 
 $('#driveGraphCriteria').change(ChangeDriveImageSourceFunction);
@@ -59,27 +65,29 @@ function ChangeChargeImageSourceFunction()
 {
     var choiceSelectItem = parseInt($('#chargeGraphCriteria').val());
     var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
-    $('#chargeGraphImg').attr("src",chargepictureList[choiceSelectItem].replace("123456789",choiceDesiredPeriod));
+    var url = chargepictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod);
+    $('#chargeGraphImg').attr({"data-src": url, "src": url});
 }
 
 $('#chargeGraphCriteria').change(ChangeChargeImageSourceFunction);
 
 
 //For battery degradation carousel item
+// Same order as #degradationGraphCriteria options
+// Scatter graphs also take period (weeks) so they match the dropdown
 var batterydegradationpictureList = [
-/*List same entries as in select degradationGraphCriteria, but with the image URL*/
-"{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'outside_temp'%}",
-"{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer'%}",
-"{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'battery_level'%}",
-"{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'charge_limit_soc'%}",
+"{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer' 123456789%}",
 "{% url 'StatsOnCarGraph' hashedVin 'battery_degradation' 123456789%}",
+"{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'range_at_100_odometer' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'range_at_100' 123456789%}",
  ];
 
 function ChangeBatteryDegradationImageSourceFunction()
 {
     var choiceSelectItem = parseInt($('#degradationGraphCriteria').val());
     var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
-    $('#degradationGraphImg').attr("src",batterydegradationpictureList[choiceSelectItem].replace("123456789",choiceDesiredPeriod));
+    var url = batterydegradationpictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod);
+    $('#degradationGraphImg').attr({"data-src": url, "src": url});
 }
 
 $('#degradationGraphCriteria').change(ChangeBatteryDegradationImageSourceFunction);
@@ -94,5 +102,12 @@ function ChangeDesiredPeriodFunction()
 }
 
 $('#DesiredPeriod').change(ChangeDesiredPeriodFunction);
+
+// On first load: data-src already uses default period (4), but re-apply so
+// select value and image URLs always stay in lockstep (no stale full-history graph
+// while the list still shows "1 month").
+$(function () {
+    ChangeDesiredPeriodFunction();
+});
 
 </script>
