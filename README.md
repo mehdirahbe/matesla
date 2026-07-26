@@ -161,3 +161,16 @@ To remove the job later: `crontab -e` and delete the line.
 - Web app listening on `127.0.0.1:8001`
 - Tesla account linked (OAuth) and partner register done for the Fleet region
 
+Import historique TeslaFi (CSV mensuels)
+----------------------------------------
+
+To backfill graphs from [TeslaFi monthly exports](https://teslafi.com/export2.php):
+
+1. **Download** month CSVs: `scripts/download_teslafi_exports.py`  
+   (cookie from Chrome recommended if the TeslaFi account has **2FA**)
+2. **Import** into `TeslaCarDataSnapshot`:  
+   `python manage.py ImportTeslaFiCSV path/to/MYYYY.csv --tz Europe/Brussels`
+
+Full guide (auth, 2FA, long ranges, gaps, batch import):  
+**[docs/teslafi-import.md](docs/teslafi-import.md)**
+
