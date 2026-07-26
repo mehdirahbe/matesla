@@ -477,6 +477,9 @@ msgstr ""
 msgid "Speed"
 msgstr ""
 
+msgid "Speed (mi/h)"
+msgstr "Velocidad (mi/h)"
+
 #: matesla/templates/matesla/carstatus.html:344
 msgid "Location"
 msgstr ""
@@ -611,13 +614,16 @@ msgstr ""
 msgid "Power"
 msgstr ""
 
+msgid "Power (kW)"
+msgstr "Potencia (kW)"
+
 #: personalstats/views.py:39
 msgid "Battery range (miles)"
 msgstr ""
 
 #: personalstats/views.py:41
-msgid "Charge rate"
-msgstr ""
+msgid "Charge rate (mi/h)"
+msgstr "Velocidad de carga (mi/h)"
 
 #: personalstats/views.py:42
 msgid "Charger actual current (A)"

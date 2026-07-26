@@ -57,16 +57,12 @@
                         <h5>{%trans 'Charge related graphs'%}</h5>
                         <img id="chargeGraphImg" class="lazyload" alt="{%trans 'Charge related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 4 %}" width="1200" height="500"/>
                         <select id="chargeGraphCriteria">
+                            {# Same order as chargepictureList in _carstats_js.html #}
                             <option value="0" selected>{{battery_level}}</option>
                             <option value="1">{{battery_range}}</option>
                             <option value="2">{{charge_limit_soc}}</option>
                             <option value="3">{{charge_rate}}</option>
-                            <option value="4">{{charger_actual_current}}</option>
-                            <option value="5">{{charger_phases}}</option>
-                            <option value="6">{{charger_power}}</option>
-                            <option value="7">{{charger_voltage}}</option>
-                            <option value="8">{{est_battery_range}}</option>
-                            <option value="9">{{usable_battery_level}}</option>
+                            <option value="4">{{charger_power}}</option>
                         </select>
                     </div>
                 </div>
@@ -81,10 +77,9 @@
                         <h5>{%trans 'Temperature related graphs'%}</h5>
                         <img id="temperatureGraphImg" class="lazyload" alt="{%trans 'Temperature related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 4 %}" width="1200" height="500"/>
                         <select id="temperatureGraphCriteria">
+                            {# Same order as temperaturepictureList; no battery pack temp in Fleet/TeslaFi exports #}
                             <option value="0" selected>{{outside_temp}}</option>
-                            <option value="1">{{driver_temp_setting}}</option>
-                            <option value="2">{{inside_temp}}</option>
-                            <option value="3">{{passenger_temp_setting}}</option>
+                            <option value="1">{{inside_temp}}</option>
                         </select>
                     </div>
                 </div>
@@ -99,11 +94,10 @@
                         <h5>{%trans 'Drive related graphs'%}</h5>
                         <img id="driveGraphImg" class="lazyload" alt="{%trans 'Drive related graphs'%}" data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' 4 %}"  width="1200" height="500"/>
                         <select id="driveGraphCriteria">
+                            {# Same order as drivepictureList #}
                             <option value="0" selected>{{odometer}}</option>
                             <option value="1">{{speed}}</option>
-                            <option value="2">{{latitude}}</option>
-                            <option value="3">{{longitude}}</option>
-                            <option value="4">{{power}}</option>
+                            <option value="2">{{power}}</option>
                         </select>
                     </div>
                 </div>

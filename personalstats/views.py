@@ -35,14 +35,17 @@ def GetTitleForFieldDico():
         "inside_temp": _("Inside temperature (°C)"),
         "passenger_temp_setting": _("Passenger temperature (°C)"),
         "odometer": _("Odometer (miles)"),
-        "speed": _("Speed"),
+        # Tesla drive_state.speed is mph (same unit basis as odometer miles)
+        "speed": _("Speed (mi/h)"),
         "latitude": _("Latitude"),
         "longitude": _("Longitude"),
-        "power": _("Power"),
+        # Tesla drive_state.power is kW (negative when regenerating)
+        "power": _("Power (kW)"),
         "battery_level": _("Battery level (%)"),
         "battery_range": _("Battery range (miles)"),
         "charge_limit_soc": _("Battery charge limit (%)"),
-        "charge_rate": _("Charge rate"),
+        # Tesla charge_rate is miles of range added per hour (not km/h or kW)
+        "charge_rate": _("Charge rate (mi/h)"),
         "charger_actual_current": _("Charger actual current (A)"),
         "charger_phases": _("Charger phases"),
         "charger_power": _("Charger power (kW)"),

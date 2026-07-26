@@ -448,6 +448,9 @@ msgstr "Conduite et emplacement"
 msgid "Speed"
 msgstr "Vitesse"
 
+msgid "Speed (mi/h)"
+msgstr "Vitesse (mi/h)"
+
 #: matesla/templates/matesla/_carstatus_body.html:210
 msgid "Location"
 msgstr "Addresse"
@@ -612,13 +615,16 @@ msgstr "Longitude"
 msgid "Power"
 msgstr "Puissance"
 
+msgid "Power (kW)"
+msgstr "Puissance (kW)"
+
 #: personalstats/views.py:43
 msgid "Battery range (miles)"
 msgstr "Range de la batterie (miles)"
 
 #: personalstats/views.py:45
-msgid "Charge rate"
-msgstr "Vitesse de charge"
+msgid "Charge rate (mi/h)"
+msgstr "Vitesse de charge (mi/h)"
 
 #: personalstats/views.py:46
 msgid "Charger actual current (A)"

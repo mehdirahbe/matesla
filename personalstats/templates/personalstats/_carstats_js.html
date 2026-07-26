@@ -4,15 +4,10 @@
 // Placeholder 123456789 in URLs is replaced by #DesiredPeriod (weeks).
 // Default select is 4 (1 month) — keep data-src on images in sync.
 
-//For temperature carousel item
+//For temperature carousel item (same order as #temperatureGraphCriteria)
 var temperaturepictureList = [
-/*List same entries as in select temperatureGraphCriteria, but with the image URL
-123456789 will be replaced by the desired period according to choice control
-in ChangeTemperatureImageSourceFunction*/
 "{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'driver_temp_setting' 123456789%}",
 "{% url 'StatsOnCarGraph' hashedVin 'inside_temp' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'passenger_temp_setting' 123456789%}",
  ];
 
 function ChangeTemperatureImageSourceFunction()
@@ -26,13 +21,10 @@ function ChangeTemperatureImageSourceFunction()
 
 $('#temperatureGraphCriteria').change(ChangeTemperatureImageSourceFunction);
 
-//For drive carousel item
+//For drive carousel item (same order as #driveGraphCriteria)
 var drivepictureList = [
-/*List same entries as in select driveGraphCriteria, but with the image URL*/
 "{% url 'StatsOnCarGraph' hashedVin 'odometer' 123456789%}",
 "{% url 'StatsOnCarGraph' hashedVin 'speed' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'latitude' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'longitude' 123456789%}",
 "{% url 'StatsOnCarGraph' hashedVin 'power' 123456789%}",
  ];
 
@@ -46,19 +38,13 @@ function ChangeDriveImageSourceFunction()
 
 $('#driveGraphCriteria').change(ChangeDriveImageSourceFunction);
 
-//For charge carousel item
+//For charge carousel item (same order as #chargeGraphCriteria)
 var chargepictureList = [
-/*List same entries as in select chargeGraphCriteria, but with the image URL*/
 "{% url 'StatsOnCarGraph' hashedVin 'battery_level' 123456789%}",
 "{% url 'StatsOnCarGraph' hashedVin 'battery_range' 123456789%}",
 "{% url 'StatsOnCarGraph' hashedVin 'charge_limit_soc' 123456789%}",
 "{% url 'StatsOnCarGraph' hashedVin 'charge_rate' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'charger_actual_current' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'charger_phases' 123456789%}",
 "{% url 'StatsOnCarGraph' hashedVin 'charger_power' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'charger_voltage' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'est_battery_range' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'usable_battery_level' 123456789%}",
  ];
 
 function ChangeChargeImageSourceFunction()
