@@ -33,7 +33,7 @@
         </div>
         <div class="graph-card__media">
             <img id="degradationGraphImg" class="lazyload" alt="{% trans 'Battery degradation graphs' %}"
-                 data-src="{% url 'AnonymisedStatsBatteryDegradationGraph' 'NumberCycles' %}" width="1200" height="500">
+                 data-src="{% url 'AnonymisedStatsBatteryDegradationGraph' 'NumberCycles' %}?size=thumb" width="700" height="305">
         </div>
     </article>
 
@@ -52,7 +52,7 @@
         </div>
         <div class="graph-card__media">
             <img id="FirmwareGraphImg" class="lazyload" alt="{% trans 'Firmware version' %}"
-                 data-src="{% url 'AnonymisedFirmwareUpdates' %}" width="1200" height="300">
+                 data-src="{% url 'AnonymisedFirmwareUpdates' %}?size=thumb" width="700" height="235">
         </div>
     </article>
 
@@ -93,7 +93,7 @@
         </div>
         <div class="graph-card__media">
             <img id="CarStatsGraphImg" class="lazyload" alt="{% trans 'Cars statistics' %}"
-                 data-src="{% url 'AnonymisedStatsOnCarByModel' 'car_type' %}" width="1200" height="300">
+                 data-src="{% url 'AnonymisedStatsOnCarByModel' 'car_type' %}?size=thumb" width="700" height="235">
         </div>
     </article>
 </section>
@@ -104,7 +104,11 @@
 (function () {
     "use strict";
 
-    var firmwarePictures = ["{% url 'AnonymisedFirmwareUpdates' %}"];
+    function withSize(url, size) {
+        return url + (url.indexOf("?") >= 0 ? "&" : "?") + "size=" + size;
+    }
+
+    var firmwarePictures = [withSize("{% url 'AnonymisedFirmwareUpdates' %}", "thumb")];
     var carPictures = [
         "{% url 'AnonymisedStatsOnCarByModel' 'car_type' %}",
         "{% url 'AnonymisedStatsOnCarByModel' 'smart_summon_available' %}",
@@ -123,7 +127,7 @@
         "{% url 'AnonymisedStatsOnCarByModel' 'wheel_type' %}",
         "{% url 'AnonymisedStatsOnCarByModel' 'sentry_mode_available' %}",
         "{% url 'AnonymisedStatsOnCarByModel' 'Date' %}"
-    ];
+    ].map(function (u) { return withSize(u, "thumb"); });
     var modelNames = ["model3", "models2"];
     var batteryPictures = [
         "{% url 'AnonymisedStatsBatteryDegradationGraph' 'NumberCycles' %}",
@@ -131,7 +135,7 @@
         "{% url 'AnonymisedStatsBatteryDegradationGraph' 'outside_temp' %}",
         "{% url 'AnonymisedStatsBatteryDegradationGraph' 'battery_level' %}",
         "{% url 'AnonymisedStatsBatteryDegradationGraph' 'charge_limit_soc' %}"
-    ];
+    ].map(function (u) { return withSize(u, "thumb"); });
 
     function changeImage(selectId, imageId, pictures) {
         var select = document.getElementById(selectId);
@@ -152,7 +156,13 @@
         if (!carSelect || !modelSelect || !carImage) return;
         var source = carPictures[parseInt(carSelect.value, 10)];
         var modelIndex = parseInt(modelSelect.value, 10);
-        carImage.src = modelIndex < 0 ? source : source + "/" + modelNames[modelIndex];
+        if (modelIndex < 0) {
+            carImage.src = source;
+            return;
+        }
+        // Path segment before ?size= — URL is .../field or .../field/model3
+        var path = source.split("?")[0];
+        carImage.src = withSize(path + "/" + modelNames[modelIndex], "thumb");
     }
     if (carSelect) carSelect.addEventListener("change", changeCarImage);
     if (modelSelect) modelSelect.addEventListener("change", changeCarImage);

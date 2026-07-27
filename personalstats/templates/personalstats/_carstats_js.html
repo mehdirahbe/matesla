@@ -2,7 +2,30 @@
 <script>
 /*also inspired from stackoverflow*/
 // Placeholder 123456789 in URLs is replaced by #DesiredPeriod (weeks).
-// Default select is 4 (1 month) — keep data-src on images in sync.
+// ?size=thumb for grid cards, ?size=full when expanded in lightbox.
+
+function withGraphSize(url, size) {
+    if (!url) return url;
+    try {
+        var u = new URL(url, window.location.origin);
+        u.searchParams.set("size", size);
+        return u.pathname + u.search + u.hash;
+    } catch (e) {
+        var hash = "";
+        var base = url;
+        var hi = url.indexOf("#");
+        if (hi >= 0) {
+            hash = url.slice(hi);
+            base = url.slice(0, hi);
+        }
+        if (/([?&])size=/.test(base)) {
+            base = base.replace(/([?&])size=[^&]*/, "$1size=" + size);
+        } else {
+            base += (base.indexOf("?") >= 0 ? "&" : "?") + "size=" + size;
+        }
+        return base + hash;
+    }
+}
 
 //For temperature carousel item (same order as #temperatureGraphCriteria)
 var temperaturepictureList = [
@@ -14,7 +37,10 @@ function ChangeTemperatureImageSourceFunction()
 {
     var choiceSelectItem = parseInt($('#temperatureGraphCriteria').val());
     var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
-    var url = temperaturepictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod);
+    var url = withGraphSize(
+        temperaturepictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod),
+        "thumb"
+    );
     // set both: lazysizes uses data-src; src forces immediate reload when user changes period
     $('#temperatureGraphImg').attr({"data-src": url, "src": url});
     refreshOpenLightboxIfNeeded("temperature");
@@ -33,7 +59,10 @@ function ChangeDriveImageSourceFunction()
 {
     var choiceSelectItem = parseInt($('#driveGraphCriteria').val());
     var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
-    var url = drivepictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod);
+    var url = withGraphSize(
+        drivepictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod),
+        "thumb"
+    );
     $('#driveGraphImg').attr({"data-src": url, "src": url});
     refreshOpenLightboxIfNeeded("drive");
 }
@@ -53,7 +82,10 @@ function ChangeChargeImageSourceFunction()
 {
     var choiceSelectItem = parseInt($('#chargeGraphCriteria').val());
     var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
-    var url = chargepictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod);
+    var url = withGraphSize(
+        chargepictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod),
+        "thumb"
+    );
     $('#chargeGraphImg').attr({"data-src": url, "src": url});
     refreshOpenLightboxIfNeeded("charge");
 }
@@ -75,7 +107,10 @@ function ChangeBatteryDegradationImageSourceFunction()
 {
     var choiceSelectItem = parseInt($('#degradationGraphCriteria').val());
     var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
-    var url = batterydegradationpictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod);
+    var url = withGraphSize(
+        batterydegradationpictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod),
+        "thumb"
+    );
     $('#degradationGraphImg').attr({"data-src": url, "src": url});
     refreshOpenLightboxIfNeeded("degradation");
 }
@@ -119,7 +154,7 @@ function refreshOpenLightboxIfNeeded(cardKey) {
     var img = activeGraphCard.querySelector(".graph-card__media img");
     var lightImg = document.getElementById("graph-lightbox-img");
     var url = graphImageUrl(img);
-    if (lightImg && url) lightImg.src = url;
+    if (lightImg && url) lightImg.src = withGraphSize(url, "full");
 }
 
 function ensureLightboxOnBody(lightbox) {
@@ -148,7 +183,8 @@ function openGraphLightbox(card) {
     document.getElementById("graph-lightbox-index").textContent =
         indexEl ? indexEl.textContent.trim() : "";
     lightImg.alt = img ? (img.alt || "") : "";
-    lightImg.src = url;
+    // Full-resolution dark graph for the expanded view
+    lightImg.src = withGraphSize(url, "full");
 
     lightbox.hidden = false;
     document.body.classList.add("graph-lightbox-open");

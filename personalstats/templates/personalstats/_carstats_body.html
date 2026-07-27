@@ -47,7 +47,7 @@
         </div>
         <div class="graph-card__media" data-graph-media>
             <img id="degradationGraphImg" class="lazyload" alt="{% trans 'Battery degradation graphs' %}"
-                 data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer' period %}" width="1200" height="500">
+                 data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer' period %}?size=thumb" width="700" height="305">
         </div>
     </article>
 
@@ -76,7 +76,7 @@
         </div>
         <div class="graph-card__media" data-graph-media>
             <img id="chargeGraphImg" class="lazyload" alt="{% trans 'Charge related graphs' %}"
-                 data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' period %}" width="1200" height="500">
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' period %}?size=thumb" width="700" height="305">
         </div>
     </article>
 
@@ -102,7 +102,7 @@
         </div>
         <div class="graph-card__media" data-graph-media>
             <img id="temperatureGraphImg" class="lazyload" alt="{% trans 'Temperature related graphs' %}"
-                 data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' period %}" width="1200" height="500">
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' period %}?size=thumb" width="700" height="305">
         </div>
     </article>
 
@@ -129,7 +129,7 @@
         </div>
         <div class="graph-card__media" data-graph-media>
             <img id="driveGraphImg" class="lazyload" alt="{% trans 'Drive related graphs' %}"
-                 data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' period %}" width="1200" height="500">
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' period %}?size=thumb" width="700" height="305">
         </div>
     </article>
 </section>

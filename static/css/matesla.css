@@ -1691,7 +1691,7 @@ button:disabled,
     max-height: min(72vh, 640px);
     object-fit: contain;
     border-radius: 10px;
-    background: #f3f4f1;
+    background: #0b1220;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 

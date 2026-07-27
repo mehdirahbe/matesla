@@ -1,24 +1,32 @@
-import io
+import csv
+from datetime import timedelta
 
 import numpy as np
-from django.db.models import Count, Max
-from django.template import loader
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from django.http import HttpResponse, HttpResponseNotFound
 from django.contrib.auth import get_user
 from django.db import connection
-import csv
-from django.utils.translation import gettext_lazy as _
-from datetime import timedelta
+from django.db.models import Count, Max
+from django.http import HttpResponse, HttpResponseNotFound
+from django.template import loader
 from django.utils import timezone
-
-# Create your views here.
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 
+from matesla.graphstyle import (
+    BAR_FACE,
+    FIT_LINEAR,
+    FIT_QUAD,
+    SCATTER_EDGE,
+    SCATTER_FACE,
+    finish_figure,
+    graph_size_from_request,
+    make_figure,
+    render_png,
+    style_legend,
+)
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
-from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.TeslaCarInfo import TeslaCarInfo
+from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
+from mysite.settings import DATABASES
 
 # in a general way, I eject cars not seen for maxdaysinthepast days
 # for period test: https://stackoverflow.com/questions/1984047/django-filter-older-than-days
@@ -26,24 +34,11 @@ from matesla.models.TeslaCarInfo import TeslaCarInfo
 # (no network), but anyway it should be short
 maxdaysinthepast = 15
 
-# return content as png of a bar graph with names (X), values (Y) with title
-from mysite.settings import DATABASES
 
-
-def GeneratePngFromGraph(fig):
+def GeneratePngFromGraph(fig, size="full"):
     # activate this when you want performance analysis
     # return HttpResponse("<html><body>todo activate this only for performance test of graphs</body></html>")
-
-    # https://stackoverflow.com/questions/49542459/error-in-django-when-using-matplotlib-examples
-    buf = io.BytesIO()
-    canvas = FigureCanvasAgg(fig)
-    canvas.print_png(buf)
-    response = HttpResponse(buf.getvalue(), content_type='image/png')
-    # if required clear the figure for reuse
-    fig.clear()
-    # I recommend to add Content-Length for Django
-    response['Content-Length'] = str(len(response.content))
-    return response
+    return render_png(fig, size=size)
 
 
 # Return a dictionary with titles for fields
@@ -86,19 +81,25 @@ def GetTitleForField(field):
     return field
 
 
-def GenerateBarGraph(names, values, title):
-    # figsize is size in hundred of pixels
-    # See https://matplotlib.org/3.2.1/faq/howto_faq.html#how-to-use-matplotlib-in-a-web-application-server
-    # as pyplot in webserver will generate leaks
-    # result: errors 500 in heroku official, grr
-    # as default dpi is 100, 9, 3 means 900*300 pixels
-    # and we need more width than 9 for firmware as label are large
-    fig = Figure(figsize=[12, 3])
+def GenerateBarGraph(names, values, title, size="full"):
+    # Figure (not pyplot) for web-server safety:
+    # https://matplotlib.org/stable/users/explain/figure/backends.html#matplotlib-in-a-web-application-server
+    fig, cfg = make_figure(size, bar=True)
     ax = fig.subplots(nrows=1, ncols=1, sharey=True)
     if names is not None and values is not None:
-        ax.bar(names, values)
-    fig.suptitle(title)
-    return GeneratePngFromGraph(fig)
+        ax.bar(
+            names,
+            values,
+            color=BAR_FACE,
+            edgecolor=SCATTER_EDGE,
+            linewidth=0.4,
+            alpha=0.92,
+        )
+        for label in ax.get_xticklabels():
+            label.set_rotation(25)
+            label.set_ha("right")
+    finish_figure(fig, ax, title, cfg)
+    return GeneratePngFromGraph(fig, size=size)
 
 
 def GetNamesAndValuesFromGroupByTotalResult(results, desiredfield):
@@ -125,6 +126,7 @@ def GetNamesAndValuesFromGroupByTotalResult(results, desiredfield):
 
 def FirmwareUpdates(request):
     # query 10 most recent versions to not have an unreadable graph
+    size = graph_size_from_request(request)
     time_threshold = timezone.now() - timedelta(days=maxdaysinthepast)
     results = TeslaFirmwareHistory.objects.filter(
         vin__in=TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold).values('vin')).filter(
@@ -133,7 +135,7 @@ def FirmwareUpdates(request):
         MostRecent=Max('Date')).annotate(
         total=Count('Version')).order_by('-MostRecent')[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, 'Version')
-    return GenerateBarGraph(names, values, _('Most recent Firmware updates'))
+    return GenerateBarGraph(names, values, _('Most recent Firmware updates'), size=size)
 
 
 def FirmwareUpdatesAsCSV(request):
@@ -155,12 +157,13 @@ def StatsOnCarByModelGraph(request, desiredfield, CarModel):
         # means invalid desiredfield field was passed
         return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield)
 
+    size = graph_size_from_request(request)
     time_threshold = timezone.now() - timedelta(days=maxdaysinthepast)
     results = TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold).filter(car_type=CarModel).values(
         desiredfield).annotate(
         total=Count(desiredfield)).order_by(desiredfield)[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, desiredfield)
-    return GenerateBarGraph(names, values, GetTitleForField(desiredfield))
+    return GenerateBarGraph(names, values, GetTitleForField(desiredfield), size=size)
 
 
 def StatsOnCarAllModelsGraph(request, desiredfield):
@@ -170,11 +173,12 @@ def StatsOnCarAllModelsGraph(request, desiredfield):
         # means invalid desiredfield field was passed
         return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield)
 
+    size = graph_size_from_request(request)
     time_threshold = timezone.now() - timedelta(days=maxdaysinthepast)
     results = TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold).values(desiredfield).annotate(
         total=Count(desiredfield)).order_by(desiredfield)[:10]
     names, values = GetNamesAndValuesFromGroupByTotalResult(results, desiredfield)
-    return GenerateBarGraph(names, values, GetTitleForField(desiredfield))
+    return GenerateBarGraph(names, values, GetTitleForField(desiredfield), size=size)
 
 
 @never_cache
@@ -242,13 +246,21 @@ def FormatDouble2Decimals(d):
     return "{:.2e}".format(d).replace("e+00", "")
 
 
-def GenerateScatterGraph(xvalues, yvalues, title):
+def GenerateScatterGraph(xvalues, yvalues, title, size="full"):
     # From https://matplotlib.org/3.2.1/api/_as_gen/matplotlib.pyplot.scatter.html
-    fig = Figure(figsize=[12, 5])
-
+    fig, cfg = make_figure(size)
     ax = fig.subplots()
-    if xvalues is not None and yvalues is not None:
-        ax.scatter(xvalues, yvalues)
+    if xvalues is not None and yvalues is not None and len(xvalues) > 0:
+        ax.scatter(
+            xvalues,
+            yvalues,
+            s=cfg["scatter_size"],
+            c=SCATTER_FACE,
+            alpha=0.45,
+            edgecolors=SCATTER_EDGE,
+            linewidths=0.25,
+            zorder=2,
+        )
         # do regression polynomial, see https://stackoverflow.com/questions/19068862/how-to-overplot-a-line-on-a-scatter-plot-in-python
         # and https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
         # and https://riptutorial.com/numpy/example/27442/using-np-polyfit
@@ -259,18 +271,35 @@ def GenerateScatterGraph(xvalues, yvalues, title):
         # draw it, after removing dups (for perf) and sorting it (to have continuous line)
         sortedx = list(dict.fromkeys(xvalues))
         sortedx.sort()
-        ax.plot(sortedx, f2(sortedx), '-',
-                label=FormatDouble2Decimals(p2[0]) + "x2+" + FormatDouble2Decimals(
-                    p2[1]) + "x+" + FormatDouble2Decimals(p2[2]))
+        ax.plot(
+            sortedx,
+            f2(sortedx),
+            "-",
+            color=FIT_QUAD,
+            linewidth=cfg["linewidth"],
+            label=FormatDouble2Decimals(p2[0])
+            + "x2+"
+            + FormatDouble2Decimals(p2[1])
+            + "x+"
+            + FormatDouble2Decimals(p2[2]),
+            zorder=3,
+        )
         # now add a linear fit, and user can see which match data the best
         p1 = np.polyfit(xvalues, yvalues, 1)
         f1 = np.poly1d(p1)
         # draw it (dups removed above)
-        ax.plot(sortedx, f1(sortedx), '-',
-                label=FormatDouble2Decimals(p1[0]) + "x+" + FormatDouble2Decimals(p1[1]))
-        ax.legend()
-    fig.suptitle(title)
-    return GeneratePngFromGraph(fig)
+        ax.plot(
+            sortedx,
+            f1(sortedx),
+            "-",
+            color=FIT_LINEAR,
+            linewidth=cfg["linewidth"],
+            label=FormatDouble2Decimals(p1[0]) + "x+" + FormatDouble2Decimals(p1[1]),
+            zorder=3,
+        )
+        style_legend(ax, cfg)
+    finish_figure(fig, ax, title, cfg)
+    return GeneratePngFromGraph(fig, size=size)
 
 
 def BatteryDegradationGraph(request, desiredfield):
@@ -283,9 +312,10 @@ def BatteryDegradationGraph(request, desiredfield):
         # means invalid desiredfield field was passed
         return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield), False
 
+    size = graph_size_from_request(request)
     count = TeslaCarDataSnapshot.objects.count()
     if count == 0:
-        return GenerateBarGraph(None, None, GetTitleForField(desiredfield))
+        return GenerateBarGraph(None, None, GetTitleForField(desiredfield), size=size)
 
     # to have a random sample
     # see https://stackoverflow.com/questions/31801826/random-sample-on-django-querysets-how-will-sampling-on-querysets-affect-perform
@@ -295,4 +325,4 @@ def BatteryDegradationGraph(request, desiredfield):
     # While using indexed randomNr just take the first rows of the index (yes, it uses the index).
     results = TeslaCarDataSnapshot.objects.all().order_by('randomNr')[:500]
     xvalues, yxvalues = GetXandYFromBatteryDegradResult(results, desiredfield)
-    return GenerateScatterGraph(xvalues, yxvalues, GetTitleForField(desiredfield))
+    return GenerateScatterGraph(xvalues, yxvalues, GetTitleForField(desiredfield), size=size)

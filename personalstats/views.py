@@ -6,13 +6,19 @@ from django.template import loader
 from django.views.decorators.http import require_GET
 from django_tables2 import SingleTableView
 from matplotlib.dates import DateFormatter
-from matplotlib.figure import Figure
 
 from anonymisedstats.views import (
     PrepareCSVFromQuery,
     GetXandYFromBatteryDegradResult,
     GenerateScatterGraph,
     GeneratePngFromGraph,
+)
+from matesla.graphstyle import (
+    SERIES_COLORS,
+    finish_figure,
+    graph_size_from_request,
+    make_figure,
+    style_legend,
 )
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
@@ -129,9 +135,9 @@ def annotate_range_at_100(qs):
         )
     ).filter(range_at_100__isnull=False, battery_range__isnull=False)
 
-def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title):
+def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="full"):
     # matplotlib 3.9+ removed Axes.plot_date — use plot() with date objects
-    fig = Figure(figsize=[12, 5])
+    fig, cfg = make_figure(size)
 
     language = django.utils.translation.get_language()
     if language is not None and language == 'fr':
@@ -141,19 +147,44 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title):
 
     ax = fig.subplots()
     if datesList is not None and minvalues is not None and len(datesList) > 0:
-        ax.plot(datesList, minvalues, linestyle='-', marker='o', markersize=3, label=_('Minimum'))
-        ax.plot(datesList, avgvalues, linestyle='-', marker='o', markersize=3, label=_('Average'))
-        ax.plot(datesList, maxvalues, linestyle='-', marker='o', markersize=3, label=_('Maximum'))
-        ax.legend()
+        lw = cfg["linewidth"]
+        # Lines only (no markers) — clearer on dense multi-week series
+        ax.plot(
+            datesList,
+            minvalues,
+            color=SERIES_COLORS[0],
+            linestyle="-",
+            linewidth=lw,
+            label=_("Minimum"),
+            zorder=2,
+        )
+        ax.plot(
+            datesList,
+            avgvalues,
+            color=SERIES_COLORS[1],
+            linestyle="-",
+            linewidth=lw + 0.25,
+            label=_("Average"),
+            zorder=3,
+        )
+        ax.plot(
+            datesList,
+            maxvalues,
+            color=SERIES_COLORS[2],
+            linestyle="-",
+            linewidth=lw,
+            label=_("Maximum"),
+            zorder=2,
+        )
+        style_legend(ax, cfg)
         ax.xaxis.set_major_formatter(formatter)
         # One day of data still plots fine; widen x-axis so a single point is not clipped
         if len(datesList) == 1:
             d = datesList[0]
             ax.set_xlim(d - timedelta(days=1), d + timedelta(days=1))
-        ax.ticklabel_format(axis='y', useOffset=False, style='plain')
         fig.autofmt_xdate()
-    fig.suptitle(title)
-    return GeneratePngFromGraph(fig)
+    finish_figure(fig, ax, title, cfg)
+    return GeneratePngFromGraph(fig, size=size)
 
 
 def GetDatesAndValuesFromGroupByDateResult(results):
@@ -205,10 +236,11 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
     response, isValid = SecurityChecks(hashedVin, desiredfield)
     if isValid is False:
         return response
+    size = graph_size_from_request(request)
     title = GetTitleForField(desiredfield)
     base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
     if not base.exists():
-        return GenerateDateGraph(None, None, None, None, title)
+        return GenerateDateGraph(None, None, None, None, title, size=size)
 
     # range_at_100 is not a DB column: battery_range / SoC * 100 (full-charge miles)
     if desiredfield == "range_at_100":
@@ -237,7 +269,7 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
     dates, maxvalues, minvalues, avgvalues = GetDatesAndValuesFromGroupByDateResult(
         results
     )
-    return GenerateDateGraph(dates, maxvalues, minvalues, avgvalues, title)
+    return GenerateDateGraph(dates, maxvalues, minvalues, avgvalues, title, size=size)
 
 # Weeks values offered in the personal-stats period dropdown (1 Month = 4).
 STATS_PERIOD_WEEKS = frozenset({1, 2, 4, 13, 26, 52, 104, 260, 520})
@@ -792,7 +824,9 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield, desiredperiod=0):
     - range_at_100_odometer: X=odometer, Y=extrapolated range at 100% SoC (miles)
 
     desiredperiod is weeks (0 = all), same meaning as StatsOnCarGraph / #DesiredPeriod.
+    Optional query ?size=thumb|full (default full).
     """
+    size = graph_size_from_request(request)
     # Computed scatter (Y = range at 100%), not a real model field on X axis alone
     if desiredfield == "range_at_100_odometer":
         if not IsValidHash(hashedVin):
@@ -803,11 +837,11 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield, desiredperiod=0):
             TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin), desiredperiod
         )
         if not qs.exists():
-            return GenerateScatterGraph(None, None, title)
+            return GenerateScatterGraph(None, None, title, size=size)
         # random sample for long TeslaFi histories (still bounded; uses randomNr index)
         results = qs.order_by("randomNr")[:2000]
         xvalues, yvalues = GetXandYRangeAt100(results, "odometer")
-        return GenerateScatterGraph(xvalues, yvalues, title)
+        return GenerateScatterGraph(xvalues, yvalues, title, size=size)
 
     response, isValid = SecurityChecks(hashedVin, desiredfield)
     if isValid is False:
@@ -818,12 +852,12 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield, desiredperiod=0):
         TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin), desiredperiod
     )
     if not qs.exists():
-        return GenerateScatterGraph(None, None, title)
+        return GenerateScatterGraph(None, None, title, size=size)
 
     # see in anonymous stats for random samples
     results = qs.order_by("randomNr")[:2000]
     xvalues, yvalues = GetXandYFromBatteryDegradResult(results, desiredfield)
-    return GenerateScatterGraph(xvalues, yvalues, title)
+    return GenerateScatterGraph(xvalues, yvalues, title, size=size)
 
 # returns page with firmware history for the car
 class FirmwareHistoryView(SingleTableView):
