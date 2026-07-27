@@ -134,6 +134,11 @@ WRITABLE_HOSTS = [
     for h in os.environ.get("MATESLA_WRITABLE_HOSTS", "127.0.0.1,localhost").split(",")
     if h.strip()
 ]
+# Optional: Django user that owns the Tesla token (anonymous Tailscale viewers).
+# Default: the only user with a TeslaToken, else first superuser.
+_owner_id = os.environ.get("MATESLA_OWNER_USER_ID", "").strip()
+MATESLA_OWNER_USER_ID = int(_owner_id) if _owner_id.isdigit() else None
+MATESLA_OWNER_USERNAME = os.environ.get("MATESLA_OWNER_USERNAME", "").strip() or None
 # POST allowed remotely (session / auth only — never car commands).
 READONLY_SAFE_POST_URL_NAMES = [
     "login",

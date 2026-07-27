@@ -112,19 +112,21 @@ Example: `https://mehdi-thinkbook-13s-g2-itl.taila97662.ts.net:8443/fr/`
 
 Same idea as PicturesDjango: **write is only allowed when the HTTP `Host`
 is local** (`127.0.0.1` / `localhost`). Access via the MagicDNS name
-(`*.ts.net`) is **read-only**:
+(`*.ts.net`) is **read-only** and **does not require a MaTesla login**:
 
-- Login / logout, status, personal stats, day map, fleet graphs: **yes**
-- Car commands, Tesla account / OAuth, signup, admin: **no** (UI links hidden;
+- Status, personal stats, day map, fleet graphs, vehicle switcher: **yes**
+  (anonymous viewers use the single household owner that holds the Tesla token)
+- Car commands, Tesla account / OAuth, signup, admin: **no** (UI hidden;
   direct URLs return **404**)
+- Local `http://127.0.0.1:8001` still needs **login** for full control
 
-Override writable hosts if needed:
+Override if needed:
 
 ```bash
 export MATESLA_WRITABLE_HOSTS=127.0.0.1,localhost
+# Optional if several Django users exist:
+export MATESLA_OWNER_USERNAME=you@example.com
 ```
-
-Use `http://127.0.0.1:8001/...` on the laptop for full control.
 
 ### 3. ACL: allow port 8443
 

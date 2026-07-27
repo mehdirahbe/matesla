@@ -395,9 +395,19 @@ On tesla login error, return json error detail.
 Never redirect.'''
 
 
+def _acting_user_or_login(request):
+    """
+    Logged-in user, or household owner on Tailscale read-only.
+    Local anonymous → None (caller redirects to login).
+    """
+    from mysite.writable_access import resolve_acting_user
+
+    return resolve_acting_user(request)
+
+
 def singleActionJson(request, func):
-    user = get_user(request)
-    if not user.is_authenticated:
+    user = _acting_user_or_login(request)
+    if user is None:
         return JsonResponse({'error': 'not logged'})
     try:
         ret = func(request, user)
@@ -424,13 +434,13 @@ def singleActionJson(request, func):
     return JsonResponse({'error': 'How did we arrive here?'})
 
 
-'''Check login, and if fine call func.  Then go to status page.
-On tesla login error, go to tesla credentials page.'''
+'''Check login (or household owner on read-only remote), then call func.
+On tesla login error, go to tesla credentials page (local only).'''
 
 
 def singleAction(request, func, shouldReturnFunc=False):
-    user = get_user(request)
-    if not user.is_authenticated:
+    user = _acting_user_or_login(request)
+    if user is None:
         return redirect('login')
     try:
         ret = func(request, user)
@@ -761,11 +771,16 @@ def view_select_vehicle(request):
     Personal pages (day map, stats, firmware) are keyed by hashedVin — after a
     switch we re-route to the same view for the newly selected vehicle.
     """
-    user = get_user(request)
-    if not user.is_authenticated:
+    from mysite.writable_access import is_writable_request, resolve_acting_user
+
+    user = resolve_acting_user(request)
+    if user is None:
         return redirect("login")
     api_id = request.POST.get("vehicle_api_id")
-    vehicle = set_active_vehicle(request, user, api_id)
+    # Guests on Tailscale: session only — do not change household is_primary
+    vehicle = set_active_vehicle(
+        request, user, api_id, persist_primary=is_writable_request(request)
+    )
     if vehicle:
         messages.success(
             request,

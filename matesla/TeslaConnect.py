@@ -125,15 +125,24 @@ def resolve_active_vehicle(user, request=None) -> TeslaVehicle | None:
     return qs.first()
 
 
-def set_active_vehicle(request, user, api_id: str) -> TeslaVehicle | None:
+def set_active_vehicle(
+    request, user, api_id: str, *, persist_primary: bool = True
+) -> TeslaVehicle | None:
+    """
+    Select active vehicle for this browser session.
+
+    persist_primary=False: only session (Tailscale guests) — do not rewrite
+    is_primary used by capture / household default.
+    """
     vehicle = TeslaVehicle.objects.filter(user=user, api_id=str(api_id)).first()
     if not vehicle:
         return None
     request.session[SESSION_ACTIVE_VEHICLE_KEY] = vehicle.api_id
-    # Also mark as primary so management commands / no-session paths use it
-    TeslaVehicle.objects.filter(user=user, is_primary=True).update(is_primary=False)
-    vehicle.is_primary = True
-    vehicle.save(update_fields=["is_primary"])
+    if persist_primary:
+        # Also mark as primary so management commands / no-session paths use it
+        TeslaVehicle.objects.filter(user=user, is_primary=True).update(is_primary=False)
+        vehicle.is_primary = True
+        vehicle.save(update_fields=["is_primary"])
     return vehicle
 
 

@@ -309,8 +309,10 @@ def _vehicle_chrome_context(request, hashedVin):
         "hashedVin": hashedVin,
         "stats_period": resolve_stats_period(request),
     }
-    user = request.user
-    if user.is_authenticated:
+    from mysite.writable_access import resolve_acting_user
+
+    user = resolve_acting_user(request)
+    if user is not None:
         from matesla.TeslaConnect import list_user_vehicles, resolve_active_vehicle
 
         vehicles = list_user_vehicles(user)

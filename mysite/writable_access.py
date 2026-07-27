@@ -8,6 +8,7 @@ Remote (Tailscale HTTPS hostname, etc.): login + browse only.
 from __future__ import annotations
 
 import logging
+import os
 import sys
 
 from django.conf import settings
@@ -111,3 +112,77 @@ def reject_readonly_post(request):
     if is_writable_request(request) or is_readonly_safe_post(request):
         return None
     return readonly_post_forbidden_response(request)
+
+
+def get_site_owner_user():
+    """
+    Single household owner: the Django user that holds the Tesla token.
+
+    Personal install is not multi-tenant. On Tailscale read-only, anonymous
+    viewers act as this owner for *reads* only (token / vehicle list).
+    """
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    owner_id = getattr(settings, "MATESLA_OWNER_USER_ID", None)
+    if owner_id:
+        user = User.objects.filter(pk=owner_id).first()
+        if user:
+            return user
+    owner_name = getattr(settings, "MATESLA_OWNER_USERNAME", None) or os.environ.get(
+        "MATESLA_OWNER_USERNAME"
+    )
+    if owner_name:
+        user = User.objects.filter(username=owner_name).first()
+        if user:
+            return user
+
+    # Prefer the user that actually has a TeslaToken
+    try:
+        from matesla.models.TeslaToken import TeslaToken
+
+        user_ids = list(
+            TeslaToken.objects.order_by("user_id")
+            .values_list("user_id", flat=True)
+            .distinct()[:2]
+        )
+        if len(user_ids) == 1:
+            return User.objects.filter(pk=user_ids[0]).first()
+        if len(user_ids) > 1:
+            logger.warning(
+                "Multiple TeslaToken owners %s — set MATESLA_OWNER_USER_ID",
+                user_ids,
+            )
+            return User.objects.filter(pk=user_ids[0]).first()
+    except Exception:
+        logger.exception("get_site_owner_user: TeslaToken lookup failed")
+
+    user = User.objects.filter(is_superuser=True).order_by("id").first()
+    if user:
+        return user
+    return User.objects.order_by("id").first()
+
+
+def resolve_acting_user(request):
+    """
+    User for data access:
+    - logged-in session → that user
+    - read-only remote (Tailscale) without login → site owner (household view)
+    - writable local without login → None (must sign in)
+    """
+    user = getattr(request, "user", None)
+    if user is not None and getattr(user, "is_authenticated", False):
+        return user
+    # Fallback when AuthenticationMiddleware has not run (tests / edge)
+    if hasattr(request, "session"):
+        try:
+            from django.contrib.auth import get_user
+
+            user = get_user(request)
+            if getattr(user, "is_authenticated", False):
+                return user
+        except Exception:
+            pass
+    if not is_writable_request(request):
+        return get_site_owner_user()
+    return None
