@@ -148,28 +148,55 @@ ValidColorCodes = {
     "PMBL": "Obsidian Black",
 }
 
+# Fleet vehicle_config.exterior_color → paint option (names are more reliable than option_codes)
+_EXTERIOR_NAME_TO_CODE = {
+    "solidblack": "PBSB",
+    "black": "PBSB",
+    "obsidianblack": "PMBL",
+    "pearlwhite": "PPSW",
+    "pearlwhitemulticoat": "PPSW",
+    "white": "PPSW",
+    "deepblue": "PPSB",
+    "deepbluemetallic": "PPSB",
+    "blue": "PPSB",
+    "steelgrey": "PMNG",
+    "midnightsilver": "PMNG",
+    "midnightsilvermetallic": "PMNG",
+    "grey": "PMNG",
+    "gray": "PMNG",
+    "silver": "PMSS",
+    "silvermetallic": "PMSS",
+    "redmulticoat": "PPMR",
+    "red": "PPMR",
+}
+
 
 def returnColorFronContext(context):
-    # if we know the color, use it (here is for David car) as codes
-    # can't really be trusted (David car is black according to codes)
+    """Pick compositor paint code for the status car image.
+
+    Prefer Fleet exterior_color names (e.g. SolidBlack → PBSB). option_codes are
+    often missing or wrong on Fleet API; only used as a fallback.
+    """
     exterior = context.get("exterior_color") or ""
-    if exterior == "PearlWhite":
-        return "PPSW"
-    if exterior == "DeepBlue":
-        return "PPSB"
-    if exterior in ("SteelGrey", "MidnightSilver"):
-        return "PMNG"
-    if exterior == "RedMulticoat":
-        return "PPMR"
-    # get color code from option codes (often null on Fleet API)
-    colorcode = "PPSW"
+    key = exterior.strip().lower().replace("_", "").replace("-", "").replace(" ", "")
+    if key in _EXTERIOR_NAME_TO_CODE:
+        return _EXTERIOR_NAME_TO_CODE[key]
+
+    # Nested vehicle_config if not flattened yet
+    vc = context.get("vehicle_config") or {}
+    if isinstance(vc, dict):
+        exterior = vc.get("exterior_color") or ""
+        key = exterior.strip().lower().replace("_", "").replace("-", "").replace(" ", "")
+        if key in _EXTERIOR_NAME_TO_CODE:
+            return _EXTERIOR_NAME_TO_CODE[key]
+
     option_codes = context.get("option_codes") or ""
     if option_codes:
-        for code in option_codes.split(","):
+        for code in option_codes.replace("$", "").split(","):
+            code = code.strip().upper()
             if code in ValidColorCodes:
-                colorcode = code
-                break
-    return colorcode
+                return code
+    return "PPSW"
 
 
 # Return true if a firmware update is downloadeand ready to install.
@@ -249,7 +276,8 @@ def PreparestatusDictionary(request, user):
     try:
         context["colorcode"] = returnColorFronContext(context)
     except Exception:
-        context["colorcode"] = "PPSW"
+        # SolidBlack is more common than white as a safe fallback for missing data
+        context["colorcode"] = "PBSB"
 
     lat = context.get("latitude")
     lon = context.get("longitude")

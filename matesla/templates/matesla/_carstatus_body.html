@@ -1,71 +1,76 @@
 {% load i18n %}
 
 <section class="vehicle-overview" aria-labelledby="vehicle-name">
-    <div class="vehicle-stage">
-        <div class="vehicle-stage__top">
-            <div>
-                <p class="eyebrow"><span class="live-status">{% trans 'Live' %}</span></p>
-                <h1 class="vehicle-stage__name" id="vehicle-name">{% if display_name %}{{ display_name }}{% else %}{% trans 'Your car' %}{% endif %}</h1>
-                <div class="vehicle-stage__meta">
-                    <span>{{ car_type }}</span>
-                    <span>{{ exterior_color }}</span>
-                    <span>{{ wheel_type }}</span>
+    {# Main row: left height is capped by the summary column (no overhang) #}
+    <div class="vehicle-overview__main">
+        <div class="vehicle-stage">
+            <div class="vehicle-stage__top">
+                <div>
+                    <p class="eyebrow"><span class="live-status">{% trans 'Live' %}</span></p>
+                    <h1 class="vehicle-stage__name" id="vehicle-name">{% if display_name %}{{ display_name }}{% else %}{% trans 'Your car' %}{% endif %}</h1>
+                    <div class="vehicle-stage__meta">
+                        <span>{{ car_type }}</span>
+                        <span>{{ exterior_color }}</span>
+                        <span>{{ wheel_type }}</span>
+                    </div>
+                </div>
+                <span class="state-pill">{{ state|default:"online" }}</span>
+            </div>
+
+            <div class="vehicle-stage__image">
+                <img src="{% url 'CarImageFromTesla' colorcode wheel_type car_type %}"
+                     alt="{% blocktrans with name=display_name %}{{ name }} vehicle{% endblocktrans %}"
+                     width="960" height="540"
+                     decoding="async"
+                     sizes="(max-width: 900px) 100vw, 55vw">
+            </div>
+        </div>
+
+        <aside class="vehicle-summary" aria-label="{% trans 'Battery summary' %}">
+            <div class="battery-gauge">
+                <div class="battery-gauge__ring" style="--battery: {{ battery_level|default:0 }};">
+                    <div class="battery-gauge__inner">
+                        <span class="battery-gauge__value">{{ battery_level|default:"—" }}<small>%</small></span>
+                        <span class="battery-gauge__label">{% trans 'Battery' %}</span>
+                    </div>
                 </div>
             </div>
-            <span class="state-pill">{{ state|default:"online" }}</span>
-        </div>
 
-        <div class="vehicle-stage__image">
-            <img src="{% url 'CarImageFromTesla' colorcode wheel_type car_type %}"
-                 alt="{% blocktrans with name=display_name %}{{ name }} vehicle{% endblocktrans %}"
-                 width="760" height="426">
-        </div>
+            <div class="summary-metrics">
+                <div class="summary-metric">
+                    <span class="summary-metric__value">{{ batteryrange|default:"—" }}</span>
+                    <span class="summary-metric__label">{% trans 'Range' %} · km</span>
+                </div>
+                <div class="summary-metric">
+                    <span class="summary-metric__value">{{ outside_temp|default:"—" }}°</span>
+                    <span class="summary-metric__label">{% trans 'Outside' %}</span>
+                </div>
+                <div class="summary-metric">
+                    <span class="summary-metric__value">{{ OdometerInKm|default:"—" }}</span>
+                    <span class="summary-metric__label">{% trans 'Odometer' %} · km</span>
+                </div>
+                <div class="summary-metric">
+                    <span class="summary-metric__value">{{ car_version|default:"—" }}</span>
+                    <span class="summary-metric__label">{% trans 'Firmware' %}</span>
+                </div>
+            </div>
 
-        <div class="vehicle-stage__footer">
-            {% if hashedVin %}
-            <a href="{% url 'PersoStats' hashedVin %}" class="app-button">{% trans 'My data' %} <span aria-hidden="true">↗</span></a>
-            <a href="{% url 'PersoDayMap' hashedVin %}" class="app-button app-button--ghost">{% trans 'Day map' %}</a>
-            <a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}" class="app-button app-button--ghost">{% trans 'Firmware history' %}</a>
-            {% endif %}
-        </div>
+            <div class="summary-charge">
+                <div class="summary-charge__state">
+                    <span>{% trans 'Charge status' %}</span>
+                    <strong>{{ charging_state|default:"—" }}</strong>
+                </div>
+            </div>
+        </aside>
     </div>
 
-    <aside class="vehicle-summary" aria-label="{% trans 'Battery summary' %}">
-        <div class="battery-gauge">
-            <div class="battery-gauge__ring" style="--battery: {{ battery_level|default:0 }};">
-                <div class="battery-gauge__inner">
-                    <span class="battery-gauge__value">{{ battery_level|default:"—" }}<small>%</small></span>
-                    <span class="battery-gauge__label">{% trans 'Battery' %}</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="summary-metrics">
-            <div class="summary-metric">
-                <span class="summary-metric__value">{{ batteryrange|default:"—" }}</span>
-                <span class="summary-metric__label">{% trans 'Range' %} · km</span>
-            </div>
-            <div class="summary-metric">
-                <span class="summary-metric__value">{{ outside_temp|default:"—" }}°</span>
-                <span class="summary-metric__label">{% trans 'Outside' %}</span>
-            </div>
-            <div class="summary-metric">
-                <span class="summary-metric__value">{{ OdometerInKm|default:"—" }}</span>
-                <span class="summary-metric__label">{% trans 'Odometer' %} · km</span>
-            </div>
-            <div class="summary-metric">
-                <span class="summary-metric__value">{{ car_version|default:"—" }}</span>
-                <span class="summary-metric__label">{% trans 'Firmware' %}</span>
-            </div>
-        </div>
-
-        <div class="summary-charge">
-            <div class="summary-charge__state">
-                <span>{% trans 'Charge status' %}</span>
-                <strong>{{ charging_state|default:"—" }}</strong>
-            </div>
-        </div>
-    </aside>
+    {% if hashedVin %}
+    <div class="vehicle-overview__footer">
+        <a href="{% url 'PersoStats' hashedVin %}" class="app-button">{% trans 'My data' %} <span aria-hidden="true">↗</span></a>
+        <a href="{% url 'PersoDayMap' hashedVin %}" class="app-button app-button--ghost">{% trans 'Day map' %}</a>
+        <a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}" class="app-button app-button--ghost">{% trans 'Firmware history' %}</a>
+    </div>
+    {% endif %}
 </section>
 
 <div class="section-heading">

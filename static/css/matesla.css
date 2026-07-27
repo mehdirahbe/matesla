@@ -471,7 +471,7 @@ img {
 }
 
 .section-heading {
-    margin: 44px 0 16px;
+    margin: 28px 0 12px;
     display: flex;
     align-items: end;
     justify-content: space-between;
@@ -1048,77 +1048,81 @@ button:disabled,
 
 .vehicle-overview {
     position: relative;
-    min-height: 500px;
+    min-height: 0;
     overflow: hidden;
-    display: grid;
-    grid-template-columns: minmax(0, 1.7fr) minmax(300px, .72fr);
+    display: flex;
+    flex-direction: column;
     border: 1px solid var(--app-line);
     border-radius: var(--app-radius-lg);
     background: var(--app-surface);
     box-shadow: var(--app-shadow);
 }
 
+/* Stage + summary share one row height = summary content height */
+.vehicle-overview__main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(240px, 0.85fr);
+    align-items: stretch;
+    min-height: 0;
+}
+
 .vehicle-stage {
     position: relative;
     min-width: 0;
-    min-height: 500px;
-    padding: clamp(28px, 5vw, 62px);
+    min-height: 0;
+    /* min-height:0 + flex image base 0 → row height driven by summary */
+    padding: 10px 12px 8px;
     display: flex;
     flex-direction: column;
+    gap: 4px;
     overflow: hidden;
     background:
-        linear-gradient(115deg, rgba(47, 143, 255, .18), transparent 42%),
-        radial-gradient(ellipse at 48% 62%, rgba(47, 212, 161, .14), transparent 50%);
+        linear-gradient(115deg, rgba(47, 143, 255, .14), transparent 48%),
+        radial-gradient(ellipse at 50% 70%, rgba(47, 212, 161, .1), transparent 55%);
 }
 
 .vehicle-stage::before {
-    position: absolute;
-    right: -8%;
-    bottom: -31%;
-    width: 85%;
-    aspect-ratio: 1;
-    transform: rotate(-17deg);
-    border: 1px solid rgba(255,255,255,.04);
-    border-radius: 50%;
-    box-shadow:
-        0 0 0 58px rgba(255,255,255,.014),
-        0 0 0 116px rgba(255,255,255,.01);
-    content: "";
+    display: none;
 }
 
 .vehicle-stage__top {
     position: relative;
     z-index: 1;
+    flex: 0 0 auto;
     display: flex;
     align-items: start;
     justify-content: space-between;
-    gap: 24px;
+    gap: 10px;
+}
+
+.vehicle-stage__top .eyebrow {
+    margin: 0 0 2px;
 }
 
 .vehicle-stage__name {
-    margin: 7px 0 0;
-    font-size: clamp(2.4rem, 5vw, 5.4rem);
-    font-weight: 680;
-    letter-spacing: -0.065em;
-    line-height: 0.94;
+    margin: 0;
+    font-size: clamp(1.35rem, 2.4vw, 1.95rem);
+    font-weight: 720;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
 }
 
 .vehicle-stage__meta {
-    margin: 13px 0 0;
+    margin: 3px 0 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 16px;
+    gap: 2px 10px;
     color: var(--app-muted);
-    font-size: 0.82rem;
+    font-size: 0.72rem;
 }
 
 .state-pill {
-    padding: 7px 11px;
+    padding: 4px 9px;
     border: 1px solid rgba(62, 201, 224, .42);
     border-radius: 999px;
     background: var(--app-energy-soft);
     color: var(--app-energy);
-    font-size: 0.7rem;
+    font-size: 0.66rem;
     font-weight: 740;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -1127,54 +1131,67 @@ button:disabled,
 .vehicle-stage__image {
     position: relative;
     z-index: 1;
-    min-height: 260px;
-    flex: 1;
-    display: grid;
-    place-items: center;
+    /* Grow into the height fixed by the summary column */
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
 .vehicle-stage__image img {
-    width: min(94%, 760px);
-    height: auto;
-    filter: drop-shadow(0 38px 28px rgba(0,0,0,.5));
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center;
+    filter: drop-shadow(0 14px 16px rgba(0,0,0,.42));
 }
 
-.vehicle-stage__footer {
-    position: relative;
-    z-index: 1;
+.vehicle-overview__footer {
+    flex: 0 0 auto;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--app-line);
+    background: rgba(7, 11, 18, 0.35);
 }
 
 .vehicle-summary {
-    padding: clamp(25px, 4vw, 42px);
+    padding: 10px 12px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 8px;
     border-left: 1px solid var(--app-line);
     background: rgba(11, 18, 32, 0.88);
+    /* This column defines the main row height */
+    min-height: 0;
 }
 
 .battery-gauge {
     display: grid;
     place-items: center;
+    flex: 0 0 auto;
 }
 
 .battery-gauge__ring {
     --battery: 0;
-    width: min(210px, 100%);
+    width: min(118px, 68%);
     aspect-ratio: 1;
     display: grid;
     place-items: center;
     border-radius: 50%;
     background: conic-gradient(var(--app-energy) calc(var(--battery) * 1%), rgba(255,255,255,.075) 0);
-    box-shadow: 0 0 50px rgba(47, 212, 161, .18);
+    box-shadow: 0 0 28px rgba(47, 212, 161, .14);
 }
 
 .battery-gauge__inner {
-    width: calc(100% - 17px);
+    width: calc(100% - 12px);
     aspect-ratio: 1;
     display: grid;
     place-content: center;
@@ -1184,9 +1201,9 @@ button:disabled,
 }
 
 .battery-gauge__value {
-    font-size: clamp(2.35rem, 4vw, 3.8rem);
+    font-size: clamp(1.45rem, 2.4vw, 2rem);
     font-weight: 720;
-    letter-spacing: -0.065em;
+    letter-spacing: -0.05em;
     line-height: 1;
 }
 
@@ -1198,46 +1215,47 @@ button:disabled,
 }
 
 .battery-gauge__label {
-    margin-top: 5px;
+    margin-top: 3px;
     color: var(--app-subtle);
-    font-size: 0.67rem;
+    font-size: 0.62rem;
     font-weight: 720;
     letter-spacing: 0.11em;
     text-transform: uppercase;
 }
 
 .summary-metrics {
-    margin-top: 28px;
+    margin: 0;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 6px;
 }
 
 .summary-metric {
-    padding: 14px 13px;
+    padding: 7px 9px;
     border: 1px solid var(--app-line);
-    border-radius: 14px;
+    border-radius: 10px;
     background: rgba(255,255,255,.025);
 }
 
 .summary-metric__value {
     display: block;
-    font-size: 1.22rem;
+    font-size: 0.98rem;
     font-weight: 710;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
 }
 
 .summary-metric__label {
     display: block;
-    margin-top: 2px;
+    margin-top: 0;
     color: var(--app-subtle);
-    font-size: 0.67rem;
-    letter-spacing: 0.05em;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
 }
 
 .summary-charge {
-    margin-top: 22px;
-    padding-top: 18px;
+    margin: 0;
+    padding-top: 8px;
     border-top: 1px solid var(--app-line);
 }
 
@@ -1245,9 +1263,9 @@ button:disabled,
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
     color: var(--app-muted);
-    font-size: 0.78rem;
+    font-size: 0.76rem;
 }
 
 .summary-charge__state strong {
@@ -2052,17 +2070,28 @@ pre.key-box {
         display: block;
     }
 
-    .vehicle-overview {
+    .vehicle-overview__main {
         grid-template-columns: 1fr;
+    }
+
+    .vehicle-stage {
+        /* On stacked layout, let the car use a natural height again */
+        min-height: 220px;
+    }
+
+    .vehicle-stage__image {
+        flex: 1 1 auto;
+        min-height: 160px;
     }
 
     .vehicle-summary {
         display: grid;
-        grid-template-columns: minmax(190px, .7fr) 1fr;
-        align-items: center;
-        gap: 28px;
+        grid-template-columns: minmax(120px, .55fr) 1fr;
+        align-items: start;
+        gap: 12px 16px;
         border-top: 1px solid var(--app-line);
         border-left: 0;
+        padding: 14px;
     }
 
     .summary-metrics,
@@ -2072,6 +2101,10 @@ pre.key-box {
 
     .battery-gauge {
         grid-row: span 2;
+    }
+
+    .battery-gauge__ring {
+        width: min(112px, 100%);
     }
 
     .dashboard-card {
@@ -2171,9 +2204,13 @@ pre.key-box {
         padding-top: 7px;
     }
 
+    .vehicle-overview__main {
+        grid-template-columns: 1fr;
+    }
+
     .vehicle-stage {
-        min-height: 430px;
-        padding: 26px 20px;
+        min-height: 0;
+        padding: 10px 12px;
     }
 
     .vehicle-stage__top {
@@ -2182,20 +2219,27 @@ pre.key-box {
     }
 
     .vehicle-stage__image {
-        min-height: 210px;
+        min-height: 140px;
+    }
+
+    .vehicle-stage__image img {
+        width: 100%;
+        height: 100%;
     }
 
     .vehicle-summary {
-        padding: 25px 20px;
-        display: block;
+        padding: 10px 12px;
+        display: flex;
+        border-left: 0;
+        border-top: 1px solid var(--app-line);
     }
 
     .battery-gauge__ring {
-        width: 175px;
+        width: min(110px, 48%);
     }
 
     .summary-metrics {
-        margin-top: 24px;
+        margin-top: 0;
     }
 
     .summary-charge {
