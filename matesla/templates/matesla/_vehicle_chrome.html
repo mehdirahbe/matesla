@@ -3,6 +3,16 @@
     {% if user_vehicles and user_vehicles|length > 0 %}
     <form action="{% url 'select_vehicle' %}" method="post" class="vehicle-switcher">
         {% csrf_token %}
+        {# Stay on the same personal page after switching vehicle (hashedVin changes). #}
+        {% if request.resolver_match.url_name == 'PersoDayMap' or request.resolver_match.url_name == 'PersoDayMapDay' %}
+        <input type="hidden" name="next" value="daymap">
+        {% if day_iso %}<input type="hidden" name="day" value="{{ day_iso }}">{% endif %}
+        {% elif request.resolver_match.url_name == 'PersoStats' %}
+        <input type="hidden" name="next" value="stats">
+        <input type="hidden" name="period" id="vehicle_switch_period" value="{{ stats_period|default:4 }}">
+        {% elif request.resolver_match.url_name == 'PersoStatsFirmwareHistory' %}
+        <input type="hidden" name="next" value="firmware">
+        {% endif %}
         <span class="vehicle-switcher__state" aria-hidden="true"></span>
         <div>
             <label for="vehicle_api_id">{% trans 'Vehicle' %}</label>

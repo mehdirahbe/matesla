@@ -1,4 +1,5 @@
 {% load i18n %}
+{% with period=stats_period|default:4 %}
 
 <div class="stats-toolbar">
     <div class="stats-toolbar__actions">
@@ -8,15 +9,15 @@
     <div class="stats-toolbar__period">
         <label for="DesiredPeriod">{% trans 'Period' %}</label>
         <select id="DesiredPeriod">
-            <option value="1">{% trans '1 Week' %}</option>
-            <option value="2">{% trans '2 Weeks' %}</option>
-            <option value="4" selected>{% trans '1 Month' %}</option>
-            <option value="13">{% trans '3 Months' %}</option>
-            <option value="26">{% trans '6 Months' %}</option>
-            <option value="52">{% trans '1 Year' %}</option>
-            <option value="104">{% trans '2 Years' %}</option>
-            <option value="260">{% trans '5 Years' %}</option>
-            <option value="520">{% trans '10 Years' %}</option>
+            <option value="1" {% if period == 1 %}selected{% endif %}>{% trans '1 Week' %}</option>
+            <option value="2" {% if period == 2 %}selected{% endif %}>{% trans '2 Weeks' %}</option>
+            <option value="4" {% if period == 4 %}selected{% endif %}>{% trans '1 Month' %}</option>
+            <option value="13" {% if period == 13 %}selected{% endif %}>{% trans '3 Months' %}</option>
+            <option value="26" {% if period == 26 %}selected{% endif %}>{% trans '6 Months' %}</option>
+            <option value="52" {% if period == 52 %}selected{% endif %}>{% trans '1 Year' %}</option>
+            <option value="104" {% if period == 104 %}selected{% endif %}>{% trans '2 Years' %}</option>
+            <option value="260" {% if period == 260 %}selected{% endif %}>{% trans '5 Years' %}</option>
+            <option value="520" {% if period == 520 %}selected{% endif %}>{% trans '10 Years' %}</option>
         </select>
     </div>
 </div>
@@ -40,7 +41,7 @@
         </div>
         <div class="graph-card__media">
             <img id="degradationGraphImg" class="lazyload" alt="{% trans 'Battery degradation graphs' %}"
-                 data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer' 4 %}" width="1200" height="500">
+                 data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer' period %}" width="1200" height="500">
         </div>
     </article>
 
@@ -63,7 +64,7 @@
         </div>
         <div class="graph-card__media">
             <img id="chargeGraphImg" class="lazyload" alt="{% trans 'Charge related graphs' %}"
-                 data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' 4 %}" width="1200" height="500">
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' period %}" width="1200" height="500">
         </div>
     </article>
 
@@ -83,7 +84,7 @@
         </div>
         <div class="graph-card__media">
             <img id="temperatureGraphImg" class="lazyload" alt="{% trans 'Temperature related graphs' %}"
-                 data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' 4 %}" width="1200" height="500">
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' period %}" width="1200" height="500">
         </div>
     </article>
 
@@ -104,7 +105,8 @@
         </div>
         <div class="graph-card__media">
             <img id="driveGraphImg" class="lazyload" alt="{% trans 'Drive related graphs' %}"
-                 data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' 4 %}" width="1200" height="500">
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' period %}" width="1200" height="500">
         </div>
     </article>
 </section>
+{% endwith %}

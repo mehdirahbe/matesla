@@ -78,6 +78,16 @@ function ChangeBatteryDegradationImageSourceFunction()
 
 $('#degradationGraphCriteria').change(ChangeBatteryDegradationImageSourceFunction);
 
+function syncVehicleSwitchPeriod()
+{
+    // Hidden field on vehicle switcher form — keep period when changing car
+    var periodSelect = document.getElementById('DesiredPeriod');
+    var hidden = document.getElementById('vehicle_switch_period');
+    if (periodSelect && hidden) {
+        hidden.value = periodSelect.value;
+    }
+}
+
 function ChangeDesiredPeriodFunction()
 {
     //When period changes, all graphs must be refreshed to reflect new period
@@ -85,14 +95,22 @@ function ChangeDesiredPeriodFunction()
     ChangeChargeImageSourceFunction();
     ChangeTemperatureImageSourceFunction();
     ChangeDriveImageSourceFunction();
+    syncVehicleSwitchPeriod();
 }
 
 $('#DesiredPeriod').change(ChangeDesiredPeriodFunction);
 
-// On first load: data-src already uses default period (4), but re-apply so
-// select value and image URLs always stay in lockstep (no stale full-history graph
-// while the list still shows "1 month").
+// Capture period right before the vehicle form posts (onchange submit)
 $(function () {
+    var vehicleForm = document.querySelector('form.vehicle-switcher');
+    if (vehicleForm) {
+        vehicleForm.addEventListener('submit', syncVehicleSwitchPeriod);
+    }
+    var vehicleSelect = document.getElementById('vehicle_api_id');
+    if (vehicleSelect) {
+        vehicleSelect.addEventListener('change', syncVehicleSwitchPeriod);
+    }
+    // On first load: data-src uses stats_period; re-apply so select and URLs stay in sync
     ChangeDesiredPeriodFunction();
 });
 

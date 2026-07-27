@@ -239,9 +239,44 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
     )
     return GenerateDateGraph(dates, maxvalues, minvalues, avgvalues, title)
 
+# Weeks values offered in the personal-stats period dropdown (1 Month = 4).
+STATS_PERIOD_WEEKS = frozenset({1, 2, 4, 13, 26, 52, 104, 260, 520})
+STATS_PERIOD_SESSION_KEY = "personalstats_period_weeks"
+STATS_PERIOD_DEFAULT = 4
+
+
+def parse_stats_period(raw, default=STATS_PERIOD_DEFAULT):
+    """Return a valid period in weeks, or default."""
+    try:
+        weeks = int(raw)
+    except (TypeError, ValueError):
+        return default
+    return weeks if weeks in STATS_PERIOD_WEEKS else default
+
+
+def resolve_stats_period(request, *, persist=True):
+    """
+    Preferred stats graph window (weeks).
+    Query ?period= wins, then session, then 1 month (4 weeks).
+    """
+    if request.GET.get("period") is not None:
+        weeks = parse_stats_period(request.GET.get("period"))
+    else:
+        weeks = parse_stats_period(
+            request.session.get(STATS_PERIOD_SESSION_KEY),
+            default=STATS_PERIOD_DEFAULT,
+        )
+    if persist:
+        request.session[STATS_PERIOD_SESSION_KEY] = weeks
+    return weeks
+
+
 def _vehicle_chrome_context(request, hashedVin):
     """Shared multi-vehicle selector context for personalstats pages."""
-    context = {"hashedVin": hashedVin}
+    context = {
+        "hashedVin": hashedVin,
+        "stats_period": resolve_stats_period(request),
+    }
     user = request.user
     if user.is_authenticated:
         from matesla.TeslaConnect import list_user_vehicles, resolve_active_vehicle

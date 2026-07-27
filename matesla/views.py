@@ -1,3 +1,4 @@
+import re
 import traceback
 
 from django.contrib import messages
@@ -322,11 +323,14 @@ def PrepareOfflineHub(request, user):
 
     vin = active.vin or ""
     hashed = HashTheVin(vin) if vin else ""
+    from personalstats.views import resolve_stats_period
+
     context = {
         **sel,
         "hub_mode": "offline",
         "hashedVin": hashed,
         "display_name": active.display_name or active.label,
+        "stats_period": resolve_stats_period(request),
     }
     context.update(GetTitleForFieldDico())
     template = loader.get_template("matesla/vehicle_hub.html")
@@ -709,7 +713,11 @@ def view_tesla_oauth_callback(request):
 @never_cache
 @require_http_methods(["POST"])
 def view_select_vehicle(request):
-    """Switch active vehicle (status page dropdown)."""
+    """Switch active vehicle; stay on the same kind of page when possible.
+
+    Personal pages (day map, stats, firmware) are keyed by hashedVin — after a
+    switch we re-route to the same view for the newly selected vehicle.
+    """
     user = get_user(request)
     if not user.is_authenticated:
         return redirect("login")
@@ -719,6 +727,41 @@ def view_select_vehicle(request):
         messages.success(request, f"Véhicule actif : {vehicle.label}")
     else:
         messages.error(request, "Véhicule inconnu.")
+        return redirect("tesla_status")
+
+    next_kind = (request.POST.get("next") or "").strip().lower()
+    # Whitelist only — never open-redirect on user-supplied URLs
+    if next_kind in ("daymap", "stats", "firmware") and vehicle.vin:
+        from matesla.models.VinHash import HashTheVin
+
+        hashed = HashTheVin(vehicle.vin)
+        if hashed:
+            if next_kind == "daymap":
+                day = (request.POST.get("day") or "").strip()
+                # Accept only ISO dates YYYY-MM-DD from the day map form
+                if re.fullmatch(r"\d{4}-\d{2}-\d{2}", day or ""):
+                    return redirect("PersoDayMapDay", hashedVin=hashed, day=day)
+                return redirect("PersoDayMap", hashedVin=hashed)
+            if next_kind == "stats":
+                from personalstats.views import (
+                    STATS_PERIOD_SESSION_KEY,
+                    parse_stats_period,
+                )
+                from django.urls import reverse
+
+                # Keep graph period (weeks) across vehicle switches.
+                period = parse_stats_period(
+                    request.POST.get("period"),
+                    default=parse_stats_period(
+                        request.session.get(STATS_PERIOD_SESSION_KEY)
+                    ),
+                )
+                request.session[STATS_PERIOD_SESSION_KEY] = period
+                url = reverse("PersoStats", kwargs={"hashedVin": hashed})
+                return redirect(f"{url}?period={period}")
+            if next_kind == "firmware":
+                return redirect("PersoStatsFirmwareHistory", hashedVin=hashed)
+
     return redirect("tesla_status")
 
 
