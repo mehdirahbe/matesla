@@ -79,6 +79,7 @@
     {% endif %}
 </section>
 
+{% if allow_writes %}
 <div class="section-heading">
     <div>
         <span class="section-kicker">{% trans 'Remote control' %}</span>
@@ -141,6 +142,7 @@
         <span><strong>{% trans 'Start without key' %}</strong><small>{% trans 'Requires account password' %}</small></span>
     </a>
 </section>
+{% endif %}
 
 <div class="section-heading">
     <div>
@@ -174,20 +176,28 @@
             <div class="data-row">
                 <dt>{% trans 'Sentry' %}</dt>
                 <dd>
-                    {% if sentry_mode is True %}
-                    <a href="{% url 'sentry_stop' %}" class="btn btn-sm btn-secondary">{% trans 'Active, stop?' %}</a>
+                    {% if allow_writes %}
+                        {% if sentry_mode is True %}
+                        <a href="{% url 'sentry_stop' %}" class="btn btn-sm btn-secondary">{% trans 'Active, stop?' %}</a>
+                        {% else %}
+                        <a href="{% url 'sentry_start' %}" class="btn btn-sm btn-secondary">{% trans 'Inactive, start?' %}</a>
+                        {% endif %}
                     {% else %}
-                    <a href="{% url 'sentry_start' %}" class="btn btn-sm btn-secondary">{% trans 'Inactive, start?' %}</a>
+                        {% if sentry_mode is True %}{% trans 'Active' %}{% else %}{% trans 'Inactive' %}{% endif %}
                     {% endif %}
                 </dd>
             </div>
             <div class="data-row">
                 <dt>{% trans 'Valet mode' %}</dt>
                 <dd>
-                    {% if valet_mode is True %}
-                    <a href="{% url 'valet_stop' %}" class="btn btn-sm btn-secondary">{% trans 'Active, stop?' %}</a>
+                    {% if allow_writes %}
+                        {% if valet_mode is True %}
+                        <a href="{% url 'valet_stop' %}" class="btn btn-sm btn-secondary">{% trans 'Active, stop?' %}</a>
+                        {% else %}
+                        <a href="{% url 'valet_start' %}" class="btn btn-sm btn-secondary">{% trans 'Inactive, start?' %}</a>
+                        {% endif %}
                     {% else %}
-                    <a href="{% url 'valet_start' %}" class="btn btn-sm btn-secondary">{% trans 'Inactive, start?' %}</a>
+                        {% if valet_mode is True %}{% trans 'Active' %}{% else %}{% trans 'Inactive' %}{% endif %}
                     {% endif %}
                 </dd>
             </div>
@@ -209,7 +219,13 @@
                 {% endif %}
                 <div class="data-row">
                     <dt>{% trans 'Battery charge limit (%)' %}</dt>
-                    <dd><a href="{% url 'getdesiredchargelevel' %}" class="btn btn-sm btn-secondary">{{ charge_limit_soc }}% · {% trans 'Change' %}</a></dd>
+                    <dd>
+                        {% if allow_writes %}
+                        <a href="{% url 'getdesiredchargelevel' %}" class="btn btn-sm btn-secondary">{{ charge_limit_soc }}% · {% trans 'Change' %}</a>
+                        {% else %}
+                        {{ charge_limit_soc }}%
+                        {% endif %}
+                    </dd>
                 </div>
             </dl>
             <dl class="data-list data-column">
@@ -220,6 +236,7 @@
                 <div class="data-row"><dt>{% trans 'Power in kW' %}</dt><dd>{{ charger_power }} kW</dd></div>
                 <div class="data-row"><dt>{% trans 'Number of phases' %}</dt><dd>{{ charger_phases }}</dd></div>
                 <div class="data-row"><dt>{% trans 'Time left in minutes' %}</dt><dd>{{ minutes_to_full_charge }} min</dd></div>
+                {% if allow_writes %}
                 <div class="data-row">
                     <dt>{% trans 'Charging' %}</dt>
                     <dd>
@@ -230,6 +247,7 @@
                         {% endif %}
                     </dd>
                 </div>
+                {% endif %}
                 {% else %}
                 <div class="empty-state"><span class="text-muted">{% trans 'Vehicle is unplugged' %}</span></div>
                 {% endif %}
@@ -261,7 +279,13 @@
             <div class="data-row"><dt>{% trans 'Outside temperature' %}</dt><dd>{{ outside_temp }}°</dd></div>
             <div class="data-row">
                 <dt>{% trans 'Driver Temperature setting' %}</dt>
-                <dd><a href="{% url 'getdesiredtemperature' %}" class="btn btn-sm btn-secondary">{{ driver_temp_setting }}° · {% trans 'Change' %}</a></dd>
+                <dd>
+                    {% if allow_writes %}
+                    <a href="{% url 'getdesiredtemperature' %}" class="btn btn-sm btn-secondary">{{ driver_temp_setting }}° · {% trans 'Change' %}</a>
+                    {% else %}
+                    {{ driver_temp_setting }}°
+                    {% endif %}
+                </dd>
             </div>
         </dl>
     </article>
@@ -274,7 +298,13 @@
         <dl class="data-list">
             <div class="data-row"><dt>{% trans 'Firmware version' %}</dt><dd>{{ car_version }}</dd></div>
             {% if hasUpdateReady %}
-            <div class="data-row"><dt>{% trans 'Update ready' %}</dt><dd><a href="{% url 'install_software_update' %}" class="btn btn-sm btn-primary">{% trans 'Install' %} {{ UpdateVersion }}</a></dd></div>
+            <div class="data-row"><dt>{% trans 'Update ready' %}</dt><dd>
+                {% if allow_writes %}
+                <a href="{% url 'install_software_update' %}" class="btn btn-sm btn-primary">{% trans 'Install' %} {{ UpdateVersion }}</a>
+                {% else %}
+                {{ UpdateVersion }}
+                {% endif %}
+            </dd></div>
             {% endif %}
             {% if hasUpdateScheduled %}
             <div class="data-row"><dt>{% trans 'Scheduled update' %}</dt><dd>{{ UpdateVersion }} · {{ UpdateVersionTimeSeconds }} s</dd></div>

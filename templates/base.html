@@ -36,11 +36,15 @@
             <nav class="app-nav" aria-label="{% trans 'Main navigation' %}">
                 {% if user.is_authenticated %}
                 <a href="{% url 'tesla_status' %}" {% if request.resolver_match.url_name == 'tesla_status' %}aria-current="page"{% endif %}>{% trans 'Status' %}</a>
+                {% if allow_writes %}
                 <a href="{% url 'AddTeslaAccount' %}" {% if request.resolver_match.url_name == 'AddTeslaAccount' %}aria-current="page"{% endif %}>{% trans 'Tesla account' %}</a>
+                {% endif %}
                 <a href="{% url 'AnonymisedStatsChoicePage' %}">{% trans 'Fleet stats' %}</a>
                 {% else %}
                 <a href="{% url 'login' %}" {% if request.resolver_match.url_name == 'login' %}aria-current="page"{% endif %}>{% trans 'Login' %}</a>
+                {% if allow_writes %}
                 <a href="{% url 'signup' %}" {% if request.resolver_match.url_name == 'signup' %}aria-current="page"{% endif %}>{% trans 'Signup' %}</a>
+                {% endif %}
                 <a href="{% url 'AnonymisedStatsChoicePage' %}">{% trans 'Fleet stats' %}</a>
                 {% endif %}
             </nav>
@@ -63,7 +67,9 @@
                 <nav aria-label="{% trans 'Mobile navigation' %}">
                     {% if user.is_authenticated %}
                     <a href="{% url 'tesla_status' %}">{% trans 'Status' %}</a>
+                    {% if allow_writes %}
                     <a href="{% url 'AddTeslaAccount' %}">{% trans 'Tesla account' %}</a>
+                    {% endif %}
                     <a href="{% url 'AnonymisedStatsChoicePage' %}">{% trans 'Fleet stats' %}</a>
                     <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
@@ -71,7 +77,9 @@
                     </form>
                     {% else %}
                     <a href="{% url 'login' %}">{% trans 'Login' %}</a>
+                    {% if allow_writes %}
                     <a href="{% url 'signup' %}">{% trans 'Signup' %}</a>
+                    {% endif %}
                     <a href="{% url 'AnonymisedStatsChoicePage' %}">{% trans 'Fleet stats' %}</a>
                     {% endif %}
                     <a href="https://github.com/mehdirahbe/matesla" target="_blank" rel="noopener noreferrer">GitHub ↗</a>

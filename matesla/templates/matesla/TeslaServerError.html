@@ -10,7 +10,9 @@
     <p class="form-card__intro">{% trans 'Tesla server did return an error' %}</p>
     <div class="button-row">
         <a href="{% url 'tesla_status' %}" class="btn btn-primary">{% trans 'Retry?' %}</a>
+        {% if allow_writes %}
         <a href="{% url 'AddTeslaAccount' %}" class="btn btn-secondary">{% trans 'Tesla account' %}</a>
+        {% endif %}
     </div>
 </section>
 {% endblock %}

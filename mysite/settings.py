@@ -120,9 +120,67 @@ MIDDLEWARE = [
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    # After LocaleMiddleware so resolve() sees language-prefixed paths.
+    "mysite.middleware.ReadOnlyRemoteMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+# Read-only for Tailscale / remote Host (same pattern as PicturesDjango).
+# Full write (commands, Tesla OAuth, admin) only on these Host headers.
+WRITABLE_HOSTS = [
+    h.strip()
+    for h in os.environ.get("MATESLA_WRITABLE_HOSTS", "127.0.0.1,localhost").split(",")
+    if h.strip()
+]
+# POST allowed remotely (session / auth only — never car commands).
+READONLY_SAFE_POST_URL_NAMES = [
+    "login",
+    "logout",
+    "select_vehicle",
+    "password_reset",
+    "password_reset_confirm",
+    "password_change",
+    "password_change_done",
+]
+# GET (and safe POST above) allowed on remote hosts; everything else → 404.
+READONLY_ALLOWED_URL_NAMES = [
+    # Auth
+    "login",
+    "logout",
+    "password_reset",
+    "password_reset_done",
+    "password_reset_confirm",
+    "password_reset_complete",
+    "password_change",
+    "password_change_done",
+    # Status / browse (no commands)
+    "tesla_status",
+    "teslastatusJson",
+    "teslaasleep",
+    "TeslaServerError",
+    "TeslaServerCmdFail",
+    "NoTeslaVehicules",
+    "ConnectionError",
+    "select_vehicle",
+    "CarImageFromTesla",
+    # Personal stats / maps / graphs
+    "PersoStats",
+    "PersoDayMap",
+    "PersoDayMapDay",
+    "PersoResolveAddress",
+    "PersoStatsBatteryDegradationGraph",
+    "PersoStatsFirmwareHistory",
+    "PersoStatsFirmwareHistoryCSV",
+    "StatsOnCarGraph",
+    "AllMyDataAsCSV",
+    # Fleet anonymised stats
+    "AnonymisedStatsChoicePage",
+    "AnonymisedStatsOnCarByModel",
+    "AnonymisedStatsBatteryDegradationGraph",
+    "AnonymisedFirmwareUpdates",
+    "AnonymisedFirmwareUpdatesAsCSV",
 ]
 
 # Debug toolbar only when DEBUG (never on phone / release-like local)
@@ -146,6 +204,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "mysite.context_processors.writable_access",
             ],
         },
     },

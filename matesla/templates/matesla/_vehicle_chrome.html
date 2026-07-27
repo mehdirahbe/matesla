@@ -51,6 +51,8 @@
         <a href="{% url 'PersoStats' hashedVin %}">{% trans 'My data' %}</a>
         <a href="{% url 'PersoDayMap' hashedVin %}">{% trans 'Day map' %}</a>
         {% endif %}
+        {% if allow_writes %}
         <a href="{% url 'AddTeslaAccount' %}">{% trans 'Tesla account' %}</a>
+        {% endif %}
     </nav>
 </div>

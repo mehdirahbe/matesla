@@ -9,7 +9,9 @@
     <h1>{% trans 'No vehicles' %}</h1>
     <p class="form-card__intro">{% trans 'No vehicles are associated to your account. Please retry when your car will be there.' %}</p>
     <div class="button-row">
+        {% if allow_writes %}
         <a href="{% url 'AddTeslaAccount' %}" class="btn btn-primary">{% trans 'Tesla account' %}</a>
+        {% endif %}
         <a href="{% url 'tesla_status' %}" class="btn btn-secondary">{% trans 'Retry?' %}</a>
     </div>
 </section>

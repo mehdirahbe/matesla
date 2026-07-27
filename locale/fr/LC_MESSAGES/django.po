@@ -1395,6 +1395,15 @@ msgstr ""
 "Toutes les versions détectées sur votre véhicule, dans l’ordre "
 "chronologique."
 
+msgid "Active"
+msgstr "Actif"
+
+msgid "Inactive"
+msgstr "Inactif"
+
+msgid "Write operations are only allowed from the local server."
+msgstr "Les opérations d’écriture ne sont autorisées que depuis le serveur local."
+
 # AddTeslaAccount / partner i18n
 
 msgid "Tesla connection"
