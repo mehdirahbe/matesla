@@ -24,15 +24,19 @@ SECRET_KEY = os.environ.get(
 # Used by legacy VIN hashing; keep stable for existing data compatibility.
 saltSeed = SECRET_KEY + "LL2SV-4tghzsrgsdgvsdgqdgvqd[_zCRxUwXYC=wsdgqdsgqdgqdgvghjjkjfCC5GCTNdE-Dsw>}bBp."
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes", "")
+# Off by default (no debug toolbar on phone / Tailscale). Opt in with DJANGO_DEBUG=1.
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in ("1", "true", "yes")
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "afternoon-scrubland-61531.herokuapp.com",
     "matesla.herokuapp.com",
+    # Tailscale Serve (phone / other devices on the tailnet)
+    "mehdi-thinkbook-13s-g2-itl.taila97662.ts.net",
+    "100.70.189.84",
 ]
-# Extra hosts via env, comma-separated (e.g. Tailscale hostname)
+# Extra hosts via env, comma-separated (e.g. another Tailscale hostname)
 ALLOWED_HOSTS += [
     h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()
 ]
@@ -43,6 +47,29 @@ ALLOWED_HOSTS += [
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 
+# Forms / login over Tailscale HTTPS (TLS terminated by `tailscale serve`)
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8001",
+    "http://localhost:8001",
+    "https://mehdi-thinkbook-13s-g2-itl.taila97662.ts.net",
+    "https://mehdi-thinkbook-13s-g2-itl.taila97662.ts.net:8443",
+]
+CSRF_TRUSTED_ORIGINS += [
+    o.strip()
+    for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if o.strip()
+]
+# Tailscale Serve proxies HTTPS → plain HTTP to runserver
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
+# Local runserver + Tailscale Serve: do not force HTTPS redirects (cron hits
+# http://127.0.0.1/.../internal/capture). Opt in with DJANGO_SECURE_SSL_REDIRECT=1.
+_secure_ssl = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "False").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 if DEBUG:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
@@ -54,12 +81,19 @@ if DEBUG:
     SESSION_COOKIE_SAMESITE = "Lax"
     CSRF_COOKIE_SAMESITE = "Lax"
 else:
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = _secure_ssl
+    # Secure cookies OK behind Tailscale HTTPS; local http://127.0.0.1 may need DJANGO_DEBUG=1
+    SESSION_COOKIE_SECURE = os.environ.get("DJANGO_COOKIE_SECURE", "False").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    SESSION_COOKIE_SAMESITE = "Lax"
+    CSRF_COOKIE_SAMESITE = "Lax"
 
 # ---------------------------------------------------------------------------
 # Applications
@@ -76,12 +110,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "debug_toolbar",
     "django_tables2",
 ]
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -92,6 +124,14 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# Debug toolbar only when DEBUG (never on phone / release-like local)
+if DEBUG:
+    INSTALLED_APPS = [*INSTALLED_APPS, "debug_toolbar"]
+    MIDDLEWARE = [
+        "debug_toolbar.middleware.DebugToolbarMiddleware",
+        *MIDDLEWARE,
+    ]
 
 ROOT_URLCONF = "mysite.urls"
 
@@ -180,10 +220,12 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
+        # Compressed (not Manifest): Manifest breaks on leaflet.js sourceMappingURL
+        # and requires a full collectstatic rebuild whenever DEBUG is off.
         "BACKEND": (
             "django.contrib.staticfiles.storage.StaticFilesStorage"
             if DEBUG
-            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            else "whitenoise.storage.CompressedStaticFilesStorage"
         ),
     },
 }

@@ -41,7 +41,112 @@ For developers, how to run site locally (Python 3.12+, Django 5.2 LTS):
 4) python manage.py migrate   # SQLite by default (db.sqlite3); set DATABASE_URL for Postgres
 5) python manage.py createsuperuser  # optional
 6) python manage.py test
-7) python manage.py runserver 8001
+7) python manage.py collectstatic --noinput   # needed when DEBUG is off (default)
+8) python manage.py runserver 127.0.0.1:8001
+
+`DEBUG` is **off by default** (no Django debug toolbar). To re-enable the toolbar
+and looser local tooling:
+
+```bash
+export DJANGO_DEBUG=1
+python manage.py runserver 127.0.0.1:8001
+```
+
+Access MaTesla on your phone via Tailscale (HTTPS)
+--------------------------------------------------
+
+Goal: phone and laptop on the same [Tailscale](https://tailscale.com) tailnet,
+with **photos** and **MaTesla** on different HTTPS ports.
+
+### Ports (this machine)
+
+| HTTPS (Tailscale Serve) | Local backend | App |
+|-------------------------|---------------|-----|
+| **443** | `http://127.0.0.1:8000` | Photos (PicturesDjango) — do **not** reuse for MaTesla |
+| **8443** | `http://127.0.0.1:8001` | MaTesla |
+
+### 1. Run MaTesla locally
+
+```bash
+cd /path/to/matesla
+source .venv/bin/activate
+python manage.py collectstatic --noinput
+python manage.py runserver 127.0.0.1:8001
+```
+
+### 2. Configure Tailscale Serve
+
+Prefer making your user the Tailscale operator once:
+
+```bash
+sudo tailscale set --operator=$USER
+```
+
+Then either run the helper (restores photos on 443 and binds MaTesla on 8443):
+
+```bash
+./scripts/tailscale-serve-matesla.sh
+```
+
+Or manually:
+
+```bash
+# Photos — keep on 443
+tailscale serve --bg --yes --https=443 http://127.0.0.1:8000
+
+# MaTesla — 8443 only
+tailscale serve --bg --yes --https=8443 http://127.0.0.1:8001
+
+tailscale serve status
+```
+
+Open on the phone (Tailscale app connected, **Use Tailscale DNS** / MagicDNS on):
+
+```text
+https://<your-machine>.<tailnet>.ts.net:8443/fr/
+```
+
+Example: `https://mehdi-thinkbook-13s-g2-itl.taila97662.ts.net:8443/fr/`
+
+### 3. ACL: allow port 8443
+
+If the site works on the laptop via MagicDNS but **not** on the phone, check
+Tailscale **Access controls**. A rule that only allows port 443 (e.g.
+`"ip": ["443"]`) will block 8443 on other devices. Allow both ports, for example:
+
+```json
+{
+  "src": ["*"],
+  "dst": ["*"],
+  "ip": ["443", "8443"]
+}
+```
+
+(Adapt to your ACL format / node names if you use stricter `dst`.)
+
+Ping between phone and laptop can still work when only 443 is allowed (ICMP);
+HTTPS on 8443 will not.
+
+### 4. Django hosts / CSRF
+
+`mysite/settings.py` already includes the local MagicDNS name and CSRF origins
+for Tailscale HTTPS. If you rename the machine or use another tailnet host,
+set:
+
+```bash
+export DJANGO_ALLOWED_HOSTS=your-host.tailnet.ts.net
+export DJANGO_CSRF_TRUSTED_ORIGINS=https://your-host.tailnet.ts.net:8443
+```
+
+### 5. Reset / stop Serve
+
+```bash
+# Remove only MaTesla HTTPS binding
+tailscale serve --https=8443 off
+
+# Or wipe all Serve config on this node (also removes photos on 443)
+# tailscale serve reset
+```
 
 TeslaFi-style history (online cars only, never wakes)
 ------------------------------------------------------
