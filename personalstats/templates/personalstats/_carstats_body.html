@@ -3,7 +3,7 @@
 
 <div class="stats-toolbar">
     <div class="stats-toolbar__actions">
-        <a href="{% url 'PersoDayMap' hashedVin %}" class="btn btn-success btn-sm">{% trans 'Day map' %} <span aria-hidden="true">↗</span></a>
+        {# Day map is already in the vehicle chrome nav — avoid a second link here #}
         <a href="{% url 'AllMyDataAsCSV' hashedVin %}" class="btn btn-secondary btn-sm">{% trans 'Download my Data' %}</a>
     </div>
     <div class="stats-toolbar__period">
