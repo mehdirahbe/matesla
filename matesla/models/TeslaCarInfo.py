@@ -100,10 +100,16 @@ class TeslaCarInfo(models.Model):
             self.roof_color = vehicle_config['roof_color']
             self.wheel_type = vehicle_config['wheel_type']
             self.eu_vehicle = vehicle_config['eu_vehicle']
-            # will be filled when battery degradation is computed first time
-            self.EPARange = None
+            # EPA from catalog (VIN + wheels); refined later if live range available
             self.isDualMotor = IsDualMotor(vin)
             self.modelYear = GetYearFromVin(vin)
+            try:
+                from matesla.epa_catalog import lookup_epa_miles
+
+                epa, _ = lookup_epa_miles(vin, wheel_type=self.wheel_type)
+                self.EPARange = int(round(epa)) if epa is not None else None
+            except Exception:
+                self.EPARange = None
             # some cars don't have info-->just skip
             vehicle_state = context['vehicle_state']
             try:

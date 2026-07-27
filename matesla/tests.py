@@ -66,21 +66,48 @@ class MaTeslaTestCase(TestCase):
             self.assertEqual(response.status_code, 302, 'int url ' + url + ' did not work')
 
     def test_VinFunctions(self):
-        vin = '5YJ3E7EB1KF123456'
-        EPARange, model, isDual, year = GetEPARange(vin)
-        self.assertEqual(model, "3", "5YJ3E7EB1KF123456 is from a model 3")
-        self.assertEqual(year, 2019, "5YJ3E7EB1KF123456 is from 2019")
-        self.assertEqual(isDual, True, "5YJ3E7EB1KF123456 is dual motor")
-        self.assertEqual(EPARange, 310, "5YJ3E7EB1KF123456 has a range of 310")
-        vin = '5YJ3E7EA4LF123456'
-        EPARange, model, isDual, year = GetEPARange(vin)
-        self.assertEqual(model, "3", "5YJ3E7EA4LF123456 is from a model 3")
-        self.assertEqual(year, 2020, "5YJ3E7EA4LF123456 is from 2020")
-        self.assertEqual(isDual, False, "5YJ3E7EA4LF123456 is single motor")
-        self.assertEqual(EPARange, 240, "5YJ3E7EA4LF123456 has a range of 240")
-        vin = '5YJSA7E2XJF123456'
-        EPARange, model, isDual, year = GetEPARange(vin)
-        self.assertEqual(model, "S", "5YJSA7E2XJF123456 is from a model S")
-        self.assertEqual(year, 2018, "5YJSA7E2XJF123456 is from 2018")
-        self.assertEqual(isDual, True, "5YJSA7E2XJF123456 is dual motor")
-        self.assertEqual(EPARange, 259, "5YJSA7E2XJF123456 has a range of 259")
+        from matesla.BatteryDegradation import ResolveEPARange
+        from matesla.epa_catalog import lookup_epa_miles
+        from matesla.VinAnalysis import GetPlantRegionFromVin, WheelInchesFromType
+
+        # Corentin-class: 2019 M3 LR AWD → 310
+        vin = "5YJ3E7EB1KF123456"
+        EPARange, model, isDual, year = ResolveEPARange(vin, force=True)
+        self.assertEqual(model, "3")
+        self.assertEqual(year, 2019)
+        self.assertEqual(isDual, True)
+        self.assertEqual(EPARange, 310)
+
+        # SR+ RWD 2020 (low projected full) → 240
+        vin = "5YJ3E7EA4LF123456"
+        EPARange, model, isDual, year = ResolveEPARange(
+            vin, force=True, battery_range=200.0, battery_level=90.0
+        )
+        self.assertEqual(model, "3")
+        self.assertEqual(year, 2020)
+        self.assertEqual(isDual, False)
+        self.assertEqual(EPARange, 240)
+
+        # Aram-class: LR RWD same pack as LR AWD — projected full rules out SR
+        vin = "5YJ3E7EA5KF349426"
+        EPARange, model, isDual, year = ResolveEPARange(
+            vin, force=True, battery_range=264.0, battery_level=100.0
+        )
+        self.assertEqual(isDual, False)
+        self.assertEqual(EPARange, 325)
+
+        # Robotbleu-class Highland China LR AWD 18"
+        vin = "LRW3E7EK6RC076090"
+        epa, meta = lookup_epa_miles(
+            vin, wheel_type="Glider18", projected_full_miles=341.0
+        )
+        self.assertEqual(GetPlantRegionFromVin(vin), "CN")
+        self.assertEqual(WheelInchesFromType("Glider18"), 18)
+        self.assertEqual(epa, 342)
+
+        vin = "5YJSA7E2XJF123456"
+        EPARange, model, isDual, year = ResolveEPARange(vin, force=True)
+        self.assertEqual(model, "S")
+        self.assertEqual(year, 2018)
+        self.assertEqual(isDual, True)
+        self.assertEqual(EPARange, 259)
