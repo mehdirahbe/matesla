@@ -19,12 +19,16 @@
             <select name="vehicle_api_id" id="vehicle_api_id" onchange="this.form.submit()">
                 {% for v in user_vehicles %}
                 <option value="{{ v.api_id }}" {% if active_vehicle_api_id == v.api_id %}selected{% endif %}>
-                    {{ v.label }}{% if v.state %} · {{ v.state }}{% endif %}
+                    {{ v.label }}{% if v.state %} ·
+                    {% if v.state == "online" %}{% trans "online" %}
+                    {% elif v.state == "asleep" %}{% trans "asleep" %}
+                    {% elif v.state == "offline" %}{% trans "offline" %}
+                    {% else %}{{ v.state }}{% endif %}{% endif %}
                 </option>
                 {% endfor %}
             </select>
         </div>
-        <noscript><button type="submit" class="btn btn-sm btn-secondary">OK</button></noscript>
+        <noscript><button type="submit" class="btn btn-sm btn-secondary">{% trans 'OK' %}</button></noscript>
     </form>
     {% elif active_vehicle_label %}
     <div class="vehicle-switcher">

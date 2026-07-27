@@ -6,7 +6,7 @@
 {% block content %}
 {% include 'matesla/_vehicle_chrome.html' %}
 <section class="form-card">
-    <p class="eyebrow">Climate settings</p>
+    <p class="eyebrow">{% trans 'Climate settings' %}</p>
     <h1>{% trans 'Driver Temperature setting' %}</h1>
     <p class="form-card__intro">Choisissez la température de l’habitacle avant de lancer la climatisation.</p>
     <form action="{% url 'getdesiredtemperature' %}" method="post">

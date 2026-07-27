@@ -14,7 +14,13 @@
                         <span>{{ wheel_type }}</span>
                     </div>
                 </div>
-                <span class="state-pill">{{ state|default:"online" }}</span>
+                <span class="state-pill">
+                    {% if state == "online" %}{% trans "online" %}
+                    {% elif state == "asleep" %}{% trans "asleep" %}
+                    {% elif state == "offline" %}{% trans "offline" %}
+                    {% elif state %}{{ state }}
+                    {% else %}{% trans "online" %}{% endif %}
+                </span>
             </div>
 
             <div class="vehicle-stage__image">
@@ -75,72 +81,72 @@
 
 <div class="section-heading">
     <div>
-        <span class="section-kicker">Remote control</span>
+        <span class="section-kicker">{% trans 'Remote control' %}</span>
         <h2>{% trans 'Quick commands' %}</h2>
-        <p>Les commandes les plus utiles, sans détour.</p>
+        <p>{% trans 'The most useful commands, without detours.' %}</p>
     </div>
 </div>
 
 <section class="action-grid" aria-label="{% trans 'Remote commands' %}">
     {% if locked is True %}
     <a href="{% url 'unlock_car' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">LOCK · ON</span><span class="action-tile__arrow">→</span></span>
+        <span class="action-tile__top"><span class="action-tile__code">{% trans 'LOCK · ON' %}</span><span class="action-tile__arrow">→</span></span>
         <span><strong>{% trans 'Unlock car' %}</strong><small>{% trans 'Car is currently locked' %}</small></span>
     </a>
     {% else %}
     <a href="{% url 'lock_car' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">LOCK · OFF</span><span class="action-tile__arrow">→</span></span>
+        <span class="action-tile__top"><span class="action-tile__code">{% trans 'LOCK · OFF' %}</span><span class="action-tile__arrow">→</span></span>
         <span><strong>{% trans 'Lock car' %}</strong><small>{% trans 'Car is currently unlocked' %}</small></span>
     </a>
     {% endif %}
 
     {% if is_climate_on is True %}
     <a href="{% url 'stop_climate' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">CLIMATE · ON</span><span class="action-tile__arrow">→</span></span>
+        <span class="action-tile__top"><span class="action-tile__code">{% trans 'CLIMATE · ON' %}</span><span class="action-tile__arrow">→</span></span>
         <span><strong>{% trans 'Stop climate' %}</strong><small>{{ inside_temp }}° · {{ driver_temp_setting }}°</small></span>
     </a>
     {% else %}
     <a href="{% url 'start_climate' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">CLIMATE · OFF</span><span class="action-tile__arrow">→</span></span>
+        <span class="action-tile__top"><span class="action-tile__code">{% trans 'CLIMATE · OFF' %}</span><span class="action-tile__arrow">→</span></span>
         <span><strong>{% trans 'Start climate' %}</strong><small>{{ inside_temp }}° · {{ driver_temp_setting }}°</small></span>
     </a>
     {% endif %}
 
     {% if charge_port_door_open is True %}
     <a href="{% url 'chargeport_close' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">PORT · OPEN</span><span class="action-tile__arrow">→</span></span>
+        <span class="action-tile__top"><span class="action-tile__code">{% trans 'PORT · OPEN' %}</span><span class="action-tile__arrow">→</span></span>
         <span><strong>{% trans 'Close charge port' %}</strong><small>{{ charging_state }}</small></span>
     </a>
     {% else %}
     <a href="{% url 'chargeport_open' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">PORT · CLOSED</span><span class="action-tile__arrow">→</span></span>
+        <span class="action-tile__top"><span class="action-tile__code">{% trans 'PORT · CLOSED' %}</span><span class="action-tile__arrow">→</span></span>
         <span><strong>{% trans 'Open charge port' %}</strong><small>{{ charging_state }}</small></span>
     </a>
     {% endif %}
 
     <a href="{% url 'flash_lights' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">LIGHTS</span><span class="action-tile__arrow">→</span></span>
+        <span class="action-tile__top"><span class="action-tile__code">{% trans 'LIGHTS' %}</span><span class="action-tile__arrow">→</span></span>
         <span><strong>{% trans 'Flash lights' %}</strong><small>{% trans 'Locate the car visually' %}</small></span>
     </a>
 
     <a href="{% url 'honk_horn' %}" class="action-tile"
        data-confirm="{% trans 'Sound the horn now?' %}">
-        <span class="action-tile__top"><span class="action-tile__code">HORN</span><span class="action-tile__arrow">→</span></span>
+        <span class="action-tile__top"><span class="action-tile__code">{% trans 'HORN' %}</span><span class="action-tile__arrow">→</span></span>
         <span><strong>{% trans 'Honk horn' %}</strong><small>{% trans 'Use with consideration' %}</small></span>
     </a>
 
     <a href="{% url 'remote_start_drive' %}" class="action-tile"
        data-confirm="{% trans 'Continue to remote drive activation?' %}">
-        <span class="action-tile__top"><span class="action-tile__code">REMOTE DRIVE</span><span class="action-tile__arrow">→</span></span>
+        <span class="action-tile__top"><span class="action-tile__code">{% trans 'REMOTE DRIVE' %}</span><span class="action-tile__arrow">→</span></span>
         <span><strong>{% trans 'Start without key' %}</strong><small>{% trans 'Requires account password' %}</small></span>
     </a>
 </section>
 
 <div class="section-heading">
     <div>
-        <span class="section-kicker">Telemetry</span>
+        <span class="section-kicker">{% trans 'Telemetry' %}</span>
         <h2>{% trans 'Vehicle details' %}</h2>
-        <p>Tout ce qui compte, organisé par usage.</p>
+        <p>{% trans 'Everything that matters, organised by use.' %}</p>
     </div>
     <a href="{% url 'teslastatusJson' %}" target="_blank" rel="noopener" class="btn btn-sm btn-secondary">{% trans 'Raw JSON' %} ↗</a>
 </div>
@@ -149,14 +155,19 @@
     <article class="dashboard-card">
         <header class="dashboard-card__header">
             <h3>{% trans 'General information' %}</h3>
-            <span>Identity</span>
+            <span>{% trans 'Identity' %}</span>
         </header>
         <dl class="data-list">
             <div class="data-row">
                 <dt>VIN</dt>
                 <dd><a href="https://teslatap.com/vin-decoder/" target="_blank" rel="noopener noreferrer">{{ vin }}</a></dd>
             </div>
-            <div class="data-row"><dt>{% trans 'State' %}</dt><dd>{{ state }}</dd></div>
+            <div class="data-row"><dt>{% trans 'State' %}</dt><dd>
+                {% if state == "online" %}{% trans "online" %}
+                {% elif state == "asleep" %}{% trans "asleep" %}
+                {% elif state == "offline" %}{% trans "offline" %}
+                {% else %}{{ state }}{% endif %}
+            </dd></div>
             <div class="data-row"><dt>{% trans 'Car type' %}</dt><dd>{{ car_type }}</dd></div>
             <div class="data-row"><dt>{% trans 'Exterior color' %}</dt><dd>{{ exterior_color }}</dd></div>
             <div class="data-row"><dt>{% trans 'Wheel' %}</dt><dd>{{ wheel_type }}</dd></div>
@@ -229,11 +240,11 @@
     <article class="dashboard-card">
         <header class="dashboard-card__header">
             <h3>{% trans 'Drive and location' %}</h3>
-            <span>Mobility</span>
+            <span>{% trans 'Mobility' %}</span>
         </header>
         <dl class="data-list">
             <div class="data-row data-row--hero"><dt>{% trans 'Speed' %}</dt><dd>{{ speed|default:"0" }}</dd></div>
-            <div class="data-row"><dt>{% trans 'Location' %}</dt><dd><a href="{{ linktogooglemaps }}" target="_blank" rel="noopener noreferrer">{{ location|default:"Map" }} ↗</a></dd></div>
+            <div class="data-row"><dt>{% trans 'Location' %}</dt><dd><a href="{{ linktogooglemaps }}" target="_blank" rel="noopener noreferrer">{% if location %}{{ location }}{% else %}{% trans "Map" %}{% endif %} ↗</a></dd></div>
             <div class="data-row"><dt>{% trans 'Odometer' %}</dt><dd>{{ OdometerInKm }} km</dd></div>
             <div class="data-row"><dt>{% trans 'Estim. number of battery cycles' %}</dt><dd>{{ NumberCycles }}</dd></div>
             <div class="data-row"><dt>{% trans 'EPA Range (miles)' %}</dt><dd>{{ EPARangeMiles }}</dd></div>
@@ -243,7 +254,7 @@
     <article class="dashboard-card">
         <header class="dashboard-card__header">
             <h3>{% trans 'Climate information' %}</h3>
-            <span>{% if is_climate_on is True %}ON{% else %}OFF{% endif %}</span>
+            <span>{% if is_climate_on is True %}{% trans "On" %}{% else %}{% trans "Off" %}{% endif %}</span>
         </header>
         <dl class="data-list">
             <div class="data-row data-row--hero"><dt>{% trans 'Inside temperature' %}</dt><dd>{{ inside_temp }}°</dd></div>

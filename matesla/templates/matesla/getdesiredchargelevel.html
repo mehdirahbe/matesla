@@ -6,7 +6,7 @@
 {% block content %}
 {% include 'matesla/_vehicle_chrome.html' %}
 <section class="form-card">
-    <p class="eyebrow">Charge settings</p>
+    <p class="eyebrow">{% trans 'Charge settings' %}</p>
     <h1>{% trans 'Battery charge limit (%)' %}</h1>
     <p class="form-card__intro">Définissez le niveau cible. Pour un usage quotidien, une limite modérée aide à préserver la batterie.</p>
     <form action="{% url 'getdesiredchargelevel' %}" method="post">

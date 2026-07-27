@@ -6,9 +6,9 @@
 {% block content %}
 <div class="page-heading">
     <div class="page-heading__copy">
-        <p class="eyebrow">Fleet intelligence</p>
+        <p class="eyebrow">{% trans 'Fleet intelligence' %}</p>
         <h1 class="page-title page-title--compact">{% trans 'Firmware and cars Stats' %}</h1>
-        <p class="page-subtitle">Une vue anonymisée de la flotte pour situer batterie, équipement et versions logicielles.</p>
+        <p class="page-subtitle">{% trans 'An anonymised view of the fleet for battery health, equipment and software versions.' %}</p>
     </div>
     <a href="{% url 'tesla_status' %}" class="btn btn-secondary">{% trans 'Back to my car' %}</a>
 </div>
@@ -17,7 +17,7 @@
     <article class="graph-card graph-card--full">
         <header class="graph-card__header">
             <div>
-                <span class="graph-card__index">01 · BATTERY HEALTH</span>
+                <span class="graph-card__index">{% trans '01 · BATTERY HEALTH' %}</span>
                 <h2>{% trans 'Battery degradation graphs' %}</h2>
             </div>
         </header>
@@ -40,7 +40,7 @@
     <article class="graph-card">
         <header class="graph-card__header">
             <div>
-                <span class="graph-card__index">02 · SOFTWARE</span>
+                <span class="graph-card__index">{% trans '02 · SOFTWARE' %}</span>
                 <h2>{% trans 'Firmware version' %}</h2>
             </div>
         </header>
@@ -59,7 +59,7 @@
     <article class="graph-card">
         <header class="graph-card__header">
             <div>
-                <span class="graph-card__index">03 · FLEET</span>
+                <span class="graph-card__index">{% trans '03 · FLEET' %}</span>
                 <h2>{% trans 'Cars statistics' %}</h2>
             </div>
         </header>

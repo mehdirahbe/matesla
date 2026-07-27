@@ -21,6 +21,7 @@ import requests
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from django.conf import settings
+from django.utils.translation import gettext as _
 
 from matesla.GetProxyToUse import GetProxyToUse
 from matesla.models.TeslaAppSettings import TeslaAppSettings
@@ -76,26 +77,34 @@ def check_public_key_reachable(domain: str) -> tuple[bool, str]:
     try:
         resp = requests.get(url, timeout=30)
     except requests.RequestException as exc:
-        return False, f"Impossible d'atteindre {url} : {exc}"
+        return False, _("Cannot reach %(url)s: %(err)s") % {"url": url, "err": exc}
     if resp.status_code != 200:
-        return False, f"{url} → HTTP {resp.status_code}"
+        return False, _("%(url)s → HTTP %(code)s") % {
+            "url": url,
+            "code": resp.status_code,
+        }
     body = resp.text.strip()
     if "BEGIN PUBLIC KEY" not in body:
-        return False, f"{url} ne contient pas un PEM public key valide"
+        return False, _("%(url)s does not contain a valid public key PEM") % {
+            "url": url
+        }
     local = public_key_pem_text().strip()
     if body != local and body.replace("\r\n", "\n") != local.replace("\r\n", "\n"):
         return (
             False,
-            f"{url} est accessible mais le contenu ne correspond pas à la clé locale "
-            f"({PUBLIC_KEY_PATH}). Re-uploade le fichier.",
+            _(
+                "%(url)s is reachable but does not match the local key "
+                "(%(path)s). Re-upload the file."
+            )
+            % {"url": url, "path": PUBLIC_KEY_PATH},
         )
-    return True, f"Clé publique OK : {url}"
+    return True, _("Public key OK: %(url)s") % {"url": url}
 
 
 def get_partner_token(app: TeslaAppSettings | None = None) -> str:
     app = app or TeslaAppSettings.get_solo()
     if not app or not app.client_id or not app.client_secret:
-        raise TeslaPartnerError("Client ID / Secret manquants.")
+        raise TeslaPartnerError(_("Missing Client ID / Secret."))
     data = {
         "grant_type": "client_credentials",
         "client_id": app.client_id,
@@ -112,7 +121,8 @@ def get_partner_token(app: TeslaAppSettings | None = None) -> str:
     )
     if resp.status_code != 200:
         raise TeslaPartnerError(
-            f"Partner token échoué ({resp.status_code}): {resp.text[:800]}",
+            _("Partner token failed (%(code)s): %(body)s")
+            % {"code": resp.status_code, "body": resp.text[:800]},
             response=resp,
         )
     return resp.json()["access_token"]
@@ -125,7 +135,7 @@ def register_partner_account(domain: str, app: TeslaAppSettings | None = None) -
     """
     app = app or TeslaAppSettings.get_solo()
     if not app:
-        raise TeslaPartnerError("App settings manquants.")
+        raise TeslaPartnerError(_("Missing app settings."))
 
     domain = (
         domain.strip()
@@ -136,14 +146,17 @@ def register_partner_account(domain: str, app: TeslaAppSettings | None = None) -
     )
     if not domain or domain in ("localhost", "127.0.0.1"):
         raise TeslaPartnerError(
-            "Tesla refuse localhost comme domaine partner. "
-            "Il faut un domaine HTTPS public (ex. robotcar.mondomaine.be)."
+            _(
+                "Tesla rejects localhost as a partner domain. "
+                "Use a public HTTPS domain (e.g. robotcar.example.com)."
+            )
         )
 
     ok, msg = check_public_key_reachable(domain)
     if not ok:
         raise TeslaPartnerError(
-            f"Clé publique non accessible par Tesla avant register : {msg}"
+            _("Public key not reachable by Tesla before register: %(msg)s")
+            % {"msg": msg}
         )
 
     partner_token = get_partner_token(app)
@@ -160,7 +173,8 @@ def register_partner_account(domain: str, app: TeslaAppSettings | None = None) -
     )
     if resp.status_code not in (200, 201):
         raise TeslaPartnerError(
-            f"Register partner échoué ({resp.status_code}): {resp.text[:1000]}",
+            _("Partner register failed (%(code)s): %(body)s")
+            % {"code": resp.status_code, "body": resp.text[:1000]},
             response=resp,
         )
     # Persist domain as registered

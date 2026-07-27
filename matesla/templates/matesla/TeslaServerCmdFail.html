@@ -5,7 +5,7 @@
 
 {% block content %}
 <section class="form-card">
-    <p class="eyebrow">Command interrupted</p>
+    <p class="eyebrow">{% trans 'Command interrupted' %}</p>
     <h1>{% trans 'Command failed' %}</h1>
     <p class="form-card__intro">{% trans 'Tesla server did return an error when executing a command' %}</p>
     <a href="{% url 'tesla_status' %}" class="btn btn-primary">{% trans 'Back to my car' %}</a>

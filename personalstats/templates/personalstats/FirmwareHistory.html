@@ -8,9 +8,9 @@
 {% include 'matesla/_vehicle_chrome.html' %}
 <div class="page-heading">
     <div class="page-heading__copy">
-        <p class="eyebrow">Software timeline</p>
+        <p class="eyebrow">{% trans 'Software timeline' %}</p>
         <h1 class="page-title page-title--compact">{% trans 'Firmware history' %}</h1>
-        <p class="page-subtitle">Toutes les versions détectées sur votre véhicule, dans l’ordre chronologique.</p>
+        <p class="page-subtitle">{% trans 'All firmware versions detected on your vehicle, in chronological order.' %}</p>
     </div>
     <a href="{% url 'PersoStatsFirmwareHistoryCSV' hashedVin %}" class="btn btn-secondary">{% trans 'Download my Data' %}</a>
 </div>

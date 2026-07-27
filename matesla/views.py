@@ -8,6 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.template import loader
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods
@@ -513,7 +514,7 @@ def view_AddTeslaAccount(request):
             form.save()
             messages.success(
                 request,
-                "Identifiants développeur enregistrés.",
+                _("Developer credentials saved."),
             )
             return redirect("AddTeslaAccount")
         app_form = form
@@ -521,7 +522,8 @@ def view_AddTeslaAccount(request):
         priv, pub = ensure_key_pair()
         messages.success(
             request,
-            f"Clés générées : {pub} (à publier) et {priv} (secret, local).",
+            _("Keys generated: %(pub)s (to publish) and %(priv)s (secret, local).")
+            % {"pub": pub, "priv": priv},
         )
         return redirect("AddTeslaAccount")
     elif request.method == "POST" and request.POST.get("action") == "check_public_key":
@@ -529,7 +531,7 @@ def view_AddTeslaAccount(request):
         if app_settings and not domain:
             domain = app_settings.partner_domain
         if not domain:
-            messages.error(request, "Indique un domaine partner d'abord.")
+            messages.error(request, _("Set a partner domain first."))
         else:
             ok, msg = check_public_key_reachable(domain)
             (messages.success if ok else messages.error)(request, msg)
@@ -545,15 +547,18 @@ def view_AddTeslaAccount(request):
             result = register_partner_account(domain)
             messages.success(
                 request,
-                f"Partner register OK pour « {domain} ». "
-                f"Tu peux maintenant reconnecter / resync les véhicules. Détail: {result}",
+                _(
+                    "Partner register OK for « %(domain)s ». "
+                    "You can reconnect / resync vehicles now. Detail: %(result)s"
+                )
+                % {"domain": domain, "result": result},
             )
         except TeslaPartnerError as exc:
             messages.error(request, str(exc))
         return redirect("AddTeslaAccount")
     elif request.method == "POST" and request.POST.get("action") == "resync_vehicles":
         if not token:
-            messages.error(request, "Pas de token Tesla — connecte-toi d'abord.")
+            messages.error(request, _("No Tesla token — sign in first."))
             return redirect("AddTeslaAccount")
         try:
             from matesla.TeslaOAuth import ensure_fresh_access_token
@@ -566,28 +571,32 @@ def view_AddTeslaAccount(request):
                 set_active_vehicle(request, user, primary.api_id)
                 messages.success(
                     request,
-                    f"{len(vehicles)} véhicule(s) synchronisé(s). Actif : {primary.label}.",
+                    _("%(count)s vehicle(s) synchronized. Active: %(label)s.")
+                    % {"count": len(vehicles), "label": primary.label},
                 )
                 return redirect("tesla_status")
-            messages.warning(request, "Aucun véhicule sur le compte Tesla.")
+            messages.warning(request, _("No vehicles on the Tesla account."))
         except TeslaFleetApiError as exc:
             messages.error(request, str(exc))
         except Exception as exc:
             traceback.print_exc()
-            messages.error(request, f"Resync échoué : {exc}")
+            messages.error(request, _("Resync failed: %(err)s") % {"err": exc})
         return redirect("AddTeslaAccount")
     elif request.method == "POST" and request.POST.get("action") == "disconnect":
         TeslaToken.objects.filter(user_id=user.id).delete()
         TeslaVehicle.objects.filter(user=user).delete()
         request.session.pop(SESSION_ACTIVE_VEHICLE_KEY, None)
-        messages.info(request, "Compte Tesla déconnecté (tokens et véhicules supprimés).")
+        messages.info(
+            request,
+            _("Tesla account disconnected (tokens and vehicles removed)."),
+        )
         return redirect("AddTeslaAccount")
     elif request.method == "POST" and request.POST.get("action") == "select_vehicle":
         api_id = request.POST.get("vehicle_api_id")
         if set_active_vehicle(request, user, api_id):
-            messages.success(request, "Véhicule actif mis à jour.")
+            messages.success(request, _("Active vehicle updated."))
         else:
-            messages.error(request, "Véhicule inconnu.")
+            messages.error(request, _("Unknown vehicle."))
         return redirect("AddTeslaAccount")
     else:
         app_form = TeslaAppSettingsForm(instance=app_settings) if app_settings else TeslaAppSettingsForm()
@@ -630,7 +639,7 @@ def view_tesla_oauth_start(request):
     if not user.is_authenticated:
         return redirect("login")
     if not TeslaAppSettings.is_configured():
-        messages.error(request, "Configure d'abord le Client ID et le Client Secret.")
+        messages.error(request, _("Configure the Client ID and Client Secret first."))
         return redirect("AddTeslaAccount")
 
     TeslaOAuthPending.purge_expired()
@@ -660,17 +669,19 @@ def view_tesla_oauth_callback(request):
     """
     error = request.GET.get("error")
     if error:
-        request.session["tesla_oauth_error"] = (
-            f"Tesla a refusé l'autorisation: {error} "
-            f"({request.GET.get('error_description', '')})"
-        )
+        request.session["tesla_oauth_error"] = _(
+            "Tesla denied authorization: %(error)s (%(desc)s)"
+        ) % {
+            "error": error,
+            "desc": request.GET.get("error_description", ""),
+        }
         return redirect("AddTeslaAccount")
 
     code = request.GET.get("code")
     state = request.GET.get("state")
     if not code or not state:
-        request.session["tesla_oauth_error"] = (
-            "Callback OAuth invalide (code ou state manquant). Réessaie."
+        request.session["tesla_oauth_error"] = _(
+            "Invalid OAuth callback (missing code or state). Please try again."
         )
         return redirect("AddTeslaAccount")
 
@@ -684,9 +695,9 @@ def view_tesla_oauth_callback(request):
     session_user_id = request.session.pop("tesla_oauth_user_id", None)
 
     if pending is None and (not session_state or state != session_state):
-        request.session["tesla_oauth_error"] = (
-            "Callback OAuth invalide (state inconnu ou expiré). "
-            "Reconnecte-toi à matesla puis relance « Se connecter avec Tesla »."
+        request.session["tesla_oauth_error"] = _(
+            "Invalid OAuth callback (unknown or expired state). "
+            "Sign in to MaTesla again, then use “Sign in with Tesla”."
         )
         return redirect("login")
 
@@ -698,7 +709,7 @@ def view_tesla_oauth_callback(request):
         try:
             user = User.objects.get(pk=session_user_id)
         except User.DoesNotExist:
-            request.session["tesla_oauth_error"] = "Utilisateur OAuth introuvable."
+            request.session["tesla_oauth_error"] = _("OAuth user not found.")
             return redirect("login")
 
     # Re-establish Django session after the Tesla hop (often required).
@@ -717,7 +728,7 @@ def view_tesla_oauth_callback(request):
         if not vehicles:
             messages.warning(
                 request,
-                "Connecté à Tesla, mais aucun véhicule trouvé sur le compte.",
+                _("Connected to Tesla, but no vehicles found on the account."),
             )
             return redirect("NoTeslaVehicules")
         primary = next((v for v in vehicles if v.is_primary), vehicles[0])
@@ -725,8 +736,12 @@ def view_tesla_oauth_callback(request):
         names = ", ".join(v.label for v in vehicles)
         messages.success(
             request,
-            f"Tesla connecté — {len(vehicles)} véhicule(s) : {names}. "
-            f"Actif : {primary.label}.",
+            _("Tesla connected — %(count)s vehicle(s): %(names)s. Active: %(label)s.")
+            % {
+                "count": len(vehicles),
+                "names": names,
+                "label": primary.label,
+            },
         )
         return redirect("tesla_status")
     except TeslaOAuthError as exc:
@@ -734,7 +749,7 @@ def view_tesla_oauth_callback(request):
         return redirect("AddTeslaAccount")
     except Exception as exc:
         traceback.print_exc()
-        messages.error(request, f"Erreur inattendue: {exc}")
+        messages.error(request, _("Unexpected error: %(err)s") % {"err": exc})
         return redirect("AddTeslaAccount")
 
 
@@ -752,9 +767,12 @@ def view_select_vehicle(request):
     api_id = request.POST.get("vehicle_api_id")
     vehicle = set_active_vehicle(request, user, api_id)
     if vehicle:
-        messages.success(request, f"Véhicule actif : {vehicle.label}")
+        messages.success(
+            request,
+            _("Active vehicle: %(label)s") % {"label": vehicle.label},
+        )
     else:
-        messages.error(request, "Véhicule inconnu.")
+        messages.error(request, _("Unknown vehicle."))
         return redirect("tesla_status")
 
     next_kind = (request.POST.get("next") or "").strip().lower()

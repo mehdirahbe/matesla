@@ -13,11 +13,11 @@
 {% else %}
     <div class="page-heading">
         <div class="page-heading__copy">
-            <p class="eyebrow">History mode</p>
+            <p class="eyebrow">{% trans 'History mode' %}</p>
             <h1 class="page-title page-title--compact">
                 {% if active_vehicle_label %}{{ active_vehicle_label }}{% else %}{% trans 'Your tesla is asleep' %}{% endif %}
             </h1>
-            <p class="page-subtitle">La voiture se repose. MaTesla affiche son historique sans jamais la réveiller.</p>
+            <p class="page-subtitle">{% trans 'The car is resting. MaTesla shows its history without ever waking it.' %}</p>
         </div>
     </div>
 
@@ -26,8 +26,7 @@
         <div>
             <strong>{% trans 'Your tesla is asleep' %}</strong>
             <p>
-                Pas de données en direct pour le moment. Réveillez la voiture depuis l’app Tesla si nécessaire,
-                puis actualisez son statut ici.
+                {% trans 'No live data right now. Wake the car from the Tesla app if needed, then refresh its status here.' %}
             </p>
         </div>
         <a href="{% url 'tesla_status' %}" class="btn btn-secondary">{% trans 'Retry?' %}</a>
@@ -37,8 +36,8 @@
         {% include 'personalstats/_carstats_body.html' %}
     {% else %}
         <div class="empty-state">
-            <strong>Pas encore d’historique</strong>
-            <p class="text-muted mb-0">Le VIN de ce véhicule n’est pas encore connu de MaTesla.</p>
+            <strong>{% trans 'No history yet' %}</strong>
+            <p class="text-muted mb-0">{% trans 'The VIN for this vehicle is not known to MaTesla yet.' %}</p>
         </div>
     {% endif %}
 {% endif %}

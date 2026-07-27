@@ -41,12 +41,12 @@ class TeslaAppSettingsForm(forms.ModelForm):
             "client_secret": _("Client secret"),
             "redirect_uri": _("OAuth redirect URI"),
             "api_base": _("Fleet API region"),
-            "partner_domain": _("Domaine partner (HTTPS public)"),
+            "partner_domain": _("Partner domain (public HTTPS)"),
         }
         help_texts = {
             "partner_domain": _(
-                "Ex. robotcar.mondomaine.be — PAS localhost. "
-                "Doit aussi être en Allowed Origin sur developer.tesla.com"
+                "E.g. robotcar.example.com — not localhost. "
+                "Must also be an Allowed Origin on developer.tesla.com"
             ),
         }
         widgets = {
