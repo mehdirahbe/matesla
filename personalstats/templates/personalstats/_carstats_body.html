@@ -23,12 +23,18 @@
 </div>
 
 <section class="graph-grid" aria-label="{% trans 'Personal charts' %}">
-    <article class="graph-card graph-card--full">
+    <article class="graph-card" data-graph-card="degradation">
         <header class="graph-card__header">
             <div>
-                <span class="graph-card__index">01 · BATTERY HEALTH</span>
+                <span class="graph-card__index">01 · BATTERY</span>
                 <h2>{% trans 'Battery degradation graphs' %}</h2>
             </div>
+            <button type="button" class="graph-card__expand" data-graph-expand
+                    title="{% trans 'Expand' %}" aria-label="{% trans 'Expand chart' %}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"/>
+                </svg>
+            </button>
         </header>
         <div class="graph-card__controls">
             <label class="sr-only" for="degradationGraphCriteria">{% trans 'Battery graph' %}</label>
@@ -39,18 +45,24 @@
                 <option value="3">{% trans 'Range at full charge over time' %}</option>
             </select>
         </div>
-        <div class="graph-card__media">
+        <div class="graph-card__media" data-graph-media>
             <img id="degradationGraphImg" class="lazyload" alt="{% trans 'Battery degradation graphs' %}"
                  data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer' period %}" width="1200" height="500">
         </div>
     </article>
 
-    <article class="graph-card">
+    <article class="graph-card" data-graph-card="charge">
         <header class="graph-card__header">
             <div>
                 <span class="graph-card__index">02 · CHARGE</span>
                 <h2>{% trans 'Charge related graphs' %}</h2>
             </div>
+            <button type="button" class="graph-card__expand" data-graph-expand
+                    title="{% trans 'Expand' %}" aria-label="{% trans 'Expand chart' %}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"/>
+                </svg>
+            </button>
         </header>
         <div class="graph-card__controls">
             <label class="sr-only" for="chargeGraphCriteria">{% trans 'Charge graph' %}</label>
@@ -62,18 +74,24 @@
                 <option value="4">{{ charger_power }}</option>
             </select>
         </div>
-        <div class="graph-card__media">
+        <div class="graph-card__media" data-graph-media>
             <img id="chargeGraphImg" class="lazyload" alt="{% trans 'Charge related graphs' %}"
                  data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' period %}" width="1200" height="500">
         </div>
     </article>
 
-    <article class="graph-card">
+    <article class="graph-card" data-graph-card="temperature">
         <header class="graph-card__header">
             <div>
                 <span class="graph-card__index">03 · CLIMATE</span>
                 <h2>{% trans 'Temperature related graphs' %}</h2>
             </div>
+            <button type="button" class="graph-card__expand" data-graph-expand
+                    title="{% trans 'Expand' %}" aria-label="{% trans 'Expand chart' %}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"/>
+                </svg>
+            </button>
         </header>
         <div class="graph-card__controls">
             <label class="sr-only" for="temperatureGraphCriteria">{% trans 'Temperature graph' %}</label>
@@ -82,18 +100,24 @@
                 <option value="1">{{ inside_temp }}</option>
             </select>
         </div>
-        <div class="graph-card__media">
+        <div class="graph-card__media" data-graph-media>
             <img id="temperatureGraphImg" class="lazyload" alt="{% trans 'Temperature related graphs' %}"
                  data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' period %}" width="1200" height="500">
         </div>
     </article>
 
-    <article class="graph-card graph-card--full">
+    <article class="graph-card" data-graph-card="drive">
         <header class="graph-card__header">
             <div>
                 <span class="graph-card__index">04 · DRIVE</span>
                 <h2>{% trans 'Drive related graphs' %}</h2>
             </div>
+            <button type="button" class="graph-card__expand" data-graph-expand
+                    title="{% trans 'Expand' %}" aria-label="{% trans 'Expand chart' %}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"/>
+                </svg>
+            </button>
         </header>
         <div class="graph-card__controls">
             <label class="sr-only" for="driveGraphCriteria">{% trans 'Drive graph' %}</label>
@@ -103,10 +127,29 @@
                 <option value="2">{{ power }}</option>
             </select>
         </div>
-        <div class="graph-card__media">
+        <div class="graph-card__media" data-graph-media>
             <img id="driveGraphImg" class="lazyload" alt="{% trans 'Drive related graphs' %}"
                  data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' period %}" width="1200" height="500">
         </div>
     </article>
 </section>
+
+{# Full-size view (AWS-style expand) — one shared overlay for all cards #}
+<div class="graph-lightbox" id="graph-lightbox" hidden>
+    <div class="graph-lightbox__backdrop" data-graph-close tabindex="-1"></div>
+    <div class="graph-lightbox__dialog" role="dialog" aria-modal="true" aria-labelledby="graph-lightbox-title">
+        <header class="graph-lightbox__header">
+            <div>
+                <p class="graph-lightbox__eyebrow" id="graph-lightbox-index"></p>
+                <h2 class="graph-lightbox__title" id="graph-lightbox-title"></h2>
+            </div>
+            <button type="button" class="graph-lightbox__close" data-graph-close
+                    title="{% trans 'Close' %}" aria-label="{% trans 'Close' %}">×</button>
+        </header>
+        <div class="graph-lightbox__media">
+            <img id="graph-lightbox-img" alt="">
+        </div>
+        <p class="graph-lightbox__hint text-muted">{% trans 'Press Esc or click outside to close.' %}</p>
+    </div>
+</div>
 {% endwith %}

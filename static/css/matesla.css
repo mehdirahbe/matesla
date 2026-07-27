@@ -1471,76 +1471,239 @@ button:disabled,
     font-size: 0.78rem;
 }
 
+/* Compact monitoring grid (AWS EC2-style thumbnails + expand) */
 .graph-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+    gap: 12px;
 }
 
 .graph-card {
     min-width: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
     border: 1px solid var(--app-line);
     border-radius: var(--app-radius);
     background: var(--app-surface);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.graph-card:hover {
+    border-color: var(--app-line-strong);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
 }
 
 .graph-card__header {
-    padding: 20px 21px 14px;
+    padding: 12px 14px 8px;
     display: flex;
-    align-items: start;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 16px;
+    gap: 10px;
 }
 
 .graph-card__header h2,
 .graph-card__header h3 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 0.92rem;
     font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
 }
 
 .graph-card__index {
+    display: block;
+    margin-bottom: 2px;
     color: var(--app-red-bright);
-    font-size: 0.66rem;
+    font-size: 0.62rem;
     font-weight: 780;
     letter-spacing: 0.12em;
 }
 
+.graph-card__expand {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid var(--app-line);
+    border-radius: 10px;
+    background: var(--app-surface-2);
+    color: var(--app-muted);
+    cursor: pointer;
+    transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.graph-card__expand:hover {
+    color: var(--app-text);
+    border-color: var(--app-line-strong);
+    background: var(--app-surface-3);
+}
+
 .graph-card__controls {
-    padding: 0 21px 16px;
+    padding: 0 12px 10px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
 .graph-card__controls select {
-    min-width: 170px;
-    min-height: 38px;
-    padding: 5px 32px 5px 10px;
+    min-width: 0;
+    min-height: 34px;
+    padding: 4px 28px 4px 10px;
     flex: 1;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
 }
 
 .graph-card__media {
-    min-height: 250px;
-    padding: 12px;
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    height: 168px;
+    margin: 0;
+    padding: 6px 8px 10px;
     display: grid;
     place-items: center;
     border-top: 1px solid var(--app-line);
-    /* Dark surround; chart images keep their own light plot area */
     background: var(--app-bg-raised);
+    cursor: zoom-in;
 }
 
 .graph-card__media img {
-    width: 100%;
+    width: auto;
+    max-width: 100%;
+    max-height: 148px;
     height: auto;
     display: block;
-    border-radius: 8px;
+    border-radius: 6px;
+    object-fit: contain;
 }
 
 .graph-card--full {
-    grid-column: 1 / -1;
+    grid-column: auto;
+}
+
+/* Expanded chart overlay — always viewport-centered (reparented to body in JS) */
+.graph-lightbox {
+    position: fixed !important;
+    z-index: 10050;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.graph-lightbox[hidden] {
+    display: none !important;
+}
+
+.graph-lightbox__backdrop {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(2, 6, 14, 0.82);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+}
+
+.graph-lightbox__dialog {
+    position: relative;
+    z-index: 1;
+    width: min(1120px, 96vw);
+    max-height: min(92vh, 900px);
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--app-line-strong);
+    border-radius: var(--app-radius-lg);
+    background: var(--app-surface);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
+}
+
+.graph-lightbox__header {
+    padding: 14px 16px 12px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--app-line);
+}
+
+.graph-lightbox__eyebrow {
+    margin: 0 0 2px;
+    color: var(--app-red-bright);
+    font-size: 0.66rem;
+    font-weight: 780;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.graph-lightbox__title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 720;
+    letter-spacing: -0.03em;
+}
+
+.graph-lightbox__close {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--app-line);
+    border-radius: 12px;
+    background: var(--app-surface-2);
+    color: var(--app-text);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.graph-lightbox__close:hover {
+    background: var(--app-surface-3);
+}
+
+.graph-lightbox__media {
+    flex: 1;
+    min-height: 0;
+    padding: 14px 16px 8px;
+    overflow: auto;
+    display: grid;
+    place-items: center;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(47, 143, 255, 0.08), transparent 50%),
+        var(--app-bg-raised);
+}
+
+.graph-lightbox__media img {
+    width: 100%;
+    max-width: 1080px;
+    height: auto;
+    max-height: min(72vh, 640px);
+    object-fit: contain;
+    border-radius: 10px;
+    background: #f3f4f1;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.graph-lightbox__hint {
+    margin: 0;
+    padding: 8px 16px 14px;
+    font-size: 0.78rem;
+    text-align: center;
+}
+
+body.graph-lightbox-open {
+    overflow: hidden;
 }
 
 /* Tesla setup */
@@ -1958,6 +2121,22 @@ pre.key-box {
 
     .graph-grid {
         grid-template-columns: 1fr;
+    }
+
+    .graph-card__media {
+        height: 150px;
+    }
+
+    .graph-card__media img {
+        max-height: 132px;
+    }
+
+    .graph-lightbox {
+        padding: 10px;
+    }
+
+    .graph-lightbox__media img {
+        max-height: min(65vh, 520px);
     }
 }
 
