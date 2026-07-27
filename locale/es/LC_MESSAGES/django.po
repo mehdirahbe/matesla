@@ -1,2048 +1,648 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
+# Spanish translations for MaTesla.
+# Language: es
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: matesla\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-11 18:52+0000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"POT-Creation-Date: 2026-07-27 22:00+0000\n"
+"PO-Revision-Date: 2026-07-27 22:00+0000\n"
+"Last-Translator: MaTesla\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: SuCStats/views.py:8
-msgid ""
-"https://datastudio.google.com/reporting/119103e1-6912-4b1c-890c-f02a6083fc8c"
-msgstr ""
-
-#: accounts/forms.py:7
 msgid "Required to be able to reset password if you forget it"
-msgstr ""
+msgstr "Necesario para poder restablecer la contraseña si la olvidas"
 
-#: accounts/templates/signup.html:5 accounts/templates/signup.html:11
 msgid "Sign up"
-msgstr ""
+msgstr "Crear cuenta"
 
-#: anonymisedstats/templates/anonymisedstats/carstats.html:66
-#: anonymisedstats/templates/anonymisedstats/carstats.html:67
-#: personalstats/templates/personalstats/carstats.html:77
-#: personalstats/templates/personalstats/carstats.html:78
-msgid "Battery degradation graphs"
-msgstr ""
-
-#: anonymisedstats/templates/anonymisedstats/carstats.html:87
-#: anonymisedstats/templates/anonymisedstats/carstats.html:88
-#: matesla/templates/matesla/carstatus.html:209
-msgid "Firmware version"
-msgstr ""
-
-#: anonymisedstats/templates/anonymisedstats/carstats.html:90
-#: anonymisedstats/views.py:136
-msgid "Most recent Firmware updates"
-msgstr ""
-
-#: anonymisedstats/templates/anonymisedstats/carstats.html:92
-msgid "Download Firmware Stats"
-msgstr ""
-
-#: anonymisedstats/templates/anonymisedstats/carstats.html:103
-#: anonymisedstats/templates/anonymisedstats/carstats.html:104
-msgid "Cars statistics"
-msgstr ""
-
-#: anonymisedstats/views.py:52
-msgid "Car addition Date"
-msgstr ""
-
-#: anonymisedstats/views.py:53 matesla/templates/matesla/carstatus.html:197
-msgid "Car type"
-msgstr ""
-
-#: anonymisedstats/views.py:54 matesla/templates/matesla/carstatus.html:283
-msgid "Charge port"
-msgstr ""
-
-#: anonymisedstats/views.py:55 matesla/templates/matesla/carstatus.html:201
-msgid "Exterior color"
-msgstr ""
-
-#: anonymisedstats/views.py:56
-msgid "Has air suspension"
-msgstr ""
-
-#: anonymisedstats/views.py:57
-msgid "Has ludicrous mode"
-msgstr ""
-
-#: anonymisedstats/views.py:58
-msgid "Is charge port motorized"
-msgstr ""
-
-#: anonymisedstats/views.py:59
-msgid "Has rear seat heaters"
-msgstr ""
-
-#: anonymisedstats/views.py:60
-msgid "Right hand drive"
-msgstr ""
-
-#: anonymisedstats/views.py:61
-msgid "Roof color"
-msgstr ""
-
-#: anonymisedstats/views.py:62 matesla/templates/matesla/carstatus.html:205
-msgid "Wheel"
-msgstr ""
-
-#: anonymisedstats/views.py:63
-msgid "Is sentry mode available"
-msgstr ""
-
-#: anonymisedstats/views.py:64
-msgid "Is FSD enabled"
-msgstr ""
-
-#: anonymisedstats/views.py:65
-msgid "European union car"
-msgstr ""
-
-#: anonymisedstats/views.py:66 matesla/templates/matesla/carstatus.html:357
-msgid "EPA Range (miles)"
-msgstr ""
-
-#: anonymisedstats/views.py:67
-msgid "Is Dual Motor"
-msgstr ""
-
-#: anonymisedstats/views.py:68
-msgid "Car year"
-msgstr ""
-
-#: anonymisedstats/views.py:69 personalstats/views.py:29
-msgid "Outside temperature (°C)"
-msgstr ""
-
-#: anonymisedstats/views.py:70 personalstats/views.py:33
-msgid "Odometer (miles)"
-msgstr ""
-
-#: anonymisedstats/views.py:71 personalstats/views.py:38
-msgid "Battery level (%)"
-msgstr ""
-
-#: anonymisedstats/views.py:72 personalstats/views.py:40
-msgid "Battery charge limit (%)"
-msgstr ""
-
-#: anonymisedstats/views.py:73 matesla/templates/matesla/carstatus.html:353
-msgid "Estim. number of battery cycles"
-msgstr ""
-
-#: anonymisedstats/views.py:109
-msgid "No Value"
-msgstr ""
-
-#: anonymisedstats/views.py:113
-msgid "True"
-msgstr ""
-
-#: anonymisedstats/views.py:115
-msgid "False"
-msgstr ""
-
-#: matesla/forms.py:9
-msgid "Desired Charge Level"
-msgstr ""
-
-#: matesla/forms.py:13
-msgid "Driver temperature"
-msgstr ""
-
-#: matesla/forms.py:18
-msgid "Please enter your Tesla account password"
-msgstr ""
-
-#: matesla/templates/matesla/AddTeslaAccount.html:45
-#: matesla/templates/matesla/ConnectionError.html:7
-#: matesla/templates/matesla/NoTeslaVehicules.html:7
-#: matesla/templates/matesla/TeslaServerCmdFail.html:7
-#: matesla/templates/matesla/TeslaServerError.html:7
-#: matesla/templates/matesla/asleep.html:7
-#: matesla/templates/matesla/carstatus.html:119
-#: matesla/templates/matesla/getRemote_start_drivePassword.html:6
-#: matesla/templates/matesla/getdesiredchargelevel.html:6
-#: matesla/templates/matesla/getdesiredtemperature.html:6
-msgid "logout"
-msgstr ""
-
-#: matesla/templates/matesla/AddTeslaAccount.html:46
-#: matesla/templates/matesla/ConnectionError.html:9
-#: matesla/templates/matesla/NoTeslaVehicules.html:9
-#: matesla/templates/matesla/TeslaServerCmdFail.html:9
-#: matesla/templates/matesla/TeslaServerError.html:9
-#: matesla/templates/matesla/asleep.html:9
-#: matesla/templates/matesla/carstatus.html:121
-#: matesla/templates/matesla/getRemote_start_drivePassword.html:8
-#: matesla/templates/matesla/getdesiredchargelevel.html:8
-#: matesla/templates/matesla/getdesiredtemperature.html:8
-#: templates/registration/login.html:44
-msgid "Firmware and cars Stats"
-msgstr ""
-
-#: matesla/templates/matesla/AddTeslaAccount.html:73
-msgid "Please enter a tesla token"
-msgstr ""
-
-#: matesla/templates/matesla/AddTeslaAccount.html:74
-msgid "The token alone does not allow to put your car in drive mode."
-msgstr ""
-
-#: matesla/templates/matesla/AddTeslaAccount.html:75
-msgid "Token is invalidated if you change your tesla password."
-msgstr ""
-
-#: matesla/templates/matesla/AddTeslaAccount.html:76
-msgid "This form will be presented again at token expiration."
-msgstr ""
-
-#: matesla/templates/matesla/AddTeslaAccount.html:79
-msgid "Tesla token"
-msgstr ""
-
-#: matesla/templates/matesla/AddTeslaAccount.html:83
-msgid "To obtain a token, you have different methods."
-msgstr ""
-
-#: matesla/templates/matesla/AddTeslaAccount.html:84
-msgid "For Teslafi users, Teslafi can provide you a token for your car"
-msgstr ""
-
-#: matesla/templates/matesla/AddTeslaAccount.html:85
-msgid "I can recommend this free mobile app"
-msgstr ""
-
-#: matesla/templates/matesla/AddTeslaAccount.html:86
-msgid "It is discussed here by the author Denouche"
-msgstr ""
-
-#: matesla/templates/matesla/AddTeslaAccount.html:89
-#: matesla/templates/matesla/getRemote_start_drivePassword.html:16
-#: matesla/templates/matesla/getdesiredchargelevel.html:14
-#: matesla/templates/matesla/getdesiredtemperature.html:14
-msgid "Save"
-msgstr ""
-
-#: matesla/templates/matesla/ConnectionError.html:8
-#: matesla/templates/matesla/NoTeslaVehicules.html:8
-#: matesla/templates/matesla/TeslaServerCmdFail.html:8
-#: matesla/templates/matesla/TeslaServerError.html:8
-#: matesla/templates/matesla/asleep.html:8
-#: matesla/templates/matesla/carstatus.html:120
-#: matesla/templates/matesla/getRemote_start_drivePassword.html:7
-#: matesla/templates/matesla/getdesiredchargelevel.html:7
-#: matesla/templates/matesla/getdesiredtemperature.html:7
-msgid "Tesla account"
-msgstr ""
-
-#: matesla/templates/matesla/ConnectionError.html:13
-msgid "Connection error. Please check your internet connection."
-msgstr ""
-
-#: matesla/templates/matesla/ConnectionError.html:16
-#: matesla/templates/matesla/NoTeslaVehicules.html:16
-#: matesla/templates/matesla/TeslaServerCmdFail.html:16
-#: matesla/templates/matesla/TeslaServerError.html:16
-#: matesla/templates/matesla/asleep.html:17
-msgid "Retry?"
-msgstr ""
-
-#: matesla/templates/matesla/NoTeslaVehicules.html:13
-msgid ""
-"No vehicles are associated to your account. Please retry when your car will "
-"be there."
-msgstr ""
-
-#: matesla/templates/matesla/TeslaServerCmdFail.html:13
-msgid "Tesla server did return an error when executing a command"
-msgstr ""
-
-#: matesla/templates/matesla/TeslaServerError.html:13
-msgid "Tesla server did return an error"
-msgstr ""
-
-#: matesla/templates/matesla/asleep.html:10
-#: matesla/templates/matesla/carstatus.html:122
-#: templates/registration/login.html:45
-msgid "Superchargers (SuCs)  Stats"
-msgstr ""
-
-#: matesla/templates/matesla/asleep.html:14
-msgid "Your tesla is asleep"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:127
-msgid "You are on local computer, only used to test new developments."
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:128
-#: matesla/templates/matesla/carstatus.html:132
-msgid ""
-"Please go on official site instead <a href=\"https://matesla.herokuapp.com\" "
-"class=\"btn btn-danger btn-sm\">https://matesla.herokuapp.com</a></h6>"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:131
-msgid ""
-"You are on afternoon-scrubland-61531.herokuapp.com, only used to test "
-"deployment."
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:156
-msgid "Your car"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:159
-msgid "Flash lights"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:160
-msgid "Honk horn (not night when people sleep)"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:161
-msgid "Activate drive mode without phone/card"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:162
-msgid "My data"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:163
-msgid "Json current data"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:164
-msgid "Firmware history"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:176
-msgid "General information"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:183
-msgid "State"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:187
-msgid "Is car locked"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:190
-msgid "Yes, unlock?"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:192
-msgid "No, lock?"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:213
-msgid "Install "
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:216
-#: matesla/templates/matesla/carstatus.html:219
-msgid "New firmware version"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:216
-msgid "is scheduled in "
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:216
-msgid "seconds"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:219
-msgid "is installing, "
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:219
-#, python-format
-msgid "%% already done"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:224
-msgid "Sentry"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:227
-#: matesla/templates/matesla/carstatus.html:236
-msgid "Active, stop?"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:229
-#: matesla/templates/matesla/carstatus.html:238
-msgid "Inactive, start?"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:234
-msgid "Valet mode"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:253
-msgid "Charge status"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:256
-#, python-format
-msgid "Usable battery level (%%)"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:260
-#, python-format
-msgid "Battery level (%%)"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:264
-msgid "Battery range km"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:268
-msgid "Battery charge"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:273
-#, python-format
-msgid "Battery degradation (%%)"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:278
-#, python-format
-msgid "Battery charge limit (%%)"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:287
-msgid "Is Charge port open"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:290
-msgid "Yes, close?"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:292
-msgid "No, open?"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:298
-msgid "Voltage in V"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:302
-msgid "Current in A"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:306
-msgid "Power in kW"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:310
-msgid "Number of phases"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:314
-msgid "Time left in minutes"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:319
-msgid "Start charge"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:321
-msgid "Stop charge"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:337
-msgid "Drive and location"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:340 personalstats/views.py:34
-msgid "Speed"
-msgstr ""
-
-msgid "Speed (mi/h)"
-msgstr "Velocidad (mi/h)"
-
-#: matesla/templates/matesla/carstatus.html:344
-msgid "Location"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:349
-msgid "Odometer"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:371
-msgid "Climate information"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:374
-msgid "Is climate on"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:377
-msgid "Yes, stop?"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:379
-msgid "No, start?"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:384
-msgid "Inside temperature"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:388
-msgid "Outside temperature"
-msgstr ""
-
-#: matesla/templates/matesla/carstatus.html:392
-msgid "Driver Temperature setting"
-msgstr ""
-
-#: matesla/templates/matesla/getRemote_start_drivePassword.html:14
-msgid ""
-"Once done you have 2 minutes to start driving the car. Also please unlock "
-"car if not yet done"
-msgstr ""
-
-#: mysite/settings.py:209
-msgid "English"
-msgstr ""
-
-#: mysite/settings.py:210
-msgid "Français"
-msgstr ""
-
-#: mysite/settings.py:211
-msgid "Espanol"
-msgstr ""
-
-#: personalstats/templates/personalstats/FirmwareHistory.html:8
-#: personalstats/templates/personalstats/carstats.html:45
-msgid "Download my Data"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:47
-msgid "1 Week"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:48
-msgid "2 Weeks"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:49
-msgid "1 Month"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:50
-msgid "3 Months"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:51
-msgid "6 Months"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:52
-msgid "1 Year"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:53
-msgid "2 Years"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:54
-msgid "5 Years"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:55
-msgid "10 Years"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:98
-#: personalstats/templates/personalstats/carstats.html:99
-msgid "Charge related graphs"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:122
-#: personalstats/templates/personalstats/carstats.html:123
-msgid "Temperature related graphs"
-msgstr ""
-
-#: personalstats/templates/personalstats/carstats.html:140
-#: personalstats/templates/personalstats/carstats.html:141
-msgid "Drive related graphs"
-msgstr ""
-
-#: personalstats/views.py:30
-msgid "Driver temperature (°C)"
-msgstr ""
-
-#: personalstats/views.py:31
-msgid "Inside temperature (°C)"
-msgstr ""
-
-#: personalstats/views.py:32
-msgid "Passenger temperature (°C)"
-msgstr ""
-
-#: personalstats/views.py:35
-msgid "Latitude"
-msgstr ""
-
-#: personalstats/views.py:36
-msgid "Longitude"
-msgstr ""
-
-#: personalstats/views.py:37
-msgid "Power"
-msgstr ""
-
-msgid "Power (kW)"
-msgstr "Potencia (kW)"
-
-#: personalstats/views.py:39
-msgid "Battery range (miles)"
-msgstr ""
-
-#: personalstats/views.py:41
-msgid "Charge rate (mi/h)"
-msgstr "Velocidad de carga (mi/h)"
-
-#: personalstats/views.py:42
-msgid "Charger actual current (A)"
-msgstr ""
-
-#: personalstats/views.py:43
-msgid "Charger phases"
-msgstr ""
-
-#: personalstats/views.py:44
-msgid "Charger power (kW)"
-msgstr ""
-
-#: personalstats/views.py:45
-msgid "Charger voltage (V)"
-msgstr ""
-
-#: personalstats/views.py:46
-msgid "Estimated battery range (miles)"
-msgstr ""
-
-#: personalstats/views.py:47
-msgid "Usable battery level (%)"
-msgstr ""
-
-#: personalstats/views.py:48
-msgid "Battery degradation (%)"
-msgstr ""
-
-#: personalstats/views.py:79
-msgid "Minimum"
-msgstr ""
-
-#: personalstats/views.py:80
-msgid "Average"
-msgstr ""
-
-#: personalstats/views.py:81
-msgid "Maximum"
-msgstr ""
-
-#: templates/registration/login.html:43
-msgid "Signup"
-msgstr ""
-
-#: templates/registration/login.html:49 templates/registration/login.html:60
 msgid "Login"
-msgstr ""
-
-#: templates/registration/login.html:58
-msgid "Forgotten password?"
-msgstr ""
-
-#: templates/registration/login.html:64
-msgid ""
-"MaTesla is a Python/django free open source website using tesla api to "
-"connect to your marvellous Tesla car, have information on its state, "
-"location and remote control charge, temperature,... Statistics on firmware "
-"updates are also available."
-msgstr ""
-
-#: templates/registration/login.html:65
-msgid "Have fun and you are the most welcome if you want to contribute :-)"
-msgstr ""
-
-#: templates/registration/login.html:90
-msgid ""
-"Evolution of battery degradation in function of time for my Tesla (minimum, "
-"maximum, average)"
-msgstr ""
-
-#: templates/registration/login.html:102
-msgid "Raw json data returned by your Tesla... if you are curious"
-msgstr ""
-
-#: templates/registration/login.html:114
-msgid "Battery degradation of the Tesla fleet according to number of cycles"
-msgstr ""
-
-#: templates/registration/login.html:126
-msgid ""
-"Charge information of your Tesla, including both real and usable battery "
-"levels, and estimated battery degradation"
-msgstr ""
-
-#: templates/registration/login.html:138
-msgid ""
-"Tesla fleet recent firmware updates. Ideal to know when a new firmware "
-"version is available."
-msgstr ""
-
-#: templates/registration/login.html:150
-msgid ""
-"Tesla commands: honk, flash... and put the car in drive mode. Yes, a trusted "
-"friend/family member can do that for you if you are locked out of your Tesla"
-msgstr ""
-
-#: templates/registration/login.html:162
-msgid "Your tesla odometer graph in function of time. Who drives the most?"
-msgstr ""
-
-#: templates/registration/login.html:174
-msgid "Your tesla odometer and estimated battery number of cycles"
-msgstr ""
-
-#: templates/registration/login.html:186
-msgid ""
-"Your tesla firmware history. Want to know when a version was installed on "
-"your Tesla?"
-msgstr ""
-
-#: templates/registration/password_reset_complete.html:7
-msgid "Your password has been set. You may go ahead and "
-msgstr ""
-
-#: templates/registration/password_reset_complete.html:7
-msgid "sign in"
-msgstr ""
-
-#: templates/registration/password_reset_confirm.html:7
-#: templates/registration/password_reset_confirm.html:11
-msgid "Change password"
-msgstr ""
-
-#: templates/registration/password_reset_confirm.html:15
-msgid ""
-"The password reset link was invalid, possibly because it has already been "
-"used. Please request a new password reset."
-msgstr ""
-
-#: templates/registration/password_reset_confirm.html:18
-#: templates/registration/password_reset_done.html:16
-msgid "You can now close this window"
-msgstr ""
-
-#: templates/registration/password_reset_done.html:7
-msgid "Password reset mail sent"
-msgstr ""
-
-#: templates/registration/password_reset_done.html:9
-msgid ""
-"We&#39;ve emailed you instructions for setting your password, if an account "
-"exists with the email you entered. You should receive them shortly."
-msgstr ""
-
-#: templates/registration/password_reset_done.html:12
-msgid ""
-"If you don&#39;t receive an email, please make sure you&#39;ve entered the "
-"address you registered with, and check your spam folder."
-msgstr ""
-
-#: templates/registration/password_reset_email.html:3
-msgid "To initiate the password reset process for your"
-msgstr ""
-
-#: templates/registration/password_reset_email.html:3
-msgid "MaTesla Account, click the link below:"
-msgstr ""
-
-#: templates/registration/password_reset_email.html:7
-msgid ""
-"If clicking the link above doesn't work, please copy and paste the URL in a "
-"new browser window instead."
-msgstr ""
-
-#: templates/registration/password_reset_email.html:9
-msgid "Sincerely, The MaTesla Team"
-msgstr ""
-
-#: templates/registration/password_reset_form.html:6
-msgid "Password reset"
-msgstr ""
-
-#: templates/registration/password_reset_form.html:16
-msgid "Send e-mail"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/contrib/messages/apps.py:7
-msgid "Messages"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/contrib/sitemaps/apps.py:7
-msgid "Site Maps"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/contrib/staticfiles/apps.py:9
-msgid "Static Files"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/contrib/syndication/apps.py:7
-msgid "Syndication"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/paginator.py:48
-msgid "That page number is not an integer"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/paginator.py:50
-msgid "That page number is less than 1"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/paginator.py:55
-msgid "That page contains no results"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:20
-msgid "Enter a valid value."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:91
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:671
-msgid "Enter a valid URL."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:148
-msgid "Enter a valid integer."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:159
-msgid "Enter a valid email address."
-msgstr ""
-
-#. Translators: "letters" means latin letters: a-z and A-Z.
-#: venv/lib/python3.8/site-packages/django/core/validators.py:233
-msgid ""
-"Enter a valid “slug” consisting of letters, numbers, underscores or hyphens."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:240
-msgid ""
-"Enter a valid “slug” consisting of Unicode letters, numbers, underscores, or "
-"hyphens."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:249
-#: venv/lib/python3.8/site-packages/django/core/validators.py:259
-#: venv/lib/python3.8/site-packages/django/core/validators.py:281
-msgid "Enter a valid IPv4 address."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:266
-#: venv/lib/python3.8/site-packages/django/core/validators.py:282
-msgid "Enter a valid IPv6 address."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:276
-#: venv/lib/python3.8/site-packages/django/core/validators.py:280
-msgid "Enter a valid IPv4 or IPv6 address."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:310
-msgid "Enter only digits separated by commas."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:316
-#, python-format
-msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:349
-#, python-format
-msgid "Ensure this value is less than or equal to %(limit_value)s."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:358
-#, python-format
-msgid "Ensure this value is greater than or equal to %(limit_value)s."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:368
-#, python-format
-msgid ""
-"Ensure this value has at least %(limit_value)d character (it has "
-"%(show_value)d)."
-msgid_plural ""
-"Ensure this value has at least %(limit_value)d characters (it has "
-"%(show_value)d)."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:383
-#, python-format
-msgid ""
-"Ensure this value has at most %(limit_value)d character (it has "
-"%(show_value)d)."
-msgid_plural ""
-"Ensure this value has at most %(limit_value)d characters (it has "
-"%(show_value)d)."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:402
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:292
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:327
-msgid "Enter a number."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:404
-#, python-format
-msgid "Ensure that there are no more than %(max)s digit in total."
-msgid_plural "Ensure that there are no more than %(max)s digits in total."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:409
-#, python-format
-msgid "Ensure that there are no more than %(max)s decimal place."
-msgid_plural "Ensure that there are no more than %(max)s decimal places."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:414
-#, python-format
-msgid ""
-"Ensure that there are no more than %(max)s digit before the decimal point."
-msgid_plural ""
-"Ensure that there are no more than %(max)s digits before the decimal point."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:476
-#, python-format
-msgid ""
-"File extension “%(extension)s” is not allowed. Allowed extensions are: "
-"%(allowed_extensions)s."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/core/validators.py:528
-msgid "Null characters are not allowed."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/base.py:1190
-#: venv/lib/python3.8/site-packages/django/forms/models.py:760
-msgid "and"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/base.py:1192
-#, python-format
-msgid "%(model_name)s with this %(field_labels)s already exists."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:100
-#, python-format
-msgid "Value %(value)r is not a valid choice."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:101
-msgid "This field cannot be null."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:102
-msgid "This field cannot be blank."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:103
-#, python-format
-msgid "%(model_name)s with this %(field_label)s already exists."
-msgstr ""
-
-#. Translators: The 'lookup_type' is one of 'date', 'year' or 'month'.
-#. Eg: "Title must be unique for pub_date year"
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:107
-#, python-format
-msgid ""
-"%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:126
-#, python-format
-msgid "Field of type: %(field_type)s"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:939
-#, python-format
-msgid "“%(value)s” value must be either True or False."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:940
-#, python-format
-msgid "“%(value)s” value must be either True, False, or None."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:942
-msgid "Boolean (Either True or False)"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:983
-#, python-format
-msgid "String (up to %(max_length)s)"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1047
-msgid "Comma-separated integers"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1096
-#, python-format
-msgid ""
-"“%(value)s” value has an invalid date format. It must be in YYYY-MM-DD "
-"format."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1098
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1241
-#, python-format
-msgid ""
-"“%(value)s” value has the correct format (YYYY-MM-DD) but it is an invalid "
-"date."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1101
-msgid "Date (without time)"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1239
-#, python-format
-msgid ""
-"“%(value)s” value has an invalid format. It must be in YYYY-MM-DD HH:MM[:ss[."
-"uuuuuu]][TZ] format."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1243
-#, python-format
-msgid ""
-"“%(value)s” value has the correct format (YYYY-MM-DD HH:MM[:ss[.uuuuuu]]"
-"[TZ]) but it is an invalid date/time."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1247
-msgid "Date (with time)"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1395
-#, python-format
-msgid "“%(value)s” value must be a decimal number."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1397
-msgid "Decimal number"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1536
-#, python-format
-msgid ""
-"“%(value)s” value has an invalid format. It must be in [DD] [[HH:]MM:]ss[."
-"uuuuuu] format."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1539
-msgid "Duration"
-msgstr "Duración"
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1589
-msgid "Email address"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1612
-msgid "File path"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1678
-#, python-format
-msgid "“%(value)s” value must be a float."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1680
-msgid "Floating point number"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1718
-#, python-format
-msgid "“%(value)s” value must be an integer."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1720
-msgid "Integer"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1803
-msgid "Big (8 byte) integer"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1819
-msgid "IPv4 address"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1850
-msgid "IP address"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1930
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1931
-#, python-format
-msgid "“%(value)s” value must be either None, True or False."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1933
-msgid "Boolean (Either True, False or None)"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1976
-msgid "Positive big integer"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1989
-msgid "Positive integer"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2002
-msgid "Positive small integer"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2016
-#, python-format
-msgid "Slug (up to %(max_length)s)"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2048
-msgid "Small integer"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2055
-msgid "Text"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2083
-#, python-format
-msgid ""
-"“%(value)s” value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] "
-"format."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2085
-#, python-format
-msgid ""
-"“%(value)s” value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an "
-"invalid time."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2088
-msgid "Time"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2214
-msgid "URL"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2236
-msgid "Raw binary data"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2301
-#, python-format
-msgid "“%(value)s” is not a valid UUID."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2303
-msgid "Universally unique identifier"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/files.py:232
-msgid "File"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/files.py:381
-msgid "Image"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/json.py:18
-msgid "A JSON object"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/json.py:20
-msgid "Value must be valid JSON."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/related.py:790
-#, python-format
-msgid "%(model)s instance with %(field)s %(value)r does not exist."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/related.py:792
-msgid "Foreign Key (type determined by related field)"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/related.py:1045
-msgid "One-to-one relationship"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/related.py:1099
-#, python-format
-msgid "%(from)s-%(to)s relationship"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/related.py:1100
-#, python-format
-msgid "%(from)s-%(to)s relationships"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/db/models/fields/related.py:1142
-msgid "Many-to-many relationship"
-msgstr ""
-
-#. Translators: If found as last label character, these punctuation
-#. characters will prevent the default label_suffix to be appended to the label
-#: venv/lib/python3.8/site-packages/django/forms/boundfield.py:150
-msgid ":?.!"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:54
-msgid "This field is required."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:247
-msgid "Enter a whole number."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:398
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:1139
-msgid "Enter a valid date."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:422
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:1140
-msgid "Enter a valid time."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:450
-msgid "Enter a valid date/time."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:484
-msgid "Enter a valid duration."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:485
-#, python-brace-format
-msgid "The number of days must be between {min_days} and {max_days}."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:545
-msgid "No file was submitted. Check the encoding type on the form."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:546
-msgid "No file was submitted."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:547
-msgid "The submitted file is empty."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:549
-#, python-format
-msgid "Ensure this filename has at most %(max)d character (it has %(length)d)."
-msgid_plural ""
-"Ensure this filename has at most %(max)d characters (it has %(length)d)."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:552
-msgid "Please either submit a file or check the clear checkbox, not both."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:613
-msgid ""
-"Upload a valid image. The file you uploaded was either not an image or a "
-"corrupted image."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:775
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:865
-#: venv/lib/python3.8/site-packages/django/forms/models.py:1296
-#, python-format
-msgid "Select a valid choice. %(value)s is not one of the available choices."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:866
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:981
-#: venv/lib/python3.8/site-packages/django/forms/models.py:1295
-msgid "Enter a list of values."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:982
-msgid "Enter a complete value."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:1198
-msgid "Enter a valid UUID."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/fields.py:1228
-msgid "Enter a valid JSON."
-msgstr ""
-
-#. Translators: This is the default suffix added to form field labels
-#: venv/lib/python3.8/site-packages/django/forms/forms.py:78
-msgid ":"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/forms.py:205
-#, python-format
-msgid "(Hidden field %(name)s) %(error)s"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/formsets.py:93
-msgid "ManagementForm data is missing or has been tampered with"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/formsets.py:345
-#, python-format
-msgid "Please submit %d or fewer forms."
-msgid_plural "Please submit %d or fewer forms."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/forms/formsets.py:352
-#, python-format
-msgid "Please submit %d or more forms."
-msgid_plural "Please submit %d or more forms."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/forms/formsets.py:379
-#: venv/lib/python3.8/site-packages/django/forms/formsets.py:386
-msgid "Order"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/formsets.py:391
-msgid "Delete"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/models.py:755
-#, python-format
-msgid "Please correct the duplicate data for %(field)s."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/models.py:759
-#, python-format
-msgid "Please correct the duplicate data for %(field)s, which must be unique."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/models.py:765
-#, python-format
-msgid ""
-"Please correct the duplicate data for %(field_name)s which must be unique "
-"for the %(lookup)s in %(date_field)s."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/models.py:774
-msgid "Please correct the duplicate values below."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/models.py:1096
-msgid "The inline value did not match the parent instance."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/models.py:1180
-msgid "Select a valid choice. That choice is not one of the available choices."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/models.py:1298
-#, python-format
-msgid "“%(pk)s” is not a valid value."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/utils.py:167
-#, python-format
-msgid ""
-"%(datetime)s couldn’t be interpreted in time zone %(current_timezone)s; it "
-"may be ambiguous or it may not exist."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/widgets.py:398
-msgid "Clear"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/widgets.py:399
-msgid "Currently"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/widgets.py:400
-msgid "Change"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/widgets.py:709
-msgid "Unknown"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/widgets.py:710
-msgid "Yes"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/forms/widgets.py:711
-msgid "No"
-msgstr ""
-
-#. Translators: Please do not add spaces around commas.
-#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:790
-msgid "yes,no,maybe"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:819
-#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:836
-#, python-format
-msgid "%(size)d byte"
-msgid_plural "%(size)d bytes"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:838
-#, python-format
-msgid "%s KB"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:840
-#, python-format
-msgid "%s MB"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:842
-#, python-format
-msgid "%s GB"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:844
-#, python-format
-msgid "%s TB"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:846
-#, python-format
-msgid "%s PB"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dateformat.py:65
-msgid "p.m."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dateformat.py:66
-msgid "a.m."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dateformat.py:71
-msgid "PM"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dateformat.py:72
-msgid "AM"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dateformat.py:149
-msgid "midnight"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dateformat.py:151
-msgid "noon"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:6
-msgid "Monday"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:6
-msgid "Tuesday"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:6
-msgid "Wednesday"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:6
-msgid "Thursday"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:6
-msgid "Friday"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:7
-msgid "Saturday"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:7
-msgid "Sunday"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:10
-msgid "Mon"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:10
-msgid "Tue"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:10
-msgid "Wed"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:10
-msgid "Thu"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:10
-msgid "Fri"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:11
-msgid "Sat"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:11
-msgid "Sun"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:14
-msgid "January"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:14
-msgid "February"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:14
-msgid "March"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:14
-msgid "April"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:14
-msgid "May"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:14
-msgid "June"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:15
-msgid "July"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:15
-msgid "August"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:15
-msgid "September"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:15
-msgid "October"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:15
-msgid "November"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:16
-msgid "December"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:19
-msgid "jan"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:19
-msgid "feb"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:19
-msgid "mar"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:19
-msgid "apr"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:19
-msgid "may"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:19
-msgid "jun"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:20
-msgid "jul"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:20
-msgid "aug"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:20
-msgid "sep"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:20
-msgid "oct"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:20
-msgid "nov"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:20
-msgid "dec"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:23
-msgctxt "abbrev. month"
-msgid "Jan."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:24
-msgctxt "abbrev. month"
-msgid "Feb."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:25
-msgctxt "abbrev. month"
-msgid "March"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:26
-msgctxt "abbrev. month"
-msgid "April"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:27
-msgctxt "abbrev. month"
-msgid "May"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:28
-msgctxt "abbrev. month"
-msgid "June"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:29
-msgctxt "abbrev. month"
-msgid "July"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:30
-msgctxt "abbrev. month"
-msgid "Aug."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:31
-msgctxt "abbrev. month"
-msgid "Sept."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:32
-msgctxt "abbrev. month"
-msgid "Oct."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:33
-msgctxt "abbrev. month"
-msgid "Nov."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:34
-msgctxt "abbrev. month"
-msgid "Dec."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:37
-msgctxt "alt. month"
-msgid "January"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:38
-msgctxt "alt. month"
-msgid "February"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:39
-msgctxt "alt. month"
-msgid "March"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:40
-msgctxt "alt. month"
-msgid "April"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:41
-msgctxt "alt. month"
-msgid "May"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:42
-msgctxt "alt. month"
-msgid "June"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:43
-msgctxt "alt. month"
-msgid "July"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:44
-msgctxt "alt. month"
-msgid "August"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:45
-msgctxt "alt. month"
-msgid "September"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:46
-msgctxt "alt. month"
-msgid "October"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:47
-msgctxt "alt. month"
-msgid "November"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/dates.py:48
-msgctxt "alt. month"
-msgid "December"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/ipv6.py:8
-msgid "This is not a valid IPv6 address."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/text.py:71
-#, python-format
-msgctxt "String to return when truncating text"
-msgid "%(truncated_text)s…"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/text.py:240
-msgid "or"
-msgstr ""
-
-#. Translators: This string is used as a separator between list elements
-#: venv/lib/python3.8/site-packages/django/utils/text.py:259
-#: venv/lib/python3.8/site-packages/django/utils/timesince.py:83
-msgid ", "
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/utils/timesince.py:9
-#, python-format
-msgid "%d year"
-msgid_plural "%d years"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/utils/timesince.py:10
-#, python-format
-msgid "%d month"
-msgid_plural "%d months"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/utils/timesince.py:11
-#, python-format
-msgid "%d week"
-msgid_plural "%d weeks"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/utils/timesince.py:12
-#, python-format
-msgid "%d day"
-msgid_plural "%d days"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/utils/timesince.py:13
-#, python-format
-msgid "%d hour"
-msgid_plural "%d hours"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/utils/timesince.py:14
-#, python-format
-msgid "%d minute"
-msgid_plural "%d minutes"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.8/site-packages/django/views/csrf.py:110
-msgid "Forbidden"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/csrf.py:111
-msgid "CSRF verification failed. Request aborted."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/csrf.py:115
-msgid ""
-"You are seeing this message because this HTTPS site requires a “Referer "
-"header” to be sent by your Web browser, but none was sent. This header is "
-"required for security reasons, to ensure that your browser is not being "
-"hijacked by third parties."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/csrf.py:120
-msgid ""
-"If you have configured your browser to disable “Referer” headers, please re-"
-"enable them, at least for this site, or for HTTPS connections, or for “same-"
-"origin” requests."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/csrf.py:124
-msgid ""
-"If you are using the <meta name=\"referrer\" content=\"no-referrer\"> tag or "
-"including the “Referrer-Policy: no-referrer” header, please remove them. The "
-"CSRF protection requires the “Referer” header to do strict referer checking. "
-"If you’re concerned about privacy, use alternatives like <a rel=\"noreferrer"
-"\" …> for links to third-party sites."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/csrf.py:132
-msgid ""
-"You are seeing this message because this site requires a CSRF cookie when "
-"submitting forms. This cookie is required for security reasons, to ensure "
-"that your browser is not being hijacked by third parties."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/csrf.py:137
-msgid ""
-"If you have configured your browser to disable cookies, please re-enable "
-"them, at least for this site, or for “same-origin” requests."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/csrf.py:142
-msgid "More information is available with DEBUG=True."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:41
-msgid "No year specified"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:61
-#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:111
-#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:208
-msgid "Date out of range"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:90
-msgid "No month specified"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:142
-msgid "No day specified"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:188
-msgid "No week specified"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:338
-#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:367
-#, python-format
-msgid "No %(verbose_name_plural)s available"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:589
-#, python-format
-msgid ""
-"Future %(verbose_name_plural)s not available because %(class_name)s."
-"allow_future is False."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:623
-#, python-format
-msgid "Invalid date string “%(datestr)s” given format “%(format)s”"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/generic/detail.py:54
-#, python-format
-msgid "No %(verbose_name)s found matching the query"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/generic/list.py:67
-msgid "Page is not “last”, nor can it be converted to an int."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/generic/list.py:72
-#, python-format
-msgid "Invalid page (%(page_number)s): %(message)s"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/generic/list.py:154
-#, python-format
-msgid "Empty list and “%(class_name)s.allow_empty” is False."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/static.py:40
-msgid "Directory indexes are not allowed here."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/static.py:42
-#, python-format
-msgid "“%(path)s” does not exist"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/static.py:80
-#, python-format
-msgid "Index of %(directory)s"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:7
-msgid "Django: the Web framework for perfectionists with deadlines."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:346
-#, python-format
-msgid ""
-"View <a href=\"https://docs.djangoproject.com/en/%(version)s/releases/\" "
-"target=\"_blank\" rel=\"noopener\">release notes</a> for Django %(version)s"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:368
-msgid "The install worked successfully! Congratulations!"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:369
-#, python-format
-msgid ""
-"You are seeing this page because <a href=\"https://docs.djangoproject.com/en/"
-"%(version)s/ref/settings/#debug\" target=\"_blank\" rel=\"noopener"
-"\">DEBUG=True</a> is in your settings file and you have not configured any "
-"URLs."
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:384
-msgid "Django Documentation"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:385
-msgid "Topics, references, &amp; how-to’s"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:396
-msgid "Tutorial: A Polling App"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:397
-msgid "Get started with Django"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:408
-msgid "Django Community"
-msgstr ""
-
-#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:409
-msgid "Connect, get help, or contribute"
-msgstr ""
-
-#: personalstats
-msgid "Degradation vs odometer"
-msgstr "Degradación vs odómetro"
-
-#: personalstats
-msgid "Degradation over time"
-msgstr "Degradación en el tiempo"
-
-#: personalstats
-msgid "Range at full charge vs odometer"
-msgstr "Autonomía a carga completa vs odómetro"
-
-#: personalstats
-msgid "Range at full charge over time"
-msgstr "Autonomía a carga completa en el tiempo"
-
-#: personalstats
-msgid "Range at full charge (miles)"
-msgstr "Autonomía a carga completa (millas)"
-
-#: personalstats
-msgid "Range at full charge vs odometer (miles)"
-msgstr "Autonomía a carga completa vs odómetro (millas)"
+msgstr "Iniciar sesión"
+
+msgid "Firmware and cars Stats"
+msgstr "Estadísticas de firmware y coches"
+
+msgid "Fleet intelligence"
+msgstr "Inteligencia de flota"
+
+msgid "An anonymised view of the fleet for battery health, equipment and software versions."
+msgstr "Vista anonimizada de la flota para situar batería, equipamiento y versiones de software."
+
+msgid "Back to my car"
+msgstr "Volver a mi coche"
+
+msgid "Fleet charts"
+msgstr "Gráficos de flota"
+
+msgid "01 · BATTERY HEALTH"
+msgstr "01 · SALUD BATERÍA"
+
+msgid "02 · SOFTWARE"
+msgstr "02 · SOFTWARE"
+
+msgid "03 · FLEET"
+msgstr "03 · FLOTA"
+
+msgid "Battery degradation graphs"
+msgstr "Gráficos de degradación de batería"
+
+msgid "Battery graph"
+msgstr "Gráfico de batería"
+
+msgid "Firmware version"
+msgstr "Versión de firmware"
+
+msgid "Firmware graph"
+msgstr "Gráfico de firmware"
+
+msgid "Most recent Firmware updates"
+msgstr "Actualizaciones de firmware más recientes"
+
+msgid "Download Firmware Stats"
+msgstr "Descargar estadísticas de firmware"
+
+msgid "Cars statistics"
+msgstr "Estadísticas de coches"
+
+msgid "Car criterion"
+msgstr "Criterio del coche"
+
+msgid "Car model"
+msgstr "Modelo de coche"
+
+msgid "All models"
+msgstr "Todos los modelos"
+
+msgid "Car addition Date"
+msgstr "Fecha de alta del coche"
+
+msgid "Car type"
+msgstr "Tipo de coche"
+
+msgid "Charge port"
+msgstr "Puerto de carga"
+
+msgid "Exterior color"
+msgstr "Color exterior"
+
+msgid "Has air suspension"
+msgstr "Suspensión neumática"
+
+msgid "Has ludicrous mode"
+msgstr "Modo Ludicrous"
+
+msgid "Is charge port motorized"
+msgstr "Puerto de carga motorizado"
+
+msgid "Has rear seat heaters"
+msgstr "Asientos traseros calefactados"
+
+msgid "Right hand drive"
+msgstr "Conducción a la derecha"
+
+msgid "Roof color"
+msgstr "Color del techo"
+
+msgid "Wheel"
+msgstr "Ruedas"
+
+msgid "Is sentry mode available"
+msgstr "Modo Sentry disponible"
+
+msgid "Is FSD enabled"
+msgstr "Conducción autónoma (FSD) activa"
+
+msgid "European union car"
+msgstr "Coche de la Unión Europea"
+
+msgid "EPA Range (miles)"
+msgstr "Autonomía EPA (millas)"
+
+msgid "Is Dual Motor"
+msgstr "Doble motor"
+
+msgid "Car year"
+msgstr "Año del coche"
+
+msgid "Outside temperature (°C)"
+msgstr "Temperatura exterior (°C)"
+
+msgid "Odometer (miles)"
+msgstr "Odómetro (millas)"
+
+msgid "Battery level (%)"
+msgstr "Nivel de batería (%)"
+
+msgid "Battery charge limit (%)"
+msgstr "Límite de carga de la batería (%)"
+
+msgid "Estim. number of battery cycles"
+msgstr "N.º estimado de ciclos de batería"
+
+msgid "No Value"
+msgstr "Sin valor"
+
+msgid "True"
+msgstr "Verdadero"
+
+msgid "False"
+msgstr "Falso"
+
+msgid "Desired Charge Level"
+msgstr "Nivel de carga deseado"
+
+msgid "Driver temperature"
+msgstr "Temperatura del conductor"
+
+msgid "Please enter your Tesla account password"
+msgstr "Introduce la contraseña de tu cuenta Tesla"
+
+msgid "Client ID"
+msgstr "Client ID"
+
+msgid "Client secret"
+msgstr "Client secret"
+
+msgid "OAuth redirect URI"
+msgstr "URI de redirección OAuth"
+
+msgid "Fleet API region"
+msgstr "Región API Fleet"
+
+msgid "Europe / Middle East / Africa (recommended for Belgium)"
+msgstr "Europa / Oriente Medio / África (recomendado para Bélgica)"
+
+msgid "North America / Asia-Pacific (excl. China)"
+msgstr "Norteamérica / Asia-Pacífico (excl. China)"
+
+msgid "China"
+msgstr "China"
+
+msgid "Connection error"
+msgstr "Error de conexión"
+
+msgid "Connection error. Please check your internet connection."
+msgstr "Error de conexión. Comprueba tu conexión a internet."
+
+msgid "Retry?"
+msgstr "¿Reintentar?"
+
+msgid "Tesla account"
+msgstr "Cuenta Tesla"
+
+msgid "No vehicles"
+msgstr "Sin vehículos"
+
+msgid "No vehicles are associated to your account. Please retry when your car will be there."
+msgstr "No hay vehículos asociados a tu cuenta. Reinténtalo cuando el coche esté disponible."
+
+msgid "Command failed"
+msgstr "Comando fallido"
+
+msgid "Tesla server did return an error when executing a command"
+msgstr "El servidor Tesla devolvió un error al ejecutar un comando"
+
+msgid "Tesla server error"
+msgstr "Error del servidor Tesla"
+
+msgid "Tesla server did return an error"
+msgstr "El servidor Tesla devolvió un error"
+
+msgid "Live"
+msgstr "En directo"
+
+msgid "Your car"
+msgstr "Tu coche"
+
+msgid "online"
+msgstr "en línea"
+
+msgid "asleep"
+msgstr "dormido"
+
+msgid "offline"
+msgstr "sin conexión"
+
+msgid "%(name)s vehicle"
+msgstr "vehículo %(name)s"
+
+msgid "Battery summary"
+msgstr "Resumen de batería"
+
+msgid "Battery"
+msgstr "Batería"
+
+msgid "Range"
+msgstr "Autonomía"
+
+msgid "Outside"
+msgstr "Exterior"
+
+msgid "Odometer"
+msgstr "Odómetro"
+
+msgid "Firmware"
+msgstr "Firmware"
+
+msgid "Charge status"
+msgstr "Estado de carga"
+
+msgid "My data"
+msgstr "Mis datos"
 
 msgid "Day map"
 msgstr "Mapa del día"
 
-msgid "Previous day"
-msgstr "Día anterior"
+msgid "Firmware history"
+msgstr "Historial de firmware"
 
-msgid "Next day"
-msgstr "Día siguiente"
+msgid "Remote control"
+msgstr "Control remoto"
 
-msgid "Go"
-msgstr "Ir"
+msgid "Quick commands"
+msgstr "Comandos rápidos"
 
-msgid "Where was the car"
-msgstr "Dónde estaba el coche"
+msgid "The most useful commands, without detours."
+msgstr "Los comandos más útiles, sin rodeos."
 
-msgid "No GPS points for this day."
-msgstr "No hay puntos GPS para este día."
+msgid "Remote commands"
+msgstr "Comandos remotos"
+
+msgid "LOCK · ON"
+msgstr "CIERRE · ON"
+
+msgid "Unlock car"
+msgstr "Desbloquear"
+
+msgid "Car is currently locked"
+msgstr "El coche está bloqueado"
+
+msgid "LOCK · OFF"
+msgstr "CIERRE · OFF"
+
+msgid "Lock car"
+msgstr "Bloquear el coche"
+
+msgid "Car is currently unlocked"
+msgstr "El coche está desbloqueado"
+
+msgid "CLIMATE · ON"
+msgstr "CLIMA · ON"
+
+msgid "Stop climate"
+msgstr "Detener climatización"
+
+msgid "CLIMATE · OFF"
+msgstr "CLIMA · OFF"
+
+msgid "Start climate"
+msgstr "Iniciar climatización"
+
+msgid "PORT · OPEN"
+msgstr "PUERTO · ABIERTO"
+
+msgid "Close charge port"
+msgstr "Cerrar puerto de carga"
+
+msgid "PORT · CLOSED"
+msgstr "PUERTO · CERRADO"
+
+msgid "Open charge port"
+msgstr "Abrir puerto de carga"
+
+msgid "LIGHTS"
+msgstr "LUCES"
+
+msgid "Flash lights"
+msgstr "Parpadear luces"
+
+msgid "Locate the car visually"
+msgstr "Localizar el coche visualmente"
+
+msgid "Sound the horn now?"
+msgstr "¿Tocar el claxon ahora?"
+
+msgid "HORN"
+msgstr "CLAXON"
+
+msgid "Honk horn"
+msgstr "Tocar el claxon"
+
+msgid "Use with consideration"
+msgstr "Usar con precaución"
+
+msgid "Continue to remote drive activation?"
+msgstr "¿Continuar con la activación de conducción remota?"
+
+msgid "REMOTE DRIVE"
+msgstr "CONDUCCIÓN REMOTA"
+
+msgid "Start without key"
+msgstr "Arrancar sin llave"
+
+msgid "Requires account password"
+msgstr "Requiere la contraseña de la cuenta"
+
+msgid "Telemetry"
+msgstr "Telemetría"
+
+msgid "Vehicle details"
+msgstr "Detalles del vehículo"
+
+msgid "Everything that matters, organised by use."
+msgstr "Todo lo importante, organizado por uso."
+
+msgid "Raw JSON"
+msgstr "JSON en bruto"
+
+msgid "General information"
+msgstr "Información general"
+
+msgid "Identity"
+msgstr "Identidad"
+
+msgid "State"
+msgstr "Estado"
+
+msgid "Sentry"
+msgstr "Sentry"
+
+msgid "Active, stop?"
+msgstr "Activo, ¿detener?"
+
+msgid "Inactive, start?"
+msgstr "Inactivo, ¿iniciar?"
+
+msgid "Valet mode"
+msgstr "Modo valet"
+
+msgid "Battery level"
+msgstr "Nivel de batería"
+
+msgid "Usable battery level (%%)"
+msgstr "Nivel de batería utilizable (%%)"
+
+msgid "Battery range km"
+msgstr "Autonomía de batería km"
+
+msgid "Battery degradation (%%)"
+msgstr "Degradación de la batería (%%)"
+
+msgid "Battery charge limit (%%)"
+msgstr "Límite de carga de la batería (%%)"
+
+msgid "Change"
+msgstr "Cambiar"
+
+msgid "Voltage in V"
+msgstr "Tensión en V"
+
+msgid "Current in A"
+msgstr "Corriente en A"
+
+msgid "Power in kW"
+msgstr "Potencia en kW"
+
+msgid "Number of phases"
+msgstr "Número de fases"
+
+msgid "Time left in minutes"
+msgstr "Tiempo restante en minutos"
+
+msgid "Charging"
+msgstr "Carga"
+
+msgid "Start charge"
+msgstr "Iniciar carga"
+
+msgid "Stop charging now?"
+msgstr "¿Detener la carga ahora?"
+
+msgid "Stop charge"
+msgstr "Detener carga"
+
+msgid "Vehicle is unplugged"
+msgstr "El vehículo no está enchufado"
+
+msgid "Drive and location"
+msgstr "Conducción y ubicación"
+
+msgid "Mobility"
+msgstr "Movilidad"
+
+msgid "Speed"
+msgstr "Velocidad"
+
+msgid "Location"
+msgstr "Ubicación"
+
+msgid "Map"
+msgstr "Mapa"
+
+msgid "Climate information"
+msgstr "Información climática"
+
+msgid "On"
+msgstr "Activado"
+
+msgid "Off"
+msgstr "Apagado"
+
+msgid "Inside temperature"
+msgstr "Temperatura interior"
+
+msgid "Outside temperature"
+msgstr "Temperatura exterior"
+
+msgid "Driver Temperature setting"
+msgstr "Temperatura del conductor"
+
+msgid "Software"
+msgstr "Software"
+
+msgid "Update ready"
+msgstr "Actualización lista"
+
+msgid "Install"
+msgstr "Instalar"
+
+msgid "Scheduled update"
+msgstr "Actualización programada"
+
+msgid "Installing"
+msgstr "Instalando"
+
+msgid "History"
+msgstr "Historial"
+
+msgid "View history"
+msgstr "Ver historial"
+
+msgid "Vehicle"
+msgstr "Vehículo"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Vehicle shortcuts"
+msgstr "Atajos del vehículo"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "Your tesla is asleep"
+msgstr "Tu Tesla está dormido"
+
+msgid "Activate drive mode without phone/card"
+msgstr "Activar el modo de conducción sin teléfono/tarjeta"
+
+msgid "Once done you have 2 minutes to start driving the car. Also please unlock car if not yet done"
+msgstr "Hecho esto, tienes 2 minutos para empezar a conducir. Desbloquea el coche si aún no lo has hecho"
+
+msgid "Activate"
+msgstr "Activar"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "History mode"
+msgstr "Modo historial"
+
+msgid "The car is resting. MaTesla shows its history without ever waking it."
+msgstr "El coche descansa. MaTesla muestra su historial sin despertarlo nunca."
+
+msgid "No live data right now. Wake the car from the Tesla app if needed, then refresh its status here."
+msgstr "No hay datos en directo. Despierta el coche desde la app Tesla si hace falta y actualiza su estado aquí."
+
+msgid "No history yet"
+msgstr "Aún no hay historial"
+
+msgid "The VIN for this vehicle is not known to MaTesla yet."
+msgstr "MaTesla aún no conoce el VIN de este vehículo."
+
+msgid "English"
+msgstr "Inglés"
+
+msgid "Français"
+msgstr "Francés"
+
+msgid "Espanol"
+msgstr "Español"
+
+msgid "Download my Data"
+msgstr "Descargar mis datos"
+
+msgid "Period"
+msgstr "Periodo"
+
+msgid "1 Week"
+msgstr "1 semana"
+
+msgid "2 Weeks"
+msgstr "2 semanas"
+
+msgid "1 Month"
+msgstr "1 mes"
+
+msgid "3 Months"
+msgstr "3 meses"
+
+msgid "6 Months"
+msgstr "6 meses"
+
+msgid "1 Year"
+msgstr "1 año"
+
+msgid "2 Years"
+msgstr "2 años"
+
+msgid "5 Years"
+msgstr "5 años"
+
+msgid "10 Years"
+msgstr "10 años"
+
+msgid "Personal charts"
+msgstr "Gráficos personales"
+
+msgid "Expand"
+msgstr "Ampliar"
+
+msgid "Expand chart"
+msgstr "Ampliar el gráfico"
+
+msgid "Degradation vs odometer"
+msgstr "Degradación vs odómetro"
+
+msgid "Degradation over time"
+msgstr "Degradación en el tiempo"
+
+msgid "Range at full charge vs odometer"
+msgstr "Autonomía a carga completa vs odómetro"
+
+msgid "Range at full charge over time"
+msgstr "Autonomía a carga completa en el tiempo"
+
+msgid "Charge related graphs"
+msgstr "Gráficos relacionados con la carga"
+
+msgid "Charge graph"
+msgstr "Gráfico de carga"
+
+msgid "Temperature related graphs"
+msgstr "Gráficos de temperatura"
+
+msgid "Temperature graph"
+msgstr "Gráfico de temperatura"
+
+msgid "Drive related graphs"
+msgstr "Gráficos de conducción"
+
+msgid "Drive graph"
+msgstr "Gráfico de conducción"
+
+msgid "Close"
+msgstr "Cerrar"
+
+msgid "Press Esc or click outside to close."
+msgstr "Pulsa Esc o haz clic fuera para cerrar."
 
 msgid "Personal stats"
 msgstr "Estadísticas personales"
 
-msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
-msgstr "Fecha no válida. Use DD/MM/AAAA o AAAA-MM-DD."
+msgid "Where was the car"
+msgstr "Dónde estaba el coche"
+
+msgid "Previous day"
+msgstr "Día anterior"
+
+msgid "Date"
+msgstr "Fecha"
 
 msgid "Pick a date"
 msgstr "Elegir una fecha"
 
-msgid "Or type DD/MM/YYYY"
-msgstr "O escribir DD/MM/AAAA"
+msgid "Go"
+msgstr "Ir"
+
+msgid "Next day"
+msgstr "Día siguiente"
+
+msgid "No GPS points for this day (telemetry only)."
+msgstr "No hay puntos GPS para este día (solo telemetría)."
 
 msgid "GPS points"
 msgstr "Puntos GPS"
+
+msgid "%(n)s drawn on map"
+msgstr "%(n)s dibujados en el mapa"
 
 msgid "Track"
 msgstr "Recorrido"
@@ -2066,10 +666,10 @@ msgid "Avg speed"
 msgstr "Velocidad media"
 
 msgid "SoC start"
-msgstr "SoC inicio"
+msgstr "SoC inicial"
 
 msgid "SoC end"
-msgstr "SoC fin"
+msgstr "SoC final"
 
 msgid "SoC used"
 msgstr "SoC consumido"
@@ -2077,11 +677,17 @@ msgstr "SoC consumido"
 msgid "kWh/100 km"
 msgstr "kWh/100 km"
 
+msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range)."
+msgstr "Las estimaciones kWh usan un pack de ~%(kwh)s kWh (según autonomía EPA)."
+
 msgid "Departure"
 msgstr "Salida"
 
 msgid "Arrival"
 msgstr "Llegada"
+
+msgid "Duration"
+msgstr "Duración"
 
 msgid "From → to"
 msgstr "De → a"
@@ -2101,26 +707,447 @@ msgstr "Potencia máx."
 msgid "Address"
 msgstr "Dirección"
 
-msgid "Date"
-msgstr "Fecha"
-
-msgid "Date as text"
-msgstr "Fecha en texto"
-
-msgid "No GPS points for this day (telemetry only)."
-msgstr "No hay puntos GPS para este día (solo telemetría)."
-
 msgid "No drive or charge segments detected for this day."
 msgstr "No se detectaron trayectos ni cargas este día."
 
 msgid "No data for this day."
 msgstr "No hay datos para este día."
 
-msgid "Try another date with the arrows or by typing DD/MM/YYYY."
-msgstr "Prueba otra fecha con las flechas o escribiendo DD/MM/AAAA."
+msgid "Try another date with the arrows or the date picker."
+msgstr "Prueba otra fecha con las flechas o el selector de fecha."
 
-msgid "%(n)s drawn on map"
-msgstr "%(n)s dibujados en el mapa"
+msgid "Driver temperature (°C)"
+msgstr "Temperatura del conductor (°C)"
 
-msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range)."
-msgstr "Estimaciones kWh con un pack de ~%(kwh)s kWh (según autonomía EPA)."
+msgid "Inside temperature (°C)"
+msgstr "Temperatura interior (°C)"
+
+msgid "Passenger temperature (°C)"
+msgstr "Temperatura del pasajero (°C)"
+
+msgid "Speed (mi/h)"
+msgstr "Velocidad (mi/h)"
+
+msgid "Latitude"
+msgstr "Latitud"
+
+msgid "Longitude"
+msgstr "Longitud"
+
+msgid "Power (kW)"
+msgstr "Potencia (kW)"
+
+msgid "Battery range (miles)"
+msgstr "Autonomía de batería (millas)"
+
+msgid "Charge rate (mi/h)"
+msgstr "Velocidad de carga (mi/h)"
+
+msgid "Charger actual current (A)"
+msgstr "Corriente real del cargador (A)"
+
+msgid "Charger phases"
+msgstr "Fases del cargador"
+
+msgid "Charger power (kW)"
+msgstr "Potencia del cargador (kW)"
+
+msgid "Charger voltage (V)"
+msgstr "Tensión del cargador (V)"
+
+msgid "Estimated battery range (miles)"
+msgstr "Autonomía estimada de batería (millas)"
+
+msgid "Usable battery level (%)"
+msgstr "Nivel de batería utilizable (%)"
+
+msgid "Battery degradation (%)"
+msgstr "Degradación de la batería (%)"
+
+msgid "Range at full charge (miles)"
+msgstr "Autonomía a carga completa (millas)"
+
+msgid "Range at full charge vs odometer (miles)"
+msgstr "Autonomía a carga completa vs odómetro (millas)"
+
+msgid "Minimum"
+msgstr "Mínimo"
+
+msgid "Average"
+msgstr "Media"
+
+msgid "Maximum"
+msgstr "Máximo"
+
+msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
+msgstr "Fecha no válida. Usa DD/MM/AAAA o AAAA-MM-DD."
+
+msgid "Skip to content"
+msgstr "Saltar al contenido"
+
+msgid "Open vehicle companion"
+msgstr "Compañero de vehículo de código abierto"
+
+msgid "Main navigation"
+msgstr "Navegación principal"
+
+msgid "Fleet stats"
+msgstr "Estadísticas de flota"
+
+msgid "Signup"
+msgstr "Crear cuenta"
+
+msgid "logout"
+msgstr "Cerrar sesión"
+
+msgid "Open navigation"
+msgstr "Abrir navegación"
+
+msgid "Mobile navigation"
+msgstr "Navegación móvil"
+
+msgid "Private by design · Open source"
+msgstr "Privado por diseño · Código abierto"
+
+msgid "Source"
+msgstr "Código fuente"
+
+msgid "MaTesla is a Python/django free open source website using tesla api to connect to your marvellous Tesla car, have information on its state, location and remote control charge, temperature,... Statistics on firmware updates are also available."
+msgstr "MaTesla es un sitio web libre en Python/Django que usa la API de Tesla para conectar con tu coche, ver su estado y ubicación, y controlar a distancia la carga, la temperatura, etc. También hay estadísticas de actualizaciones de firmware."
+
+msgid "Private space"
+msgstr "Espacio privado"
+
+msgid "Forgotten password?"
+msgstr "¿Contraseña olvidada?"
+
+msgid "Your tesla odometer graph in function of time. Who drives the most?"
+msgstr "Gráfico del odómetro de tu Tesla en función del tiempo. ¿Quién conduce más?"
+
+msgid "Password updated"
+msgstr "Contraseña actualizada"
+
+msgid "Your password has been set. You may go ahead and sign in."
+msgstr "Tu contraseña se ha establecido. Ya puedes iniciar sesión."
+
+msgid "sign in"
+msgstr "iniciar sesión"
+
+msgid "Change password"
+msgstr "Cambiar contraseña"
+
+msgid "The password reset link was invalid, possibly because it has already been used. Please request a new password reset."
+msgstr "El enlace de restablecimiento no es válido, quizá porque ya se usó. Solicita uno nuevo."
+
+msgid "Password reset"
+msgstr "Restablecer contraseña"
+
+msgid "Password reset mail sent"
+msgstr "Correo de restablecimiento enviado"
+
+msgid "We&#39;ve emailed you instructions for setting your password, if an account exists with the email you entered. You should receive them shortly."
+msgstr "Te hemos enviado instrucciones para establecer la contraseña, si existe una cuenta con ese correo. Deberías recibirlas en breve."
+
+msgid "If you don&#39;t receive an email, please make sure you&#39;ve entered the address you registered with, and check your spam folder."
+msgstr "Si no recibes un correo, comprueba que hayas introducido la dirección de registro y revisa la carpeta de spam."
+
+msgid "Back to login"
+msgstr "Volver al inicio de sesión"
+
+msgid "To initiate the password reset process for your"
+msgstr "Para iniciar el restablecimiento de contraseña de tu"
+
+msgid "MaTesla Account, click the link below:"
+msgstr "cuenta MaTesla, haz clic en el enlace siguiente:"
+
+msgid "If clicking the link above doesn't work, please copy and paste the URL in a new browser window instead."
+msgstr "Si el enlace no funciona, copia y pega la URL en una nueva ventana del navegador."
+
+msgid "Sincerely, The MaTesla Team"
+msgstr "Atentamente, el equipo MaTesla"
+
+msgid "Send e-mail"
+msgstr "Enviar correo"
+
+msgid "01 · BATTERY"
+msgstr "01 · BATERÍA"
+
+msgid "02 · CHARGE"
+msgstr "02 · CARGA"
+
+msgid "03 · CLIMATE"
+msgstr "03 · CLIMA"
+
+msgid "04 · DRIVE"
+msgstr "04 · CONDUCCIÓN"
+
+msgid "Sleep mode"
+msgstr "Modo reposo"
+
+msgid "Network"
+msgstr "Red"
+
+msgid "Empty garage"
+msgstr "Garaje vacío"
+
+msgid "Tesla Fleet API"
+msgstr "API Tesla Fleet"
+
+msgid "Command interrupted"
+msgstr "Comando interrumpido"
+
+msgid "Charge settings"
+msgstr "Ajustes de carga"
+
+msgid "Climate settings"
+msgstr "Ajustes de climatización"
+
+msgid "Sensitive command"
+msgstr "Comando sensible"
+
+msgid "Telemetry archive"
+msgstr "Archivo de telemetría"
+
+msgid "Understand how your car evolves through battery, charge, climate and drive history."
+msgstr "Comprende la evolución de tu coche a través de batería, carga, clima y conducción."
+
+msgid "Journey replay"
+msgstr "Repetición del trayecto"
+
+msgid "drives, charges and GPS points"
+msgstr "trayectos, cargas y puntos GPS"
+
+msgid "Software timeline"
+msgstr "Cronología de software"
+
+msgid "All firmware versions detected on your vehicle, in chronological order."
+msgstr "Todas las versiones de firmware detectadas en tu vehículo, en orden cronológico."
+
+msgid "Active"
+msgstr "Activo"
+
+msgid "Inactive"
+msgstr "Inactivo"
+
+msgid "Write operations are only allowed from the local server."
+msgstr "Las operaciones de escritura solo se permiten desde el servidor local."
+
+msgid "Tesla connection"
+msgstr "Conexión Tesla"
+
+msgid "Connect your car."
+msgstr "Conecta tu coche."
+
+msgid "Configure the app, register the partner domain, then authorize MaTesla. Your secrets stay stored locally."
+msgstr "Configura la app, registra el dominio partner y autoriza MaTesla. Tus secretos se guardan en local."
+
+msgid "Developer application"
+msgstr "Aplicación de desarrollador"
+
+msgid "Tesla Client ID and secret"
+msgstr "Client ID y secret de Tesla"
+
+msgid "Partner domain"
+msgstr "Dominio partner"
+
+msgid "Public key and EU region"
+msgstr "Clave pública y región EU"
+
+msgid "OAuth authorization"
+msgstr "Autorización OAuth"
+
+msgid "Account connected"
+msgstr "Cuenta conectada"
+
+msgid "OAuth authorization is active until %(date)s."
+msgstr "La autorización OAuth está activa hasta el %(date)s."
+
+msgid "OAuth authorization is active."
+msgstr "La autorización OAuth está activa."
+
+msgid "default vehicle"
+msgstr "vehículo predeterminado"
+
+msgid "Unknown state"
+msgstr "Estado desconocido"
+
+msgid "active"
+msgstr "activo"
+
+msgid "No vehicles synchronized. Finish partner registration, then resync."
+msgstr "Ningún vehículo sincronizado. Termina el registro partner y resincroniza."
+
+msgid "Active vehicle"
+msgstr "Vehículo activo"
+
+msgid "Use this vehicle"
+msgstr "Usar este vehículo"
+
+msgid "Resync"
+msgstr "Resincronizar"
+
+msgid "Renew OAuth"
+msgstr "Renovar OAuth"
+
+msgid "Disconnect this Tesla account?"
+msgstr "¿Desconectar esta cuenta Tesla?"
+
+msgid "Disconnect"
+msgstr "Desconectar"
+
+msgid "Copy credentials from <a class=\"text-link\" href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com ↗</a>."
+msgstr "Copia las credenciales de <a class=\"text-link\" href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com ↗</a>."
+
+msgid "Save application"
+msgstr "Guardar la aplicación"
+
+msgid "Tesla verifies a public key on the allowed domain before granting vehicle access."
+msgstr "Tesla verifica una clave pública en el dominio autorizado antes de dar acceso a los vehículos."
+
+msgid "Domain %(domain)s registered as partner for the EU region."
+msgstr "Dominio %(domain)s registrado como partner en la región EU."
+
+msgid "Expected domain: <code>mehdirahbe.github.io</code> · Allowed Origin: <code>https://mehdirahbe.github.io</code>"
+msgstr "Dominio esperado: <code>mehdirahbe.github.io</code> · Allowed Origin: <code>https://mehdirahbe.github.io</code>"
+
+msgid "Use <code>mehdirahbe.github.io</code> as the partner domain, without a protocol."
+msgstr "Usa <code>mehdirahbe.github.io</code> como dominio partner, sin protocolo."
+
+msgid "Keep <code>https://mehdirahbe.github.io</code> in the allowed origins of the Tesla dashboard."
+msgstr "Mantén <code>https://mehdirahbe.github.io</code> en los orígenes permitidos del panel de Tesla."
+
+msgid "Verify the published key, register the EU region, then resync vehicles."
+msgstr "Verifica la clave publicada, registra la región EU y resincroniza los vehículos."
+
+msgid "Generate EC key"
+msgstr "Generar clave EC"
+
+msgid "Verify key"
+msgstr "Verificar clave"
+
+msgid "Register · EU"
+msgstr "Registrar · EU"
+
+msgid "Public URL"
+msgstr "URL pública"
+
+msgid "Local file"
+msgstr "Archivo local"
+
+msgid "Show public key"
+msgstr "Mostrar clave pública"
+
+msgid "Tesla account authorization"
+msgstr "Autorización de la cuenta Tesla"
+
+msgid "Tesla will ask you to confirm access. MaTesla never receives your password."
+msgstr "Tesla te pedirá confirmar el acceso. MaTesla nunca recibe tu contraseña."
+
+msgid "Redirect URI"
+msgstr "URI de redirección"
+
+msgid "Sign in with Tesla"
+msgstr "Iniciar sesión con Tesla"
+
+msgid "Save the Client ID and secret in step 1 first."
+msgstr "Guarda primero el Client ID y el secret en el paso 1."
+
+msgid "Partner domain (public HTTPS)"
+msgstr "Dominio partner (HTTPS público)"
+
+msgid "E.g. robotcar.example.com — not localhost. Must also be an Allowed Origin on developer.tesla.com"
+msgstr "Ej. robotcar.example.com — no localhost. También debe ser un Allowed Origin en developer.tesla.com"
+
+msgid "Developer credentials saved."
+msgstr "Credenciales de desarrollador guardadas."
+
+msgid "Keys generated: %(pub)s (to publish) and %(priv)s (secret, local)."
+msgstr "Claves generadas: %(pub)s (a publicar) y %(priv)s (secreta, local)."
+
+msgid "Set a partner domain first."
+msgstr "Indica primero un dominio partner."
+
+msgid "Partner register OK for « %(domain)s ». You can reconnect / resync vehicles now. Detail: %(result)s"
+msgstr "Registro partner OK para « %(domain)s ». Ya puedes reconectar / resincronizar vehículos. Detalle: %(result)s"
+
+msgid "No Tesla token — sign in first."
+msgstr "No hay token Tesla: inicia sesión primero."
+
+msgid "%(count)s vehicle(s) synchronized. Active: %(label)s."
+msgstr "%(count)s vehículo(s) sincronizado(s). Activo: %(label)s."
+
+msgid "No vehicles on the Tesla account."
+msgstr "No hay vehículos en la cuenta Tesla."
+
+msgid "Resync failed: %(err)s"
+msgstr "Resincronización fallida: %(err)s"
+
+msgid "Tesla account disconnected (tokens and vehicles removed)."
+msgstr "Cuenta Tesla desconectada (tokens y vehículos eliminados)."
+
+msgid "Active vehicle updated."
+msgstr "Vehículo activo actualizado."
+
+msgid "Unknown vehicle."
+msgstr "Vehículo desconocido."
+
+msgid "Configure the Client ID and Client Secret first."
+msgstr "Configura primero el Client ID y el Client Secret."
+
+msgid "Tesla denied authorization: %(error)s (%(desc)s)"
+msgstr "Tesla denegó la autorización: %(error)s (%(desc)s)"
+
+msgid "Invalid OAuth callback (missing code or state). Please try again."
+msgstr "Callback OAuth no válido (falta code o state). Inténtalo de nuevo."
+
+msgid "Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again, then use “Sign in with Tesla”."
+msgstr "Callback OAuth no válido (state desconocido o caducado). Vuelve a entrar en MaTesla y usa «Iniciar sesión con Tesla»."
+
+msgid "OAuth user not found."
+msgstr "Usuario OAuth no encontrado."
+
+msgid "Connected to Tesla, but no vehicles found on the account."
+msgstr "Conectado a Tesla, pero no se encontraron vehículos en la cuenta."
+
+msgid "Tesla connected — %(count)s vehicle(s): %(names)s. Active: %(label)s."
+msgstr "Tesla conectado — %(count)s vehículo(s): %(names)s. Activo: %(label)s."
+
+msgid "Unexpected error: %(err)s"
+msgstr "Error inesperado: %(err)s"
+
+msgid "Active vehicle: %(label)s"
+msgstr "Vehículo activo: %(label)s"
+
+msgid "Cannot reach %(url)s: %(err)s"
+msgstr "No se puede alcanzar %(url)s: %(err)s"
+
+msgid "%(url)s → HTTP %(code)s"
+msgstr "%(url)s → HTTP %(code)s"
+
+msgid "%(url)s does not contain a valid public key PEM"
+msgstr "%(url)s no contiene un PEM de clave pública válido"
+
+msgid "%(url)s is reachable but does not match the local key (%(path)s). Re-upload the file."
+msgstr "%(url)s es accesible pero no coincide con la clave local (%(path)s). Vuelve a subir el archivo."
+
+msgid "Public key OK: %(url)s"
+msgstr "Clave pública correcta: %(url)s"
+
+msgid "Missing Client ID / Secret."
+msgstr "Faltan Client ID / Secret."
+
+msgid "Partner token failed (%(code)s): %(body)s"
+msgstr "Token partner fallido (%(code)s): %(body)s"
+
+msgid "Missing app settings."
+msgstr "Faltan ajustes de la aplicación."
+
+msgid "Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g. robotcar.example.com)."
+msgstr "Tesla rechaza localhost como dominio partner. Usa un dominio HTTPS público (ej. robotcar.example.com)."
+
+msgid "Public key not reachable by Tesla before register: %(msg)s"
+msgstr "Clave pública no accesible por Tesla antes del registro: %(msg)s"
+
+msgid "Partner register failed (%(code)s): %(body)s"
+msgstr "Registro partner fallido (%(code)s): %(body)s"
+
