@@ -391,6 +391,17 @@ class TeslaCarDataSnapshot(models.Model):
     def _recompute_derived(self):
         if self.randomNr is None:
             self.randomNr = random()
+        # Fleet API battery_level is whole %; refine from battery_range when possible
+        # (TeslaFi rows are already fractional and are left unchanged).
+        if self.vin and self.battery_range is not None and self.battery_level is not None:
+            from matesla.soc_refine import apply_soc_refinement
+
+            self.battery_level, self.usable_battery_level = apply_soc_refinement(
+                self.battery_level,
+                self.usable_battery_level,
+                self.battery_range,
+                self.vin,
+            )
         if self.odometer is not None and self.vin:
             epa = GetEPARangeFromCache(self.vin)
             self.NumberCycles = ComputeNumCycles(epa, self.odometer)

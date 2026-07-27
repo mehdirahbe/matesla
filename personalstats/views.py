@@ -414,6 +414,100 @@ def _soc(p):
     return float(b) if b is not None else None
 
 
+def _is_integer_percent(value):
+    """True when value is a whole percent (typical Fleet API SoC)."""
+    if value is None:
+        return False
+    return abs(float(value) - round(float(value))) < 1e-6
+
+
+def _soc_delta_from_range(a, b, soc_ref, rising):
+    """
+    Estimate SoC change from rated battery_range delta.
+
+    Fleet API usually reports battery_level as an integer. On short trips the
+    displayed SoC does not move, while battery_range still does (tenths of a
+    mile). TeslaFi historical imports already have fractional SoC — callers
+    should prefer that when available.
+    """
+    ra, rb = a.get("battery_range"), b.get("battery_range")
+    if ra is None or rb is None or soc_ref is None or soc_ref <= 1:
+        return None
+    if rising:
+        if rb <= ra:
+            return None
+        delta_range = rb - ra
+    else:
+        if ra <= rb:
+            return None
+        delta_range = ra - rb
+    full = ra / (soc_ref / 100.0)
+    if full < 50:
+        return None
+    return delta_range / full * 100.0
+
+
+def _drive_soc_metrics(a, b):
+    """
+    SoC start/end/used for a drive segment.
+
+    Prefer API SoC when it is fractional (TeslaFi). When both ends are whole
+    percents and the API delta is ~0, refine used (and displayed end) from
+    battery_range so short trips still get a kWh/100 km estimate.
+    """
+    soc_a, soc_b = _soc(a), _soc(b)
+    used_api = None
+    if soc_a is not None and soc_b is not None:
+        used_api = soc_a - soc_b
+
+    used_range = _soc_delta_from_range(a, b, soc_a if soc_a is not None else soc_b, rising=False)
+    api_coarse = _is_integer_percent(soc_a) and _is_integer_percent(soc_b)
+
+    soc_used = used_api
+    if used_range is not None:
+        if used_api is None or used_api <= 0.05 or (api_coarse and used_range > used_api):
+            soc_used = used_range
+
+    # Keep API start; if we refined used past a flat integer end, show refined end
+    display_end = soc_b
+    if (
+        soc_used is not None
+        and soc_a is not None
+        and soc_used > 0.05
+        and (soc_b is None or api_coarse)
+    ):
+        display_end = soc_a - soc_used
+
+    return soc_a, display_end, soc_used
+
+
+def _charge_soc_metrics(a, b):
+    """SoC start/end/added for a charge segment (same coarse-SoC refinement)."""
+    soc_a, soc_b = _soc(a), _soc(b)
+    added_api = None
+    if soc_a is not None and soc_b is not None:
+        added_api = soc_b - soc_a
+
+    added_range = _soc_delta_from_range(a, b, soc_a if soc_a is not None else soc_b, rising=True)
+    api_coarse = _is_integer_percent(soc_a) and _is_integer_percent(soc_b)
+
+    soc_added = added_api
+    if added_range is not None:
+        if added_api is None or added_api <= 0.05 or (api_coarse and added_range > added_api):
+            soc_added = added_range
+
+    display_end = soc_b
+    if (
+        soc_added is not None
+        and soc_a is not None
+        and soc_added > 0.05
+        and (soc_b is None or api_coarse)
+    ):
+        display_end = soc_a + soc_added
+
+    return soc_a, display_end, soc_added
+
+
 def _segment_day(rows, pack_kwh):
     """
     Build chronological drive + charge segments with metrics.
@@ -458,10 +552,7 @@ def _segment_day(rows, pack_kwh):
             if miles is not None and miles < 0.05 and minutes < 3:
                 continue
             km = miles * 1.609344 if miles is not None else None
-            soc_a, soc_b = _soc(a), _soc(b)
-            soc_used = None
-            if soc_a is not None and soc_b is not None:
-                soc_used = soc_a - soc_b
+            soc_a, soc_b, soc_used = _drive_soc_metrics(a, b)
             kwh_used = None
             if soc_used is not None and soc_used > 0:
                 kwh_used = soc_used / 100.0 * pack_kwh
@@ -496,10 +587,7 @@ def _segment_day(rows, pack_kwh):
         elif kind == "charge":
             if minutes < 1.0 and len(pts) < 2:
                 continue
-            soc_a, soc_b = _soc(a), _soc(b)
-            soc_added = None
-            if soc_a is not None and soc_b is not None:
-                soc_added = soc_b - soc_a
+            soc_a, soc_b, soc_added = _charge_soc_metrics(a, b)
             e_a, e_b = a.get("charge_energy_added"), b.get("charge_energy_added")
             kwh_added = None
             if e_a is not None and e_b is not None and e_b >= e_a:
@@ -605,6 +693,9 @@ def DayMap(request, hashedVin, day=None):
                 else None,
                 "usable_battery_level": float(s.usable_battery_level)
                 if s.usable_battery_level is not None
+                else None,
+                "battery_range": float(s.battery_range)
+                if s.battery_range is not None
                 else None,
                 "charging_state": s.charging_state,
                 "charger_power": float(s.charger_power)
