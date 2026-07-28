@@ -70,13 +70,6 @@
         </aside>
     </div>
 
-    {% if hashedVin %}
-    <div class="vehicle-overview__footer">
-        <a href="{% url 'PersoStats' hashedVin %}" class="app-button">{% trans 'My data' %} <span aria-hidden="true">↗</span></a>
-        <a href="{% url 'PersoDayMap' hashedVin %}" class="app-button app-button--ghost">{% trans 'Day map' %}</a>
-        <a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}" class="app-button app-button--ghost">{% trans 'Firmware history' %}</a>
-    </div>
-    {% endif %}
 </section>
 
 {% if allow_writes %}

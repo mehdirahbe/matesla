@@ -271,10 +271,10 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
     )
     return GenerateDateGraph(dates, maxvalues, minvalues, avgvalues, title, size=size)
 
-# Weeks values offered in the personal-stats period dropdown (1 Month = 4).
+# Weeks values offered in the personal-stats period dropdown (1 Month = 4, 10 Years = 520).
 STATS_PERIOD_WEEKS = frozenset({1, 2, 4, 13, 26, 52, 104, 260, 520})
 STATS_PERIOD_SESSION_KEY = "personalstats_period_weeks"
-STATS_PERIOD_DEFAULT = 4
+STATS_PERIOD_DEFAULT = 520  # 10 years — full history is fast enough even with long series
 
 
 def parse_stats_period(raw, default=STATS_PERIOD_DEFAULT):
@@ -289,7 +289,7 @@ def parse_stats_period(raw, default=STATS_PERIOD_DEFAULT):
 def resolve_stats_period(request, *, persist=True):
     """
     Preferred stats graph window (weeks).
-    Query ?period= wins, then session, then 1 month (4 weeks).
+    Query ?period= wins, then session, then 10 years (520 weeks).
     """
     if request.GET.get("period") is not None:
         weeks = parse_stats_period(request.GET.get("period"))

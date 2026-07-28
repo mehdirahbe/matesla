@@ -9,7 +9,7 @@
         {% if day_iso %}<input type="hidden" name="day" value="{{ day_iso }}">{% endif %}
         {% elif request.resolver_match.url_name == 'PersoStats' %}
         <input type="hidden" name="next" value="stats">
-        <input type="hidden" name="period" id="vehicle_switch_period" value="{{ stats_period|default:4 }}">
+        <input type="hidden" name="period" id="vehicle_switch_period" value="{{ stats_period|default:520 }}">
         {% elif request.resolver_match.url_name == 'PersoStatsFirmwareHistory' %}
         <input type="hidden" name="next" value="firmware">
         {% endif %}
@@ -46,13 +46,14 @@
     {% endif %}
 
     <nav class="vehicle-chrome__links" aria-label="{% trans 'Vehicle shortcuts' %}">
-        <a href="{% url 'tesla_status' %}">{% trans 'Status' %}</a>
+        <a href="{% url 'tesla_status' %}" {% if request.resolver_match.url_name == 'tesla_status' %}aria-current="page"{% endif %}>{% trans 'Status' %}</a>
         {% if hashedVin %}
-        <a href="{% url 'PersoStats' hashedVin %}">{% trans 'My data' %}</a>
-        <a href="{% url 'PersoDayMap' hashedVin %}">{% trans 'Day map' %}</a>
+        <a href="{% url 'PersoStats' hashedVin %}" {% if request.resolver_match.url_name == 'PersoStats' %}aria-current="page"{% endif %}>{% trans 'My data' %}</a>
+        <a href="{% url 'PersoDayMap' hashedVin %}" {% if request.resolver_match.url_name == 'PersoDayMap' or request.resolver_match.url_name == 'PersoDayMapDay' %}aria-current="page"{% endif %}>{% trans 'Day map' %}</a>
+        <a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}" {% if request.resolver_match.url_name == 'PersoStatsFirmwareHistory' %}aria-current="page"{% endif %}>{% trans 'Firmware history' %}</a>
         {% endif %}
         {% if allow_writes %}
-        <a href="{% url 'AddTeslaAccount' %}">{% trans 'Tesla account' %}</a>
+        <a href="{% url 'AddTeslaAccount' %}" {% if request.resolver_match.url_name == 'AddTeslaAccount' %}aria-current="page"{% endif %}>{% trans 'Tesla account' %}</a>
         {% endif %}
     </nav>
 </div>

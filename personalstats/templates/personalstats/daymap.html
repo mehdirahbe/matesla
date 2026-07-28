@@ -136,8 +136,7 @@
 </div>
 
 <div class="daymap-toolbar" role="toolbar" aria-label="{% trans 'Day map' %}">
-    <a href="{% url 'PersoStats' hashedVin %}" class="btn btn-secondary btn-sm">{% trans 'Personal stats' %}</a>
-
+    {# Vehicle chrome already has My data / Day map / Firmware — keep only date navigation here #}
     <form method="get" action="{% url 'PersoDayMap' hashedVin %}" id="daymap-form">
         <a href="{% url 'PersoDayMapDay' hashedVin prev_day_iso %}" class="btn btn-outline-primary btn-sm" title="{% trans 'Previous day' %}" aria-label="{% trans 'Previous day' %}">←</a>
         <label class="sr-only" for="date_iso">{% trans 'Date' %}</label>

@@ -784,12 +784,7 @@ def view_select_vehicle(request):
     vehicle = set_active_vehicle(
         request, user, api_id, persist_primary=is_writable_request(request)
     )
-    if vehicle:
-        messages.success(
-            request,
-            _("Active vehicle: %(label)s") % {"label": vehicle.label},
-        )
-    else:
+    if not vehicle:
         messages.error(request, _("Unknown vehicle."))
         return redirect("tesla_status")
 
