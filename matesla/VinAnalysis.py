@@ -1,6 +1,40 @@
 """VIN helpers: year, model, drivetrain, plant, wheel size, rough trim."""
 
 import re
+from urllib.parse import quote
+
+
+# Tesla WMIs that NHTSA vPIC usually decodes (US manufacture / US sales registration).
+_NHTSA_FRIENDLY_WMI = frozenset(
+    {
+        "5YJ",  # Tesla US (Model S/3/X/Y historically)
+        "7SA",  # Tesla US (Cybertruck / newer)
+        "7G2",  # Tesla US (some Austin)
+    }
+)
+
+
+def GetVinDecoderUrl(vin) -> str:
+    """
+    External VIN decoder link.
+
+    - US WMIs → NHTSA with vin= pre-filled (works well for Fremont/Austin).
+    - China / Europe (LRW, XP7, …) → TeslaTap (NHTSA returns error 7 / empty).
+      TeslaTap has no URL prefill; user pastes if needed, but decode quality is better.
+    """
+    if not vin:
+        return "https://teslatap.com/vin-decoder/"
+    vin = str(vin).strip().upper()
+    if len(vin) < 3:
+        return "https://teslatap.com/vin-decoder/"
+    wmi = vin[:3]
+    if wmi in _NHTSA_FRIENDLY_WMI:
+        # Official US decoder (GET form action is /decoder/VinDecoder, not /Decoder)
+        return (
+            "https://vpic.nhtsa.dot.gov/decoder/VinDecoder"
+            f"?vin={quote(vin, safe='')}"
+        )
+    return "https://teslatap.com/vin-decoder/"
 
 
 # Return the year, see https://en.wikipedia.org/wiki/Vehicle_identification_number

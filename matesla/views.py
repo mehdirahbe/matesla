@@ -271,6 +271,9 @@ def PreparestatusDictionary(request, user):
     )
     vin = context.get("vin") or ""
     context["hashedVin"] = HashTheVin(vin) if vin else ""
+    from matesla.VinAnalysis import GetVinDecoderUrl
+
+    context["vin_decoder_url"] = GetVinDecoderUrl(vin)
     context["location"] = params.location or ""
     context["OdometerInKm"] = "{:.0f}".format(params.OdometerInKm or 0)
 
