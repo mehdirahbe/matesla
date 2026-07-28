@@ -12,6 +12,9 @@ from anonymisedstats.views import (
     GetXandYFromBatteryDegradResult,
     GenerateScatterGraph,
     GeneratePngFromGraph,
+    degradation_scatter_queryset,
+    aggregate_scatter_daily_median,
+    DEGRADATION_SCATTER_FALLBACK_SOC,
 )
 from matesla.graphstyle import (
     SERIES_COLORS,
@@ -102,19 +105,40 @@ def _range_at_100_from_entry(entry):
     return float(br) / float(level) * 100.0
 
 
-def GetXandYRangeAt100(results, xfield):
-    """Scatter points: X = model field, Y = range at 100% SoC."""
+def _entry_get(entry, key, default=None):
+    if isinstance(entry, dict):
+        return entry.get(key, default)
+    return getattr(entry, key, default)
+
+
+def GetXandYRangeAt100(results, xfield, *, daily_median=True, min_soc=None):
+    """Scatter points: X = model field, Y = range at 100% SoC (high SoC, quieter)."""
+    # Floor matches fallback so soft queryset (75 %) is not re-filtered to 90 % here.
+    if min_soc is None:
+        min_soc = DEGRADATION_SCATTER_FALLBACK_SOC
     xvalues = []
     yvalues = []
+    dates = []
     for entry in results:
-        y = _range_at_100_from_entry(entry)
-        if y is None:
+        if _entry_get(entry, "charging_state") == "Charging":
             continue
-        x = getattr(entry, xfield, None)
+        level = _entry_get(entry, "usable_battery_level")
+        if level is None:
+            level = _entry_get(entry, "battery_level")
+        if level is None or float(level) < min_soc:
+            continue
+        br = _entry_get(entry, "battery_range")
+        if br is None or level is None or float(level) <= 0:
+            continue
+        y = float(br) / float(level) * 100.0
+        x = _entry_get(entry, xfield)
         if x is None:
             continue
         xvalues.append(x)
         yvalues.append(y)
+        dates.append(_entry_get(entry, "Date"))
+    if daily_median:
+        return aggregate_scatter_daily_median(xvalues, yvalues, dates)
     return xvalues, yvalues
 
 
@@ -926,13 +950,20 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield, desiredperiod=0):
             # means invalid hashedVin field was passed
             return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
         title = GetTitleForField(desiredfield)
-        qs = _period_filter(
-            TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin), desiredperiod
-        )
+        base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
+        qs = _period_filter(degradation_scatter_queryset(base), desiredperiod)
         if not qs.exists():
             return GenerateScatterGraph(None, None, title, size=size)
-        # random sample for long TeslaFi histories (still bounded; uses randomNr index)
-        results = qs.order_by("randomNr")[:2000]
+        # Full period (no row cap — [:N] by Date only kept early history).
+        # Daily median collapses same-day BMS jitter (~1k days max for 10y).
+        results = qs.order_by("Date").values(
+            "odometer",
+            "battery_range",
+            "Date",
+            "usable_battery_level",
+            "battery_level",
+            "charging_state",
+        )
         xvalues, yvalues = GetXandYRangeAt100(results, "odometer")
         return GenerateScatterGraph(xvalues, yvalues, title, size=size)
 
@@ -941,14 +972,21 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield, desiredperiod=0):
         return response
 
     title = GetTitleForField(desiredfield)
-    qs = _period_filter(
-        TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin), desiredperiod
-    )
+    base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
+    qs = _period_filter(degradation_scatter_queryset(base), desiredperiod)
     if not qs.exists():
         return GenerateScatterGraph(None, None, title, size=size)
 
-    # see in anonymous stats for random samples
-    results = qs.order_by("randomNr")[:2000]
+    # Must cover the whole period: capping by Date truncated high-mileage history
+    # (e.g. 8000 dense TeslaFi rows ≈ only the first few 10k miles).
+    results = qs.order_by("Date").values(
+        desiredfield,
+        "battery_degradation",
+        "Date",
+        "usable_battery_level",
+        "battery_level",
+        "charging_state",
+    )
     xvalues, yvalues = GetXandYFromBatteryDegradResult(results, desiredfield)
     return GenerateScatterGraph(xvalues, yvalues, title, size=size)
 

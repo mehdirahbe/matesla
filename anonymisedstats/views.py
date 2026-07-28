@@ -14,7 +14,6 @@ from django.views.decorators.cache import never_cache
 from matesla.graphstyle import (
     BAR_FACE,
     FIT_LINEAR,
-    FIT_QUAD,
     SCATTER_EDGE,
     SCATTER_FACE,
     finish_figure,
@@ -225,18 +224,123 @@ def GetAllRawCarInfos(request):
     return PrepareCSVFromQuery('select * from matesla_teslacarinfo;')
 
 
-def GetXandYFromBatteryDegradResult(results, xfield):
+# Scatter fits are much noisier at low SoC (range extrapolation).
+# Prefer ≥ 80 % (Tesla’s recommended daily charge limit); active charging excluded.
+DEGRADATION_SCATTER_MIN_SOC = 80.0
+# If a car rarely reaches 80 %, fall back so the graph is not empty.
+DEGRADATION_SCATTER_FALLBACK_SOC = 75.0
+DEGRADATION_SCATTER_MIN_POINTS = 15
+
+
+def _soc_for_scatter(entry) -> float | None:
+    """Prefer usable_battery_level, else battery_level."""
+    if not isinstance(entry, dict):
+        entry = entry.__dict__
+    u = entry.get("usable_battery_level")
+    if u is not None:
+        try:
+            return float(u)
+        except (TypeError, ValueError):
+            return None
+    b = entry.get("battery_level")
+    if b is None:
+        return None
+    try:
+        return float(b)
+    except (TypeError, ValueError):
+        return None
+
+
+def high_soc_scatter_q(min_soc: float = DEGRADATION_SCATTER_MIN_SOC):
+    """ORM filter: high SoC and not actively charging."""
+    from django.db.models import Q
+
+    soc_q = Q(usable_battery_level__gte=min_soc) | (
+        Q(usable_battery_level__isnull=True) & Q(battery_level__gte=min_soc)
+    )
+    # While Charging, battery_range / SoC coupling is unstable → thick vertical noise.
+    return soc_q & ~Q(charging_state="Charging")
+
+
+def degradation_scatter_queryset(qs):
+    """Prefer strict high-SoC filter; fall back if too few points."""
+    strict = qs.filter(high_soc_scatter_q())
+    # exists()/[:N] avoids full count on huge tables
+    if strict[: DEGRADATION_SCATTER_MIN_POINTS].count() >= DEGRADATION_SCATTER_MIN_POINTS:
+        return strict
+    return qs.filter(high_soc_scatter_q(min_soc=DEGRADATION_SCATTER_FALLBACK_SOC))
+
+
+def _median(vals):
+    s = sorted(vals)
+    n = len(s)
+    if n == 0:
+        return None
+    mid = n // 2
+    if n % 2:
+        return s[mid]
+    return (s[mid - 1] + s[mid]) / 2.0
+
+
+def aggregate_scatter_daily_median(xvalues, yvalues, dates):
+    """
+    One point per civil day (median X, median Y).
+
+    TeslaFi-style histories have many snapshots/day; the vertical cloud is mostly
+    same-day BMS jitter, not real degradation change.
+    """
+    if not dates or len(dates) != len(xvalues) or len(xvalues) == 0:
+        return xvalues, yvalues
+    from collections import defaultdict
+
+    buckets = defaultdict(lambda: ([], []))
+    for d, x, y in zip(dates, xvalues, yvalues):
+        if d is None or x is None or y is None:
+            continue
+        day = d.date() if hasattr(d, "date") else d
+        try:
+            buckets[day][0].append(float(x))
+            buckets[day][1].append(float(y))
+        except (TypeError, ValueError):
+            continue
+    if not buckets:
+        return xvalues, yvalues
+    out_x, out_y = [], []
+    for day in sorted(buckets.keys()):
+        xs, ys = buckets[day]
+        mx, my = _median(xs), _median(ys)
+        if mx is None or my is None:
+            continue
+        out_x.append(mx)
+        out_y.append(my)
+    return out_x, out_y
+
+
+def GetXandYFromBatteryDegradResult(results, xfield, *, daily_median=True, min_soc=None):
+    # Prefer caller/ORM filter; default floor is fallback so soft queryset is not re-killed.
+    if min_soc is None:
+        min_soc = DEGRADATION_SCATTER_FALLBACK_SOC
     xvalues = list()
     yvalues = list()
+    dates = list()
     for entry in results:
-        entry = entry.__dict__
-        if entry['battery_degradation'] is None:
+        raw = entry if isinstance(entry, dict) else entry.__dict__
+        if raw.get("battery_degradation") is None:
             continue
-        if entry[xfield] is None:
+        if raw.get(xfield) is None:
             continue
-
-        xvalues.append(entry[xfield])
-        yvalues.append(entry['battery_degradation'])
+        soc = _soc_for_scatter(raw)
+        if soc is None or soc < min_soc:
+            continue
+        # Skip active charging even if caller passed unfiltered rows
+        cs = raw.get("charging_state")
+        if cs == "Charging":
+            continue
+        xvalues.append(raw[xfield])
+        yvalues.append(raw["battery_degradation"])
+        dates.append(raw.get("Date"))
+    if daily_median:
+        return aggregate_scatter_daily_median(xvalues, yvalues, dates)
     return xvalues, yvalues
 
 
@@ -261,43 +365,36 @@ def GenerateScatterGraph(xvalues, yvalues, title, size="full"):
             linewidths=0.25,
             zorder=2,
         )
-        # do regression polynomial, see https://stackoverflow.com/questions/19068862/how-to-overplot-a-line-on-a-scatter-plot-in-python
-        # and https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
-        # and https://riptutorial.com/numpy/example/27442/using-np-polyfit
-        # add a second order polynomial
-        # returns params of the polynomial
-        p2 = np.polyfit(xvalues, yvalues, 2)  # Last argument is degree of polynomial
-        f2 = np.poly1d(p2)  # So we can call f(x)
-        # draw it, after removing dups (for perf) and sorting it (to have continuous line)
-        sortedx = list(dict.fromkeys(xvalues))
-        sortedx.sort()
-        ax.plot(
-            sortedx,
-            f2(sortedx),
-            "-",
-            color=FIT_QUAD,
-            linewidth=cfg["linewidth"],
-            label=FormatDouble2Decimals(p2[0])
-            + "x2+"
-            + FormatDouble2Decimals(p2[1])
-            + "x+"
-            + FormatDouble2Decimals(p2[2]),
-            zorder=3,
-        )
-        # now add a linear fit, and user can see which match data the best
-        p1 = np.polyfit(xvalues, yvalues, 1)
-        f1 = np.poly1d(p1)
-        # draw it (dups removed above)
-        ax.plot(
-            sortedx,
-            f1(sortedx),
-            "-",
-            color=FIT_LINEAR,
-            linewidth=cfg["linewidth"],
-            label=FormatDouble2Decimals(p1[0]) + "x+" + FormatDouble2Decimals(p1[1]),
-            zorder=3,
-        )
-        style_legend(ax, cfg)
+        # Linear trend only (quadratic fits misled on long histories).
+        if len(xvalues) >= 2:
+            sortedx = list(dict.fromkeys(xvalues))
+            sortedx.sort()
+            xv = np.asarray(xvalues, dtype=float)
+            yv = np.asarray(yvalues, dtype=float)
+            p1 = np.polyfit(xv, yv, 1)
+            f1 = np.poly1d(p1)
+            y_hat = f1(xv)
+            ss_res = float(np.sum((yv - y_hat) ** 2))
+            ss_tot = float(np.sum((yv - np.mean(yv)) ** 2))
+            r2 = 1.0 - ss_res / ss_tot if ss_tot > 0 else float("nan")
+            # Slope as percentage points of degradation per 10_000 miles
+            slope_per_10k = float(p1[0]) * 10000.0
+            r2_txt = f"{r2:.2f}" if r2 == r2 else "—"  # NaN check
+            # Legend: quality (R²) + practical slope; equation stays secondary
+            label = (
+                f"R²={r2_txt}  ·  {slope_per_10k:+.2f} pt/10k mi\n"
+                f"{FormatDouble2Decimals(p1[0])}x+{FormatDouble2Decimals(p1[1])}"
+            )
+            ax.plot(
+                sortedx,
+                f1(sortedx),
+                "-",
+                color=FIT_LINEAR,
+                linewidth=cfg["linewidth"],
+                label=label,
+                zorder=3,
+            )
+            style_legend(ax, cfg)
     finish_figure(fig, ax, title, cfg)
     return GeneratePngFromGraph(fig, size=size)
 
@@ -323,6 +420,11 @@ def BatteryDegradationGraph(request, desiredfield):
     # we are now at 6000 rows and it is 3 times faster, as using ?-->random()
     # needs to read all the table and sort it by random.
     # While using indexed randomNr just take the first rows of the index (yes, it uses the index).
-    results = TeslaCarDataSnapshot.objects.all().order_by('randomNr')[:500]
-    xvalues, yxvalues = GetXandYFromBatteryDegradResult(results, desiredfield)
+    results = degradation_scatter_queryset(TeslaCarDataSnapshot.objects.all()).order_by(
+        "randomNr"
+    )[:800]
+    # Fleet mix: no daily median (many cars/days); high-SoC filter is enough
+    xvalues, yxvalues = GetXandYFromBatteryDegradResult(
+        results, desiredfield, daily_median=False
+    )
     return GenerateScatterGraph(xvalues, yxvalues, GetTitleForField(desiredfield), size=size)

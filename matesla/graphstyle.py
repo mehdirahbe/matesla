@@ -32,10 +32,9 @@ DANGER = "#ff5c6a"
 # Min = cool blue, Avg = amber (high contrast), Max = coral red.
 SERIES_COLORS = (ACCENT, WARM, DANGER)
 
-# Scatter + regression
+# Scatter + linear regression
 SCATTER_FACE = ACCENT
 SCATTER_EDGE = "#0b1220"
-FIT_QUAD = WARM
 FIT_LINEAR = DANGER
 BAR_FACE = ACCENT_SOFT
 
