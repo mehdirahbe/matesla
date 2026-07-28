@@ -1810,3 +1810,26 @@ msgstr "Register partner échoué (%(code)s) : %(body)s"
 
 #~ msgid "To"
 #~ msgstr "À"
+
+msgid "Version timeline"
+msgstr "Chronologie des versions"
+
+
+
+
+
+msgid "Current"
+msgstr "Actuelle"
+
+msgid "%(n)s version detected"
+msgid_plural "%(n)s versions detected"
+msgstr[0] "%(n)s version détectée"
+msgstr[1] "%(n)s versions détectées"
+
+msgid "%(n)s day"
+msgid_plural "%(n)s days"
+msgstr[0] "%(n)s jour"
+msgstr[1] "%(n)s jours"
+
+msgid "newest on the left"
+msgstr "les plus récentes à gauche"

@@ -14,6 +14,43 @@
     </div>
     <a href="{% url 'PersoStatsFirmwareHistoryCSV' hashedVin %}" class="btn btn-secondary">{% trans 'Download my Data' %}</a>
 </div>
+
+{% if firmware_timeline|length >= 2 %}
+<section class="fw-timeline" aria-label="{% trans 'Software timeline' %}">
+    <header class="fw-timeline__header">
+        <h2 class="fw-timeline__title">{% trans 'Version timeline' %}</h2>
+        <p class="fw-timeline__hint text-muted">
+            {% blocktrans count n=firmware_timeline|length %}{{ n }} version detected{% plural %}{{ n }} versions detected{% endblocktrans %}
+            · {% trans 'newest on the left' %}
+        </p>
+    </header>
+    <div class="fw-timeline__scroll">
+        <ol class="fw-timeline__track">
+            {% for item in firmware_timeline %}
+            <li class="fw-timeline__item{% if item.is_current %} is-current{% endif %}{% if forloop.counter|divisibleby:2 %} is-below{% endif %}">
+                <div class="fw-timeline__card">
+                    <time class="fw-timeline__date" datetime="{{ item.date|date:'Y-m-d' }}">{{ item.date|date:"d/m/Y" }}</time>
+                    <strong class="fw-timeline__ver" title="{{ item.version }}">{{ item.version_short }}</strong>
+                    {% if item.version_build %}
+                    <span class="fw-timeline__build">{{ item.version_build }}</span>
+                    {% endif %}
+                    {% if item.days_on is not None %}
+                    <span class="fw-timeline__days">
+                        {% blocktrans count n=item.days_on %}{{ n }} day{% plural %}{{ n }} days{% endblocktrans %}
+                    </span>
+                    {% endif %}
+                    {% if item.is_current %}
+                    <span class="fw-timeline__badge">{% trans 'Current' %}</span>
+                    {% endif %}
+                </div>
+                <span class="fw-timeline__dot" aria-hidden="true"></span>
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</section>
+{% endif %}
+
 <div class="table-container">
     {% render_table table %}
 </div>

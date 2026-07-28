@@ -8,3 +8,4 @@ class TeslaFirmwareHistoryTable(tables.Table):
         model = TeslaFirmwareHistory
         template_name = "django_tables2/bootstrap.html"
         fields = ("Date", "Version")
+        order_by = ("-Date",)

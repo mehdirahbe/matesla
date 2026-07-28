@@ -959,12 +959,66 @@ class FirmwareHistoryView(SingleTableView):
     template_name = 'personalstats/FirmwareHistory.html'
 
 
+def _firmware_timeline(entries_chrono):
+    """
+    Build UI timeline points from firmware rows ordered oldest → newest,
+    then reverse for display: newest on the left (no scroll), past to the right.
+
+    Each item: first-seen date, version label, days until the next version
+    (or until today for the current build).
+    """
+    from datetime import date as date_cls
+
+    today = date_cls.today()
+    items = []
+    n = len(entries_chrono)
+    for i, row in enumerate(entries_chrono):
+        start = row.Date
+        if i + 1 < n:
+            end = entries_chrono[i + 1].Date
+        else:
+            end = today
+        days_on = None
+        if start and end:
+            try:
+                days_on = max(0, (end - start).days)
+            except Exception:
+                days_on = None
+        ver = (row.Version or "").strip()
+        # "2025.20.3 8252e1d331" → primary "2025.20.3", build hash aside
+        parts = ver.split(None, 1)
+        items.append(
+            {
+                "date": start,
+                "version": ver,
+                "version_short": parts[0] if parts else ver,
+                "version_build": parts[1] if len(parts) > 1 else "",
+                "days_on": days_on,
+                "is_current": not row.IsArchive and i == n - 1,
+                "is_archive": bool(row.IsArchive),
+            }
+        )
+    # Newest first (left); scroll right for older builds
+    items.reverse()
+    return items
+
+
 # Display page with car firmware history
 def FirmwareHistory(request, hashedVin):
     # see https://django-tables2.readthedocs.io/en/latest/pages/table-data.html
-    table = TeslaFirmwareHistoryTable(TeslaFirmwareHistory.objects.filter(hashedVin=hashedVin))
-    return render(request, 'personalstats/FirmwareHistory.html',
-                  {'table': table, 'hashedVin': hashedVin})
+    if not IsValidHash(hashedVin):
+        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    qs_desc = TeslaFirmwareHistory.objects.filter(hashedVin=hashedVin).order_by(
+        "-Date", "-id"
+    )
+    qs_chrono = list(
+        TeslaFirmwareHistory.objects.filter(hashedVin=hashedVin).order_by("Date", "id")
+    )
+    table = TeslaFirmwareHistoryTable(qs_desc)
+    context = _vehicle_chrome_context(request, hashedVin)
+    context["table"] = table
+    context["firmware_timeline"] = _firmware_timeline(qs_chrono)
+    return render(request, "personalstats/FirmwareHistory.html", context)
 
 
 # returns CSV with firmware history for the car
@@ -974,5 +1028,8 @@ def FirmwareHistoryCSV(request, hashedVin):
         return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
     if TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).count() == 0:
         return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
-    query = "select \"Version\",\"Date\" from matesla_TeslaFirmwareHistory where \"hashedVin\"='" + hashedVin + "' order by 2 desc;"
+    query = (
+        'select "Version","Date" from matesla_teslafirmwarehistory '
+        f"where \"hashedVin\"='{hashedVin}' order by 2 desc;"
+    )
     return PrepareCSVFromQuery(query)

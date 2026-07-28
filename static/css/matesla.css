@@ -2046,6 +2046,239 @@ pre.key-box {
     color: var(--app-text);
 }
 
+/* Firmware version timeline (inspired by TeslaFi, MaTesla styling) */
+.fw-timeline {
+    margin: 0 0 28px;
+    padding: 18px 18px 8px;
+    border: 1px solid var(--app-line);
+    border-radius: var(--app-radius);
+    background: var(--app-surface);
+}
+
+.fw-timeline__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin-bottom: 8px;
+    padding: 0 4px;
+}
+
+.fw-timeline__title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+}
+
+.fw-timeline__hint {
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+.fw-timeline__scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 12px 8px 20px;
+    scrollbar-width: thin;
+}
+
+.fw-timeline__track {
+    --fw-card-h: 108px;
+    --fw-gap: 28px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--fw-gap);
+    min-width: min-content;
+    margin: 0;
+    padding: var(--fw-card-h) 12px var(--fw-card-h);
+    list-style: none;
+}
+
+/* Axis line through the dots */
+.fw-timeline__track::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 50%;
+    height: 2px;
+    transform: translateY(-50%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(77, 180, 255, 0.35) 8%,
+        rgba(47, 212, 161, 0.45) 50%,
+        rgba(77, 180, 255, 0.35) 92%,
+        transparent
+    );
+    pointer-events: none;
+}
+
+.fw-timeline__item {
+    position: relative;
+    flex: 0 0 auto;
+    width: 132px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.fw-timeline__card {
+    position: absolute;
+    bottom: calc(50% + 18px);
+    left: 50%;
+    width: 128px;
+    transform: translateX(-50%);
+    padding: 10px 10px 12px;
+    border: 1px solid var(--app-line);
+    border-radius: 12px;
+    background: var(--app-surface-2);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    text-align: center;
+}
+
+.fw-timeline__item.is-below .fw-timeline__card {
+    top: calc(50% + 18px);
+    bottom: auto;
+}
+
+.fw-timeline__dot {
+    position: relative;
+    z-index: 1;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--app-blue);
+    background: var(--app-bg-raised);
+    box-shadow: 0 0 0 4px rgba(77, 180, 255, 0.12);
+}
+
+.fw-timeline__item.is-current .fw-timeline__dot {
+    width: 14px;
+    height: 14px;
+    border-color: var(--app-energy);
+    background: var(--app-energy);
+    box-shadow: 0 0 0 5px rgba(47, 212, 161, 0.2);
+}
+
+.fw-timeline__item.is-current .fw-timeline__card {
+    border-color: rgba(47, 212, 161, 0.45);
+    background: linear-gradient(
+        165deg,
+        rgba(47, 212, 161, 0.12),
+        var(--app-surface-2) 55%
+    );
+}
+
+.fw-timeline__date {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--app-muted);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+}
+
+.fw-timeline__ver {
+    display: block;
+    color: var(--app-text);
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+.fw-timeline__build {
+    display: block;
+    margin-top: 2px;
+    color: var(--app-subtle);
+    font-size: 0.65rem;
+    font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fw-timeline__days {
+    display: block;
+    margin-top: 6px;
+    color: var(--app-blue);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.fw-timeline__badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--app-energy-soft);
+    color: var(--app-energy);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+    .fw-timeline__track {
+        --fw-card-h: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 8px 0 4px;
+        min-width: 0;
+    }
+
+    .fw-timeline__track::before {
+        left: 15px;
+        right: auto;
+        top: 8px;
+        bottom: 8px;
+        width: 2px;
+        height: auto;
+        transform: none;
+        background: linear-gradient(
+            180deg,
+            transparent,
+            rgba(77, 180, 255, 0.35) 10%,
+            rgba(47, 212, 161, 0.45) 50%,
+            rgba(77, 180, 255, 0.35) 90%,
+            transparent
+        );
+    }
+
+    .fw-timeline__item,
+    .fw-timeline__item.is-below {
+        width: auto;
+        flex-direction: row;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 0 10px 8px;
+    }
+
+    .fw-timeline__card,
+    .fw-timeline__item.is-below .fw-timeline__card {
+        position: static;
+        left: auto;
+        top: auto;
+        bottom: auto;
+        width: auto;
+        flex: 1 1 auto;
+        transform: none;
+        text-align: left;
+    }
+
+    .fw-timeline__dot {
+        flex: 0 0 auto;
+        margin-left: 4px;
+    }
+}
+
 /* Django tables */
 .table-container {
     padding: 16px;

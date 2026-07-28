@@ -1151,3 +1151,26 @@ msgstr "Clave pública no accesible por Tesla antes del registro: %(msg)s"
 msgid "Partner register failed (%(code)s): %(body)s"
 msgstr "Registro partner fallido (%(code)s): %(body)s"
 
+
+msgid "Version timeline"
+msgstr "Línea de tiempo de versiones"
+
+
+
+
+
+msgid "Current"
+msgstr "Actual"
+
+msgid "%(n)s version detected"
+msgid_plural "%(n)s versions detected"
+msgstr[0] "%(n)s versión detectada"
+msgstr[1] "%(n)s versiones detectadas"
+
+msgid "%(n)s day"
+msgid_plural "%(n)s days"
+msgstr[0] "%(n)s día"
+msgstr[1] "%(n)s días"
+
+msgid "newest on the left"
+msgstr "las más recientes a la izquierda"
