@@ -1146,6 +1146,30 @@ msgstr "Longitude"
 msgid "Power (kW)"
 msgstr "Puissance (kW)"
 
+msgid "Efficiency vs average speed"
+msgstr "Efficacité selon la vitesse moyenne"
+
+msgid "Efficiency vs outside temperature"
+msgstr "Efficacité selon la température extérieure"
+
+msgid "Average speed (km/h)"
+msgstr "Vitesse moyenne (km/h)"
+
+msgid "Efficiency (%)"
+msgstr "Efficacité (%)"
+
+msgid "Distance (km)"
+msgstr "Distance (km)"
+
+msgid "Distance recorded (km)"
+msgstr "Distance enregistrée (km)"
+
+msgid "Efficiency"
+msgstr "Efficacité"
+
+msgid "Trips ≥ 10 km · 100% = matched rated range use"
+msgstr "Trajets ≥ 10 km · 100 % = conso égale à l’autonomie nominale"
+
 #: personalstats/views.py:64
 msgid "Battery range (miles)"
 msgstr "Range de la batterie (miles)"

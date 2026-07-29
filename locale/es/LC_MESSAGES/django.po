@@ -749,6 +749,30 @@ msgstr "Longitud"
 msgid "Power (kW)"
 msgstr "Potencia (kW)"
 
+msgid "Efficiency vs average speed"
+msgstr "Eficiencia según la velocidad media"
+
+msgid "Efficiency vs outside temperature"
+msgstr "Eficiencia según la temperatura exterior"
+
+msgid "Average speed (km/h)"
+msgstr "Velocidad media (km/h)"
+
+msgid "Efficiency (%)"
+msgstr "Eficiencia (%)"
+
+msgid "Distance (km)"
+msgstr "Distancia (km)"
+
+msgid "Distance recorded (km)"
+msgstr "Distancia registrada (km)"
+
+msgid "Efficiency"
+msgstr "Eficiencia"
+
+msgid "Trips ≥ 10 km · 100% = matched rated range use"
+msgstr "Viajes ≥ 10 km · 100 % = consumo igual a la autonomía nominal"
+
 msgid "Battery range (miles)"
 msgstr "Autonomía de batería (millas)"
 

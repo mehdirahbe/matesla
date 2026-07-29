@@ -1,5 +1,5 @@
 import django
-from django.db.models import Max, Min, Avg, F, FloatField, Case, When
+from django.db.models import Max, Min, Avg, F, FloatField, Case, When, Q
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import render
 from django.template import loader
@@ -17,11 +17,18 @@ from anonymisedstats.views import (
     DEGRADATION_SCATTER_FALLBACK_SOC,
 )
 from matesla.graphstyle import (
+    ACCENT,
+    ACCENT_SOFT,
+    ENERGY,
+    MUTED,
     SERIES_COLORS,
+    TEXT,
     finish_figure,
     graph_size_from_request,
     make_figure,
+    style_axes,
     style_legend,
+    style_suptitle,
 )
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
@@ -38,7 +45,14 @@ import re
 from personalstats.tables import TeslaFirmwareHistoryTable
 
 # Graph keys that are not real DB columns (computed in the view)
-COMPUTED_GRAPH_FIELDS = frozenset({"range_at_100", "range_at_100_odometer"})
+COMPUTED_GRAPH_FIELDS = frozenset(
+    {
+        "range_at_100",
+        "range_at_100_odometer",
+        "efficiency_by_speed",
+        "efficiency_by_temp",
+    }
+)
 
 # Calendar "day" for history maps: user mental model is local civil date, not UTC midnight
 DAY_MAP_TZ = ZoneInfo("Europe/Brussels")
@@ -48,6 +62,16 @@ DAY_MAP_MAX_POINTS = 800
 DAY_MAP_STOP_MIN_MINUTES = 8
 # Speed at or below this (mi/h) counts as stopped
 DAY_MAP_STOP_SPEED = 1.0
+# Efficiency charts (inspired by TeslaFi; drives ≥ 10 km)
+EFFICIENCY_MIN_KM = 10.0
+EFFICIENCY_MIN_PCT = 25.0
+EFFICIENCY_MAX_PCT = 140.0
+EFFICIENCY_SPEED_BIN_KMH = 5
+EFFICIENCY_TEMP_BIN_C = 5
+# Gap longer than this between drive samples starts a new trip
+EFFICIENCY_TRIP_GAP = timedelta(minutes=15)
+# Cap drive samples for binning (enough for stable histograms; not raw time series)
+EFFICIENCY_MAX_DRIVE_ROWS = 20000
 
 
 def GetTitleForFieldDico():
@@ -79,6 +103,9 @@ def GetTitleForFieldDico():
         # (wording avoids bare "%" — breaks gettext python-format matching)
         "range_at_100": _("Range at full charge (miles)"),
         "range_at_100_odometer": _("Range at full charge vs odometer (miles)"),
+        # Trip efficiency vs rated range drop (100% = matched EPA-rated prediction)
+        "efficiency_by_speed": _("Efficiency vs average speed"),
+        "efficiency_by_temp": _("Efficiency vs outside temperature"),
     }
     return dico
 
@@ -224,6 +251,310 @@ def GetDatesAndValuesFromGroupByDateResult(results):
     return dates, maxvalues, minvalues, avgvalues
 
 
+def _rated_range_miles(br, ideal=None):
+    """Prefer rated battery_range; fall back to ideal."""
+    if br is not None:
+        try:
+            return float(br)
+        except (TypeError, ValueError):
+            pass
+    if ideal is not None:
+        try:
+            return float(ideal)
+        except (TypeError, ValueError):
+            pass
+    return None
+
+
+def _trip_efficiency_pct(r0, r1, miles):
+    """
+    Efficiency vs Tesla rated range prediction.
+    100% = distance driven matches rated-range drop (EPA-style estimate).
+    Below 100% = used more rated range than miles driven (worse than prediction).
+    """
+    if miles is None or miles < 0.5 or r0 is None or r1 is None:
+        return None
+    used = r0 - r1
+    if used < 0.25:
+        return None
+    pct = 100.0 * float(miles) / used
+    if pct < EFFICIENCY_MIN_PCT or pct > EFFICIENCY_MAX_PCT:
+        return None
+    return pct
+
+
+def _drive_filter_q():
+    """SQL filter: only rows that look like motion (skip pure park/charge)."""
+    return Q(shift_state__in=["D", "R", "N"]) | Q(speed__gt=DAY_MAP_STOP_SPEED)
+
+
+def _extract_efficiency_trips_from_drive_rows(rows):
+    """
+    Drive-only samples, chronological. Split into trips on time gaps
+    (no need to load park points — efficiency only needs odo + rated range).
+    """
+    if not rows or len(rows) < 2:
+        return []
+
+    # Split on long gaps between consecutive drive samples
+    segments = []
+    cur = [rows[0]]
+    for p in rows[1:]:
+        prev_t, t = cur[-1]["t"], p["t"]
+        if prev_t is None or t is None or (t - prev_t) > EFFICIENCY_TRIP_GAP:
+            if len(cur) >= 2:
+                segments.append(cur)
+            cur = [p]
+        else:
+            cur.append(p)
+    if len(cur) >= 2:
+        segments.append(cur)
+
+    trips = []
+    for pts in segments:
+        a, b = pts[0], pts[-1]
+        seconds = max(0.0, (b["t"] - a["t"]).total_seconds())
+        if seconds < 60:
+            continue
+        odo_a, odo_b = a.get("odometer"), b.get("odometer")
+        if odo_a is None or odo_b is None or odo_b < odo_a:
+            continue
+        miles = float(odo_b) - float(odo_a)
+        km = miles * 1.609344
+        if km < EFFICIENCY_MIN_KM:
+            continue
+        r0 = _rated_range_miles(a.get("battery_range"), a.get("ideal_battery_range"))
+        r1 = _rated_range_miles(b.get("battery_range"), b.get("ideal_battery_range"))
+        eff = _trip_efficiency_pct(r0, r1, miles)
+        if eff is None:
+            continue
+        hours = seconds / 3600.0
+        avg_kmh = km / hours if hours > 0.01 else None
+        if avg_kmh is None or avg_kmh < 5 or avg_kmh > 160:
+            continue
+        temps = []
+        for p in pts:
+            ot = p.get("outside_temp")
+            if ot is not None:
+                try:
+                    temps.append(float(ot))
+                except (TypeError, ValueError):
+                    pass
+        avg_temp = sum(temps) / len(temps) if temps else None
+        trips.append(
+            {
+                "km": km,
+                "avg_kmh": avg_kmh,
+                "avg_temp_c": avg_temp,
+                "efficiency_pct": eff,
+            }
+        )
+    return trips
+
+
+def _bin_trips(trips, *, key, bin_width, label_fmt):
+    """
+    Aggregate trips into bins.
+    Returns (labels, mean_efficiency, total_km) sorted by bin start.
+    """
+    buckets = {}  # bin_start -> [effs], km_sum
+    for t in trips:
+        val = t.get(key)
+        if val is None:
+            continue
+        start = int(val // bin_width) * bin_width
+        if key == "avg_kmh" and start < 10:
+            continue  # match TeslaFi-style focus on real road speeds
+        b = buckets.setdefault(start, {"effs": [], "km": 0.0})
+        b["effs"].append(t["efficiency_pct"])
+        b["km"] += t["km"]
+
+    if not buckets:
+        return [], [], []
+
+    labels = []
+    effs = []
+    kms = []
+    for start in sorted(buckets.keys()):
+        b = buckets[start]
+        if not b["effs"]:
+            continue
+        labels.append(label_fmt(start, start + bin_width))
+        effs.append(sum(b["effs"]) / len(b["effs"]))
+        kms.append(b["km"])
+    return labels, effs, kms
+
+
+def _downsample_rows_inplace(rows, max_rows):
+    """Keep chronological order; thin evenly to at most max_rows."""
+    n = len(rows)
+    if n <= max_rows:
+        return rows
+    step = max(1, (n + max_rows - 1) // max_rows)
+    return rows[::step][:max_rows]
+
+
+def _efficiency_bins_for_queryset(qs, *, by_speed: bool):
+    """
+    Fast path for efficiency charts:
+    - SQL: only drive-like rows (not every parked TeslaFi sample)
+    - Single scan + in-flight thin to EFFICIENCY_MAX_DRIVE_ROWS (no count())
+    - Split trips on time gaps (no full park/charge scan)
+    """
+    drive_qs = (
+        qs.filter(_drive_filter_q())
+        .order_by("Date")
+        .values(
+            "Date",
+            "speed",
+            "odometer",
+            "battery_range",
+            "ideal_battery_range",
+            "outside_temp",
+        )
+    )
+
+    rows = []
+    # One pass: grow list, periodically halve when overflowing 2× cap (keeps order)
+    cap = EFFICIENCY_MAX_DRIVE_ROWS
+    for s in drive_qs.iterator(chunk_size=4000):
+        t = s.get("Date")
+        if t is None:
+            continue
+        rows.append(
+            {
+                "t": t,
+                "speed": s.get("speed"),
+                "odometer": s.get("odometer"),
+                "battery_range": s.get("battery_range"),
+                "ideal_battery_range": s.get("ideal_battery_range"),
+                "outside_temp": s.get("outside_temp"),
+            }
+        )
+        if len(rows) >= cap * 2:
+            rows = rows[::2]
+
+    rows = _downsample_rows_inplace(rows, cap)
+    trips = _extract_efficiency_trips_from_drive_rows(rows)
+    if by_speed:
+        labels, eff, kms = _bin_trips(
+            trips,
+            key="avg_kmh",
+            bin_width=EFFICIENCY_SPEED_BIN_KMH,
+            label_fmt=lambda a, b: f"{int(a)}–{int(b)}",
+        )
+        xlabel = _("Average speed (km/h)")
+    else:
+        labels, eff, kms = _bin_trips(
+            trips,
+            key="avg_temp_c",
+            bin_width=EFFICIENCY_TEMP_BIN_C,
+            label_fmt=lambda a, b: f"{int(a)}–{int(b)}",
+        )
+        xlabel = _("Outside temperature (°C)")
+    return labels, eff, kms, xlabel
+
+
+def GenerateEfficiencyBinGraph(labels, efficiency, km_totals, title, xlabel, size="full"):
+    """
+    Dual-axis chart: bars = km recorded in bin, line = mean efficiency %.
+    Dark MaTesla style (not a TeslaFi clone).
+    """
+    fig, cfg = make_figure(size)
+    ax = fig.subplots()
+    if labels and efficiency and len(labels) > 0:
+        x = list(range(len(labels)))
+        ax2 = ax.twinx()
+        # Bars behind the line
+        bar_w = 0.72
+        ax2.bar(
+            x,
+            km_totals,
+            width=bar_w,
+            color=ACCENT_SOFT,
+            alpha=0.35,
+            edgecolor=ACCENT,
+            linewidth=0.4,
+            zorder=1,
+            label=_("Distance recorded (km)"),
+        )
+        ax.plot(
+            x,
+            efficiency,
+            color=ENERGY,
+            linestyle="-",
+            linewidth=cfg["linewidth"] + 0.35,
+            marker="o",
+            markersize=cfg["markersize"] + 1.2,
+            markerfacecolor=ENERGY,
+            markeredgecolor="#0b1220",
+            markeredgewidth=0.6,
+            zorder=3,
+            label=_("Efficiency"),
+        )
+        # Annotate a few efficiency values when not too crowded
+        if len(labels) <= 18:
+            for i, e in enumerate(efficiency):
+                ax.annotate(
+                    f"{e:.0f}%",
+                    (i, e),
+                    textcoords="offset points",
+                    xytext=(0, 7),
+                    ha="center",
+                    fontsize=cfg["tick_size"] - 0.5,
+                    color=TEXT,
+                    zorder=4,
+                )
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=35, ha="right")
+        ax.set_ylabel(_("Efficiency (%)"), color=MUTED)
+        ax2.set_ylabel(_("Distance (km)"), color=MUTED)
+        ax.set_xlabel(xlabel, color=MUTED)
+        ax.set_ylim(bottom=max(0, min(efficiency) - 12), top=min(145, max(efficiency) + 12))
+        ax2.set_ylim(bottom=0, top=max(km_totals) * 1.25 if km_totals else 1)
+        style_axes(ax, cfg)
+        ax2.set_facecolor("none")
+        ax2.tick_params(colors=MUTED, labelsize=cfg["tick_size"], length=3.5, width=0.7)
+        ax2.yaxis.label.set_color(MUTED)
+        for spine in ax2.spines.values():
+            spine.set_color("#3a5070")
+            spine.set_linewidth(cfg["spine_width"])
+        # Combined legend
+        h1, l1 = ax.get_legend_handles_labels()
+        h2, l2 = ax2.get_legend_handles_labels()
+        leg = ax.legend(
+            h1 + h2,
+            l1 + l2,
+            facecolor="#162338",
+            edgecolor="#3a5070",
+            labelcolor=TEXT,
+            fontsize=cfg["legend_size"],
+            framealpha=0.92,
+            loc="best",
+        )
+        if leg is not None:
+            leg.get_frame().set_linewidth(0.8)
+        # Subtitle hint
+        ax.text(
+            0.01,
+            0.02,
+            _("Trips ≥ 10 km · 100% = matched rated range use"),
+            transform=ax.transAxes,
+            fontsize=cfg["tick_size"] - 0.5,
+            color=MUTED,
+            va="bottom",
+            zorder=5,
+        )
+        style_suptitle(fig, title, cfg)
+        try:
+            fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.92))
+        except Exception:
+            pass
+    else:
+        finish_figure(fig, ax, title, cfg)
+    return GeneratePngFromGraph(fig, size=size)
+
+
 # Check params and ensure that they are not a potential SQL injection
 # return response + False if problem, None + True if fine
 def SecurityChecks(hashedVin, desiredfield):
@@ -264,7 +595,21 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
     title = GetTitleForField(desiredfield)
     base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
     if not base.exists():
+        if desiredfield in ("efficiency_by_speed", "efficiency_by_temp"):
+            return GenerateEfficiencyBinGraph(
+                None, None, None, title, "", size=size
+            )
         return GenerateDateGraph(None, None, None, None, title, size=size)
+
+    # Trip efficiency histograms (not a raw time series field)
+    if desiredfield in ("efficiency_by_speed", "efficiency_by_temp"):
+        qs = _period_filter(base, desiredperiod)
+        labels, eff, kms, xlabel = _efficiency_bins_for_queryset(
+            qs, by_speed=(desiredfield == "efficiency_by_speed")
+        )
+        return GenerateEfficiencyBinGraph(
+            labels, eff, kms, title, xlabel, size=size
+        )
 
     # range_at_100 is not a DB column: battery_range / SoC * 100 (full-charge miles)
     if desiredfield == "range_at_100":

@@ -137,6 +137,9 @@ class TeslaCarDataSnapshot(models.Model):
             models.Index(fields=["randomNr"]),
             models.Index(fields=["hashedVin", "randomNr"]),
             models.Index(fields=["vin", "Date"]),
+            # Personal stats period graphs + efficiency drive filter
+            models.Index(fields=["hashedVin", "Date"]),
+            models.Index(fields=["hashedVin", "DateOnlyDay"]),
         ]
         constraints = [
             models.UniqueConstraint(
