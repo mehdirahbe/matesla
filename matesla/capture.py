@@ -63,6 +63,9 @@ DRIVING_SPEED_MPH_MIN = 1.0
 ACTIVITY_SNAP_MAX_AGE_MIN = 15.0
 # Min gap when forcing a poll because telemetry is stale while list says online.
 STALE_ONLINE_FORCE_POLL_MIN = 2.0
+# After a drive sample, keep probing until we get park/charge (seal trip end).
+# Even list "asleep" still tries vehicle_data once in that window.
+DRIVE_SEAL_MAX_AGE_MIN = 30.0
 
 
 def is_night(now: datetime | None = None) -> bool:
@@ -262,6 +265,32 @@ def poll_interval_minutes(
     return INTERVAL_ONLINE_IDLE_MIN
 
 
+def _snap_was_driving(snap: TeslaCarDataSnapshot | None) -> bool:
+    """True if this sample is in-drive (for trip-seal logic)."""
+    return _is_driving(snap)
+
+
+def _needs_drive_seal(
+    vehicle: TeslaVehicle,
+    snap: TeslaCarDataSnapshot | None = None,
+    *,
+    now: datetime | None = None,
+) -> bool:
+    """
+    Last successful sample was still driving — we must capture a park/charge
+    sample so daymap can place the real arrival (not mid-road last D sample).
+    """
+    now = now or timezone.now()
+    if snap is None:
+        snap = _latest_activity_snapshot(vehicle)
+    if not _snap_was_driving(snap):
+        return False
+    age = _snap_age_minutes(snap, now)
+    if age is None or age > DRIVE_SEAL_MAX_AGE_MIN:
+        return False
+    return True
+
+
 def vehicle_is_due(vehicle: TeslaVehicle, *, now: datetime | None = None) -> bool:
     """True if enough time has passed since last_polled_at for the current policy."""
     now = now or timezone.now()
@@ -272,6 +301,11 @@ def vehicle_is_due(vehicle: TeslaVehicle, *, now: datetime | None = None) -> boo
     snap = _latest_activity_snapshot(vehicle)
     age = _snap_age_minutes(snap, now)
     state = (vehicle.state or "").strip().lower()
+
+    # Still driving in last sample → keep the 2 min drive cadence until we seal.
+    if _needs_drive_seal(vehicle, snap, now=now):
+        return now >= last + timedelta(minutes=INTERVAL_DRIVING_MIN)
+
     # Online in the list but no fresh vehicle_data: re-poll soon (do not keep
     # trusting an hours-old "Charging" snapshot).
     if (
@@ -361,17 +395,21 @@ def capture_one_vehicle(
         access_token, vehicle.api_id, list_payload=list_payload
     )
     state_norm = (state or "").strip().lower()
+    seal_drive = _needs_drive_seal(vehicle)
 
-    # Only hard-skip when the list is explicitly asleep (same policy as status hub).
-    if state_norm == "asleep":
+    # Only hard-skip when the list is explicitly asleep — unless we still need
+    # a park sample after a drive (arrival GPS for daymap trips).
+    if state_norm == "asleep" and not seal_drive:
         TeslaVehicle.objects.filter(pk=vehicle.pk).update(
             state="asleep",
             last_polled_at=timezone.now(),
         )
         return "skipped_offline", "état liste=asleep (pas de vehicle_data)"
 
-    if state_norm and state_norm not in {"online", "offline"}:
-        # Keep state for UI (e.g. "driving" never appears on list, but be safe)
+    if state_norm == "asleep" and seal_drive:
+        # Fall through to vehicle_data: one more chance to log parking / end of trip.
+        pass
+    elif state_norm and state_norm not in {"online", "offline"}:
         TeslaVehicle.objects.filter(pk=vehicle.pk).update(state=state or "")
 
     payload, err = fetch_vehicle_data(access_token, vehicle.api_id)

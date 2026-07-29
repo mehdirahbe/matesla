@@ -538,6 +538,10 @@ def _segment_day(rows, pack_kwh):
     """
     Build chronological drive + charge segments with metrics.
     rows: full-day samples (GPS optional).
+
+    Drive endpoints: with sparse capture the last "drive" sample is often still
+    on the road (shift D). Seal departure/arrival with the adjacent park (or
+    charge) sample when present — that is the real parking GPS.
     """
     if not rows:
         return [], []
@@ -558,7 +562,7 @@ def _segment_day(rows, pack_kwh):
 
     drives = []
     charges = []
-    for kind, pts in groups:
+    for gi, (kind, pts) in enumerate(groups):
         if len(pts) < 1:
             continue
         a, b = pts[0], pts[-1]
@@ -567,6 +571,21 @@ def _segment_day(rows, pack_kwh):
         hours = seconds / 3600.0
 
         if kind == "drive":
+            # Departure: last parked (or charge) sample before this drive
+            if gi > 0 and groups[gi - 1][0] in ("park", "charge"):
+                prev_pts = groups[gi - 1][1]
+                if prev_pts:
+                    a = prev_pts[-1]
+            # Arrival: first park/charge sample after this drive (end of trip)
+            if gi + 1 < len(groups) and groups[gi + 1][0] in ("park", "charge"):
+                next_pts = groups[gi + 1][1]
+                if next_pts:
+                    b = next_pts[0]
+
+            seconds = max(0.0, (b["t"] - a["t"]).total_seconds())
+            minutes = seconds / 60.0
+            hours = seconds / 3600.0
+
             # Need a real movement span
             if minutes < 1.0 and len(pts) < 3:
                 continue
