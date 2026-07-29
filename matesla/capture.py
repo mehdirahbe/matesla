@@ -48,10 +48,10 @@ NIGHT_END_HOUR = 6
 # Intervals in minutes (user policy).
 INTERVAL_DRIVING_MIN = 2
 INTERVAL_DC_CHARGE_MIN = 2
-INTERVAL_AC_CHARGE_MIN = 10
+INTERVAL_AC_CHARGE_MIN = 5
 INTERVAL_CABIN_MIN = 2  # user present, dog/camp/climate keeper
 INTERVAL_SENTRY_MIN = 5  # sentry only (no cabin activity)
-INTERVAL_ONLINE_IDLE_MIN = 10  # online but no cabin / sentry signal
+INTERVAL_ONLINE_IDLE_MIN = 5  # online but no cabin / sentry signal
 INTERVAL_ASLEEP_DAY_MIN = 5
 INTERVAL_NIGHT_DEFAULT_MIN = 30  # anything except driving at night
 
@@ -217,7 +217,7 @@ def activity_kind(
     if state == "online":
         return "online_idle"
     # offline / unknown with no fresh snap: keep checking on the online-idle cadence
-    # (day 10 min) rather than the sleepy 5/30 min — we may still get vehicle_data.
+    # (day 5 min) rather than the sleepy 5/30 min — we may still get vehicle_data.
     if state == "offline":
         return "online_idle"
     return "asleep"
@@ -235,7 +235,7 @@ def poll_interval_minutes(
     Night (22h–6h local): 30 min, except driving → 2 min
     (AC charge at night stays 30 min — long sessions).
 
-    Day: driving/DC/cabin 2, AC 10, sentry 5, online idle 10, asleep 5.
+    Day: driving/DC/cabin 2, AC 5, sentry 5, online idle 5, asleep 5.
     """
     now = now or timezone.now()
     kind = activity_kind(vehicle, snap, now=now)

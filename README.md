@@ -190,15 +190,15 @@ Spacing uses Europe/Brussels wall clock + last known activity
 | Day, DC / Supercharger charging | 2 min |
 | Day, user present / dog / camp / climate on | 2 min |
 | Day, Sentry only | 5 min |
-| Day, online but no cabin/sentry signal | 10 min |
-| Day, AC charging | 10 min |
+| Day, online but no cabin/sentry signal | 5 min |
+| Day, AC charging | 5 min |
 | Day, asleep / offline | 5 min |
 
 If no vehicle is due for a user, **no** `/vehicles` list call is made.
 Each vehicle stores `last_polled_at` after a real poll attempt.
 JSON stats include `skipped_wait` when the policy defers the car.
 
-The latest snapshot only chooses the **next wait** (charge → 10 min, etc.).
+The latest snapshot only chooses the **next wait** (charge → 5 min, etc.).
 Flags from a snapshot older than **15 minutes** are ignored, and list
 `asleep` wins over an old “Charging” flag. List `offline` still triggers
 `vehicle_data` (Fleet offline is unreliable); only explicit `asleep` skips it.
