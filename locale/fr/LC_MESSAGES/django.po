@@ -1152,6 +1152,7 @@ msgstr "Efficacité selon la vitesse moyenne"
 msgid "Efficiency vs outside temperature"
 msgstr "Efficacité selon la température extérieure"
 
+
 msgid "Average speed (km/h)"
 msgstr "Vitesse moyenne (km/h)"
 

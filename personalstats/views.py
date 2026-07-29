@@ -394,12 +394,10 @@ def _downsample_rows_inplace(rows, max_rows):
     return rows[::step][:max_rows]
 
 
-def _efficiency_bins_for_queryset(qs, *, by_speed: bool):
+def _load_efficiency_trips(qs):
     """
-    Fast path for efficiency charts:
-    - SQL: only drive-like rows (not every parked TeslaFi sample)
-    - Single scan + in-flight thin to EFFICIENCY_MAX_DRIVE_ROWS (no count())
-    - Split trips on time gaps (no full park/charge scan)
+    Shared trip list for 1D/2D efficiency charts.
+    SQL drive filter + single scan thin to EFFICIENCY_MAX_DRIVE_ROWS.
     """
     drive_qs = (
         qs.filter(_drive_filter_q())
@@ -415,7 +413,6 @@ def _efficiency_bins_for_queryset(qs, *, by_speed: bool):
     )
 
     rows = []
-    # One pass: grow list, periodically halve when overflowing 2× cap (keeps order)
     cap = EFFICIENCY_MAX_DRIVE_ROWS
     for s in drive_qs.iterator(chunk_size=4000):
         t = s.get("Date")
@@ -435,7 +432,12 @@ def _efficiency_bins_for_queryset(qs, *, by_speed: bool):
             rows = rows[::2]
 
     rows = _downsample_rows_inplace(rows, cap)
-    trips = _extract_efficiency_trips_from_drive_rows(rows)
+    return _extract_efficiency_trips_from_drive_rows(rows)
+
+
+def _efficiency_bins_for_queryset(qs, *, by_speed: bool):
+    """1D histograms: efficiency vs speed or temperature."""
+    trips = _load_efficiency_trips(qs)
     if by_speed:
         labels, eff, kms = _bin_trips(
             trips,
