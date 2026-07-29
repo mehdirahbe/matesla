@@ -198,6 +198,11 @@ If no vehicle is due for a user, **no** `/vehicles` list call is made.
 Each vehicle stores `last_polled_at` after a real poll attempt.
 JSON stats include `skipped_wait` when the policy defers the car.
 
+The latest snapshot only chooses the **next wait** (charge → 10 min, etc.).
+Flags from a snapshot older than **15 minutes** are ignored, and list
+`asleep` wins over an old “Charging” flag. List `offline` still triggers
+`vehicle_data` (Fleet offline is unreliable); only explicit `asleep` skips it.
+
 ### Why not `manage.py` from cron?
 
 SQLite does not like two Django processes writing at once (web on port 8001

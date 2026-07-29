@@ -58,6 +58,11 @@ INTERVAL_NIGHT_DEFAULT_MIN = 30  # anything except driving at night
 # DC heuristic: Supercharger / fast pack, or power well above typical AC.
 DC_POWER_KW_MIN = 20.0
 DRIVING_SPEED_MPH_MIN = 1.0
+# Last snapshot older than this is not trusted for drive/charge/cabin/sentry.
+# Otherwise a car that finished charging and went to sleep stays "ac_charge" forever.
+ACTIVITY_SNAP_MAX_AGE_MIN = 15.0
+# Min gap when forcing a poll because telemetry is stale while list says online.
+STALE_ONLINE_FORCE_POLL_MIN = 2.0
 
 
 def is_night(now: datetime | None = None) -> bool:
@@ -89,6 +94,25 @@ def _latest_activity_snapshot(vehicle: TeslaVehicle) -> TeslaCarDataSnapshot | N
         )
         .first()
     )
+
+
+def _snap_age_minutes(
+    snap: TeslaCarDataSnapshot | None, now: datetime | None = None
+) -> float | None:
+    if snap is None or getattr(snap, "Date", None) is None:
+        return None
+    now = now or timezone.now()
+    dt = snap.Date
+    if timezone.is_naive(dt):
+        dt = timezone.make_aware(dt, timezone.utc)
+    return max(0.0, (now - dt).total_seconds() / 60.0)
+
+
+def _snap_is_fresh(
+    snap: TeslaCarDataSnapshot | None, now: datetime | None = None
+) -> bool:
+    age = _snap_age_minutes(snap, now)
+    return age is not None and age <= ACTIVITY_SNAP_MAX_AGE_MIN
 
 
 def _is_driving(snap: TeslaCarDataSnapshot | None) -> bool:
@@ -147,34 +171,55 @@ def _is_sentry(snap: TeslaCarDataSnapshot | None) -> bool:
     return bool(snap is not None and snap.sentry_mode)
 
 
-def activity_kind(vehicle: TeslaVehicle, snap: TeslaCarDataSnapshot | None = None) -> str:
+def activity_kind(
+    vehicle: TeslaVehicle,
+    snap: TeslaCarDataSnapshot | None = None,
+    *,
+    now: datetime | None = None,
+) -> str:
     """
-    Coarse activity for spacing:
-      driving | dc_charge | ac_charge | cabin | sentry | online_idle | asleep
-    Based on TeslaVehicle.state + last snapshot (never wakes the car).
+    Choose the *next poll delay only* (not a live dashboard state).
+
+    Kinds: driving | dc_charge | ac_charge | cabin | sentry | online_idle | asleep
+
+    Inputs:
+      - TeslaVehicle.state from the last /vehicles list (asleep wins immediately)
+      - latest snapshot *if fresh* (≤ ACTIVITY_SNAP_MAX_AGE_MIN): what the car
+        was doing last time we successfully read vehicle_data
+
+    A stale “Charging” snapshot must not keep us on the AC schedule for hours
+    after the car has gone to sleep or finished charging.
     """
+    now = now or timezone.now()
     if snap is None:
         snap = _latest_activity_snapshot(vehicle)
 
-    # Activity from last telemetry wins over stale list state
-    if _is_driving(snap):
-        return "driving"
-    if _is_dc_charging(snap):
-        return "dc_charge"
-    if _is_charging(snap):
-        return "ac_charge"
-    # Cabin (presence / dog / camp / climate) before bare sentry
-    if _is_cabin_active(snap):
-        return "cabin"
-    if _is_sentry(snap):
-        return "sentry"
-
     state = (vehicle.state or "").strip().lower()
-    if state in {"asleep", "offline"}:
+    # Explicit sleep from list → long-ish spacing; do not trust old charge flags.
+    if state == "asleep":
         return "asleep"
+    # "offline" is unreliable on Fleet — do not treat it as sleep for spacing;
+    # fall through to fresh snapshot / online_idle so we keep probing.
+
+    # Only trust rich activity from a recent vehicle_data sample.
+    if _snap_is_fresh(snap, now):
+        if _is_driving(snap):
+            return "driving"
+        if _is_dc_charging(snap):
+            return "dc_charge"
+        if _is_charging(snap):
+            return "ac_charge"
+        if _is_cabin_active(snap):
+            return "cabin"
+        if _is_sentry(snap):
+            return "sentry"
+
     if state == "online":
         return "online_idle"
-    # Unknown connectivity: poll sparingly
+    # offline / unknown with no fresh snap: keep checking on the online-idle cadence
+    # (day 10 min) rather than the sleepy 5/30 min — we may still get vehicle_data.
+    if state == "offline":
+        return "online_idle"
     return "asleep"
 
 
@@ -192,7 +237,8 @@ def poll_interval_minutes(
 
     Day: driving/DC/cabin 2, AC 10, sentry 5, online idle 10, asleep 5.
     """
-    kind = activity_kind(vehicle, snap)
+    now = now or timezone.now()
+    kind = activity_kind(vehicle, snap, now=now)
     night = is_night(now)
 
     if night:
@@ -222,7 +268,23 @@ def vehicle_is_due(vehicle: TeslaVehicle, *, now: datetime | None = None) -> boo
     last = vehicle.last_polled_at
     if last is None:
         return True
-    interval = timedelta(minutes=poll_interval_minutes(vehicle, now=now))
+
+    snap = _latest_activity_snapshot(vehicle)
+    age = _snap_age_minutes(snap, now)
+    state = (vehicle.state or "").strip().lower()
+    # Online in the list but no fresh vehicle_data: re-poll soon (do not keep
+    # trusting an hours-old "Charging" snapshot).
+    if (
+        state == "online"
+        and age is not None
+        and age > ACTIVITY_SNAP_MAX_AGE_MIN
+        and now >= last + timedelta(minutes=STALE_ONLINE_FORCE_POLL_MIN)
+    ):
+        return True
+
+    interval = timedelta(
+        minutes=poll_interval_minutes(vehicle, now=now, snap=snap)
+    )
     return now >= last + interval
 
 
@@ -285,25 +347,43 @@ def capture_one_vehicle(
     list_payload=None,
 ) -> tuple[str, str | None]:
     """
-    Capture one vehicle if online.
-    Returns (result, detail) where result is
-    'saved' | 'skipped_offline' | 'skipped_error'.
+    Capture one vehicle when due.
+
+    - List state **asleep**: skip vehicle_data (never wake; save API cost).
+    - List state **online**, **offline**, or unknown: call vehicle_data.
+      Fleet often marks cars offline while the app still has data; skipping
+      offline entirely dropped end-of-charge and drives (only list polls).
+
+    Returns (result, detail): 'saved' | 'skipped_offline' | 'skipped_error'.
     Raises TeslaFleetLimitException when Fleet usage limit is hit.
-    Always updates last_polled_at when a Fleet call path was used for this vehicle.
     """
     state = get_vehicle_connectivity(
         access_token, vehicle.api_id, list_payload=list_payload
     )
-    if state is not None and state != "online":
+    state_norm = (state or "").strip().lower()
+
+    # Only hard-skip when the list is explicitly asleep (same policy as status hub).
+    if state_norm == "asleep":
         TeslaVehicle.objects.filter(pk=vehicle.pk).update(
-            state=state or "",
+            state="asleep",
             last_polled_at=timezone.now(),
         )
-        return "skipped_offline", f"état liste={state or 'inconnu'}"
+        return "skipped_offline", "état liste=asleep (pas de vehicle_data)"
+
+    if state_norm and state_norm not in {"online", "offline"}:
+        # Keep state for UI (e.g. "driving" never appears on list, but be safe)
+        TeslaVehicle.objects.filter(pk=vehicle.pk).update(state=state or "")
 
     payload, err = fetch_vehicle_data(access_token, vehicle.api_id)
     if not payload:
         _mark_polled(vehicle)
+        # 408 = vehicle not available (often asleep); record as offline-ish
+        if err and "408" in err:
+            TeslaVehicle.objects.filter(pk=vehicle.pk).update(state="asleep")
+            return "skipped_offline", err
+        if state_norm == "offline":
+            TeslaVehicle.objects.filter(pk=vehicle.pk).update(state="offline")
+            return "skipped_offline", err or "offline + vehicle_data en échec"
         return "skipped_error", err or "vehicle_data échoué sans détail"
 
     context = payload.get("response") or {}
@@ -312,8 +392,10 @@ def capture_one_vehicle(
         _mark_polled(vehicle)
         return "skipped_error", "pas de VIN dans la réponse ni en base"
 
+    # Prefer live state from vehicle_data when present
+    live_state = context.get("state") or "online"
     TeslaVehicle.objects.filter(pk=vehicle.pk).update(
-        state=context.get("state") or "online",
+        state=live_state,
         display_name=context.get("display_name") or vehicle.display_name,
         vin=vin,
         last_polled_at=timezone.now(),
