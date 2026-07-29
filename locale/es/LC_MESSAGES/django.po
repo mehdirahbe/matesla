@@ -515,11 +515,23 @@ msgstr "Guardar"
 msgid "History mode"
 msgstr "Modo historial"
 
+msgid "Live data unavailable"
+msgstr "Datos en directo no disponibles"
+
+msgid "Fleet API limit reached"
+msgstr "Límite de la API Fleet alcanzado"
+
 msgid "The car is resting. MaTesla shows its history without ever waking it."
 msgstr "El coche descansa. MaTesla muestra su historial sin despertarlo nunca."
 
+msgid "MaTesla still shows history. Live status will return when the Tesla Fleet free credit resets or a payment method is added."
+msgstr "MaTesla sigue mostrando el historial. El estado en directo volverá cuando se reinicie el crédito gratuito de Tesla Fleet o se añada un método de pago."
+
 msgid "No live data right now. Wake the car from the Tesla app if needed, then refresh its status here."
 msgstr "No hay datos en directo. Despierta el coche desde la app Tesla si hace falta y actualiza su estado aquí."
+
+msgid "Tesla disabled this account for usage limits (free monthly credit exhausted). This is not the car sleeping — the selector may still show online from the last successful check. Capture is paused until the limit clears. History graphs below remain available."
+msgstr "Tesla desactivó esta cuenta por límite de uso (crédito mensual gratuito agotado). No es que el coche duerma: el selector puede seguir mostrando «en línea» del último control correcto. La captura se pausa hasta que se levante el límite. Los gráficos de historial siguen disponibles abajo."
 
 msgid "No history yet"
 msgstr "Aún no hay historial"

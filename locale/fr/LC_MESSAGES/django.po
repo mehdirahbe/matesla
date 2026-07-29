@@ -779,11 +779,28 @@ msgstr "Sauver"
 msgid "History mode"
 msgstr "Mode historique"
 
+#: matesla/templates/matesla/vehicle_hub.html
+msgid "Live data unavailable"
+msgstr "Données live indisponibles"
+
+#: matesla/templates/matesla/vehicle_hub.html
+msgid "Fleet API limit reached"
+msgstr "Limite API Fleet atteinte"
+
 #: matesla/templates/matesla/vehicle_hub.html:20
 msgid "The car is resting. MaTesla shows its history without ever waking it."
 msgstr ""
 "La voiture se repose. MaTesla affiche son historique sans jamais la "
 "réveiller."
+
+#: matesla/templates/matesla/vehicle_hub.html
+msgid ""
+"MaTesla still shows history. Live status will return when the Tesla Fleet "
+"free credit resets or a payment method is added."
+msgstr ""
+"MaTesla affiche toujours l’historique. Le statut live reviendra quand le "
+"crédit gratuit Fleet Tesla se réinitialisera ou qu’un moyen de paiement "
+"sera ajouté."
 
 #: matesla/templates/matesla/vehicle_hub.html:29
 msgid ""
@@ -792,6 +809,19 @@ msgid ""
 msgstr ""
 "Pas de données en direct pour le moment. Réveillez la voiture depuis l’app "
 "Tesla si nécessaire, puis actualisez son statut ici."
+
+#: matesla/templates/matesla/vehicle_hub.html
+msgid ""
+"Tesla disabled this account for usage limits (free monthly credit "
+"exhausted). This is not the car sleeping — the selector may still show "
+"online from the last successful check. Capture is paused until the limit "
+"clears. History graphs below remain available."
+msgstr ""
+"Tesla a désactivé ce compte pour dépassement de quota (crédit mensuel "
+"gratuit épuisé). Ce n’est pas la voiture qui dort — le sélecteur peut "
+"encore afficher « en ligne » d’après le dernier contrôle réussi. La capture "
+"est suspendue jusqu’au rétablissement. Les graphiques d’historique restent "
+"disponibles ci-dessous."
 
 #: matesla/templates/matesla/vehicle_hub.html:39
 msgid "No history yet"

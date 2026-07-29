@@ -342,9 +342,13 @@ def Preparestatus(request, user):
     return HttpResponse(template.render(context, request))
 
 
-def PrepareOfflineHub(request, user):
+def PrepareOfflineHub(request, user, *, hub_reason="asleep"):
     """
-    Offline/asleep hub: same vehicle selector, personal stats body (no live API).
+    Offline hub: same vehicle selector, personal stats body (no live API).
+
+    hub_reason:
+      - asleep: car resting / unreachable (default)
+      - fleet_limit: Fleet free credit / usage limit (not the car)
     """
     from personalstats.views import GetTitleForFieldDico
 
@@ -360,6 +364,7 @@ def PrepareOfflineHub(request, user):
     context = {
         **sel,
         "hub_mode": "offline",
+        "hub_reason": hub_reason,
         "hashedVin": hashed,
         "display_name": active.display_name or active.label,
         "stats_period": resolve_stats_period(request),
@@ -374,15 +379,17 @@ def PreparestatusJson(request, user):
     return JsonResponse(context)
 
 
-# The status view — hub: live controls if online, personal stats if asleep.
-# Asleep is handled inside the callback so singleAction still owns login + other errors.
+# The status view — hub: live controls if online, personal stats if asleep / limited.
+# Offline reasons are handled inside the callback so singleAction still owns login errors.
 @never_cache
 def status(request):
     def _hub(request, user):
         try:
             return Preparestatus(request, user)
         except TeslaIsAsleepException:
-            return PrepareOfflineHub(request, user)
+            return PrepareOfflineHub(request, user, hub_reason="asleep")
+        except TeslaFleetLimitException:
+            return PrepareOfflineHub(request, user, hub_reason="fleet_limit")
 
     return singleAction(request, _hub, True)
 
@@ -417,6 +424,8 @@ def singleActionJson(request, func):
         return ret
     except TeslaIsAsleepException:
         return JsonResponse({'error': 'TeslaIsAsleepException'})
+    except TeslaFleetLimitException:
+        return JsonResponse({'error': 'TeslaFleetLimitException'})
     except TeslaNoUserException:
         return JsonResponse({'error': 'TeslaNoUserException'})
     except TeslaUnauthorisedException:
@@ -451,6 +460,9 @@ def singleAction(request, func, shouldReturnFunc=False):
             return ret
     except TeslaIsAsleepException:
         # Hub shows offline/stats mode — never trap the user on a dead-end page
+        return redirect('tesla_status')
+    except TeslaFleetLimitException:
+        # Same hub as offline, with a fleet-limit banner (status view handles it)
         return redirect('tesla_status')
     except TeslaNoUserException:
         return redirect('AddTeslaAccount')

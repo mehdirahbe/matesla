@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block title %}
-{% if hub_mode == 'live' %}{{ display_name }} · MaTesla{% else %}{% trans 'Your tesla is asleep' %} · MaTesla{% endif %}
+{% if hub_mode == 'live' %}{{ display_name }} · MaTesla{% elif hub_reason == 'fleet_limit' %}{% trans 'Fleet API limit reached' %} · MaTesla{% else %}{% trans 'Your tesla is asleep' %} · MaTesla{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -13,14 +13,34 @@
 {% else %}
     <div class="page-heading">
         <div class="page-heading__copy">
-            <p class="eyebrow">{% trans 'History mode' %}</p>
+            <p class="eyebrow">
+                {% if hub_reason == 'fleet_limit' %}{% trans 'Live data unavailable' %}{% else %}{% trans 'History mode' %}{% endif %}
+            </p>
             <h1 class="page-title page-title--compact">
-                {% if active_vehicle_label %}{{ active_vehicle_label }}{% else %}{% trans 'Your tesla is asleep' %}{% endif %}
+                {% if active_vehicle_label %}{{ active_vehicle_label }}{% elif hub_reason == 'fleet_limit' %}{% trans 'Fleet API limit reached' %}{% else %}{% trans 'Your tesla is asleep' %}{% endif %}
             </h1>
-            <p class="page-subtitle">{% trans 'The car is resting. MaTesla shows its history without ever waking it.' %}</p>
+            <p class="page-subtitle">
+                {% if hub_reason == 'fleet_limit' %}
+                    {% trans 'MaTesla still shows history. Live status will return when the Tesla Fleet free credit resets or a payment method is added.' %}
+                {% else %}
+                    {% trans 'The car is resting. MaTesla shows its history without ever waking it.' %}
+                {% endif %}
+            </p>
         </div>
     </div>
 
+    {% if hub_reason == 'fleet_limit' %}
+    <div class="offline-banner offline-banner--warn">
+        <span class="offline-banner__dot" aria-hidden="true"></span>
+        <div>
+            <strong>{% trans 'Fleet API limit reached' %}</strong>
+            <p>
+                {% trans 'Tesla disabled this account for usage limits (free monthly credit exhausted). This is not the car sleeping — the selector may still show online from the last successful check. Capture is paused until the limit clears. History graphs below remain available.' %}
+            </p>
+        </div>
+        <a href="{% url 'tesla_status' %}" class="btn btn-secondary">{% trans 'Retry?' %}</a>
+    </div>
+    {% else %}
     <div class="offline-banner">
         <span class="offline-banner__dot" aria-hidden="true"></span>
         <div>
@@ -31,6 +51,7 @@
         </div>
         <a href="{% url 'tesla_status' %}" class="btn btn-secondary">{% trans 'Retry?' %}</a>
     </div>
+    {% endif %}
 
     {% if hashedVin %}
         {% include 'personalstats/_carstats_body.html' %}

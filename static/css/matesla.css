@@ -1435,6 +1435,17 @@ button:disabled,
     background: rgba(255, 193, 7, 0.12);
 }
 
+/* Fleet usage/billing limit — not the same as "car asleep" */
+.offline-banner--warn {
+    border-color: rgba(255, 92, 106, 0.45);
+    background: rgba(255, 92, 106, 0.12);
+}
+
+.offline-banner--warn .offline-banner__dot {
+    background: var(--app-danger, #ff5c6a);
+    box-shadow: 0 0 0 7px rgba(255, 92, 106, 0.14);
+}
+
 .offline-banner__dot,
 .status-panel__dot {
     width: 10px;

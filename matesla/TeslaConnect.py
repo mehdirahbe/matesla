@@ -63,6 +63,22 @@ class TeslaIsAsleepException(Exception):
     pass
 
 
+class TeslaFleetLimitException(Exception):
+    """
+    Fleet account temporarily disabled for usage/billing limits
+    (e.g. HTTP 403 account disabled: EXCEEDED_LIMIT).
+    Not the same as the car being asleep.
+    """
+
+    def __init__(self, message=None, status_code=None, body=None):
+        super().__init__(
+            message
+            or "Tesla Fleet API free credit / usage limit exceeded"
+        )
+        self.status_code = status_code
+        self.body = body
+
+
 class TeslaFleetApiError(Exception):
     """Fleet API call failed; carries status + body for UI."""
 
@@ -70,6 +86,20 @@ class TeslaFleetApiError(Exception):
         super().__init__(message)
         self.status_code = status_code
         self.body = body
+
+
+def is_fleet_limit_response(status_code, body: str | None) -> bool:
+    """True when Fleet returns account disabled / EXCEEDED_LIMIT."""
+    if status_code not in (402, 403, 429):
+        return False
+    text = (body or "").lower()
+    return (
+        "exceeded_limit" in text
+        or "account disabled" in text
+        or "payment" in text
+        or "usage limit" in text
+        or "credit" in text
+    )
 
 
 # Return the list of vehicles; raise TeslaFleetApiError with details on failure
@@ -188,7 +218,12 @@ def Connect(user, request=None) -> TeslaToken:
 
 
 def get_vehicles_list_payload(access_token) -> dict | None:
-    """GET /api/1/vehicles — cheap-ish list with connectivity state per car."""
+    """
+    GET /api/1/vehicles — cheap-ish list with connectivity state per car.
+
+    Raises TeslaFleetLimitException when the account is disabled for usage limits.
+    Returns None on other non-200 / network failures (caller may still try vehicle_data).
+    """
     resp = requests.get(
         api_url("/api/1/vehicles"),
         proxies=GetProxyToUse(),
@@ -196,7 +231,13 @@ def get_vehicles_list_payload(access_token) -> dict | None:
         verify=True,
         timeout=60,
     )
-    if resp is None or resp.status_code != 200:
+    if resp is None:
+        return None
+    if resp.status_code != 200:
+        if is_fleet_limit_response(resp.status_code, resp.text):
+            raise TeslaFleetLimitException(
+                status_code=resp.status_code, body=resp.text[:500]
+            )
         return None
     return json.loads(resp.text)
 
@@ -280,6 +321,7 @@ def ParamsConnectedTesla(user, request=None):
 
     # List first: refresh states. Only hard-skip vehicle_data when explicitly "asleep".
     # "offline" from Fleet is often wrong vs the Tesla app — still try vehicle_data.
+    # Do not treat list failure as "asleep" (that hid EXCEEDED_LIMIT / billing errors).
     list_payload = get_vehicles_list_payload(teslaatoken.access_token)
     try:
         refresh_vehicle_states_from_list(user, list_payload)
@@ -305,13 +347,21 @@ def ParamsConnectedTesla(user, request=None):
         verify=True,
         timeout=60,
     )
+    body_text = api_call_response.text if api_call_response is not None else ""
+    if api_call_response is not None and is_fleet_limit_response(
+        api_call_response.status_code, body_text
+    ):
+        raise TeslaFleetLimitException(
+            status_code=api_call_response.status_code, body=body_text[:500]
+        )
     if api_call_response is not None and api_call_response.status_code == 408:
         raise TeslaIsAsleepException
     if api_call_response is not None and api_call_response.status_code == 401:
         raise TeslaUnauthorisedException
     if api_call_response is None or api_call_response.status_code != 200:
-        # If list said offline and data fails, treat as not available (same UX as asleep)
-        if state in ("offline", "asleep", None) and (
+        # Only map known vehicle-unavailable cases to the offline hub.
+        # list state None (list call failed) must not look like "asleep".
+        if state in ("offline", "asleep") and (
             api_call_response is None or api_call_response.status_code >= 400
         ):
             raise TeslaIsAsleepException
@@ -336,7 +386,10 @@ def ParamsConnectedTesla(user, request=None):
     context["display_name"] = ret.name
     context["vin"] = ret.vin
 
-    ret.isOnline = context.get("state") == "online"
+    # Successful vehicle_data means we have live data. Fleet sometimes omits
+    # top-level state; do not drop telemetry when the field is missing.
+    top_state = context.get("state")
+    ret.isOnline = top_state in (None, "", "online")
     if not ret.isOnline:
         return ret
 
