@@ -176,6 +176,28 @@ When a vehicle is already **online**, capture full `vehicle_data` into
 skipped. The app **never** sends Fleet API wake commands (use the official
 Tesla app if you need to wake a car).
 
+### Adaptive spacing (cron can stay every minute)
+
+Cron may hit the endpoint every minute; **Fleet is only called when due**.
+Spacing uses Europe/Brussels wall clock + last known activity
+(`TeslaVehicle.state` + latest snapshot: speed / shift / charging):
+
+| Context | Interval |
+|---------|----------|
+| Night 22:00–06:00, not driving | 30 min (incl. AC charge) |
+| Night, driving | 2 min |
+| Day, driving | 2 min |
+| Day, DC / Supercharger charging | 2 min |
+| Day, user present / dog / camp / climate on | 2 min |
+| Day, Sentry only | 5 min |
+| Day, online but no cabin/sentry signal | 10 min |
+| Day, AC charging | 10 min |
+| Day, asleep / offline | 5 min |
+
+If no vehicle is due for a user, **no** `/vehicles` list call is made.
+Each vehicle stores `last_polled_at` after a real poll attempt.
+JSON stats include `skipped_wait` when the policy defers the car.
+
 ### Why not `manage.py` from cron?
 
 SQLite does not like two Django processes writing at once (web on port 8001
@@ -200,9 +222,9 @@ python manage.py TakeTeslaCarDataSnapshot
 | URL | `http://127.0.0.1:8001/matesla/internal/capture` |
 | Methods | GET or POST |
 | Auth | none (intended for **localhost-only**; do not expose this port to the internet) |
-| Response | JSON, e.g. `{"saved":1,"skipped_offline":2,"skipped_error":0,"token_error":0}` |
+| Response | JSON, e.g. `{"saved":1,"skipped_offline":0,"skipped_wait":2,"skipped_error":0,"token_error":0,"fleet_limit":0}` |
 
-`saved` = vehicles snapshotted this run; `skipped_offline` = not online (no data call).
+`saved` = snapshotted; `skipped_offline` = list said not online; `skipped_wait` = deferred by adaptive interval (no Fleet call for that car).
 
 Quick test in a browser or shell (site must be running):
 

@@ -217,6 +217,34 @@ def Connect(user, request=None) -> TeslaToken:
 # ---------------------------------------------------------------------------
 
 
+def fleet_http_error_reason(status_code, body: str | None, *, what: str = "API") -> str:
+    """Short human-readable reason for a failed Fleet HTTP response (FR, for ops logs)."""
+    text = (body or "").strip()
+    low = text.lower()
+    if is_fleet_limit_response(status_code, text):
+        return (
+            f"{what}: limite d’usage / crédit Fleet dépassé "
+            f"(HTTP {status_code}, EXCEEDED_LIMIT ou compte désactivé)"
+        )
+    if status_code == 401:
+        return f"{what}: non autorisé (HTTP 401) — token expiré ou révoqué"
+    if status_code == 403:
+        return f"{what}: accès refusé (HTTP 403) — {text[:180] or 'forbidden'}"
+    if status_code == 404:
+        return f"{what}: introuvable (HTTP 404)"
+    if status_code == 408:
+        return f"{what}: timeout véhicule (HTTP 408) — souvent endormi / hors ligne"
+    if status_code == 429:
+        return f"{what}: trop de requêtes (HTTP 429 rate limit)"
+    if status_code is not None and status_code >= 500:
+        return f"{what}: erreur serveur Tesla (HTTP {status_code})"
+    if status_code is not None:
+        snippet = text[:180].replace("\n", " ") if text else ""
+        extra = f" — {snippet}" if snippet else ""
+        return f"{what}: échec HTTP {status_code}{extra}"
+    return f"{what}: pas de réponse HTTP"
+
+
 def get_vehicles_list_payload(access_token) -> dict | None:
     """
     GET /api/1/vehicles — cheap-ish list with connectivity state per car.
@@ -224,22 +252,47 @@ def get_vehicles_list_payload(access_token) -> dict | None:
     Raises TeslaFleetLimitException when the account is disabled for usage limits.
     Returns None on other non-200 / network failures (caller may still try vehicle_data).
     """
-    resp = requests.get(
-        api_url("/api/1/vehicles"),
-        proxies=GetProxyToUse(),
-        headers={"Authorization": "Bearer " + access_token},
-        verify=True,
-        timeout=60,
-    )
+    payload, _reason = fetch_vehicles_list(access_token)
+    return payload
+
+
+def fetch_vehicles_list(access_token) -> tuple[dict | None, str | None]:
+    """
+    GET /api/1/vehicles with diagnostics.
+
+    Returns (payload, None) on success.
+    Raises TeslaFleetLimitException on usage/billing disable.
+    Returns (None, reason_fr) on other failures.
+    """
+    try:
+        resp = requests.get(
+            api_url("/api/1/vehicles"),
+            proxies=GetProxyToUse(),
+            headers={"Authorization": "Bearer " + access_token},
+            verify=True,
+            timeout=60,
+        )
+    except requests.exceptions.Timeout:
+        return None, "Liste véhicules: timeout réseau vers Fleet API"
+    except requests.exceptions.ConnectionError as exc:
+        return None, f"Liste véhicules: erreur de connexion ({exc.__class__.__name__})"
+    except requests.exceptions.RequestException as exc:
+        return None, f"Liste véhicules: erreur réseau ({exc})"
+
     if resp is None:
-        return None
+        return None, "Liste véhicules: pas de réponse"
     if resp.status_code != 200:
         if is_fleet_limit_response(resp.status_code, resp.text):
             raise TeslaFleetLimitException(
                 status_code=resp.status_code, body=resp.text[:500]
             )
-        return None
-    return json.loads(resp.text)
+        return None, fleet_http_error_reason(
+            resp.status_code, resp.text, what="Liste véhicules"
+        )
+    try:
+        return json.loads(resp.text), None
+    except json.JSONDecodeError:
+        return None, "Liste véhicules: JSON invalide dans la réponse Tesla"
 
 
 def refresh_vehicle_states_from_list(user, list_payload: dict | None) -> None:

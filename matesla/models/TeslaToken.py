@@ -54,6 +54,8 @@ class TeslaVehicle(models.Model):
         help_text="Default vehicle when none is selected in session",
     )
     last_seen_at = models.DateTimeField(auto_now=True)
+    # Last Fleet poll attempt for this vehicle (adaptive capture spacing).
+    last_polled_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         constraints = [
