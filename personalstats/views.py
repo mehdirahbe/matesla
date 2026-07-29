@@ -539,9 +539,12 @@ def _segment_day(rows, pack_kwh):
     Build chronological drive + charge segments with metrics.
     rows: full-day samples (GPS optional).
 
-    Drive endpoints: with sparse capture the last "drive" sample is often still
-    on the road (shift D). Seal departure/arrival with the adjacent park (or
-    charge) sample when present — that is the real parking GPS.
+    Drive timing vs addresses (important with sparse capture):
+      - Times: first in-gear sample → first park/charge after the drive
+        (do NOT start the clock on the previous parking dwell, or a 10 min
+        wait at the park becomes “drive time”).
+      - Addresses / odo / SoC: prefer adjacent park/charge samples so the
+        map shows the real parking GPS, not the last mid-road D sample.
     """
     if not rows:
         return [], []
@@ -571,25 +574,32 @@ def _segment_day(rows, pack_kwh):
         hours = seconds / 3600.0
 
         if kind == "drive":
-            # Departure: last parked (or charge) sample before this drive
+            # Timing anchors: actual drive samples only for start clock
+            t_start_pt = pts[0]
+            t_end_pt = pts[-1]
+            # Address / metrics anchors (may use parking)
+            geo_start = t_start_pt
+            geo_end = t_end_pt
             if gi > 0 and groups[gi - 1][0] in ("park", "charge"):
                 prev_pts = groups[gi - 1][1]
                 if prev_pts:
-                    a = prev_pts[-1]
-            # Arrival: first park/charge sample after this drive (end of trip)
+                    geo_start = prev_pts[-1]
             if gi + 1 < len(groups) and groups[gi + 1][0] in ("park", "charge"):
                 next_pts = groups[gi + 1][1]
                 if next_pts:
-                    b = next_pts[0]
+                    # Arrival park: end clock + GPS (trip finished when parked)
+                    t_end_pt = next_pts[0]
+                    geo_end = next_pts[0]
 
-            seconds = max(0.0, (b["t"] - a["t"]).total_seconds())
+            seconds = max(0.0, (t_end_pt["t"] - t_start_pt["t"]).total_seconds())
             minutes = seconds / 60.0
             hours = seconds / 3600.0
 
             # Need a real movement span
             if minutes < 1.0 and len(pts) < 3:
                 continue
-            odo_a, odo_b = a.get("odometer"), b.get("odometer")
+            # Odo / SoC from parking when available (full trip), else drive ends
+            odo_a, odo_b = geo_start.get("odometer"), geo_end.get("odometer")
             miles = None
             if odo_a is not None and odo_b is not None and odo_b >= odo_a:
                 miles = odo_b - odo_a
@@ -597,7 +607,7 @@ def _segment_day(rows, pack_kwh):
             if miles is not None and miles < 0.05 and minutes < 3:
                 continue
             km = miles * 1.609344 if miles is not None else None
-            soc_a, soc_b, soc_used = _drive_soc_metrics(a, b)
+            soc_a, soc_b, soc_used = _drive_soc_metrics(geo_start, geo_end)
             kwh_used = None
             if soc_used is not None and soc_used > 0:
                 kwh_used = soc_used / 100.0 * pack_kwh
@@ -609,10 +619,10 @@ def _segment_day(rows, pack_kwh):
             drives.append(
                 {
                     "kind": "drive",
-                    "start": a["t"],
-                    "end": b["t"],
-                    "start_local": a["t"].astimezone(DAY_MAP_TZ).strftime("%H:%M"),
-                    "end_local": b["t"].astimezone(DAY_MAP_TZ).strftime("%H:%M"),
+                    "start": t_start_pt["t"],
+                    "end": t_end_pt["t"],
+                    "start_local": t_start_pt["t"].astimezone(DAY_MAP_TZ).strftime("%H:%M"),
+                    "end_local": t_end_pt["t"].astimezone(DAY_MAP_TZ).strftime("%H:%M"),
                     "minutes": int(round(minutes)),
                     "miles": miles,
                     "km": km,
@@ -623,10 +633,10 @@ def _segment_day(rows, pack_kwh):
                     "soc_used": soc_used,
                     "kwh_used": kwh_used,
                     "kwh_per_100km": kwh_per_100km,
-                    "lat": a.get("lat"),
-                    "lon": a.get("lon"),
-                    "end_lat": b.get("lat"),
-                    "end_lon": b.get("lon"),
+                    "lat": geo_start.get("lat"),
+                    "lon": geo_start.get("lon"),
+                    "end_lat": geo_end.get("lat"),
+                    "end_lon": geo_end.get("lon"),
                 }
             )
         elif kind == "charge":
