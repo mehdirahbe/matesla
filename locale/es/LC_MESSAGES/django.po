@@ -752,6 +752,33 @@ msgstr "Potencia (kW)"
 msgid "Charge limit distribution"
 msgstr "Distribución del límite de carga"
 
+msgid "Charger power distribution"
+msgstr "Distribución de la potencia de carga"
+
+msgid "Charge rate distribution"
+msgstr "Distribución de la velocidad de carga"
+
+msgid "Peak charger power"
+msgstr "Potencia máxima alcanzada"
+
+msgid "Peak charge rate"
+msgstr "Velocidad de carga máxima alcanzada"
+
+msgid "Sessions ≥ %(min)s min · n=%(n)s · peak per session"
+msgstr "Sesiones ≥ %(min)s min · n=%(n)s · pico por sesión"
+
+msgid "mi = rated range added"
+msgstr "mi = autonomía nominal añadida"
+
+msgid "n=%(n)s sessions (≥%(min)s min) · bars = peak · mi = range added"
+msgstr "n=%(n)s sesiones (≥%(min)s min) · barras = pico · mi = autonomía añadida"
+
+msgid "n=%(n)s sessions (≥%(min)s min) · bars = peak kW · kWh added"
+msgstr "n=%(n)s sesiones (≥%(min)s min) · barras = pico kW · kWh añadidos"
+
+msgid "n=%(n)s sessions (≥%(min)s min)"
+msgstr "n=%(n)s sesiones (≥%(min)s min)"
+
 msgid "Charge sessions"
 msgstr "Sesiones de carga"
 

@@ -74,6 +74,7 @@ EFFICIENCY_TRIP_GAP = timedelta(minutes=15)
 EFFICIENCY_MAX_DRIVE_ROWS = 20000
 # Charge sessions shorter than this are ignored (plug glitches)
 CHARGE_SESSION_MIN_MINUTES = 5
+CHARGE_SESSION_GAP = timedelta(minutes=30)
 # charge_limit_soc histogram buckets (high → low), labels for axis
 CHARGE_LIMIT_BUCKET_LABELS = (
     "100%",
@@ -82,6 +83,27 @@ CHARGE_LIMIT_BUCKET_LABELS = (
     "80–89%",
     "70–79%",
     "< 70%",
+)
+# Peak charger_power (kW): ≤11 kW = AC; ≥12 kW = DC (modern Teslas)
+# (label, lo_inclusive, hi_exclusive) — last band hi=None means no upper bound
+# Order high → low for display
+CHARGER_POWER_BUCKETS = (
+    ("≥ 250 kW", 250, None),
+    ("200–249 kW", 200, 250),
+    ("150–199 kW", 150, 200),
+    ("100–149 kW", 100, 150),
+    ("50–99 kW", 50, 100),
+    ("12–49 kW", 12, 50),
+    ("≤ 11 kW", None, 12),  # AC
+)
+# Peak charge_rate (mi/h of rated range added) — Tesla units
+CHARGE_RATE_BUCKETS = (
+    ("≥ 700 mi/h", 700, None),
+    ("500–699 mi/h", 500, 700),
+    ("300–499 mi/h", 300, 500),
+    ("150–299 mi/h", 150, 300),
+    ("50–149 mi/h", 50, 150),
+    ("≤ 49 mi/h", None, 50),  # typical AC
 )
 
 
@@ -103,10 +125,11 @@ def GetTitleForFieldDico():
         # Histogram of charge sessions by limit (not a raw time series)
         "charge_limit_soc": _("Charge limit distribution"),
         # Tesla charge_rate is miles of range added per hour (not km/h or kW)
-        "charge_rate": _("Charge rate (mi/h)"),
+        # Session histograms (peak rate / power), not raw time series
+        "charge_rate": _("Charge rate distribution"),
         "charger_actual_current": _("Charger actual current (A)"),
         "charger_phases": _("Charger phases"),
-        "charger_power": _("Charger power (kW)"),
+        "charger_power": _("Charger power distribution"),
         "charger_voltage": _("Charger voltage (V)"),
         "est_battery_range": _("Estimated battery range (miles)"),
         "usable_battery_level": _("Usable battery level (%)"),
@@ -485,10 +508,22 @@ def _charge_limit_bucket_index(limit_pct: float) -> int:
     return 5  # < 70
 
 
+def _range_bucket_index(value: float, buckets) -> int:
+    """Map value into bucket list of (label, lo, hi) high→low; lo/hi may be None."""
+    x = float(value)
+    for i, (_lab, lo, hi) in enumerate(buckets):
+        if lo is not None and x < lo:
+            continue
+        if hi is not None and x >= hi:
+            continue
+        return i
+    return len(buckets) - 1
+
+
 def _session_charge_limit(pts) -> float | None:
     """
     Representative charge limit for a charge session.
-    Prefer charge_limit_soc (mode-ish: median of samples); else peak SoC reached.
+    Prefer charge_limit_soc (median of samples); else peak SoC reached.
     """
     limits = []
     peaks = []
@@ -515,69 +550,184 @@ def _session_charge_limit(pts) -> float | None:
     return None
 
 
-def _charge_limit_session_histogram(qs):
+def _session_float_max(pts, key) -> float | None:
+    best = None
+    for p in pts:
+        v = p.get(key)
+        if v is None:
+            continue
+        try:
+            fv = float(v)
+        except (TypeError, ValueError):
+            continue
+        if fv < 0:
+            continue
+        if best is None or fv > best:
+            best = fv
+    return best
+
+
+def _session_delta_field(pts, key) -> float | None:
+    """Positive delta of a cumulative field over the session (max - min of samples)."""
+    vals = []
+    for p in pts:
+        v = p.get(key)
+        if v is None:
+            continue
+        try:
+            vals.append(float(v))
+        except (TypeError, ValueError):
+            continue
+    if len(vals) < 2:
+        return None
+    delta = max(vals) - min(vals)
+    return delta if delta > 0.01 else None
+
+
+def _iter_charge_sessions(qs, extra_fields=()):
     """
-    Count charge sessions by charge_limit_soc bucket over the queryset period.
-    SQL: charging samples only; split sessions on gaps > 30 min.
-    Returns (labels, counts, percentages).
+    Yield lists of sample dicts for each charge session (≥ min duration).
+    SQL: charging samples only; split on CHARGE_SESSION_GAP.
     """
+    fields = {
+        "Date",
+        "charge_limit_soc",
+        "battery_level",
+        "usable_battery_level",
+        "charger_power",
+        "charge_rate",
+        "charge_energy_added",
+        "charge_miles_added_rated",
+        "battery_range",
+    }
+    fields.update(extra_fields)
     charge_q = Q(charging_state__iexact="Charging") | Q(
         charging_state__iexact="Starting"
     ) | Q(charger_power__gt=0.5)
-    rows = (
-        qs.filter(charge_q)
-        .order_by("Date")
-        .values(
-            "Date",
-            "charge_limit_soc",
-            "battery_level",
-            "usable_battery_level",
-        )
-    )
+    rows = qs.filter(charge_q).order_by("Date").values(*fields)
 
-    counts = [0] * len(CHARGE_LIMIT_BUCKET_LABELS)
     cur = []
-    gap = timedelta(minutes=30)
     for r in rows.iterator(chunk_size=4000):
         t = r.get("Date")
         if t is None:
             continue
-        p = {
-            "t": t,
-            "charge_limit_soc": r.get("charge_limit_soc"),
-            "battery_level": r.get("battery_level"),
-            "usable_battery_level": r.get("usable_battery_level"),
-        }
-        if cur and (t - cur[-1]["t"]) > gap:
-            _tally_charge_session(cur, counts)
+        p = dict(r)
+        p["t"] = t
+        if cur and (t - cur[-1]["t"]) > CHARGE_SESSION_GAP:
+            if _charge_session_ok(cur):
+                yield cur
             cur = [p]
         else:
             cur.append(p)
-    if cur:
-        _tally_charge_session(cur, counts)
+    if cur and _charge_session_ok(cur):
+        yield cur
 
+
+def _charge_session_ok(pts) -> bool:
+    if len(pts) < 2:
+        return False
+    minutes = max(0.0, (pts[-1]["t"] - pts[0]["t"]).total_seconds()) / 60.0
+    return minutes >= CHARGE_SESSION_MIN_MINUTES
+
+
+def _charge_limit_session_histogram(qs):
+    """Count charge sessions by charge_limit_soc bucket. Returns (labels, counts, pcts)."""
+    counts = [0] * len(CHARGE_LIMIT_BUCKET_LABELS)
+    for pts in _iter_charge_sessions(qs):
+        lim = _session_charge_limit(pts)
+        if lim is None:
+            continue
+        counts[_charge_limit_bucket_index(lim)] += 1
     total = sum(counts)
     pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
     return list(CHARGE_LIMIT_BUCKET_LABELS), counts, pcts
 
 
-def _tally_charge_session(pts, counts):
-    if len(pts) < 2:
-        return
-    t0, t1 = pts[0]["t"], pts[-1]["t"]
-    minutes = max(0.0, (t1 - t0).total_seconds()) / 60.0
-    if minutes < CHARGE_SESSION_MIN_MINUTES:
-        return
-    lim = _session_charge_limit(pts)
-    if lim is None:
-        return
-    counts[_charge_limit_bucket_index(lim)] += 1
+def _charge_peak_histogram(qs, *, metric: str):
+    """
+    Sessions binned by peak charger_power (kW) or peak charge_rate (mi/h).
+    Returns (labels, session_counts, amount_per_bucket, pcts, amount_unit).
+    amount_unit is "kwh" for power (charge_energy_added) or "mi" for rate.
+    """
+    if metric == "charger_power":
+        buckets = CHARGER_POWER_BUCKETS
+        peak_key = "charger_power"
+        amount_unit = "kwh"
+    else:
+        buckets = CHARGE_RATE_BUCKETS
+        peak_key = "charge_rate"
+        amount_unit = "mi"
+
+    n_b = len(buckets)
+    counts = [0] * n_b
+    amount_tot = [0.0] * n_b
+
+    for pts in _iter_charge_sessions(qs):
+        peak = _session_float_max(pts, peak_key)
+        # Fleet/TeslaFi often omit charger_power on AC; infer AC from low charge_rate
+        if (peak is None or peak <= 0) and peak_key == "charger_power":
+            rate = _session_float_max(pts, "charge_rate")
+            if rate is not None and 0 < rate <= 49:
+                peak = 7.0  # typical home AC for bucketing only
+        if peak is None or peak <= 0:
+            continue
+        idx = _range_bucket_index(peak, buckets)
+        counts[idx] += 1
+        if amount_unit == "kwh":
+            amt = _session_delta_field(pts, "charge_energy_added")
+            # Fallback: rough kWh from rated miles if energy counter missing
+            if amt is None:
+                miles = _session_delta_field(pts, "charge_miles_added_rated")
+                if miles is None:
+                    miles = _session_delta_field(pts, "battery_range")
+                if miles is not None and miles > 0:
+                    # ~0.22 kWh/mi fleet average (same ballpark as daymap pack estimate)
+                    amt = miles * 0.22
+        else:
+            amt = _session_delta_field(pts, "charge_miles_added_rated")
+            if amt is None:
+                amt = _session_delta_field(pts, "battery_range")
+        if amt is not None and amt > 0:
+            amount_tot[idx] += amt
+
+    total = sum(counts)
+    pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
+    labels = [b[0] for b in buckets]
+    return labels, counts, amount_tot, pcts, amount_unit
 
 
 def GenerateChargeLimitHistogram(labels, counts, pcts, title, size="full"):
     """
     Bar chart: how often charge sessions used each limit band.
     Annotate each bar with count and share of sessions.
+    """
+    return GenerateChargeSessionHistogram(
+        labels,
+        counts,
+        pcts,
+        title,
+        size=size,
+        xlabel=_("Charge limit"),
+        amount_per_bucket=None,
+        amount_unit=None,
+    )
+
+
+def GenerateChargeSessionHistogram(
+    labels,
+    counts,
+    pcts,
+    title,
+    size="full",
+    *,
+    xlabel,
+    amount_per_bucket=None,
+    amount_unit=None,
+):
+    """
+    Bar chart: session counts by bucket; annotate n, %, and optional energy/range.
+    amount_unit: "kwh" | "mi" | None
+    Footer sits outside the axes so it never covers short bars.
     """
     fig, cfg = make_figure(size, bar=True)
     ax = fig.subplots()
@@ -593,44 +743,75 @@ def GenerateChargeLimitHistogram(labels, counts, pcts, title, size="full"):
             zorder=2,
         )
         ymax = max(counts) if counts else 1
-        ax.set_ylim(0, ymax * 1.22)
+        # Room above tallest bar for 2-line labels (not 3 lines over short bars)
+        ax.set_ylim(0, ymax * 1.18)
+        fs = max(6.0, cfg["tick_size"] - 0.5)
         for i, (bar, c, p) in enumerate(zip(bars, counts, pcts)):
             if c <= 0:
                 continue
+            # Compact: "73 (5%)" on one line; amount on second line if present
+            label = f"{c} ({p:.0f}%)"
+            amt = None
+            if amount_per_bucket is not None and i < len(amount_per_bucket):
+                amt = amount_per_bucket[i]
+            if amt is not None and amt >= 0.5:
+                if amount_unit == "kwh":
+                    label = f"{c} ({p:.0f}%)\n{amt:.0f} kWh"
+                else:
+                    label = f"{c} ({p:.0f}%)\n{amt:.0f} mi"
             ax.annotate(
-                f"{c}\n({p:.0f}%)",
+                label,
                 xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
-                xytext=(0, 4),
+                xytext=(0, 3),
                 textcoords="offset points",
                 ha="center",
                 va="bottom",
                 color=TEXT,
-                fontsize=cfg["tick_size"],
+                fontsize=fs,
                 fontweight="medium",
                 zorder=3,
+                clip_on=False,
             )
         ax.set_xticks(x)
-        ax.set_xticklabels(labels, rotation=20, ha="right")
+        ax.set_xticklabels(labels, rotation=22, ha="right")
         ax.set_ylabel(_("Charge sessions"), color=MUTED)
-        ax.set_xlabel(_("Charge limit"), color=MUTED)
+        ax.set_xlabel(xlabel, color=MUTED)
         total = sum(counts)
-        ax.text(
-            0.01,
-            0.02,
-            _("Sessions ≥ %(min)s min · n=%(n)s")
-            % {"min": CHARGE_SESSION_MIN_MINUTES, "n": total},
-            transform=ax.transAxes,
-            fontsize=cfg["tick_size"] - 0.5,
-            color=MUTED,
-            va="bottom",
-            zorder=5,
-        )
+        # Short footer under the figure (not inside the plot area)
+        if amount_unit == "kwh":
+            foot = _(
+                "n=%(n)s sessions (≥%(min)s min) · bars = peak kW · kWh added"
+            ) % {
+                "n": total,
+                "min": CHARGE_SESSION_MIN_MINUTES,
+            }
+        elif amount_unit == "mi":
+            foot = _(
+                "n=%(n)s sessions (≥%(min)s min) · bars = peak · mi = range added"
+            ) % {
+                "n": total,
+                "min": CHARGE_SESSION_MIN_MINUTES,
+            }
+        else:
+            foot = _("n=%(n)s sessions (≥%(min)s min)") % {
+                "n": total,
+                "min": CHARGE_SESSION_MIN_MINUTES,
+            }
         style_axes(ax, cfg)
         style_suptitle(fig, title, cfg)
         try:
-            fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.90))
+            fig.tight_layout(rect=(0.02, 0.08, 0.98, 0.90))
         except Exception:
             pass
+        fig.text(
+            0.5,
+            0.01,
+            foot,
+            ha="center",
+            va="bottom",
+            color=MUTED,
+            fontsize=cfg["tick_size"] - 0.5,
+        )
     else:
         finish_figure(fig, ax, title, cfg)
     return GeneratePngFromGraph(fig, size=size)
@@ -797,6 +978,28 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
         qs = _period_filter(base, desiredperiod)
         labels, counts, pcts = _charge_limit_session_histogram(qs)
         return GenerateChargeLimitHistogram(labels, counts, pcts, title, size=size)
+
+    # Peak power / charge-rate session histograms (DC vs AC, Supercharge peaks)
+    if desiredfield in ("charger_power", "charge_rate"):
+        qs = _period_filter(base, desiredperiod)
+        labels, counts, amounts, pcts, amount_unit = _charge_peak_histogram(
+            qs, metric=desiredfield
+        )
+        xlabel = (
+            _("Peak charger power")
+            if desiredfield == "charger_power"
+            else _("Peak charge rate")
+        )
+        return GenerateChargeSessionHistogram(
+            labels,
+            counts,
+            pcts,
+            title,
+            size=size,
+            xlabel=xlabel,
+            amount_per_bucket=amounts,
+            amount_unit=amount_unit,
+        )
 
     # range_at_100 is not a DB column: battery_range / SoC * 100 (full-charge miles)
     if desiredfield == "range_at_100":
