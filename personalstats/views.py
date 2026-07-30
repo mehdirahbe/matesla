@@ -72,6 +72,17 @@ EFFICIENCY_TEMP_BIN_C = 5
 EFFICIENCY_TRIP_GAP = timedelta(minutes=15)
 # Cap drive samples for binning (enough for stable histograms; not raw time series)
 EFFICIENCY_MAX_DRIVE_ROWS = 20000
+# Charge sessions shorter than this are ignored (plug glitches)
+CHARGE_SESSION_MIN_MINUTES = 5
+# charge_limit_soc histogram buckets (high → low), labels for axis
+CHARGE_LIMIT_BUCKET_LABELS = (
+    "100%",
+    "95–99%",
+    "90–94%",
+    "80–89%",
+    "70–79%",
+    "< 70%",
+)
 
 
 def GetTitleForFieldDico():
@@ -89,7 +100,8 @@ def GetTitleForFieldDico():
         "power": _("Power (kW)"),
         "battery_level": _("Battery level (%)"),
         "battery_range": _("Battery range (miles)"),
-        "charge_limit_soc": _("Battery charge limit (%)"),
+        # Histogram of charge sessions by limit (not a raw time series)
+        "charge_limit_soc": _("Charge limit distribution"),
         # Tesla charge_rate is miles of range added per hour (not km/h or kW)
         "charge_rate": _("Charge rate (mi/h)"),
         "charger_actual_current": _("Charger actual current (A)"),
@@ -457,6 +469,173 @@ def _efficiency_bins_for_queryset(qs, *, by_speed: bool):
     return labels, eff, kms, xlabel
 
 
+def _charge_limit_bucket_index(limit_pct: float) -> int:
+    """Map a charge limit % into CHARGE_LIMIT_BUCKET_LABELS index."""
+    x = float(limit_pct)
+    if x >= 99.5:
+        return 0  # 100%
+    if x >= 95:
+        return 1  # 95–99
+    if x >= 90:
+        return 2  # 90–94
+    if x >= 80:
+        return 3  # 80–89
+    if x >= 70:
+        return 4  # 70–79
+    return 5  # < 70
+
+
+def _session_charge_limit(pts) -> float | None:
+    """
+    Representative charge limit for a charge session.
+    Prefer charge_limit_soc (mode-ish: median of samples); else peak SoC reached.
+    """
+    limits = []
+    peaks = []
+    for p in pts:
+        lim = p.get("charge_limit_soc")
+        if lim is not None:
+            try:
+                limits.append(float(lim))
+            except (TypeError, ValueError):
+                pass
+        soc = p.get("usable_battery_level")
+        if soc is None:
+            soc = p.get("battery_level")
+        if soc is not None:
+            try:
+                peaks.append(float(soc))
+            except (TypeError, ValueError):
+                pass
+    if limits:
+        limits.sort()
+        return limits[len(limits) // 2]
+    if peaks:
+        return max(peaks)
+    return None
+
+
+def _charge_limit_session_histogram(qs):
+    """
+    Count charge sessions by charge_limit_soc bucket over the queryset period.
+    SQL: charging samples only; split sessions on gaps > 30 min.
+    Returns (labels, counts, percentages).
+    """
+    charge_q = Q(charging_state__iexact="Charging") | Q(
+        charging_state__iexact="Starting"
+    ) | Q(charger_power__gt=0.5)
+    rows = (
+        qs.filter(charge_q)
+        .order_by("Date")
+        .values(
+            "Date",
+            "charge_limit_soc",
+            "battery_level",
+            "usable_battery_level",
+        )
+    )
+
+    counts = [0] * len(CHARGE_LIMIT_BUCKET_LABELS)
+    cur = []
+    gap = timedelta(minutes=30)
+    for r in rows.iterator(chunk_size=4000):
+        t = r.get("Date")
+        if t is None:
+            continue
+        p = {
+            "t": t,
+            "charge_limit_soc": r.get("charge_limit_soc"),
+            "battery_level": r.get("battery_level"),
+            "usable_battery_level": r.get("usable_battery_level"),
+        }
+        if cur and (t - cur[-1]["t"]) > gap:
+            _tally_charge_session(cur, counts)
+            cur = [p]
+        else:
+            cur.append(p)
+    if cur:
+        _tally_charge_session(cur, counts)
+
+    total = sum(counts)
+    pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
+    return list(CHARGE_LIMIT_BUCKET_LABELS), counts, pcts
+
+
+def _tally_charge_session(pts, counts):
+    if len(pts) < 2:
+        return
+    t0, t1 = pts[0]["t"], pts[-1]["t"]
+    minutes = max(0.0, (t1 - t0).total_seconds()) / 60.0
+    if minutes < CHARGE_SESSION_MIN_MINUTES:
+        return
+    lim = _session_charge_limit(pts)
+    if lim is None:
+        return
+    counts[_charge_limit_bucket_index(lim)] += 1
+
+
+def GenerateChargeLimitHistogram(labels, counts, pcts, title, size="full"):
+    """
+    Bar chart: how often charge sessions used each limit band.
+    Annotate each bar with count and share of sessions.
+    """
+    fig, cfg = make_figure(size, bar=True)
+    ax = fig.subplots()
+    if labels and counts and sum(counts) > 0:
+        x = list(range(len(labels)))
+        bars = ax.bar(
+            x,
+            counts,
+            color=ACCENT_SOFT,
+            edgecolor=ACCENT,
+            linewidth=0.5,
+            alpha=0.92,
+            zorder=2,
+        )
+        ymax = max(counts) if counts else 1
+        ax.set_ylim(0, ymax * 1.22)
+        for i, (bar, c, p) in enumerate(zip(bars, counts, pcts)):
+            if c <= 0:
+                continue
+            ax.annotate(
+                f"{c}\n({p:.0f}%)",
+                xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                xytext=(0, 4),
+                textcoords="offset points",
+                ha="center",
+                va="bottom",
+                color=TEXT,
+                fontsize=cfg["tick_size"],
+                fontweight="medium",
+                zorder=3,
+            )
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=20, ha="right")
+        ax.set_ylabel(_("Charge sessions"), color=MUTED)
+        ax.set_xlabel(_("Charge limit"), color=MUTED)
+        total = sum(counts)
+        ax.text(
+            0.01,
+            0.02,
+            _("Sessions ≥ %(min)s min · n=%(n)s")
+            % {"min": CHARGE_SESSION_MIN_MINUTES, "n": total},
+            transform=ax.transAxes,
+            fontsize=cfg["tick_size"] - 0.5,
+            color=MUTED,
+            va="bottom",
+            zorder=5,
+        )
+        style_axes(ax, cfg)
+        style_suptitle(fig, title, cfg)
+        try:
+            fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.90))
+        except Exception:
+            pass
+    else:
+        finish_figure(fig, ax, title, cfg)
+    return GeneratePngFromGraph(fig, size=size)
+
+
 def GenerateEfficiencyBinGraph(labels, efficiency, km_totals, title, xlabel, size="full"):
     """
     Dual-axis chart: bars = km recorded in bin, line = mean efficiency %.
@@ -612,6 +791,12 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
         return GenerateEfficiencyBinGraph(
             labels, eff, kms, title, xlabel, size=size
         )
+
+    # Charge limit: session histogram (how often set to 100% / 80% / …)
+    if desiredfield == "charge_limit_soc":
+        qs = _period_filter(base, desiredperiod)
+        labels, counts, pcts = _charge_limit_session_histogram(qs)
+        return GenerateChargeLimitHistogram(labels, counts, pcts, title, size=size)
 
     # range_at_100 is not a DB column: battery_range / SoC * 100 (full-charge miles)
     if desiredfield == "range_at_100":

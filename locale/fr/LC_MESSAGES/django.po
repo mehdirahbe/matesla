@@ -1146,6 +1146,18 @@ msgstr "Longitude"
 msgid "Power (kW)"
 msgstr "Puissance (kW)"
 
+msgid "Charge limit distribution"
+msgstr "Répartition des limites de charge"
+
+msgid "Charge sessions"
+msgstr "Sessions de charge"
+
+msgid "Charge limit"
+msgstr "Limite de charge"
+
+msgid "Sessions ≥ %(min)s min · n=%(n)s"
+msgstr "Sessions ≥ %(min)s min · n=%(n)s"
+
 msgid "Efficiency vs average speed"
 msgstr "Efficacité selon la vitesse moyenne"
 
