@@ -752,6 +752,24 @@ msgstr "Potencia (kW)"
 msgid "Charge limit distribution"
 msgstr "Distribución del límite de carga"
 
+msgid "SoC at end of charge"
+msgstr "SoC al final de la carga"
+
+msgid "Daily minimum SoC"
+msgstr "SoC mínimo diario"
+
+msgid "Peak SoC during charge"
+msgstr "SoC máx. durante la carga"
+
+msgid "sessions classified by max SoC while charging"
+msgstr "sesiones clasificadas por SoC máx. en carga"
+
+msgid "one value per calendar day"
+msgstr "un valor por día civil"
+
+msgid "Days"
+msgstr "Días"
+
 msgid "Charger power distribution"
 msgstr "Distribución de la potencia de carga"
 

@@ -90,12 +90,13 @@ function ChangeDriveImageSourceFunction()
 $('#driveGraphCriteria').change(ChangeDriveImageSourceFunction);
 
 //For charge carousel item (same order as #chargeGraphCriteria)
+// Histograms first (power, limit, rate) — most useful; then raw level/range series
 var chargepictureList = [
-"{% url 'StatsOnCarGraph' hashedVin 'battery_level' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'battery_range' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'charger_power' 123456789%}",
 "{% url 'StatsOnCarGraph' hashedVin 'charge_limit_soc' 123456789%}",
 "{% url 'StatsOnCarGraph' hashedVin 'charge_rate' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'charger_power' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'battery_level' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'battery_range' 123456789%}",
  ];
 
 function ChangeChargeImageSourceFunction()

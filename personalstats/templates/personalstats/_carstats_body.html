@@ -67,16 +67,16 @@
         <div class="graph-card__controls">
             <label class="sr-only" for="chargeGraphCriteria">{% trans 'Charge graph' %}</label>
             <select id="chargeGraphCriteria">
-                <option value="0" selected>{{ battery_level }}</option>
-                <option value="1">{{ battery_range }}</option>
-                <option value="2">{{ charge_limit_soc }}</option>
-                <option value="3">{{ charge_rate }}</option>
-                <option value="4">{{ charger_power }}</option>
+                <option value="0" selected>{{ charger_power }}</option>
+                <option value="1">{{ charge_limit_soc }}</option>
+                <option value="2">{{ charge_rate }}</option>
+                <option value="3">{{ battery_level }}</option>
+                <option value="4">{{ battery_range }}</option>
             </select>
         </div>
         <div class="graph-card__media" data-graph-media>
             <img id="chargeGraphImg" class="lazyload" alt="{% trans 'Charge related graphs' %}"
-                 data-src="{% url 'StatsOnCarGraph' hashedVin 'battery_level' period %}?size=thumb" width="700" height="305">
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'charger_power' period %}?size=thumb" width="700" height="305">
         </div>
     </article>
 

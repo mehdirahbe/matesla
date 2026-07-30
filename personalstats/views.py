@@ -105,6 +105,26 @@ CHARGE_RATE_BUCKETS = (
     ("50–149 mi/h", 50, 150),
     ("≤ 49 mi/h", None, 50),  # typical AC
 )
+# Peak SoC reached during a charge session (end-of-charge habit)
+CHARGE_END_SOC_BUCKET_LABELS = (
+    "100%",
+    "95–99%",
+    "90–94%",
+    "80–89%",
+    "70–79%",
+    "50–69%",
+    "< 50%",
+)
+# Daily minimum SoC (how low the pack goes)
+DAILY_MIN_SOC_BUCKET_LABELS = (
+    "< 5%",
+    "5–9%",
+    "10–19%",
+    "20–29%",
+    "30–39%",
+    "40–49%",
+    "≥ 50%",
+)
 
 
 def GetTitleForFieldDico():
@@ -120,11 +140,12 @@ def GetTitleForFieldDico():
         "longitude": _("Longitude"),
         # Tesla drive_state.power is kW (negative when regenerating)
         "power": _("Power (kW)"),
-        "battery_level": _("Battery level (%)"),
-        "battery_range": _("Battery range (miles)"),
+        # Charge-session peak SoC (not raw level over time)
+        "battery_level": _("SoC at end of charge"),
+        # Daily minimum SoC habits (not raw rated range over time)
+        "battery_range": _("Daily minimum SoC"),
         # Histogram of charge sessions by limit (not a raw time series)
         "charge_limit_soc": _("Charge limit distribution"),
-        # Tesla charge_rate is miles of range added per hour (not km/h or kW)
         # Session histograms (peak rate / power), not raw time series
         "charge_rate": _("Charge rate distribution"),
         "charger_actual_current": _("Charger actual current (A)"),
@@ -696,6 +717,113 @@ def _charge_peak_histogram(qs, *, metric: str):
     return labels, counts, amount_tot, pcts, amount_unit
 
 
+def _end_soc_bucket_index(soc: float) -> int:
+    """Peak SoC during charge → CHARGE_END_SOC_BUCKET_LABELS."""
+    x = float(soc)
+    if x >= 99.5:
+        return 0
+    if x >= 95:
+        return 1
+    if x >= 90:
+        return 2
+    if x >= 80:
+        return 3
+    if x >= 70:
+        return 4
+    if x >= 50:
+        return 5
+    return 6
+
+
+def _daily_min_soc_bucket_index(soc: float) -> int:
+    """Daily min SoC → DAILY_MIN_SOC_BUCKET_LABELS."""
+    x = float(soc)
+    if x < 5:
+        return 0
+    if x < 10:
+        return 1
+    if x < 20:
+        return 2
+    if x < 30:
+        return 3
+    if x < 40:
+        return 4
+    if x < 50:
+        return 5
+    return 6
+
+
+def _sample_soc(p) -> float | None:
+    u = p.get("usable_battery_level")
+    if u is not None:
+        try:
+            return float(u)
+        except (TypeError, ValueError):
+            pass
+    b = p.get("battery_level")
+    if b is not None:
+        try:
+            return float(b)
+        except (TypeError, ValueError):
+            pass
+    return None
+
+
+def _charge_end_soc_histogram(qs):
+    """Sessions classified by max SoC reached while charging."""
+    counts = [0] * len(CHARGE_END_SOC_BUCKET_LABELS)
+    for pts in _iter_charge_sessions(qs):
+        peak = None
+        for p in pts:
+            soc = _sample_soc(p)
+            if soc is None:
+                continue
+            if peak is None or soc > peak:
+                peak = soc
+        if peak is None:
+            continue
+        counts[_end_soc_bucket_index(peak)] += 1
+    total = sum(counts)
+    pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
+    return list(CHARGE_END_SOC_BUCKET_LABELS), counts, pcts
+
+
+def _daily_min_soc_histogram(qs):
+    """Calendar days classified by minimum SoC that day."""
+    day_mins = (
+        qs.exclude(battery_level__isnull=True, usable_battery_level__isnull=True)
+        .values("DateOnlyDay")
+        .annotate(
+            min_u=Min("usable_battery_level"),
+            min_b=Min("battery_level"),
+        )
+        .order_by("DateOnlyDay")
+    )
+    counts = [0] * len(DAILY_MIN_SOC_BUCKET_LABELS)
+    for row in day_mins.iterator(chunk_size=2000):
+        if row.get("DateOnlyDay") is None:
+            continue
+        mu, mb = row.get("min_u"), row.get("min_b")
+        # Prefer usable min when available, else battery_level min
+        day_min = None
+        if mu is not None:
+            try:
+                day_min = float(mu)
+            except (TypeError, ValueError):
+                day_min = None
+        if day_min is None and mb is not None:
+            try:
+                day_min = float(mb)
+            except (TypeError, ValueError):
+                day_min = None
+        if day_min is None:
+            continue
+        counts[_daily_min_soc_bucket_index(day_min)] += 1
+    total = sum(counts)
+    pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
+    return list(DAILY_MIN_SOC_BUCKET_LABELS), counts, pcts
+
+
 def GenerateChargeLimitHistogram(labels, counts, pcts, title, size="full"):
     """
     Bar chart: how often charge sessions used each limit band.
@@ -723,9 +851,11 @@ def GenerateChargeSessionHistogram(
     xlabel,
     amount_per_bucket=None,
     amount_unit=None,
+    foot_extra=None,
+    count_ylabel=None,
 ):
     """
-    Bar chart: session counts by bucket; annotate n, %, and optional energy/range.
+    Bar chart: session/day counts by bucket; annotate n, %, optional energy/range.
     amount_unit: "kwh" | "mi" | None
     Footer sits outside the axes so it never covers short bars.
     """
@@ -774,7 +904,7 @@ def GenerateChargeSessionHistogram(
             )
         ax.set_xticks(x)
         ax.set_xticklabels(labels, rotation=22, ha="right")
-        ax.set_ylabel(_("Charge sessions"), color=MUTED)
+        ax.set_ylabel(count_ylabel or _("Charge sessions"), color=MUTED)
         ax.set_xlabel(xlabel, color=MUTED)
         total = sum(counts)
         # Short footer under the figure (not inside the plot area)
@@ -792,6 +922,8 @@ def GenerateChargeSessionHistogram(
                 "n": total,
                 "min": CHARGE_SESSION_MIN_MINUTES,
             }
+        elif foot_extra:
+            foot = _("n=%(n)s") % {"n": total} + " · " + foot_extra
         else:
             foot = _("n=%(n)s sessions (≥%(min)s min)") % {
                 "n": total,
@@ -999,6 +1131,39 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
             xlabel=xlabel,
             amount_per_bucket=amounts,
             amount_unit=amount_unit,
+        )
+
+    # End-of-charge SoC (replaces noisy battery_level time series)
+    if desiredfield == "battery_level":
+        qs = _period_filter(base, desiredperiod)
+        labels, counts, pcts = _charge_end_soc_histogram(qs)
+        return GenerateChargeSessionHistogram(
+            labels,
+            counts,
+            pcts,
+            title,
+            size=size,
+            xlabel=_("Peak SoC during charge"),
+            amount_per_bucket=None,
+            amount_unit=None,
+            foot_extra=_("sessions classified by max SoC while charging"),
+        )
+
+    # Daily minimum SoC (replaces noisy battery_range time series)
+    if desiredfield == "battery_range":
+        qs = _period_filter(base, desiredperiod)
+        labels, counts, pcts = _daily_min_soc_histogram(qs)
+        return GenerateChargeSessionHistogram(
+            labels,
+            counts,
+            pcts,
+            title,
+            size=size,
+            xlabel=_("Daily minimum SoC"),
+            amount_per_bucket=None,
+            amount_unit=None,
+            foot_extra=_("one value per calendar day"),
+            count_ylabel=_("Days"),
         )
 
     # range_at_100 is not a DB column: battery_range / SoC * 100 (full-charge miles)
