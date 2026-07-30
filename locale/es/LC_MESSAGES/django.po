@@ -912,11 +912,26 @@ msgstr "01 · BATERÍA"
 msgid "02 · CHARGE"
 msgstr "02 · CARGA"
 
+msgid "03 · USAGE"
+msgstr "03 · USO"
+
+msgid "04 · CLIMATE"
+msgstr "04 · CLIMA"
+
+msgid "05 · DRIVE"
+msgstr "05 · CONDUCCIÓN"
+
 msgid "03 · CLIMATE"
 msgstr "03 · CLIMA"
 
 msgid "04 · DRIVE"
 msgstr "04 · CONDUCCIÓN"
+
+msgid "Trip efficiency graphs"
+msgstr "Gráficos de eficiencia de viajes"
+
+msgid "Usage graph"
+msgstr "Gráfico de uso"
 
 msgid "Sleep mode"
 msgstr "Modo reposo"

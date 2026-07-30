@@ -48,13 +48,31 @@ function ChangeTemperatureImageSourceFunction()
 
 $('#temperatureGraphCriteria').change(ChangeTemperatureImageSourceFunction);
 
-//For drive carousel item (same order as #driveGraphCriteria)
+//For usage / trip efficiency (same order as #usageGraphCriteria)
+var usagepictureList = [
+"{% url 'StatsOnCarGraph' hashedVin 'efficiency_by_speed' 123456789%}",
+"{% url 'StatsOnCarGraph' hashedVin 'efficiency_by_temp' 123456789%}",
+ ];
+
+function ChangeUsageImageSourceFunction()
+{
+    var choiceSelectItem = parseInt($('#usageGraphCriteria').val());
+    var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());//Period in weeks
+    var url = withGraphSize(
+        usagepictureList[choiceSelectItem].replace("123456789", choiceDesiredPeriod),
+        "thumb"
+    );
+    $('#usageGraphImg').attr({"data-src": url, "src": url});
+    refreshOpenLightboxIfNeeded("usage");
+}
+
+$('#usageGraphCriteria').change(ChangeUsageImageSourceFunction);
+
+//For drive carousel item (same order as #driveGraphCriteria) — raw drive sensors only
 var drivepictureList = [
 "{% url 'StatsOnCarGraph' hashedVin 'odometer' 123456789%}",
 "{% url 'StatsOnCarGraph' hashedVin 'speed' 123456789%}",
 "{% url 'StatsOnCarGraph' hashedVin 'power' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'efficiency_by_speed' 123456789%}",
-"{% url 'StatsOnCarGraph' hashedVin 'efficiency_by_temp' 123456789%}",
  ];
 
 function ChangeDriveImageSourceFunction()
@@ -134,6 +152,7 @@ function ChangeDesiredPeriodFunction()
     //When period changes, all graphs must be refreshed to reflect new period
     ChangeBatteryDegradationImageSourceFunction();
     ChangeChargeImageSourceFunction();
+    ChangeUsageImageSourceFunction();
     ChangeTemperatureImageSourceFunction();
     ChangeDriveImageSourceFunction();
     syncVehicleSwitchPeriod();
