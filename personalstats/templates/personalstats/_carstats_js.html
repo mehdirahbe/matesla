@@ -157,6 +157,9 @@ function ChangeDesiredPeriodFunction()
     ChangeTemperatureImageSourceFunction();
     ChangeDriveImageSourceFunction();
     syncVehicleSwitchPeriod();
+    if (typeof reloadLifetimeMap === "function") {
+        reloadLifetimeMap();
+    }
 }
 
 $('#DesiredPeriod').change(ChangeDesiredPeriodFunction);
@@ -270,6 +273,282 @@ $(function () {
     document.addEventListener("keydown", function (ev) {
         if (ev.key === "Escape") closeGraphLightbox();
     });
+});
+
+// --- Lifetime map (Leaflet under charts; period follows #DesiredPeriod) ---
+var lifetimeMapState = {
+    map: null,
+    layer: null,
+    loading: false,
+    pendingReload: false,
+    loadedKey: null,
+    assetsReady: false
+};
+
+function lifetimeMapI18n() {
+    return {
+        loading: "{% filter escapejs %}{% trans 'Loading map…' %}{% endfilter %}",
+        empty: "{% filter escapejs %}{% trans 'No GPS track for this period.' %}{% endfilter %}",
+        error: "{% filter escapejs %}{% trans 'Could not load the map.' %}{% endfilter %}",
+        days: "{% filter escapejs %}{% trans 'd' %}{% endfilter %}",
+        hours: "{% filter escapejs %}{% trans 'h' %}{% endfilter %}",
+        minutes: "{% filter escapejs %}{% trans 'min' %}{% endfilter %}"
+    };
+}
+
+function ensureLeafletAssets(root) {
+    return new Promise(function (resolve, reject) {
+        if (typeof L !== "undefined") {
+            lifetimeMapState.assetsReady = true;
+            resolve();
+            return;
+        }
+        var cssHref = root.getAttribute("data-leaflet-css");
+        var jsSrc = root.getAttribute("data-leaflet-js");
+        if (!jsSrc) {
+            reject(new Error("missing leaflet"));
+            return;
+        }
+        if (cssHref && !document.querySelector('link[data-lifetime-leaflet]')) {
+            var link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = cssHref;
+            link.setAttribute("data-lifetime-leaflet", "1");
+            document.head.appendChild(link);
+        }
+        var existing = document.querySelector("script[data-lifetime-leaflet]");
+        if (existing) {
+            existing.addEventListener("load", function () { resolve(); });
+            existing.addEventListener("error", function () { reject(new Error("leaflet")); });
+            return;
+        }
+        var script = document.createElement("script");
+        script.src = jsSrc;
+        script.async = true;
+        script.setAttribute("data-lifetime-leaflet", "1");
+        script.onload = function () {
+            lifetimeMapState.assetsReady = true;
+            resolve();
+        };
+        script.onerror = function () { reject(new Error("leaflet")); };
+        document.head.appendChild(script);
+    });
+}
+
+function formatDriveTime(dt, i18n) {
+    if (!dt) return "—";
+    var parts = [];
+    if (dt.days) parts.push(dt.days + "\u00a0" + i18n.days);
+    if (dt.hours || dt.days) parts.push(dt.hours + "\u00a0" + i18n.hours);
+    parts.push(dt.minutes + "\u00a0" + i18n.minutes);
+    return parts.join(" ");
+}
+
+function fmtNum(v, digits) {
+    if (v === null || v === undefined || v === "") return "—";
+    var n = Number(v);
+    if (!isFinite(n)) return "—";
+    if (digits === 0) return String(Math.round(n));
+    return n.toLocaleString(undefined, {
+        maximumFractionDigits: digits == null ? 1 : digits,
+        minimumFractionDigits: 0
+    });
+}
+
+function fillLifetimeKpis(data) {
+    var root = document.getElementById("lifetime-kpis");
+    if (!root || !data) return;
+    root.hidden = false;
+    var i18n = lifetimeMapI18n();
+    var set = function (key, text) {
+        var el = root.querySelector('[data-k="' + key + '"]');
+        if (el) el.textContent = text;
+    };
+    set("drives", fmtNum(data.drives, 0));
+    set("km_driven", data.km_driven != null ? fmtNum(data.km_driven, 0) + "\u00a0km" : "—");
+    set("rated_km_used", data.rated_km_used != null ? fmtNum(data.rated_km_used, 0) + "\u00a0km" : "—");
+    set("wh_per_km", data.wh_per_km != null ? fmtNum(data.wh_per_km, 0) + "\u00a0Wh/km" : "—");
+    set("efficiency_pct", data.efficiency_pct != null ? fmtNum(data.efficiency_pct, 1) + "\u00a0%" : "—");
+    set("kwh_used", data.kwh_used != null ? fmtNum(data.kwh_used, 1) + "\u00a0kWh" : "—");
+    set("avg_kmh", data.avg_kmh != null ? fmtNum(data.avg_kmh, 1) + "\u00a0km/h" : "—");
+    set("avg_temp_c", data.avg_temp_c != null ? fmtNum(data.avg_temp_c, 1) + "\u00a0°C" : "—");
+    set("drive_time", formatDriveTime(data.drive_time, i18n));
+}
+
+function setLifetimeStatus(text, isError) {
+    var el = document.getElementById("lifetime-map-status");
+    if (!el) return;
+    if (!text) {
+        el.hidden = true;
+        el.textContent = "";
+        return;
+    }
+    el.hidden = false;
+    el.textContent = text;
+    el.classList.toggle("lifetime-map-status--error", !!isError);
+}
+
+function drawLifetimeMap(data) {
+    var mapEl = document.getElementById("lifetime-map");
+    var root = document.querySelector("[data-lifetime-map]");
+    if (!mapEl || typeof L === "undefined") return;
+
+    var iconBase = root ? root.getAttribute("data-leaflet-icon-base") : "";
+    if (iconBase) {
+        L.Icon.Default.mergeOptions({
+            iconUrl: iconBase + "marker-icon.png",
+            iconRetinaUrl: iconBase + "marker-icon-2x.png",
+            shadowUrl: iconBase + "marker-shadow.png"
+        });
+    }
+
+    // Force a real box size before Leaflet measures the container
+    if (!mapEl.style.height) {
+        mapEl.style.height = "360px";
+    }
+    mapEl.style.width = "100%";
+
+    if (!lifetimeMapState.map) {
+        lifetimeMapState.map = L.map(mapEl, {
+            zoomControl: true,
+            attributionControl: true
+        });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(lifetimeMapState.map);
+    }
+    if (lifetimeMapState.layer) {
+        lifetimeMapState.map.removeLayer(lifetimeMapState.layer);
+        lifetimeMapState.layer = null;
+    }
+
+    var segments = (data.segments || []).filter(function (seg) {
+        return seg && seg.length >= 2;
+    });
+    if (!segments.length) return;
+
+    var lineOpts = {
+        color: "#4db4ff",
+        weight: 3,
+        opacity: 0.88,
+        lineJoin: "round",
+        lineCap: "round",
+        smoothFactor: 1.2
+    };
+    // Prefer multi-polyline; fall back to a feature group if needed
+    var layer;
+    try {
+        layer = L.polyline(segments, lineOpts);
+        layer.addTo(lifetimeMapState.map);
+    } catch (e1) {
+        layer = L.featureGroup();
+        segments.forEach(function (seg) {
+            L.polyline(seg, lineOpts).addTo(layer);
+        });
+        layer.addTo(lifetimeMapState.map);
+    }
+    lifetimeMapState.layer = layer;
+
+    try {
+        var bounds = layer.getBounds();
+        if (bounds && bounds.isValid()) {
+            lifetimeMapState.map.fitBounds(bounds, { padding: [28, 28], maxZoom: 12 });
+        } else {
+            lifetimeMapState.map.setView([50.85, 4.35], 6);
+        }
+    } catch (e) {
+        lifetimeMapState.map.setView([50.85, 4.35], 6);
+    }
+    // invalidateSize after layout (container may have been height:0 on first paint)
+    setTimeout(function () {
+        if (lifetimeMapState.map) lifetimeMapState.map.invalidateSize();
+    }, 80);
+    setTimeout(function () {
+        if (lifetimeMapState.map) lifetimeMapState.map.invalidateSize();
+    }, 400);
+}
+
+function reloadLifetimeMap() {
+    var root = document.querySelector("[data-lifetime-map]");
+    if (!root) return;
+    var baseUrl = root.getAttribute("data-url");
+    if (!baseUrl) return;
+    var periodEl = document.getElementById("DesiredPeriod");
+    var period = periodEl ? periodEl.value : "520";
+    var key = period;
+    if (lifetimeMapState.loading) {
+        // Period changed while a fetch is in flight — rerun when it finishes
+        lifetimeMapState.pendingReload = true;
+        return;
+    }
+    lifetimeMapState.loading = true;
+    lifetimeMapState.pendingReload = false;
+    lifetimeMapState.loadedKey = key;
+
+    var i18n = lifetimeMapI18n();
+    setLifetimeStatus(i18n.loading, false);
+
+    ensureLeafletAssets(root)
+        .then(function () {
+            var url = baseUrl + (baseUrl.indexOf("?") >= 0 ? "&" : "?") + "period=" + encodeURIComponent(period);
+            return fetch(url, { credentials: "same-origin", headers: { "Accept": "application/json" } });
+        })
+        .then(function (r) {
+            if (!r.ok) throw new Error("http " + r.status);
+            return r.json();
+        })
+        .then(function (data) {
+            lifetimeMapState.loading = false;
+            // Stale response if user changed period mid-flight
+            var cur = periodEl ? periodEl.value : period;
+            if (String(cur) !== String(key) || lifetimeMapState.pendingReload) {
+                lifetimeMapState.pendingReload = false;
+                reloadLifetimeMap();
+                return;
+            }
+            if (!data || !data.ok) throw new Error("bad payload");
+            fillLifetimeKpis(data);
+            if (!data.has_track || !(data.segments && data.segments.length)) {
+                setLifetimeStatus(i18n.empty, false);
+                if (lifetimeMapState.layer && lifetimeMapState.map) {
+                    lifetimeMapState.map.removeLayer(lifetimeMapState.layer);
+                    lifetimeMapState.layer = null;
+                }
+            } else {
+                drawLifetimeMap(data);
+                setLifetimeStatus("", false);
+            }
+        })
+        .catch(function () {
+            lifetimeMapState.loading = false;
+            if (lifetimeMapState.pendingReload) {
+                lifetimeMapState.pendingReload = false;
+                reloadLifetimeMap();
+                return;
+            }
+            lifetimeMapState.loadedKey = null;
+            setLifetimeStatus(lifetimeMapI18n().error, true);
+        });
+}
+
+$(function () {
+    var root = document.querySelector("[data-lifetime-map]");
+    if (!root) return;
+    // Lazy: load when card is near viewport (or immediately if already visible)
+    if ("IntersectionObserver" in window) {
+        var obs = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) {
+                if (en.isIntersecting) {
+                    obs.disconnect();
+                    reloadLifetimeMap();
+                }
+            });
+        }, { rootMargin: "200px" });
+        obs.observe(root);
+    } else {
+        reloadLifetimeMap();
+    }
 });
 
 </script>

@@ -1960,3 +1960,51 @@ msgstr[1] "%(n)s jours"
 
 msgid "newest on the left"
 msgstr "les plus récentes à gauche"
+
+msgid "Lifetime map"
+msgstr "Carte lifetime"
+
+msgid "06 · MAP"
+msgstr "06 · CARTE"
+
+msgid "GPS tracks and trip totals for the selected period."
+msgstr "Traces GPS et totaux de trajets pour la période sélectionnée."
+
+msgid "Lifetime GPS map"
+msgstr "Carte GPS lifetime"
+
+msgid "Loading map…"
+msgstr "Chargement de la carte…"
+
+msgid "No GPS track for this period."
+msgstr "Aucune trace GPS pour cette période."
+
+msgid "Could not load the map."
+msgstr "Impossible de charger la carte."
+
+msgid "Kilometers driven"
+msgstr "Kilomètres parcourus"
+
+msgid "Rated km used"
+msgstr "Km d’autonomie utilisés"
+
+msgid "Wh/km"
+msgstr "Wh/km"
+
+msgid "kWh used"
+msgstr "kWh utilisés"
+
+msgid "Avg temp"
+msgstr "Temp. moy."
+
+msgid "Time driving"
+msgstr "Temps de conduite"
+
+msgid "d"
+msgstr "j"
+
+msgid "h"
+msgstr "h"
+
+msgid "min"
+msgstr "min"

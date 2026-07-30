@@ -1612,6 +1612,168 @@ button:disabled,
     grid-column: auto;
 }
 
+/* Lifetime map card under personal chart grid (TeslaFi-inspired, matesla dark) */
+.lifetime-map-card {
+    margin-top: 14px;
+    border: 1px solid var(--app-line);
+    border-radius: var(--app-radius);
+    background: var(--app-surface);
+    overflow: hidden;
+}
+
+.lifetime-map-card__header {
+    display: block;
+    padding: 14px 16px 10px;
+}
+
+.lifetime-map-card__header h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.lifetime-map-card__sub {
+    margin: 4px 0 0;
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+.lifetime-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+    gap: 1px;
+    margin: 0 12px 12px;
+    border: 1px solid var(--app-line);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--app-line);
+}
+
+.lifetime-kpi {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px 12px 14px;
+    background: linear-gradient(180deg, rgba(77, 180, 255, 0.12), rgba(16, 26, 43, 0.92));
+    min-width: 0;
+}
+
+.lifetime-kpi__label {
+    display: block;
+    color: var(--app-muted);
+    font-size: 0.62rem;
+    font-weight: 780;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.25;
+    margin: 0;
+}
+
+.lifetime-kpi__value {
+    display: block;
+    color: var(--app-text);
+    font-size: clamp(0.95rem, 1.6vw, 1.2rem);
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    word-break: break-word;
+    margin: 0;
+}
+
+.lifetime-map-wrap {
+    position: relative;
+    margin: 0 12px 14px;
+    border: 1px solid var(--app-line);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--app-bg-raised);
+    min-height: 280px;
+}
+
+.lifetime-map {
+    height: clamp(260px, 42vh, 480px);
+    min-height: 260px;
+    width: 100%;
+    z-index: 0;
+    background: #0d1524;
+}
+
+/* Leaflet sits on dark UI — soften chrome */
+.lifetime-map .leaflet-control-zoom a {
+    background: var(--app-surface-2);
+    color: var(--app-text);
+    border-color: var(--app-line);
+}
+
+.lifetime-map .leaflet-control-attribution {
+    background: rgba(11, 18, 32, 0.75);
+    color: var(--app-muted);
+    font-size: 0.65rem;
+}
+
+.lifetime-map .leaflet-control-attribution a {
+    color: var(--app-red-bright);
+}
+
+.lifetime-map-status {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    text-align: center;
+    color: var(--app-muted);
+    font-size: 0.9rem;
+    background: rgba(11, 18, 32, 0.55);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.lifetime-map-status[hidden] {
+    display: none !important;
+}
+
+.lifetime-map-status--error {
+    color: var(--app-red-bright);
+}
+
+@media (max-width: 700px) {
+    .lifetime-map-card__header {
+        padding: 12px 12px 8px;
+    }
+
+    .lifetime-kpis {
+        margin: 0 8px 10px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .lifetime-kpi {
+        padding: 10px 8px 12px;
+        gap: 5px;
+    }
+
+    .lifetime-kpi__label {
+        font-size: 0.58rem;
+    }
+
+    .lifetime-kpi__value {
+        font-size: 0.92rem;
+    }
+
+    .lifetime-map-wrap {
+        margin: 0 8px 10px;
+        min-height: 220px;
+    }
+
+    .lifetime-map {
+        height: clamp(220px, 48vh, 360px);
+        min-height: 220px;
+    }
+}
+
 /* Expanded chart overlay — always viewport-centered (reparented to body in JS) */
 .graph-lightbox {
     position: fixed !important;

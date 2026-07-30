@@ -35,6 +35,7 @@ from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.VinHash import IsValidHash
 from django.utils.translation import gettext as _
 from datetime import date, timedelta, datetime
+from math import asin, cos, radians, sin, sqrt
 from zoneinfo import ZoneInfo
 import json
 import re
@@ -72,6 +73,16 @@ EFFICIENCY_TEMP_BIN_C = 5
 EFFICIENCY_TRIP_GAP = timedelta(minutes=15)
 # Cap drive samples for binning (enough for stable histograms; not raw time series)
 EFFICIENCY_MAX_DRIVE_ROWS = 20000
+# Lifetime map (stats page): path + summary KPIs for the selected period
+LIFETIME_MAP_MAX_POINTS = 5000
+# Split polyline when consecutive drive samples are farther apart than this
+LIFETIME_MAP_GAP = timedelta(minutes=30)
+# Ignore GPS jitter while "driving" but barely moving (~180 m)
+LIFETIME_MAP_MIN_MOVE_M = 180.0
+# Count as a trip for KPIs if at least this distance (km)
+LIFETIME_MAP_MIN_TRIP_KM = 1.0
+# Soft cache so flipping chart period does not re-scan every time
+LIFETIME_MAP_CACHE_SECONDS = 600
 # Charge sessions shorter than this are ignored (plug glitches)
 CHARGE_SESSION_MIN_MINUTES = 5
 CHARGE_SESSION_GAP = timedelta(minutes=30)
@@ -1307,6 +1318,277 @@ def _downsample_indices(n, max_points):
     return sorted(idxs)
 
 
+def _haversine_m(lat1, lon1, lat2, lon2):
+    """Great-circle distance in metres between two WGS84 points."""
+    r = 6371000.0
+    p1, p2 = radians(lat1), radians(lat2)
+    dphi = radians(lat2 - lat1)
+    dlmb = radians(lon2 - lon1)
+    a = sin(dphi / 2.0) ** 2 + cos(p1) * cos(p2) * sin(dlmb / 2.0) ** 2
+    return 2.0 * r * asin(min(1.0, sqrt(a)))
+
+
+def _thin_segments_to_cap(segments, max_points):
+    """
+    Proportionally downsample polyline segments so total points ≤ max_points.
+
+    First evenly samples *which* segments to keep (so late trips are not
+    dropped when the budget runs out), then thins points inside each.
+    Always keeps ≥2 points on retained multi-point segments.
+    """
+    multi = [s for s in segments if len(s) >= 2]
+    if not multi:
+        return [s for s in segments if s]
+    total = sum(len(s) for s in multi)
+    if total <= max_points or max_points < 2:
+        return multi
+
+    # Each kept segment needs ≥2 points → hard cap on segment count
+    max_segs = max(1, max_points // 2)
+    if len(multi) > max_segs:
+        keep_idx = _downsample_indices(len(multi), max_segs)
+        multi = [multi[i] for i in keep_idx]
+
+    weights = [len(s) for s in multi]
+    wsum = float(sum(weights) or 1)
+    # Proportional target, then fix so sum(allow) == max_points and each ≥2
+    raw = [max(2, int(round(max_points * (w / wsum)))) for w in weights]
+    # Clamp to segment length
+    allow = [min(len(s), a) for s, a in zip(multi, raw)]
+    # Redistribute if over/under budget
+    diff = max_points - sum(allow)
+    i = 0
+    n = len(allow)
+    # Prefer giving extra points to longer segments
+    order = sorted(range(n), key=lambda k: weights[k], reverse=(diff > 0))
+    guard = 0
+    while diff != 0 and n and guard < max_points * 4:
+        k = order[i % n]
+        if diff > 0 and allow[k] < len(multi[k]):
+            allow[k] += 1
+            diff -= 1
+        elif diff < 0 and allow[k] > 2:
+            allow[k] -= 1
+            diff += 1
+        i += 1
+        guard += 1
+
+    out = []
+    for s, a in zip(multi, allow):
+        idxs = _downsample_indices(len(s), max(2, min(a, len(s))))
+        out.append([s[j] for j in idxs])
+    # Hard safety: never exceed max_points even if redistribution stalled
+    total_out = sum(len(s) for s in out)
+    if total_out > max_points and len(out) > 1:
+        keep_n = max(1, max_points // 2)
+        keep_idx = _downsample_indices(len(out), min(len(out), keep_n))
+        out = [out[i] for i in keep_idx]
+        # final even thin of all remaining points
+        flat_budget = max_points
+        per = max(2, flat_budget // max(1, len(out)))
+        out = [
+            [s[j] for j in _downsample_indices(len(s), min(len(s), per))]
+            for s in out
+        ]
+    return out
+
+
+def _build_lifetime_map_payload(hashedVin, desiredperiod):
+    """
+    Drive GPS polylines + period summary KPIs (TeslaFi-style lifetime strip).
+
+    Single scan of drive samples with GPS; map is distance-thinned and capped.
+    Metrics use odometer / rated-range / temp on the same trip segmentation.
+    """
+    base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
+    qs = _period_filter(base, desiredperiod)
+    drive_qs = (
+        qs.filter(_drive_filter_q())
+        .filter(latitude__isnull=False, longitude__isnull=False)
+        .order_by("Date")
+        .values(
+            "Date",
+            "latitude",
+            "longitude",
+            "odometer",
+            "battery_range",
+            "ideal_battery_range",
+            "outside_temp",
+            "speed",
+            "vin",
+        )
+    )
+
+    segments = []  # list of [[lat, lon], ...]
+    cur_path = []
+    last_kept_lat = last_kept_lon = None
+    last_t = None
+    raw_gps = 0
+
+    # Trip KPI accumulators (gap-split, independent of map thinning)
+    drives = 0
+    km_total = 0.0
+    rated_mi_used = 0.0
+    hours_total = 0.0
+    temp_sum = 0.0
+    temp_n = 0
+    trip_t0 = trip_odo0 = trip_r0 = None
+    trip_t1 = trip_odo1 = trip_r1 = None
+    vin = None
+
+    def finalize_trip():
+        nonlocal drives, km_total, rated_mi_used, hours_total
+        nonlocal trip_t0, trip_odo0, trip_r0, trip_t1, trip_odo1, trip_r1
+        if trip_t0 is None or trip_t1 is None:
+            trip_t0 = trip_odo0 = trip_r0 = None
+            trip_t1 = trip_odo1 = trip_r1 = None
+            return
+        if trip_odo0 is not None and trip_odo1 is not None and trip_odo1 >= trip_odo0:
+            miles = float(trip_odo1) - float(trip_odo0)
+            km = miles * 1.609344
+        else:
+            km = 0.0
+        seconds = max(0.0, (trip_t1 - trip_t0).total_seconds())
+        if km >= LIFETIME_MAP_MIN_TRIP_KM and seconds >= 60:
+            drives += 1
+            km_total += km
+            hours_total += seconds / 3600.0
+            if trip_r0 is not None and trip_r1 is not None and trip_r0 > trip_r1:
+                used = float(trip_r0) - float(trip_r1)
+                if used > 0.25:
+                    rated_mi_used += used
+        trip_t0 = trip_odo0 = trip_r0 = None
+        trip_t1 = trip_odo1 = trip_r1 = None
+
+    def flush_path():
+        nonlocal cur_path, last_kept_lat, last_kept_lon
+        if len(cur_path) >= 2:
+            segments.append(cur_path)
+        elif len(cur_path) == 1:
+            # Keep lonely points as degenerate segment (drawn as a small circle later)
+            segments.append(cur_path)
+        cur_path = []
+        last_kept_lat = last_kept_lon = None
+
+    progressive_cap = LIFETIME_MAP_MAX_POINTS * 2
+
+    for s in drive_qs.iterator(chunk_size=4000):
+        t = s.get("Date")
+        lat, lon = s.get("latitude"), s.get("longitude")
+        if t is None or lat is None or lon is None:
+            continue
+        try:
+            lat_f, lon_f = float(lat), float(lon)
+        except (TypeError, ValueError):
+            continue
+        if not (-90.0 <= lat_f <= 90.0 and -180.0 <= lon_f <= 180.0):
+            continue
+        if abs(lat_f) < 1e-5 and abs(lon_f) < 1e-5:
+            continue  # null island / unset GPS
+
+        raw_gps += 1
+        if vin is None and s.get("vin"):
+            vin = s["vin"]
+
+        # --- KPI trip state ---
+        if last_t is not None and (t - last_t) > LIFETIME_MAP_GAP:
+            finalize_trip()
+            flush_path()
+        odo = s.get("odometer")
+        try:
+            odo_f = float(odo) if odo is not None else None
+        except (TypeError, ValueError):
+            odo_f = None
+        r = _rated_range_miles(s.get("battery_range"), s.get("ideal_battery_range"))
+        ot = s.get("outside_temp")
+        if ot is not None:
+            try:
+                temp_sum += float(ot)
+                temp_n += 1
+            except (TypeError, ValueError):
+                pass
+
+        if trip_t0 is None:
+            trip_t0, trip_odo0, trip_r0 = t, odo_f, r
+        trip_t1, trip_odo1, trip_r1 = t, odo_f if odo_f is not None else trip_odo1, r if r is not None else trip_r1
+
+        # --- Map path (distance thin) ---
+        keep = False
+        if last_kept_lat is None:
+            keep = True
+        else:
+            dist = _haversine_m(last_kept_lat, last_kept_lon, lat_f, lon_f)
+            if dist >= LIFETIME_MAP_MIN_MOVE_M:
+                keep = True
+        if keep:
+            cur_path.append([round(lat_f, 5), round(lon_f, 5)])
+            last_kept_lat, last_kept_lon = lat_f, lon_f
+            # Progressive thin if we are exploding memory mid-scan
+            n_pts = sum(len(seg) for seg in segments) + len(cur_path)
+            if n_pts > progressive_cap:
+                if cur_path:
+                    segments.append(cur_path)
+                    cur_path = []
+                    last_kept_lat = last_kept_lon = None
+                segments = _thin_segments_to_cap(segments, LIFETIME_MAP_MAX_POINTS)
+                progressive_cap = LIFETIME_MAP_MAX_POINTS * 2
+
+        last_t = t
+
+    finalize_trip()
+    flush_path()
+    segments = _thin_segments_to_cap(segments, LIFETIME_MAP_MAX_POINTS)
+    # Drop 1-point stubs unless they are the only evidence of travel
+    multi = [s for s in segments if len(s) >= 2]
+    if multi:
+        segments = multi
+
+    path_points = sum(len(s) for s in segments)
+    rated_km_used = rated_mi_used * 1.609344 if rated_mi_used > 0 else 0.0
+    efficiency_pct = None
+    if rated_km_used > 1.0 and km_total > 1.0:
+        efficiency_pct = 100.0 * km_total / rated_km_used
+        if efficiency_pct < 10 or efficiency_pct > 200:
+            efficiency_pct = None
+    # ~220 Wh/mi fleet average → Wh/km and kWh used from rated miles
+    kwh_used = rated_mi_used * 0.22 if rated_mi_used > 0 else None
+    wh_per_km = None
+    if kwh_used is not None and km_total > 1.0:
+        wh_per_km = (kwh_used * 1000.0) / km_total
+    avg_kmh = (km_total / hours_total) if hours_total > 0.05 else None
+    avg_temp = (temp_sum / temp_n) if temp_n else None
+
+    # Human-readable driving time
+    total_minutes = int(round(hours_total * 60.0))
+    drive_days = total_minutes // (24 * 60)
+    rem = total_minutes % (24 * 60)
+    drive_hours = rem // 60
+    drive_mins = rem % 60
+
+    return {
+        "ok": True,
+        "period_weeks": int(desiredperiod) if desiredperiod else 0,
+        "segments": segments,
+        "path_points": path_points,
+        "raw_gps_samples": raw_gps,
+        "drives": drives,
+        "km_driven": round(km_total, 1) if km_total > 0 else 0.0,
+        "rated_km_used": round(rated_km_used, 1) if rated_km_used > 0 else 0.0,
+        "wh_per_km": round(wh_per_km) if wh_per_km is not None else None,
+        "efficiency_pct": round(efficiency_pct, 2) if efficiency_pct is not None else None,
+        "kwh_used": round(kwh_used, 1) if kwh_used is not None else None,
+        "avg_kmh": round(avg_kmh, 1) if avg_kmh is not None else None,
+        "avg_temp_c": round(avg_temp, 1) if avg_temp is not None else None,
+        "drive_time": {
+            "days": drive_days,
+            "hours": drive_hours,
+            "minutes": drive_mins,
+            "total_hours": round(hours_total, 2),
+        },
+        "has_track": path_points > 0,
+    }
+
+
 def _point_kind(p):
     """Classify a sample: charge | drive | park."""
     cs = (p.get("charging_state") or "").strip().lower()
@@ -1800,6 +2082,51 @@ def DayMap(request, hashedVin, day=None):
         }
     )
     return render(request, "personalstats/daymap.html", context)
+
+
+@require_GET
+def LifetimeMapData(request, hashedVin):
+    """
+    JSON for the personal-stats lifetime map card.
+
+    Query: ?period=<weeks> (same values as #DesiredPeriod; 0 = all history).
+    Returns polylines + summary KPIs (drives, km, efficiency, …).
+    """
+    if not IsValidHash(hashedVin):
+        return JsonResponse(
+            {"ok": False, "error": "invalid_hash"}, status=404
+        )
+    weeks = parse_stats_period(
+        request.GET.get("period"), default=STATS_PERIOD_DEFAULT
+    )
+    # Allow explicit 0 (= all) via query even if not in the select list
+    raw = request.GET.get("period")
+    if raw is not None:
+        try:
+            raw_i = int(raw)
+            if raw_i == 0:
+                weeks = 0
+        except (TypeError, ValueError):
+            pass
+
+    cache_key = f"lifetime_map_v1:{hashedVin}:{weeks}"
+    cache_backend = None
+    try:
+        from django.core.cache import cache as cache_backend
+
+        cached = cache_backend.get(cache_key)
+        if cached is not None:
+            return JsonResponse(cached)
+    except Exception:
+        cache_backend = None
+
+    payload = _build_lifetime_map_payload(hashedVin, weeks)
+    if cache_backend is not None:
+        try:
+            cache_backend.set(cache_key, payload, LIFETIME_MAP_CACHE_SECONDS)
+        except Exception:
+            pass
+    return JsonResponse(payload)
 
 
 @require_GET

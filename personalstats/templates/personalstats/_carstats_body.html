@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load static %}
 {% with period=stats_period|default:520 %}
 
 <div class="stats-toolbar">
@@ -158,6 +159,70 @@
                  data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' period %}?size=thumb" width="700" height="305">
         </div>
     </article>
+</section>
+
+{# Lifetime map — full width under charts; period follows #DesiredPeriod #}
+<section class="lifetime-map-card" aria-label="{% trans 'Lifetime map' %}"
+         data-lifetime-map
+         data-url="{% url 'PersoLifetimeMapData' hashedVin %}"
+         data-leaflet-css="{% static 'leaflet/leaflet.css' %}"
+         data-leaflet-js="{% static 'leaflet/leaflet.js' %}"
+         data-leaflet-icon-base="{% static 'leaflet/images/' %}">
+    <header class="lifetime-map-card__header">
+        <div>
+            <span class="graph-card__index">{% trans '06 · MAP' %}</span>
+            <h2>{% trans 'Lifetime map' %}</h2>
+            <p class="lifetime-map-card__sub text-muted">{% trans 'GPS tracks and trip totals for the selected period.' %}</p>
+        </div>
+    </header>
+
+    <div class="lifetime-kpis" id="lifetime-kpis" hidden>
+        <div class="lifetime-kpi">
+            <span class="lifetime-kpi__label">{% trans 'Drives' %}</span>
+            <strong class="lifetime-kpi__value" data-k="drives">—</strong>
+        </div>
+        <div class="lifetime-kpi">
+            <span class="lifetime-kpi__label">{% trans 'Kilometers driven' %}</span>
+            <strong class="lifetime-kpi__value" data-k="km_driven">—</strong>
+        </div>
+        <div class="lifetime-kpi">
+            <span class="lifetime-kpi__label">{% trans 'Rated km used' %}</span>
+            <strong class="lifetime-kpi__value" data-k="rated_km_used">—</strong>
+        </div>
+        <div class="lifetime-kpi">
+            <span class="lifetime-kpi__label">{% trans 'Wh/km' %}</span>
+            <strong class="lifetime-kpi__value" data-k="wh_per_km">—</strong>
+        </div>
+        <div class="lifetime-kpi">
+            <span class="lifetime-kpi__label">{% trans 'Efficiency' %}</span>
+            <strong class="lifetime-kpi__value" data-k="efficiency_pct">—</strong>
+        </div>
+        <div class="lifetime-kpi">
+            <span class="lifetime-kpi__label">{% trans 'kWh used' %}</span>
+            <strong class="lifetime-kpi__value" data-k="kwh_used">—</strong>
+        </div>
+        <div class="lifetime-kpi">
+            <span class="lifetime-kpi__label">{% trans 'Avg speed' %}</span>
+            <strong class="lifetime-kpi__value" data-k="avg_kmh">—</strong>
+        </div>
+        <div class="lifetime-kpi">
+            <span class="lifetime-kpi__label">{% trans 'Avg temp' %}</span>
+            <strong class="lifetime-kpi__value" data-k="avg_temp_c">—</strong>
+        </div>
+        <div class="lifetime-kpi">
+            <span class="lifetime-kpi__label">{% trans 'Time driving' %}</span>
+            <strong class="lifetime-kpi__value" data-k="drive_time">—</strong>
+        </div>
+    </div>
+
+    {# min-height inline so the map box stays visible even if CSS cache is stale #}
+    <div class="lifetime-map-wrap" style="min-height: 280px;">
+        <div id="lifetime-map" class="lifetime-map" role="img" aria-label="{% trans 'Lifetime GPS map' %}"
+             style="height: 360px; width: 100%;"></div>
+        <div class="lifetime-map-status" id="lifetime-map-status" aria-live="polite">
+            {% trans 'Loading map…' %}
+        </div>
+    </div>
 </section>
 
 {# Full-size view (AWS-style expand) — one shared overlay for all cards #}
