@@ -78,13 +78,19 @@
         padding-right: 0.55rem;
     }
     /* Was min(70vh, 640px) — too tall; keep summary (points / départ / arrivée / totals) on screen */
+    .daymap-shell {
+        margin-bottom: 0.75rem;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--app-line, #2a3548);
+        background: #0d1524;
+    }
     #daymap {
         height: clamp(200px, 28vh, 320px);
         width: 100%;
         position: relative;
         z-index: 0;
         overflow: hidden;
-        margin-bottom: 0.75rem;
     }
     .daymap-meta {
         margin-top: 0 !important;
@@ -154,7 +160,9 @@
 
 {% if has_track %}
 {% if has_gps %}
-<div id="daymap"></div>
+<div class="matesla-map-shell daymap-shell" id="daymap-shell">
+    <div id="daymap"></div>
+</div>
 {% else %}
 <div class="daymap-empty"><p class="mb-0">{% trans 'No GPS points for this day (telemetry only).' %}</p></div>
 {% endif %}
@@ -323,6 +331,7 @@
 
 {% block javascript %}
 <script src="{% static 'leaflet/leaflet.js' %}"></script>
+<script src="{% static 'js/matesla-map-fullscreen.js' %}"></script>
 <script>
 (function () {
     // --- Async reverse-geocode: page shows lat/lon first, labels fill in later ---
@@ -402,6 +411,13 @@
     map.fitBounds(line.getBounds(), { padding: [30, 30] });
     // Container may have been layout-incomplete at init; force correct size
     setTimeout(function () { map.invalidateSize(); }, 0);
+    if (typeof mateslaAttachMapFullscreen === "function") {
+        mateslaAttachMapFullscreen(map, document.getElementById("daymap-shell") || map.getContainer(), {
+            enter: "{% filter escapejs %}{% trans 'Fullscreen map' %}{% endfilter %}",
+            exit: "{% filter escapejs %}{% trans 'Exit fullscreen' %}{% endfilter %}",
+            position: "topleft"
+        });
+    }
     {% endif %}
 })();
 </script>

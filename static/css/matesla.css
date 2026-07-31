@@ -1622,7 +1622,10 @@ button:disabled,
 }
 
 .lifetime-map-card__header {
-    display: block;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
     padding: 14px 16px 10px;
 }
 
@@ -1701,8 +1704,73 @@ button:disabled,
     background: #0d1524;
 }
 
+/* Map shell: compact in page, true fullscreen on demand */
+.matesla-map-shell {
+    position: relative;
+    width: 100%;
+}
+
+.matesla-map-shell:fullscreen,
+.matesla-map-shell.matesla-map-shell--fs {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    margin: 0;
+    border-radius: 0;
+    border: none;
+    background: #0d1524;
+    z-index: 10060;
+}
+
+/* CSS fallback when Fullscreen API is unavailable */
+.matesla-map-shell.matesla-map-shell--fs {
+    position: fixed;
+    inset: 0;
+}
+
+.matesla-map-shell:fullscreen .lifetime-map,
+.matesla-map-shell:fullscreen #daymap,
+.matesla-map-shell.matesla-map-shell--fs .lifetime-map,
+.matesla-map-shell.matesla-map-shell--fs #daymap {
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    width: 100% !important;
+}
+
+body.matesla-map-fs-open {
+    overflow: hidden;
+}
+
+.matesla-map-fs-control a.matesla-map-fs-btn {
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    text-decoration: none;
+    color: var(--app-text, #e8eef7);
+    background: var(--app-surface-2, #1a2436);
+    border-bottom: 1px solid var(--app-line, #2a3548);
+}
+
+.matesla-map-fs-control a.matesla-map-fs-btn:hover,
+.matesla-map-fs-control a.matesla-map-fs-btn.is-active {
+    background: var(--app-surface-3, #243044);
+    color: var(--app-text, #fff);
+}
+
+.matesla-map-fs-icon {
+    display: block;
+    line-height: 1;
+    font-weight: 600;
+}
+
 /* Leaflet sits on dark UI — soften chrome */
-.lifetime-map .leaflet-control-zoom a {
+.lifetime-map .leaflet-control-zoom a,
+#daymap .leaflet-control-zoom a,
+.matesla-map-shell .leaflet-control-zoom a {
     background: var(--app-surface-2);
     color: var(--app-text);
     border-color: var(--app-line);

@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load static %}
 <script>
 /*also inspired from stackoverflow*/
 // Placeholder 123456789 in URLs is replaced by #DesiredPeriod (weeks).
@@ -285,8 +286,31 @@ var lifetimeMapState = {
     loading: false,
     pendingReload: false,
     loadedKey: null,
-    assetsReady: false
+    assetsReady: false,
+    fullscreen: null
 };
+
+function ensureMapFullscreenScript() {
+    return new Promise(function (resolve, reject) {
+        if (typeof window.mateslaAttachMapFullscreen === "function") {
+            resolve();
+            return;
+        }
+        var existing = document.querySelector("script[data-matesla-map-fs]");
+        if (existing) {
+            existing.addEventListener("load", function () { resolve(); });
+            existing.addEventListener("error", function () { reject(new Error("map-fs")); });
+            return;
+        }
+        var script = document.createElement("script");
+        script.src = "{% static 'js/matesla-map-fullscreen.js' %}";
+        script.async = true;
+        script.setAttribute("data-matesla-map-fs", "1");
+        script.onload = function () { resolve(); };
+        script.onerror = function () { reject(new Error("map-fs")); };
+        document.head.appendChild(script);
+    });
+}
 
 function lifetimeMapI18n() {
     return {
@@ -420,6 +444,21 @@ function drawLifetimeMap(data) {
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(lifetimeMapState.map);
+        // Fullscreen control (also wires header expand button)
+        var shell = document.getElementById("lifetime-map-shell") || mapEl.parentElement;
+        ensureMapFullscreenScript().then(function () {
+            if (lifetimeMapState.fullscreen || !window.mateslaAttachMapFullscreen) return;
+            lifetimeMapState.fullscreen = window.mateslaAttachMapFullscreen(
+                lifetimeMapState.map,
+                shell,
+                {
+                    enter: "{% filter escapejs %}{% trans 'Fullscreen map' %}{% endfilter %}",
+                    exit: "{% filter escapejs %}{% trans 'Exit fullscreen' %}{% endfilter %}",
+                    position: "topleft",
+                    externalButton: document.getElementById("lifetime-map-expand"),
+                }
+            );
+        }).catch(function () { /* optional control */ });
     }
     if (lifetimeMapState.layer) {
         lifetimeMapState.map.removeLayer(lifetimeMapState.layer);
