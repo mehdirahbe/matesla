@@ -153,3 +153,6 @@ sendgrid.env
 # SQLite WAL side files
 db.sqlite3-wal
 db.sqlite3-shm
+
+# Local weekly DB archives (zstd) — copy to USB/Dropbox yourself; never commit
+db-backups/

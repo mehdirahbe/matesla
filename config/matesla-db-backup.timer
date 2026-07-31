@@ -1,0 +1,11 @@
+[Unit]
+Description=Weekly MaTesla DB backup timer
+
+[Timer]
+# Sunday 03:30 local time — low activity; adjust if needed
+OnCalendar=Sun *-*-* 03:30:00
+Persistent=true
+RandomizedDelaySec=10m
+
+[Install]
+WantedBy=timers.target

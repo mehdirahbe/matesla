@@ -1,0 +1,13 @@
+[Unit]
+Description=MaTesla weekly SQLite history backup (zstd)
+After=matesla-gunicorn.service
+# Do not fail if the web service is stopped — backup still works read-only.
+
+[Service]
+Type=oneshot
+User=mehdi
+Group=mehdi
+WorkingDirectory=/home/mehdi/PycharmProjects/matesla
+ExecStart=/home/mehdi/PycharmProjects/matesla/scripts/backup_db.sh
+# One-shot: never restart (same philosophy as gunicorn Restart=no).
+Restart=no

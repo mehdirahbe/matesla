@@ -97,6 +97,44 @@ python manage.py runserver 127.0.0.1:8001
 # or: gunicorn mysite.wsgi:application --bind 127.0.0.1:8001 --workers 1
 ```
 
+### Database backups (full history, compressed)
+
+Minute-level history (TeslaFi + capture) is irreplaceable — backups are **full
+SQLite snapshots**, not thinned exports. Archives live **next to the live DB**
+in `db-backups/` (gitignored). **MaTesla never talks to Dropbox**; copy those
+files yourself to USB / cloud.
+
+| | |
+|--|--|
+| Format | `sqlite3.backup` then **zstd -3** (~8× smaller, ~635 MiB → ~77 MiB) |
+| Cadence | weekly (timer) or manual; skip if last archive &lt; 6 days (unless `FORCE=1`) |
+| Retention | **4** newest `matesla-db-*.sqlite3.zst` only |
+
+```bash
+# one-shot
+./scripts/backup_db.sh
+FORCE=1 ./scripts/backup_db.sh   # ignore 6-day gap
+
+# automatic (recommended): user crontab — same style as capture curl
+# Sun 03:30 — see scripts/backup_db.sh header; log: /tmp/matesla-db-backup.log
+# 30 3 * * 0 /home/mehdi/PycharmProjects/matesla/scripts/backup_db.sh >> /tmp/matesla-db-backup.log 2>&1
+crontab -l | grep backup_db
+
+# alternative: systemd timer (optional, needs sudo)
+# ./config/install_db_backup_timer.sh
+```
+
+Restore example:
+
+```bash
+zstd -d db-backups/matesla-db-YYYY-MM-DD.sqlite3.zst -o /tmp/matesla-restore.sqlite3
+# stop web first, then replace live DB carefully
+sudo systemctl stop matesla-gunicorn.service
+cp db.sqlite3 "db.sqlite3.before-restore-$(date +%F)"
+cp /tmp/matesla-restore.sqlite3 db.sqlite3
+sudo systemctl start matesla-gunicorn.service
+```
+
 ### 2. Configure Tailscale Serve
 
 Prefer making your user the Tailscale operator once:
