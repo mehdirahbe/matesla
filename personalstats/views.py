@@ -1,11 +1,13 @@
 import django
-from django.db.models import Max, Min, Avg, F, FloatField, Case, When, Q
+from django.db.models import Max, Min, Avg, Count, F, FloatField, Case, When, Q
+from django.db.models.functions import TruncMonth
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import render
 from django.template import loader
 from django.views.decorators.http import require_GET
 from django_tables2 import SingleTableView
-from matplotlib.dates import DateFormatter
+from matplotlib.dates import DateFormatter, MonthLocator, num2date
+from matplotlib.ticker import FuncFormatter, MultipleLocator
 
 from anonymisedstats.views import (
     PrepareCSVFromQuery,
@@ -347,6 +349,364 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
             ax.set_xlim(d - timedelta(days=1), d + timedelta(days=1))
         fig.autofmt_xdate()
     finish_figure(fig, ax, title, cfg)
+    return GeneratePngFromGraph(fig, size=size)
+
+
+def _monthly_temp_series(qs, field):
+    """
+    One row per calendar month: min / avg / max of `field` (°C).
+
+    Uses TruncMonth(Date) so sparse DateOnlyDay gaps still group correctly.
+    Skips months with no non-null samples.
+    """
+    rows = (
+        qs.filter(**{f"{field}__isnull": False})
+        .annotate(month=TruncMonth("Date"))
+        .values("month")
+        .annotate(
+            min_val=Min(field),
+            max_val=Max(field),
+            avg_val=Avg(field),
+            n=Count("id"),
+        )
+        .order_by("month")
+    )
+    months = []
+    mins = []
+    maxs = []
+    avgs = []
+    for r in rows:
+        m = r.get("month")
+        if m is None:
+            continue
+        # TruncMonth may return datetime
+        if isinstance(m, datetime):
+            m = m.date()
+        elif hasattr(m, "date") and not isinstance(m, date):
+            m = m.date()
+        try:
+            lo = float(r["min_val"])
+            hi = float(r["max_val"])
+            mid = float(r["avg_val"])
+        except (TypeError, ValueError, KeyError):
+            continue
+        # Sanity: ignore impossible sensor glitches
+        if lo < -50 or hi > 90 or lo > hi:
+            continue
+        months.append(m)
+        mins.append(lo)
+        maxs.append(hi)
+        avgs.append(mid)
+    return months, mins, maxs, avgs
+
+
+def _format_month_label(d, language):
+    """Short month label for record annotations."""
+    if d is None:
+        return ""
+    if language and language.startswith("fr"):
+        return d.strftime("%m/%Y")
+    return d.strftime("%b %Y")
+
+
+def _month_index(d):
+    """Absolute month number for gap detection (year*12 + month)."""
+    if isinstance(d, datetime):
+        return d.year * 12 + d.month
+    return d.year * 12 + d.month
+
+
+def _split_monthly_segments(months, mins, maxs, avgs):
+    """
+    Split series into contiguous calendar-month runs.
+
+    A gap of ≥ 1 missing month starts a new segment so matplotlib does not draw
+    a misleading straight line across periods with no data.
+    """
+    if not months:
+        return []
+    segments = []
+    start = 0
+    for i in range(1, len(months)):
+        gap = _month_index(months[i]) - _month_index(months[i - 1])
+        if gap > 1:
+            segments.append(
+                (
+                    months[start:i],
+                    mins[start:i],
+                    maxs[start:i],
+                    avgs[start:i],
+                )
+            )
+            start = i
+    segments.append(
+        (months[start:], mins[start:], maxs[start:], avgs[start:])
+    )
+    return segments
+
+
+def GenerateMonthlyTempRibbonGraph(months, mins, maxs, avgs, title, size="full"):
+    """
+    Monthly temperature ribbon: filled min–max band + average line.
+    Annotate the period record low (among monthly mins) and high (among monthly maxs).
+    Gaps of one or more missing months break the lines (no false bridges).
+    """
+    fig, cfg = make_figure(size)
+    language = django.utils.translation.get_language()
+
+    def _year_tick_label(x, _pos=None):
+        """Label only January majors (year anchors); other quarter ticks are bare."""
+        try:
+            d = num2date(x)
+        except (ValueError, OverflowError, TypeError):
+            return ""
+        if d.month != 1:
+            return ""
+        if language is not None and language.startswith("fr"):
+            return d.strftime("%m/%Y")
+        return d.strftime("%b %Y")
+
+    ax = fig.subplots()
+    if months and mins and maxs and len(months) > 0:
+        lw = cfg["linewidth"]
+
+        def _mid_month(m):
+            if isinstance(m, datetime):
+                return m
+            return datetime(m.year, m.month, 15)
+
+        # Full x for records / limits (all months with data)
+        x_all = [_mid_month(m) for m in months]
+        segments = _split_monthly_segments(months, mins, maxs, avgs)
+
+        for si, (seg_m, seg_lo, seg_hi, seg_avg) in enumerate(segments):
+            x = [_mid_month(m) for m in seg_m]
+            # Labels only once (first segment) so the legend stays clean
+            lab_range = _("Monthly range (min–max)") if si == 0 else None
+            lab_min = _("Monthly minimum") if si == 0 else None
+            lab_avg = _("Monthly average") if si == 0 else None
+            lab_max = _("Monthly maximum") if si == 0 else None
+
+            if len(x) == 1:
+                # Single month: no line to draw across time — vertical tick via markers
+                ax.fill_between(
+                    [x[0], x[0]],
+                    [seg_lo[0], seg_lo[0]],
+                    [seg_hi[0], seg_hi[0]],
+                    color=ACCENT,
+                    alpha=0.28,
+                    linewidth=0,
+                    zorder=1,
+                    label=lab_range,
+                )
+                ax.plot(
+                    x,
+                    seg_lo,
+                    color=SERIES_COLORS[0],
+                    marker="o",
+                    markersize=cfg["markersize"] + 1.5,
+                    linestyle="None",
+                    zorder=2,
+                    label=lab_min,
+                )
+                ax.plot(
+                    x,
+                    seg_avg,
+                    color=SERIES_COLORS[1],
+                    marker="o",
+                    markersize=cfg["markersize"] + 1.5,
+                    linestyle="None",
+                    zorder=3,
+                    label=lab_avg,
+                )
+                ax.plot(
+                    x,
+                    seg_hi,
+                    color=SERIES_COLORS[2],
+                    marker="o",
+                    markersize=cfg["markersize"] + 1.5,
+                    linestyle="None",
+                    zorder=2,
+                    label=lab_max,
+                )
+                continue
+
+            ax.fill_between(
+                x,
+                seg_lo,
+                seg_hi,
+                color=ACCENT,
+                alpha=0.28,
+                linewidth=0,
+                zorder=1,
+                label=lab_range,
+            )
+            ax.plot(
+                x,
+                seg_lo,
+                color=SERIES_COLORS[0],
+                linestyle="-",
+                linewidth=lw,
+                alpha=0.9,
+                zorder=2,
+                label=lab_min,
+            )
+            ax.plot(
+                x,
+                seg_avg,
+                color=SERIES_COLORS[1],
+                linestyle="-",
+                linewidth=lw + 0.35,
+                zorder=3,
+                label=lab_avg,
+            )
+            ax.plot(
+                x,
+                seg_hi,
+                color=SERIES_COLORS[2],
+                linestyle="-",
+                linewidth=lw,
+                alpha=0.9,
+                zorder=2,
+                label=lab_max,
+            )
+
+        # Record low = coldest monthly minimum; record high = hottest monthly maximum
+        i_min = min(range(len(mins)), key=lambda i: mins[i])
+        i_max = max(range(len(maxs)), key=lambda i: maxs[i])
+        rec_lo, rec_hi = mins[i_min], maxs[i_max]
+        d_lo, d_hi = months[i_min], months[i_max]
+        x_lo, x_hi = x_all[i_min], x_all[i_max]
+
+        # Highlight record points
+        ax.scatter(
+            [x_lo],
+            [rec_lo],
+            s=cfg["scatter_size"] + 18,
+            color=SERIES_COLORS[0],
+            edgecolors=TEXT,
+            linewidths=0.6,
+            zorder=5,
+        )
+        ax.scatter(
+            [x_hi],
+            [rec_hi],
+            s=cfg["scatter_size"] + 18,
+            color=SERIES_COLORS[2],
+            edgecolors=TEXT,
+            linewidths=0.6,
+            zorder=5,
+        )
+
+        fs = cfg["tick_size"]
+        lo_label = _("Record min %(t).1f °C · %(when)s") % {
+            "t": rec_lo,
+            "when": _format_month_label(d_lo, language),
+        }
+        hi_label = _("Record max %(t).1f °C · %(when)s") % {
+            "t": rec_hi,
+            "when": _format_month_label(d_hi, language),
+        }
+        # Offset annotations away from edges when possible
+        y_span = max(maxs) - min(mins) if maxs and mins else 10.0
+        y_pad = max(1.5, y_span * 0.06)
+        ax.annotate(
+            lo_label,
+            xy=(x_lo, rec_lo),
+            xytext=(0, -14),
+            textcoords="offset points",
+            ha="center",
+            va="top",
+            color=SERIES_COLORS[0],
+            fontsize=fs,
+            zorder=6,
+            clip_on=False,
+        )
+        ax.annotate(
+            hi_label,
+            xy=(x_hi, rec_hi),
+            xytext=(0, 12),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            color=SERIES_COLORS[2],
+            fontsize=fs,
+            zorder=6,
+            clip_on=False,
+        )
+
+        ax.set_ylim(min(mins) - y_pad * 2.2, max(maxs) + y_pad * 2.8)
+        style_legend(ax, cfg)
+        # Graduations: small tick every month (no label), larger every 3 months
+        # (Jan/Apr/Jul/Oct). Labels only on January so multi-year stays readable.
+        n_pts = len(x_all)
+        ax.xaxis.set_minor_locator(MonthLocator())
+        ax.xaxis.set_major_locator(MonthLocator(bymonth=(1, 4, 7, 10)))
+        ax.xaxis.set_major_formatter(FuncFormatter(_year_tick_label))
+        ax.tick_params(axis="x", which="minor", labelbottom=False)
+        if n_pts == 1:
+            ax.set_xlim(x_all[0] - timedelta(days=40), x_all[0] + timedelta(days=40))
+        style_axes(ax, cfg)
+        # X: monthly minor ticks, quarterly majors (labels only on January)
+        ax.xaxis.set_minor_locator(MonthLocator())
+        ax.xaxis.set_major_locator(MonthLocator(bymonth=(1, 4, 7, 10)))
+        ax.tick_params(
+            axis="x",
+            which="major",
+            length=8.0,
+            width=1.0,
+            colors=MUTED,
+            labelsize=cfg["tick_size"],
+        )
+        ax.tick_params(
+            axis="x",
+            which="minor",
+            length=3.2,
+            width=0.55,
+            colors=MUTED,
+            labelbottom=False,
+        )
+        for label in ax.get_xticklabels():
+            label.set_rotation(0)
+            label.set_ha("center")
+        # Y: small mark every 5 °C, larger every 10 °C (labels only on 10 °C majors)
+        ax.yaxis.set_minor_locator(MultipleLocator(5))
+        ax.yaxis.set_major_locator(MultipleLocator(10))
+        ax.tick_params(
+            axis="y",
+            which="major",
+            length=7.5,
+            width=0.9,
+            colors=MUTED,
+            labelsize=cfg["tick_size"],
+        )
+        ax.tick_params(
+            axis="y",
+            which="minor",
+            length=3.2,
+            width=0.55,
+            colors=MUTED,
+            labelleft=False,
+        )
+        style_suptitle(fig, title, cfg)
+        try:
+            fig.tight_layout(rect=(0.02, 0.07, 0.98, 0.90))
+        except Exception:
+            pass
+        fig.text(
+            0.5,
+            0.01,
+            _(
+                "One min / avg / max per calendar month · band = monthly range "
+                "· gaps = no data"
+            ),
+            ha="center",
+            va="bottom",
+            color=MUTED,
+            fontsize=cfg["tick_size"] - 0.5,
+        )
+    else:
+        finish_figure(fig, ax, title, cfg)
     return GeneratePngFromGraph(fig, size=size)
 
 
@@ -1302,6 +1662,10 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
                 xlabel="",
                 count_ylabel=_("Samples"),
             )
+        if desiredfield in ("outside_temp", "inside_temp"):
+            return GenerateMonthlyTempRibbonGraph(
+                [], [], [], [], title, size=size
+            )
         return GenerateDateGraph(None, None, None, None, title, size=size)
 
     # Trip efficiency histograms (not a raw time series field)
@@ -1440,6 +1804,14 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
             amount_unit=None,
             foot_extra=_("one value per calendar day"),
             count_ylabel=_("Days"),
+        )
+
+    # Temperature: monthly min–max ribbon (seasonal + extremes), not noisy daily lines
+    if desiredfield in ("outside_temp", "inside_temp"):
+        qs = _period_filter(base, desiredperiod)
+        months, mins, maxs, avgs = _monthly_temp_series(qs, desiredfield)
+        return GenerateMonthlyTempRibbonGraph(
+            months, mins, maxs, avgs, title, size=size
         )
 
     # range_at_100 is not a DB column: battery_range / SoC * 100 (full-charge miles)

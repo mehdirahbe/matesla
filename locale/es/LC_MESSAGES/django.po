@@ -1314,6 +1314,27 @@ msgstr "n=%(n)s muestras · verde = regen. · azul/rojo = tracción"
 msgid "No drive power samples in this period"
 msgstr "Sin muestras de potencia en este período"
 
+msgid "Monthly range (min–max)"
+msgstr "Rango mensual (mín–máx)"
+
+msgid "Monthly minimum"
+msgstr "Mínimo mensual"
+
+msgid "Monthly average"
+msgstr "Media mensual"
+
+msgid "Monthly maximum"
+msgstr "Máximo mensual"
+
+msgid "Record min %(t).1f °C · %(when)s"
+msgstr "Récord mín. %(t).1f °C · %(when)s"
+
+msgid "Record max %(t).1f °C · %(when)s"
+msgstr "Récord máx. %(t).1f °C · %(when)s"
+
+msgid "One min / avg / max per calendar month · band = monthly range · gaps = no data"
+msgstr "Un mín / media / máx por mes civil · banda = rango mensual · huecos = sin datos"
+
 msgid "Lifetime map"
 msgstr "Mapa lifetime"
 
