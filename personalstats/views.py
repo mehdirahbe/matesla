@@ -1095,7 +1095,7 @@ def GenerateChargeSessionHistogram(
                 va="bottom",
                 color=TEXT,
                 fontsize=fs,
-                fontweight="medium",
+                fontweight="normal",
                 zorder=3,
                 clip_on=False,
             )
