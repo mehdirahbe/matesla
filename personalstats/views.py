@@ -19,10 +19,12 @@ from anonymisedstats.views import (
 from matesla.graphstyle import (
     ACCENT,
     ACCENT_SOFT,
+    DANGER,
     ENERGY,
     MUTED,
     SERIES_COLORS,
     TEXT,
+    WARM,
     finish_figure,
     graph_size_from_request,
     make_figure,
@@ -136,6 +138,49 @@ DAILY_MIN_SOC_BUCKET_LABELS = (
     "40–49%",
     "≥ 50%",
 )
+# Drive speed histogram (km/h) — Tesla API speed is mph, converted at bin time
+# (label, lo_inclusive, hi_exclusive); last hi=None = open upper
+DRIVE_SPEED_BUCKETS_KMH = (
+    ("0–20", 0, 20),
+    ("20–40", 20, 40),
+    ("40–60", 40, 60),
+    ("60–90", 60, 90),
+    ("90–110", 90, 110),
+    ("110–130", 110, 130),
+    ("≥ 130", 130, None),
+)
+# Drive power histogram (kW): negative = regen, positive = traction
+DRIVE_POWER_BUCKETS_KW = (
+    ("≤ −80", None, -80),
+    ("−80…−40", -80, -40),
+    ("−40…−15", -40, -15),
+    ("−15…−2", -15, -2),
+    ("−2…+2", -2, 2),
+    ("+2…+15", 2, 15),
+    ("+15…+40", 15, 40),
+    ("+40…+80", 40, 80),
+    ("+80…+150", 80, 150),
+    ("≥ +150", 150, None),
+)
+# Bar colors: regen (green) → coast (muted) → traction (blue → amber → red)
+DRIVE_POWER_BAR_COLORS = (
+    ENERGY,
+    ENERGY,
+    ENERGY,
+    "#3ec9e0",
+    MUTED,
+    ACCENT_SOFT,
+    ACCENT,
+    WARM,
+    DANGER,
+    "#ff3b4e",
+)
+# Hard safety: stop scanning drive sensors after this many valid rows (O(1) memory
+# streaming — no list). Far above normal multi-year logs; avoids pathological DB.
+DRIVE_SENSOR_MAX_SCAN = 200000
+# When integrating power×Δt to kWh, ignore gaps larger than this
+# (TeslaFi / adaptive capture can be 10–60 s between drive samples)
+DRIVE_POWER_ENERGY_MAX_GAP = timedelta(seconds=90)
 
 
 def GetTitleForFieldDico():
@@ -145,12 +190,12 @@ def GetTitleForFieldDico():
         "inside_temp": _("Inside temperature (°C)"),
         "passenger_temp_setting": _("Passenger temperature (°C)"),
         "odometer": _("Odometer (miles)"),
-        # Tesla drive_state.speed is mph (same unit basis as odometer miles)
-        "speed": _("Speed (mi/h)"),
+        # Drive samples histogram (API stores mph; axis in km/h)
+        "speed": _("Speed distribution"),
         "latitude": _("Latitude"),
         "longitude": _("Longitude"),
-        # Tesla drive_state.power is kW (negative when regenerating)
-        "power": _("Power (kW)"),
+        # Drive power histogram (kW; negative = regenerative braking)
+        "power": _("Power distribution"),
         # Charge-session peak SoC (not raw level over time)
         "battery_level": _("SoC at end of charge"),
         # Daily minimum SoC habits (not raw rated range over time)
@@ -552,6 +597,132 @@ def _range_bucket_index(value: float, buckets) -> int:
     return len(buckets) - 1
 
 
+def _iter_drive_sensor(qs, *extra_fields, extra_q=None):
+    """
+    Stream drive-motion samples chronologically (O(1) memory via iterator).
+
+    Yields dict rows with Date + extra_fields. Stops after DRIVE_SENSOR_MAX_SCAN
+    valid rows as a hard safety bound.
+    """
+    fields = {"Date", *extra_fields}
+    drive_qs = qs.filter(_drive_filter_q())
+    if extra_q is not None:
+        drive_qs = drive_qs.filter(extra_q)
+    drive_qs = drive_qs.order_by("Date").values(*fields)
+    n = 0
+    for s in drive_qs.iterator(chunk_size=4000):
+        if s.get("Date") is None:
+            continue
+        yield s
+        n += 1
+        if n >= DRIVE_SENSOR_MAX_SCAN:
+            break
+
+
+def _drive_speed_histogram(qs):
+    """
+    Histogram of driving speed in km/h (API stores mph).
+    Full stream (no thin) — only bin counters, O(1) memory.
+    """
+    counts = [0] * len(DRIVE_SPEED_BUCKETS_KMH)
+    for r in _iter_drive_sensor(
+        qs,
+        "speed",
+        extra_q=Q(speed__isnull=False) & Q(speed__gt=DAY_MAP_STOP_SPEED),
+    ):
+        sp = r.get("speed")
+        if sp is None:
+            continue
+        try:
+            mph = float(sp)
+        except (TypeError, ValueError):
+            continue
+        if mph < 0 or mph > 200:
+            continue
+        if mph <= DAY_MAP_STOP_SPEED:
+            continue
+        kmh = mph * 1.609344
+        counts[_range_bucket_index(kmh, DRIVE_SPEED_BUCKETS_KMH)] += 1
+    total = sum(counts)
+    pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
+    labels = [b[0] for b in DRIVE_SPEED_BUCKETS_KMH]
+    return labels, counts, pcts
+
+
+def _drive_power_histogram(qs):
+    """
+    Histogram of drive_state.power (kW). Negative = regenerative braking.
+
+    Single chronological stream (no subsampling): bin counts + power×Δt energy
+    so regen/traction kWh stay consistent with the % recovered.
+
+    Returns (labels, counts, pcts, meta) with traction_kwh, regen_kwh, regen_pct.
+    """
+    counts = [0] * len(DRIVE_POWER_BUCKETS_KW)
+    traction_j = 0.0  # kW·s (≈ kJ)
+    regen_j = 0.0
+    # Sample-magnitude fallback when Δt is too sparse for energy integration
+    traction_mag = 0.0
+    regen_mag = 0.0
+    prev_t = None
+    prev_p = None
+    n = 0
+    for r in _iter_drive_sensor(qs, "power", extra_q=Q(power__isnull=False)):
+        t = r.get("Date")
+        pw = r.get("power")
+        if t is None or pw is None:
+            continue
+        try:
+            p = float(pw)
+        except (TypeError, ValueError):
+            continue
+        if p < -400 or p > 400:
+            continue
+        counts[_range_bucket_index(p, DRIVE_POWER_BUCKETS_KW)] += 1
+        n += 1
+        if p > 0.5:
+            traction_mag += p
+        elif p < -0.5:
+            regen_mag += -p
+        if prev_t is not None and prev_p is not None:
+            dt = t - prev_t
+            if timedelta(0) < dt <= DRIVE_POWER_ENERGY_MAX_GAP:
+                p_avg = 0.5 * (prev_p + p)
+                seconds = dt.total_seconds()
+                if p_avg > 0.5:
+                    traction_j += p_avg * seconds
+                elif p_avg < -0.5:
+                    regen_j += (-p_avg) * seconds
+        prev_t, prev_p = t, p
+
+    total = sum(counts)
+    pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
+    labels = [b[0] for b in DRIVE_POWER_BUCKETS_KW]
+    traction_kwh = traction_j / 3600.0
+    regen_kwh = regen_j / 3600.0
+    # Prefer time-integrated energy when we accumulated a meaningful amount;
+    # otherwise fall back to Σ|P| ratio (good when sampling is irregular).
+    if traction_kwh >= 1.0:
+        regen_pct = 100.0 * regen_kwh / traction_kwh
+        mode = "energy"
+    elif traction_mag > 1.0:
+        regen_pct = 100.0 * regen_mag / traction_mag
+        mode = "sample"
+        traction_kwh = None
+        regen_kwh = None
+    else:
+        regen_pct = None
+        mode = None
+    meta = {
+        "n_samples": n,
+        "traction_kwh": traction_kwh,
+        "regen_kwh": regen_kwh,
+        "regen_pct": regen_pct,
+        "mode": mode,
+    }
+    return labels, counts, pcts, meta
+
+
 def _session_charge_limit(pts) -> float | None:
     """
     Representative charge limit for a charge session.
@@ -864,21 +1035,30 @@ def GenerateChargeSessionHistogram(
     amount_unit=None,
     foot_extra=None,
     count_ylabel=None,
+    footer=None,
+    bar_colors=None,
+    edge_color=None,
 ):
     """
-    Bar chart: session/day counts by bucket; annotate n, %, optional energy/range.
+    Bar chart: session/day/sample counts by bucket; annotate n, %, optional energy/range.
     amount_unit: "kwh" | "mi" | None
+    footer: if set, replaces the auto-built footer text.
+    bar_colors: optional list of face colors (one per bar).
     Footer sits outside the axes so it never covers short bars.
     """
     fig, cfg = make_figure(size, bar=True)
     ax = fig.subplots()
     if labels and counts and sum(counts) > 0:
         x = list(range(len(labels)))
+        if bar_colors and len(bar_colors) >= len(labels):
+            colors = list(bar_colors[: len(labels)])
+        else:
+            colors = ACCENT_SOFT
         bars = ax.bar(
             x,
             counts,
-            color=ACCENT_SOFT,
-            edgecolor=ACCENT,
+            color=colors,
+            edgecolor=edge_color or ACCENT,
             linewidth=0.5,
             alpha=0.92,
             zorder=2,
@@ -890,16 +1070,22 @@ def GenerateChargeSessionHistogram(
         for i, (bar, c, p) in enumerate(zip(bars, counts, pcts)):
             if c <= 0:
                 continue
-            # Compact: "73 (5%)" on one line; amount on second line if present
-            label = f"{c} ({p:.0f}%)"
+            # Compact: "73 (5%)" or "12.4k (20%)" for large drive-sample counts
+            if c >= 10000:
+                c_txt = f"{c / 1000:.0f}k"
+            elif c >= 1000:
+                c_txt = f"{c / 1000:.1f}k"
+            else:
+                c_txt = str(c)
+            label = f"{c_txt} ({p:.0f}%)"
             amt = None
             if amount_per_bucket is not None and i < len(amount_per_bucket):
                 amt = amount_per_bucket[i]
             if amt is not None and amt >= 0.5:
                 if amount_unit == "kwh":
-                    label = f"{c} ({p:.0f}%)\n{amt:.0f} kWh"
+                    label = f"{c_txt} ({p:.0f}%)\n{amt:.0f} kWh"
                 else:
-                    label = f"{c} ({p:.0f}%)\n{amt:.0f} mi"
+                    label = f"{c_txt} ({p:.0f}%)\n{amt:.0f} mi"
             ax.annotate(
                 label,
                 xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
@@ -919,7 +1105,9 @@ def GenerateChargeSessionHistogram(
         ax.set_xlabel(xlabel, color=MUTED)
         total = sum(counts)
         # Short footer under the figure (not inside the plot area)
-        if amount_unit == "kwh":
+        if footer is not None:
+            foot = footer
+        elif amount_unit == "kwh":
             foot = _(
                 "n=%(n)s sessions (≥%(min)s min) · bars = peak kW · kWh added"
             ) % {
@@ -1104,6 +1292,16 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
             return GenerateEfficiencyBinGraph(
                 None, None, None, title, "", size=size
             )
+        if desiredfield in ("speed", "power"):
+            return GenerateChargeSessionHistogram(
+                [],
+                [],
+                [],
+                title,
+                size=size,
+                xlabel="",
+                count_ylabel=_("Samples"),
+            )
         return GenerateDateGraph(None, None, None, None, title, size=size)
 
     # Trip efficiency histograms (not a raw time series field)
@@ -1114,6 +1312,73 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
         )
         return GenerateEfficiencyBinGraph(
             labels, eff, kms, title, xlabel, size=size
+        )
+
+    # Drive speed distribution (replaces noisy min/avg/max time series)
+    if desiredfield == "speed":
+        qs = _period_filter(base, desiredperiod)
+        labels, counts, pcts = _drive_speed_histogram(qs)
+        return GenerateChargeSessionHistogram(
+            labels,
+            counts,
+            pcts,
+            title,
+            size=size,
+            xlabel=_("Speed (km/h)"),
+            amount_per_bucket=None,
+            amount_unit=None,
+            count_ylabel=_("Samples"),
+            foot_extra=_("drive samples only · Tesla speed converted mph→km/h"),
+        )
+
+    # Drive power distribution + regen vs traction energy estimate
+    if desiredfield == "power":
+        qs = _period_filter(base, desiredperiod)
+        labels, counts, pcts, meta = _drive_power_histogram(qs)
+        total = sum(counts)
+        if (
+            meta.get("regen_pct") is not None
+            and meta.get("mode") == "energy"
+            and meta.get("traction_kwh") is not None
+        ):
+            # 1 decimal so small regen does not round to "0 kWh" next to a non-zero %
+            foot = _(
+                "n=%(n)s · regen %(regen).1f kWh / traction %(trac).1f kWh "
+                "= %(pct).1f%% recovered"
+            ) % {
+                "n": total,
+                "regen": meta["regen_kwh"],
+                "trac": meta["traction_kwh"],
+                "pct": meta["regen_pct"],
+            }
+        elif meta.get("regen_pct") is not None:
+            # Sparse samples: ratio of Σ|P_regen| / Σ P_traction
+            foot = _(
+                "n=%(n)s · regen vs traction = %(pct).1f%% "
+                "(sample power ratio · green = regen)"
+            ) % {
+                "n": total,
+                "pct": meta["regen_pct"],
+            }
+        elif total:
+            foot = _(
+                "n=%(n)s drive samples · green = regen · blue/red = traction"
+            ) % {"n": total}
+        else:
+            foot = _("No drive power samples in this period")
+        return GenerateChargeSessionHistogram(
+            labels,
+            counts,
+            pcts,
+            title,
+            size=size,
+            xlabel=_("Power (kW) · negative = regen"),
+            amount_per_bucket=None,
+            amount_unit=None,
+            count_ylabel=_("Samples"),
+            footer=foot,
+            bar_colors=DRIVE_POWER_BAR_COLORS,
+            edge_color="#1a2a40",
         )
 
     # Charge limit: session histogram (how often set to 100% / 80% / …)

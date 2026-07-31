@@ -1961,6 +1961,36 @@ msgstr[1] "%(n)s jours"
 msgid "newest on the left"
 msgstr "les plus récentes à gauche"
 
+msgid "Speed distribution"
+msgstr "Distribution des vitesses"
+
+msgid "Power distribution"
+msgstr "Distribution de la puissance"
+
+msgid "Speed (km/h)"
+msgstr "Vitesse (km/h)"
+
+msgid "Samples"
+msgstr "Échantillons"
+
+msgid "drive samples only · Tesla speed converted mph→km/h"
+msgstr "échantillons en conduite seulement · vitesse Tesla convertie mi/h→km/h"
+
+msgid "Power (kW) · negative = regen"
+msgstr "Puissance (kW) · négatif = régénération"
+
+msgid "n=%(n)s · regen %(regen).1f kWh / traction %(trac).1f kWh = %(pct).1f%% recovered"
+msgstr "n=%(n)s · régén. %(regen).1f kWh / traction %(trac).1f kWh = %(pct).1f%% récupérés"
+
+msgid "n=%(n)s · regen vs traction = %(pct).1f%% (sample power ratio · green = regen)"
+msgstr "n=%(n)s · régén. vs traction = %(pct).1f%% (ratio d’échantillons · vert = régén.)"
+
+msgid "n=%(n)s drive samples · green = regen · blue/red = traction"
+msgstr "n=%(n)s échantillons · vert = régén. · bleu/rouge = traction"
+
+msgid "No drive power samples in this period"
+msgstr "Aucun échantillon de puissance pour cette période"
+
 msgid "Lifetime map"
 msgstr "Carte lifetime"
 
