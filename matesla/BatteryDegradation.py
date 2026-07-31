@@ -1,40 +1,44 @@
 """
 Battery degradation (%) from rated range vs EPA-when-new.
 
-EPA is not in the API. We resolve it from VIN (+ wheel_type, optional live
-range sample) via matesla.epa_catalog, and cache on TeslaCarInfo.EPARange.
+EPA range is not in the Fleet API. We resolve it from the VIN (+ wheel_type,
+optional live range sample) via matesla.epa_catalog, and cache the result on
+TeslaCarInfo.EPARange so capture does not re-lookup every poll.
 """
 
-from matesla.VinAnalysis import GetModelFromVin, IsDualMotor, GetYearFromVin
+from matesla.VinAnalysis import GetModelFromVin, GetYearFromVin, IsDualMotor
+from matesla.epa_catalog import lookup_epa_miles, project_full_charge_miles
 from matesla.models.TeslaCarInfo import TeslaCarInfo
-from matesla.epa_catalog import (
-    lookup_epa_miles,
-    project_full_charge_miles,
-)
 
 
 def GetEPARangeFromCache(vin):
-    carInfos = TeslaCarInfo.objects.filter(vin=vin)
-    if len(carInfos) > 0 and carInfos[0].EPARange is not None:
-        return carInfos[0].EPARange
+    """Return cached EPA miles for vin, or None if unknown."""
+    car_info_rows = TeslaCarInfo.objects.filter(vin=vin)
+    if len(car_info_rows) > 0 and car_info_rows[0].EPARange is not None:
+        return car_info_rows[0].EPARange
     return None
 
 
 def _wheel_type_for_vin(vin, car_info=None):
+    """Prefer wheel_type from the given row, else look up TeslaCarInfo."""
     if car_info is not None and car_info.wheel_type:
         return car_info.wheel_type
-    carInfos = TeslaCarInfo.objects.filter(vin=vin)
-    if len(carInfos) > 0:
-        return carInfos[0].wheel_type
+    car_info_rows = TeslaCarInfo.objects.filter(vin=vin)
+    if len(car_info_rows) > 0:
+        return car_info_rows[0].wheel_type
     return None
 
 
 def _projected_full_from_db(vin):
-    """Best projected 100% rated miles from recent high-SoC snapshots."""
+    """
+    Best projected 100% rated miles from recent high-SoC snapshots.
+
+    Used when the live sample is missing or too low-SoC to project full range.
+    """
     try:
         from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 
-        qs = (
+        recent_samples = (
             TeslaCarDataSnapshot.objects.filter(
                 vin=vin,
                 battery_level__gte=50,
@@ -43,14 +47,16 @@ def _projected_full_from_db(vin):
             .order_by("-Date")
             .values_list("battery_range", "battery_level")[:40]
         )
-        best = None
-        for br, bl in qs:
-            p = project_full_charge_miles(br, bl)
-            if p is None:
+        best_projection = None
+        for battery_range_miles, battery_level_percent in recent_samples:
+            projected = project_full_charge_miles(
+                battery_range_miles, battery_level_percent
+            )
+            if projected is None:
                 continue
-            if best is None or p > best:
-                best = p
-        return best
+            if best_projection is None or projected > best_projection:
+                best_projection = projected
+        return best_projection
     except Exception:
         return None
 
@@ -64,44 +70,53 @@ def ResolveEPARange(
     wheel_type=None,
 ):
     """
-    Resolve and optionally persist EPA miles for vin.
+    Resolve and optionally persist EPA miles for a VIN.
 
     force=True recomputes even if TeslaCarInfo.EPARange is already set.
+    Returns (epa_miles, model_code, is_dual_motor, model_year).
     """
-    carInfos = TeslaCarInfo.objects.filter(vin=vin)
-    carInfo = carInfos[0] if len(carInfos) > 0 else None
+    car_info_rows = TeslaCarInfo.objects.filter(vin=vin)
+    car_info = car_info_rows[0] if len(car_info_rows) > 0 else None
 
-    if carInfo is not None and carInfo.EPARange is not None and not force:
+    if car_info is not None and car_info.EPARange is not None and not force:
         return (
-            carInfo.EPARange,
+            car_info.EPARange,
             GetModelFromVin(vin),
-            carInfo.isDualMotor if carInfo.isDualMotor is not None else IsDualMotor(vin),
-            carInfo.modelYear if carInfo.modelYear is not None else GetYearFromVin(vin),
+            car_info.isDualMotor
+            if car_info.isDualMotor is not None
+            else IsDualMotor(vin),
+            car_info.modelYear
+            if car_info.modelYear is not None
+            else GetYearFromVin(vin),
         )
 
-    projected = project_full_charge_miles(battery_range, battery_level)
-    if projected is None:
-        projected = _projected_full_from_db(vin)
+    projected_full_miles = project_full_charge_miles(battery_range, battery_level)
+    if projected_full_miles is None:
+        projected_full_miles = _projected_full_from_db(vin)
 
-    wt = wheel_type or _wheel_type_for_vin(vin, carInfo)
-    epa, _meta = lookup_epa_miles(vin, wheel_type=wt, projected_full_miles=projected)
+    resolved_wheel_type = wheel_type or _wheel_type_for_vin(vin, car_info)
+    epa_miles, _catalog_meta = lookup_epa_miles(
+        vin,
+        wheel_type=resolved_wheel_type,
+        projected_full_miles=projected_full_miles,
+    )
 
-    model = GetModelFromVin(vin)
-    isDual = IsDualMotor(vin)
-    year = GetYearFromVin(vin)
+    model_code = GetModelFromVin(vin)
+    is_dual_motor = IsDualMotor(vin)
+    model_year = GetYearFromVin(vin)
 
-    if carInfo is not None and epa is not None:
-        carInfo.EPARange = int(round(epa))
-        fields = ["EPARange"]
-        if carInfo.isDualMotor is None and isDual is not None:
-            carInfo.isDualMotor = isDual
-            fields.append("isDualMotor")
-        if carInfo.modelYear is None and year is not None:
-            carInfo.modelYear = year
-            fields.append("modelYear")
-        carInfo.save(update_fields=fields)
+    if car_info is not None and epa_miles is not None:
+        car_info.EPARange = int(round(epa_miles))
+        fields_to_update = ["EPARange"]
+        if car_info.isDualMotor is None and is_dual_motor is not None:
+            car_info.isDualMotor = is_dual_motor
+            fields_to_update.append("isDualMotor")
+        if car_info.modelYear is None and model_year is not None:
+            car_info.modelYear = model_year
+            fields_to_update.append("modelYear")
+        car_info.save(update_fields=fields_to_update)
 
-    return epa, model, isDual, year
+    return epa_miles, model_code, is_dual_motor, model_year
 
 
 def GetEPARange(vin):
@@ -109,84 +124,114 @@ def GetEPARange(vin):
     return ResolveEPARange(vin, force=False)
 
 
-# Update EPARange (miles), e.g. after heuristic correction
-def UpdateBatteryEPARange(vin, EPARange):
-    carInfos = TeslaCarInfo.objects.filter(vin=vin)
-    if len(carInfos) > 0:
-        carInfo = carInfos[0]
-        carInfo.EPARange = int(round(EPARange)) if EPARange is not None else None
-        carInfo.save(update_fields=["EPARange"])
+def UpdateBatteryEPARange(vin, epa_range_miles):
+    """Persist a corrected EPA range (miles) on TeslaCarInfo."""
+    car_info_rows = TeslaCarInfo.objects.filter(vin=vin)
+    if len(car_info_rows) > 0:
+        car_info = car_info_rows[0]
+        car_info.EPARange = (
+            int(round(epa_range_miles)) if epa_range_miles is not None else None
+        )
+        car_info.save(update_fields=["EPARange"])
 
 
-def ComputeBatteryDegradationFromEPARange(batteryrange, battery_level, EPARange):
-    if EPARange is None or battery_level is None or batteryrange is None:
+def ComputeBatteryDegradationFromEPARange(
+    battery_range_miles, battery_level_percent, epa_range_miles
+):
+    """
+    Degradation % = how much full-charge rated range fell vs EPA when new.
+
+    full_charge_now ≈ battery_range / (battery_level/100)
+    degradation = (1 - full_charge_now / EPA) * 100
+    """
+    if (
+        epa_range_miles is None
+        or battery_level_percent is None
+        or battery_range_miles is None
+    ):
         return None
     try:
-        bl = float(battery_level)
-        br = float(batteryrange)
-        epa = float(EPARange)
+        level = float(battery_level_percent)
+        rated_range = float(battery_range_miles)
+        epa = float(epa_range_miles)
     except (TypeError, ValueError):
         return None
-    if bl <= 0 or epa <= 0:
+    if level <= 0 or epa <= 0:
         return None
-    batterydegradation = (1.0 - ((br / bl) * 100.0) / epa) * 100.0
-    return batterydegradation
+    battery_degradation_percent = (1.0 - ((rated_range / level) * 100.0) / epa) * 100.0
+    return battery_degradation_percent
 
 
-def ComputeNumCycles(EPARange, odometerMiles):
-    if EPARange is None or odometerMiles is None:
+def ComputeNumCycles(epa_range_miles, odometer_miles):
+    """
+    Rough lifetime cycle estimate: odometer / EPA, with +20% for regen/vampire
+    energy that refilled the pack without adding odometer miles.
+    """
+    if epa_range_miles is None or odometer_miles is None:
         return None
-    if EPARange == 0:
+    if epa_range_miles == 0:
         return None
-    cycles = (1.0 * odometerMiles) / EPARange
-    # rough guess: +20% for regen / vampire refilled without odometer
+    cycles = (1.0 * odometer_miles) / epa_range_miles
     cycles = cycles * 1.2
     return cycles
 
 
-def ComputeBatteryDegradation(batteryrange, battery_level, vin, odometerMiles):
-    EPARange, model, isDual, year = ResolveEPARange(
+def ComputeBatteryDegradation(
+    battery_range_miles, battery_level_percent, vin, odometer_miles
+):
+    """
+    Full degradation pipeline for one sample: resolve EPA, compute %, cycles.
+
+    Includes safety nets when VIN decode mis-tags pack size (RWD Model 3 SR
+    vs LR, Model S 75/90/100 ambiguity) which otherwise yields nonsense
+    negative degradation.
+    """
+    epa_range_miles, model_code, is_dual_motor, _model_year = ResolveEPARange(
         vin,
         force=False,
-        battery_range=batteryrange,
-        battery_level=battery_level,
+        battery_range=battery_range_miles,
+        battery_level=battery_level_percent,
     )
-    if EPARange is None:
+    if epa_range_miles is None:
         return None, None, None
-    batterydegradation = ComputeBatteryDegradationFromEPARange(
-        batteryrange, battery_level, EPARange
+    battery_degradation_percent = ComputeBatteryDegradationFromEPARange(
+        battery_range_miles, battery_level_percent, epa_range_miles
     )
-    if batterydegradation is None:
+    if battery_degradation_percent is None:
         return None, None, None
 
     # Safety net: RWD still mis-tagged as SR (EPA too low) → large negative deg
-    if model == "3" and isDual is False and batterydegradation < -8:
-        for candidate in (325, 358, 363):
-            deg = ComputeBatteryDegradationFromEPARange(
-                batteryrange, battery_level, candidate
+    if model_code == "3" and is_dual_motor is False and battery_degradation_percent < -8:
+        for candidate_epa in (325, 358, 363):
+            candidate_degradation = ComputeBatteryDegradationFromEPARange(
+                battery_range_miles, battery_level_percent, candidate_epa
             )
-            if deg is not None and deg >= -2:
-                EPARange = candidate
-                batterydegradation = deg
-                UpdateBatteryEPARange(vin, EPARange)
+            if candidate_degradation is not None and candidate_degradation >= -2:
+                epa_range_miles = candidate_epa
+                battery_degradation_percent = candidate_degradation
+                UpdateBatteryEPARange(vin, epa_range_miles)
                 break
 
     # Model S pack ambiguity (75 / 90 / 100)
-    if model == "S" and isDual is True and batterydegradation < 0:
-        for candidate in (270.0, 294.0, 335.0, 405.0):
-            deg = ComputeBatteryDegradationFromEPARange(
-                batteryrange, battery_level, candidate
+    if model_code == "S" and is_dual_motor is True and battery_degradation_percent < 0:
+        for candidate_epa in (270.0, 294.0, 335.0, 405.0):
+            candidate_degradation = ComputeBatteryDegradationFromEPARange(
+                battery_range_miles, battery_level_percent, candidate_epa
             )
-            if deg is not None and deg >= 0:
-                EPARange = candidate
-                batterydegradation = deg
-                UpdateBatteryEPARange(vin, EPARange)
+            if candidate_degradation is not None and candidate_degradation >= 0:
+                epa_range_miles = candidate_epa
+                battery_degradation_percent = candidate_degradation
+                UpdateBatteryEPARange(vin, epa_range_miles)
                 return (
-                    batterydegradation,
-                    ComputeNumCycles(EPARange, odometerMiles),
-                    EPARange,
+                    battery_degradation_percent,
+                    ComputeNumCycles(epa_range_miles, odometer_miles),
+                    epa_range_miles,
                 )
 
-    if batterydegradation < 0:
-        batterydegradation = 0.0
-    return batterydegradation, ComputeNumCycles(EPARange, odometerMiles), EPARange
+    if battery_degradation_percent < 0:
+        battery_degradation_percent = 0.0
+    return (
+        battery_degradation_percent,
+        ComputeNumCycles(epa_range_miles, odometer_miles),
+        epa_range_miles,
+    )

@@ -292,9 +292,9 @@ def GetXandYRangeAt100(results, xfield, *, daily_median=True, min_soc=None):
     return xvalues, yvalues
 
 
-def annotate_range_at_100(qs):
+def annotate_range_at_100(queryset):
     """Add computed range_at_100 column (miles) for aggregation."""
-    return qs.annotate(
+    return queryset.annotate(
         range_at_100=Case(
             When(
                 usable_battery_level__gt=0,
@@ -311,7 +311,7 @@ def annotate_range_at_100(qs):
 
 def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="full"):
     # matplotlib 3.9+ removed Axes.plot_date — use plot() with date objects
-    fig, cfg = make_figure(size)
+    figure, style_config = make_figure(size)
 
     language = django.utils.translation.get_language()
     if language is not None and language == 'fr':
@@ -319,11 +319,11 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
     else:
         formatter = DateFormatter('%m/%d/%y')
 
-    ax = fig.subplots()
+    axes = figure.subplots()
     if datesList is not None and minvalues is not None and len(datesList) > 0:
-        lw = cfg["linewidth"]
+        lw = style_config["linewidth"]
         # Lines only (no markers) — clearer on dense multi-week series
-        ax.plot(
+        axes.plot(
             datesList,
             minvalues,
             color=SERIES_COLORS[0],
@@ -332,7 +332,7 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
             label=_("Minimum"),
             zorder=2,
         )
-        ax.plot(
+        axes.plot(
             datesList,
             avgvalues,
             color=SERIES_COLORS[1],
@@ -341,7 +341,7 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
             label=_("Average"),
             zorder=3,
         )
-        ax.plot(
+        axes.plot(
             datesList,
             maxvalues,
             color=SERIES_COLORS[2],
@@ -350,15 +350,15 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
             label=_("Maximum"),
             zorder=2,
         )
-        style_legend(ax, cfg)
-        ax.xaxis.set_major_formatter(formatter)
+        style_legend(axes, style_config)
+        axes.xaxis.set_major_formatter(formatter)
         # One day of data still plots fine; widen x-axis so a single point is not clipped
         if len(datesList) == 1:
             d = datesList[0]
-            ax.set_xlim(d - timedelta(days=1), d + timedelta(days=1))
-        fig.autofmt_xdate()
-    finish_figure(fig, ax, title, cfg)
-    return GeneratePngFromGraph(fig, size=size)
+            axes.set_xlim(d - timedelta(days=1), d + timedelta(days=1))
+        figure.autofmt_xdate()
+    finish_figure(figure, axes, title, style_config)
+    return GeneratePngFromGraph(figure, size=size)
 
 
 def _monthly_temp_series(queryset, field_name):
@@ -541,7 +541,7 @@ def GenerateMonthlyTempRibbonGraph(
     (highest monthly max). Logging gaps of ≥1 month break the series so we
     never invent a straight line across missing data.
     """
-    fig, cfg = make_figure(size)
+    figure, style_config = make_figure(size)
     language = django.utils.translation.get_language()
 
     def year_axis_tick_label(axis_value, _position=None):
@@ -556,9 +556,9 @@ def GenerateMonthlyTempRibbonGraph(
             return tick_date.strftime("%m/%Y")
         return tick_date.strftime("%b %Y")
 
-    ax = fig.subplots()
+    axes = figure.subplots()
     if month_dates and monthly_minimums and monthly_maximums and len(month_dates) > 0:
-        line_width = cfg["linewidth"]
+        line_width = style_config["linewidth"]
 
         def mid_month_datetime(month_date):
             """Place each monthly point on the 15th for cleaner x spacing."""
@@ -587,7 +587,7 @@ def GenerateMonthlyTempRibbonGraph(
 
             if len(segment_x) == 1:
                 # Isolated month (surrounded by logging gaps): markers only, no fake line
-                ax.fill_between(
+                axes.fill_between(
                     [segment_x[0], segment_x[0]],
                     [segment_minimums[0], segment_minimums[0]],
                     [segment_maximums[0], segment_maximums[0]],
@@ -597,39 +597,39 @@ def GenerateMonthlyTempRibbonGraph(
                     zorder=1,
                     label=label_range,
                 )
-                ax.plot(
+                axes.plot(
                     segment_x,
                     segment_minimums,
                     color=SERIES_COLORS[0],
                     marker="o",
-                    markersize=cfg["markersize"] + 1.5,
+                    markersize=style_config["markersize"] + 1.5,
                     linestyle="None",
                     zorder=2,
                     label=label_minimum,
                 )
-                ax.plot(
+                axes.plot(
                     segment_x,
                     segment_averages,
                     color=SERIES_COLORS[1],
                     marker="o",
-                    markersize=cfg["markersize"] + 1.5,
+                    markersize=style_config["markersize"] + 1.5,
                     linestyle="None",
                     zorder=3,
                     label=label_average,
                 )
-                ax.plot(
+                axes.plot(
                     segment_x,
                     segment_maximums,
                     color=SERIES_COLORS[2],
                     marker="o",
-                    markersize=cfg["markersize"] + 1.5,
+                    markersize=style_config["markersize"] + 1.5,
                     linestyle="None",
                     zorder=2,
                     label=label_maximum,
                 )
                 continue
 
-            ax.fill_between(
+            axes.fill_between(
                 segment_x,
                 segment_minimums,
                 segment_maximums,
@@ -639,7 +639,7 @@ def GenerateMonthlyTempRibbonGraph(
                 zorder=1,
                 label=label_range,
             )
-            ax.plot(
+            axes.plot(
                 segment_x,
                 segment_minimums,
                 color=SERIES_COLORS[0],
@@ -649,7 +649,7 @@ def GenerateMonthlyTempRibbonGraph(
                 zorder=2,
                 label=label_minimum,
             )
-            ax.plot(
+            axes.plot(
                 segment_x,
                 segment_averages,
                 color=SERIES_COLORS[1],
@@ -658,7 +658,7 @@ def GenerateMonthlyTempRibbonGraph(
                 zorder=3,
                 label=label_average,
             )
-            ax.plot(
+            axes.plot(
                 segment_x,
                 segment_maximums,
                 color=SERIES_COLORS[2],
@@ -684,26 +684,26 @@ def GenerateMonthlyTempRibbonGraph(
         record_maximum_x = all_x_positions[record_max_index]
 
         # Highlight record cold / hot months with markers + text callouts
-        ax.scatter(
+        axes.scatter(
             [record_minimum_x],
             [record_minimum_celsius],
-            s=cfg["scatter_size"] + 18,
+            s=style_config["scatter_size"] + 18,
             color=SERIES_COLORS[0],
             edgecolors=TEXT,
             linewidths=0.6,
             zorder=5,
         )
-        ax.scatter(
+        axes.scatter(
             [record_maximum_x],
             [record_maximum_celsius],
-            s=cfg["scatter_size"] + 18,
+            s=style_config["scatter_size"] + 18,
             color=SERIES_COLORS[2],
             edgecolors=TEXT,
             linewidths=0.6,
             zorder=5,
         )
 
-        annotation_font_size = cfg["tick_size"]
+        annotation_font_size = style_config["tick_size"]
         record_minimum_label = _("Record min %(t).1f °C · %(when)s") % {
             "t": record_minimum_celsius,
             "when": _format_month_label(record_minimum_month, language),
@@ -718,7 +718,7 @@ def GenerateMonthlyTempRibbonGraph(
             else 10.0
         )
         vertical_padding = max(1.5, temperature_span * 0.06)
-        ax.annotate(
+        axes.annotate(
             record_minimum_label,
             xy=(record_minimum_x, record_minimum_celsius),
             xytext=(0, -14),
@@ -730,7 +730,7 @@ def GenerateMonthlyTempRibbonGraph(
             zorder=6,
             clip_on=False,
         )
-        ax.annotate(
+        axes.annotate(
             record_maximum_label,
             xy=(record_maximum_x, record_maximum_celsius),
             xytext=(0, 12),
@@ -743,36 +743,36 @@ def GenerateMonthlyTempRibbonGraph(
             clip_on=False,
         )
 
-        ax.set_ylim(
+        axes.set_ylim(
             min(monthly_minimums) - vertical_padding * 2.2,
             max(monthly_maximums) + vertical_padding * 2.8,
         )
-        style_legend(ax, cfg)
+        style_legend(axes, style_config)
         # Graduations: small tick every month (no label), larger every 3 months
         # (Jan/Apr/Jul/Oct). Labels only on January so multi-year stays readable.
         month_point_count = len(all_x_positions)
-        ax.xaxis.set_minor_locator(MonthLocator())
-        ax.xaxis.set_major_locator(MonthLocator(bymonth=(1, 4, 7, 10)))
-        ax.xaxis.set_major_formatter(FuncFormatter(year_axis_tick_label))
-        ax.tick_params(axis="x", which="minor", labelbottom=False)
+        axes.xaxis.set_minor_locator(MonthLocator())
+        axes.xaxis.set_major_locator(MonthLocator(bymonth=(1, 4, 7, 10)))
+        axes.xaxis.set_major_formatter(FuncFormatter(year_axis_tick_label))
+        axes.tick_params(axis="x", which="minor", labelbottom=False)
         if month_point_count == 1:
-            ax.set_xlim(
+            axes.set_xlim(
                 all_x_positions[0] - timedelta(days=40),
                 all_x_positions[0] + timedelta(days=40),
             )
-        style_axes(ax, cfg)
+        style_axes(axes, style_config)
         # Re-apply locators after style_axes (it may reset tick styling)
-        ax.xaxis.set_minor_locator(MonthLocator())
-        ax.xaxis.set_major_locator(MonthLocator(bymonth=(1, 4, 7, 10)))
-        ax.tick_params(
+        axes.xaxis.set_minor_locator(MonthLocator())
+        axes.xaxis.set_major_locator(MonthLocator(bymonth=(1, 4, 7, 10)))
+        axes.tick_params(
             axis="x",
             which="major",
             length=8.0,
             width=1.0,
             colors=MUTED,
-            labelsize=cfg["tick_size"],
+            labelsize=style_config["tick_size"],
         )
-        ax.tick_params(
+        axes.tick_params(
             axis="x",
             which="minor",
             length=3.2,
@@ -780,21 +780,21 @@ def GenerateMonthlyTempRibbonGraph(
             colors=MUTED,
             labelbottom=False,
         )
-        for label in ax.get_xticklabels():
+        for label in axes.get_xticklabels():
             label.set_rotation(0)
             label.set_ha("center")
         # Y: small mark every 5 °C, larger every 10 °C (labels only on 10 °C majors)
-        ax.yaxis.set_minor_locator(MultipleLocator(5))
-        ax.yaxis.set_major_locator(MultipleLocator(10))
-        ax.tick_params(
+        axes.yaxis.set_minor_locator(MultipleLocator(5))
+        axes.yaxis.set_major_locator(MultipleLocator(10))
+        axes.tick_params(
             axis="y",
             which="major",
             length=7.5,
             width=0.9,
             colors=MUTED,
-            labelsize=cfg["tick_size"],
+            labelsize=style_config["tick_size"],
         )
-        ax.tick_params(
+        axes.tick_params(
             axis="y",
             which="minor",
             length=3.2,
@@ -802,12 +802,12 @@ def GenerateMonthlyTempRibbonGraph(
             colors=MUTED,
             labelleft=False,
         )
-        style_suptitle(fig, title, cfg)
+        style_suptitle(figure, title, style_config)
         try:
-            fig.tight_layout(rect=(0.02, 0.07, 0.98, 0.90))
+            figure.tight_layout(rect=(0.02, 0.07, 0.98, 0.90))
         except Exception:
             pass
-        fig.text(
+        figure.text(
             0.5,
             0.01,
             _(
@@ -817,11 +817,11 @@ def GenerateMonthlyTempRibbonGraph(
             ha="center",
             va="bottom",
             color=MUTED,
-            fontsize=cfg["tick_size"] - 0.5,
+            fontsize=style_config["tick_size"] - 0.5,
         )
     else:
-        finish_figure(fig, ax, title, cfg)
-    return GeneratePngFromGraph(fig, size=size)
+        finish_figure(figure, axes, title, style_config)
+    return GeneratePngFromGraph(figure, size=size)
 
 
 def GetDatesAndValuesFromGroupByDateResult(results):
@@ -980,13 +980,13 @@ def _downsample_rows_inplace(rows, max_rows):
     return rows[::step][:max_rows]
 
 
-def _load_efficiency_trips(qs):
+def _load_efficiency_trips(queryset):
     """
     Shared trip list for 1D/2D efficiency charts.
     SQL drive filter + single scan thin to EFFICIENCY_MAX_DRIVE_ROWS.
     """
     drive_qs = (
-        qs.filter(_drive_filter_q())
+        queryset.filter(_drive_filter_q())
         .order_by("Date")
         .values(
             "Date",
@@ -1021,9 +1021,9 @@ def _load_efficiency_trips(qs):
     return _extract_efficiency_trips_from_drive_rows(rows)
 
 
-def _efficiency_bins_for_queryset(qs, *, by_speed: bool):
+def _efficiency_bins_for_queryset(queryset, *, by_speed: bool):
     """1D histograms: efficiency vs speed or temperature."""
-    trips = _load_efficiency_trips(qs)
+    trips = _load_efficiency_trips(queryset)
     if by_speed:
         labels, eff, kms = _bin_trips(
             trips,
@@ -1301,7 +1301,7 @@ def _session_delta_field(pts, key) -> float | None:
     return delta if delta > 0.01 else None
 
 
-def _iter_charge_sessions(qs, extra_fields=()):
+def _iter_charge_sessions(queryset, extra_fields=()):
     """
     Yield lists of sample dicts for each charge session (≥ min duration).
     SQL: charging samples only; split on CHARGE_SESSION_GAP.
@@ -1324,7 +1324,7 @@ def _iter_charge_sessions(qs, extra_fields=()):
     charge_q = Q(charging_state__iexact="Charging") | Q(
         charging_state__iexact="Starting"
     ) | Q(charger_power__gt=0.5)
-    base = qs.filter(charge_q).order_by("Date").values(*fields)
+    base = queryset.filter(charge_q).order_by("Date").values(*fields)
     try:
         total = base.count()
     except Exception:
@@ -1692,10 +1692,10 @@ def _charge_end_soc_histogram(queryset):
     return list(CHARGE_END_SOC_BUCKET_LABELS), bucket_counts, percentages
 
 
-def _daily_min_soc_histogram(qs):
+def _daily_min_soc_histogram(queryset):
     """Calendar days classified by minimum SoC that day."""
     day_mins = (
-        qs.exclude(battery_level__isnull=True, usable_battery_level__isnull=True)
+        queryset.exclude(battery_level__isnull=True, usable_battery_level__isnull=True)
         .values("DateOnlyDay")
         .annotate(
             min_u=Min("usable_battery_level"),
@@ -1768,15 +1768,15 @@ def GenerateChargeSessionHistogram(
     bar_colors: optional list of face colors (one per bar).
     Footer sits outside the axes so it never covers short bars.
     """
-    fig, cfg = make_figure(size, bar=True)
-    ax = fig.subplots()
+    figure, style_config = make_figure(size, bar=True)
+    axes = figure.subplots()
     if labels and counts and sum(counts) > 0:
         x = list(range(len(labels)))
         if bar_colors and len(bar_colors) >= len(labels):
             colors = list(bar_colors[: len(labels)])
         else:
             colors = ACCENT_SOFT
-        bars = ax.bar(
+        bars = axes.bar(
             x,
             counts,
             color=colors,
@@ -1787,8 +1787,8 @@ def GenerateChargeSessionHistogram(
         )
         ymax = max(counts) if counts else 1
         # Room above tallest bar for 2-line labels (not 3 lines over short bars)
-        ax.set_ylim(0, ymax * 1.18)
-        fs = max(6.0, cfg["tick_size"] - 0.5)
+        axes.set_ylim(0, ymax * 1.18)
+        fs = max(6.0, style_config["tick_size"] - 0.5)
         for i, (bar, c, p) in enumerate(zip(bars, counts, pcts)):
             if c <= 0:
                 continue
@@ -1808,7 +1808,7 @@ def GenerateChargeSessionHistogram(
                     label = f"{c_txt} ({p:.0f}%)\n{amt:.0f} kWh"
                 else:
                     label = f"{c_txt} ({p:.0f}%)\n{amt:.0f} mi"
-            ax.annotate(
+            axes.annotate(
                 label,
                 xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
                 xytext=(0, 3),
@@ -1821,10 +1821,10 @@ def GenerateChargeSessionHistogram(
                 zorder=3,
                 clip_on=False,
             )
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels, rotation=22, ha="right")
-        ax.set_ylabel(count_ylabel or _("Charge sessions"), color=MUTED)
-        ax.set_xlabel(xlabel, color=MUTED)
+        axes.set_xticks(x)
+        axes.set_xticklabels(labels, rotation=22, ha="right")
+        axes.set_ylabel(count_ylabel or _("Charge sessions"), color=MUTED)
+        axes.set_xlabel(xlabel, color=MUTED)
         total = sum(counts)
         # Short footer under the figure (not inside the plot area)
         if footer is not None:
@@ -1850,24 +1850,24 @@ def GenerateChargeSessionHistogram(
                 "n": total,
                 "min": CHARGE_SESSION_MIN_MINUTES,
             }
-        style_axes(ax, cfg)
-        style_suptitle(fig, title, cfg)
+        style_axes(axes, style_config)
+        style_suptitle(figure, title, style_config)
         try:
-            fig.tight_layout(rect=(0.02, 0.08, 0.98, 0.90))
+            figure.tight_layout(rect=(0.02, 0.08, 0.98, 0.90))
         except Exception:
             pass
-        fig.text(
+        figure.text(
             0.5,
             0.01,
             foot,
             ha="center",
             va="bottom",
             color=MUTED,
-            fontsize=cfg["tick_size"] - 0.5,
+            fontsize=style_config["tick_size"] - 0.5,
         )
     else:
-        finish_figure(fig, ax, title, cfg)
-    return GeneratePngFromGraph(fig, size=size)
+        finish_figure(figure, axes, title, style_config)
+    return GeneratePngFromGraph(figure, size=size)
 
 
 def GenerateEfficiencyBinGraph(labels, efficiency, km_totals, title, xlabel, size="full"):
@@ -1875,14 +1875,14 @@ def GenerateEfficiencyBinGraph(labels, efficiency, km_totals, title, xlabel, siz
     Dual-axis chart: bars = km recorded in bin, line = mean efficiency %.
     Dark MaTesla style (not a TeslaFi clone).
     """
-    fig, cfg = make_figure(size)
-    ax = fig.subplots()
+    figure, style_config = make_figure(size)
+    axes = figure.subplots()
     if labels and efficiency and len(labels) > 0:
         x = list(range(len(labels)))
-        ax2 = ax.twinx()
+        axes_secondary = axes.twinx()
         # Bars behind the line
         bar_w = 0.72
-        ax2.bar(
+        axes_secondary.bar(
             x,
             km_totals,
             width=bar_w,
@@ -1893,14 +1893,14 @@ def GenerateEfficiencyBinGraph(labels, efficiency, km_totals, title, xlabel, siz
             zorder=1,
             label=_("Distance recorded (km)"),
         )
-        ax.plot(
+        axes.plot(
             x,
             efficiency,
             color=ENERGY,
             linestyle="-",
-            linewidth=cfg["linewidth"] + 0.35,
+            linewidth=style_config["linewidth"] + 0.35,
             marker="o",
-            markersize=cfg["markersize"] + 1.2,
+            markersize=style_config["markersize"] + 1.2,
             markerfacecolor=ENERGY,
             markeredgecolor="#0b1220",
             markeredgewidth=0.6,
@@ -1910,64 +1910,64 @@ def GenerateEfficiencyBinGraph(labels, efficiency, km_totals, title, xlabel, siz
         # Annotate a few efficiency values when not too crowded
         if len(labels) <= 18:
             for i, e in enumerate(efficiency):
-                ax.annotate(
+                axes.annotate(
                     f"{e:.0f}%",
                     (i, e),
                     textcoords="offset points",
                     xytext=(0, 7),
                     ha="center",
-                    fontsize=cfg["tick_size"] - 0.5,
+                    fontsize=style_config["tick_size"] - 0.5,
                     color=TEXT,
                     zorder=4,
                 )
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels, rotation=35, ha="right")
-        ax.set_ylabel(_("Efficiency (%)"), color=MUTED)
-        ax2.set_ylabel(_("Distance (km)"), color=MUTED)
-        ax.set_xlabel(xlabel, color=MUTED)
-        ax.set_ylim(bottom=max(0, min(efficiency) - 12), top=min(145, max(efficiency) + 12))
-        ax2.set_ylim(bottom=0, top=max(km_totals) * 1.25 if km_totals else 1)
-        style_axes(ax, cfg)
-        ax2.set_facecolor("none")
-        ax2.tick_params(colors=MUTED, labelsize=cfg["tick_size"], length=3.5, width=0.7)
-        ax2.yaxis.label.set_color(MUTED)
-        for spine in ax2.spines.values():
+        axes.set_xticks(x)
+        axes.set_xticklabels(labels, rotation=35, ha="right")
+        axes.set_ylabel(_("Efficiency (%)"), color=MUTED)
+        axes_secondary.set_ylabel(_("Distance (km)"), color=MUTED)
+        axes.set_xlabel(xlabel, color=MUTED)
+        axes.set_ylim(bottom=max(0, min(efficiency) - 12), top=min(145, max(efficiency) + 12))
+        axes_secondary.set_ylim(bottom=0, top=max(km_totals) * 1.25 if km_totals else 1)
+        style_axes(axes, style_config)
+        axes_secondary.set_facecolor("none")
+        axes_secondary.tick_params(colors=MUTED, labelsize=style_config["tick_size"], length=3.5, width=0.7)
+        axes_secondary.yaxis.label.set_color(MUTED)
+        for spine in axes_secondary.spines.values():
             spine.set_color("#3a5070")
-            spine.set_linewidth(cfg["spine_width"])
+            spine.set_linewidth(style_config["spine_width"])
         # Combined legend
-        h1, l1 = ax.get_legend_handles_labels()
-        h2, l2 = ax2.get_legend_handles_labels()
-        leg = ax.legend(
+        h1, l1 = axes.get_legend_handles_labels()
+        h2, l2 = axes_secondary.get_legend_handles_labels()
+        leg = axes.legend(
             h1 + h2,
             l1 + l2,
             facecolor="#162338",
             edgecolor="#3a5070",
             labelcolor=TEXT,
-            fontsize=cfg["legend_size"],
+            fontsize=style_config["legend_size"],
             framealpha=0.92,
             loc="best",
         )
         if leg is not None:
             leg.get_frame().set_linewidth(0.8)
         # Subtitle hint
-        ax.text(
+        axes.text(
             0.01,
             0.02,
             _("Trips ≥ 10 km · 100% = matched rated range use"),
-            transform=ax.transAxes,
-            fontsize=cfg["tick_size"] - 0.5,
+            transform=axes.transAxes,
+            fontsize=style_config["tick_size"] - 0.5,
             color=MUTED,
             va="bottom",
             zorder=5,
         )
-        style_suptitle(fig, title, cfg)
+        style_suptitle(figure, title, style_config)
         try:
-            fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.92))
+            figure.tight_layout(rect=(0.02, 0.02, 0.98, 0.92))
         except Exception:
             pass
     else:
-        finish_figure(fig, ax, title, cfg)
-    return GeneratePngFromGraph(fig, size=size)
+        finish_figure(figure, axes, title, style_config)
+    return GeneratePngFromGraph(figure, size=size)
 
 
 # Check params and ensure that they are not a potential SQL injection
@@ -1988,13 +1988,13 @@ def SecurityChecks(hashedVin, desiredfield):
     return None, True
 
 
-def _period_filter(qs, desiredperiod):
+def _period_filter(queryset, desiredperiod):
     """desiredperiod is expressed in weeks; 0 / None means all data."""
     if desiredperiod is not None and desiredperiod > 0:
         # most recent data
         mindate = datetime.now() - timedelta(weeks=desiredperiod)
-        return qs.filter(DateOnlyDay__gte=mindate)
-    return qs
+        return queryset.filter(DateOnlyDay__gte=mindate)
+    return queryset
 
 
 # create a graph showing the evolution of field for a car identified by hashed
@@ -2050,9 +2050,9 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
 
     # Trip efficiency histograms (not a raw time series field)
     if desiredfield in ("efficiency_by_speed", "efficiency_by_temp"):
-        qs = _period_filter(base, desiredperiod)
+        queryset = _period_filter(base, desiredperiod)
         labels, eff, kms, xlabel = _efficiency_bins_for_queryset(
-            qs, by_speed=(desiredfield == "efficiency_by_speed")
+            queryset, by_speed=(desiredfield == "efficiency_by_speed")
         )
         return GenerateEfficiencyBinGraph(
             labels, eff, kms, title, xlabel, size=size
@@ -2060,8 +2060,8 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
 
     # Drive speed distribution (replaces noisy min/avg/max time series)
     if desiredfield == "speed":
-        qs = _period_filter(base, desiredperiod)
-        labels, counts, pcts = _drive_speed_histogram(qs)
+        queryset = _period_filter(base, desiredperiod)
+        labels, counts, pcts = _drive_speed_histogram(queryset)
         return GenerateChargeSessionHistogram(
             labels,
             counts,
@@ -2077,8 +2077,8 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
 
     # Drive power distribution + regen vs traction energy estimate
     if desiredfield == "power":
-        qs = _period_filter(base, desiredperiod)
-        labels, counts, pcts, meta = _drive_power_histogram(qs)
+        queryset = _period_filter(base, desiredperiod)
+        labels, counts, pcts, meta = _drive_power_histogram(queryset)
         total = sum(counts)
         if (
             meta.get("regen_pct") is not None
@@ -2127,15 +2127,15 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
 
     # Charge limit: session histogram (how often set to 100% / 80% / …)
     if desiredfield == "charge_limit_soc":
-        qs = _period_filter(base, desiredperiod)
-        labels, counts, pcts = _charge_limit_session_histogram(qs)
+        queryset = _period_filter(base, desiredperiod)
+        labels, counts, pcts = _charge_limit_session_histogram(queryset)
         return GenerateChargeLimitHistogram(labels, counts, pcts, title, size=size)
 
     # Peak power / charge-rate session histograms (DC vs AC, Supercharge peaks)
     if desiredfield in ("charger_power", "charge_rate"):
-        qs = _period_filter(base, desiredperiod)
+        queryset = _period_filter(base, desiredperiod)
         labels, counts, amounts, pcts, amount_unit = _charge_peak_histogram(
-            qs, metric=desiredfield
+            queryset, metric=desiredfield
         )
         xlabel = (
             _("Peak charger power")
@@ -2155,8 +2155,8 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
 
     # End-of-charge SoC (replaces noisy battery_level time series)
     if desiredfield == "battery_level":
-        qs = _period_filter(base, desiredperiod)
-        labels, counts, pcts = _charge_end_soc_histogram(qs)
+        queryset = _period_filter(base, desiredperiod)
+        labels, counts, pcts = _charge_end_soc_histogram(queryset)
         return GenerateChargeSessionHistogram(
             labels,
             counts,
@@ -2171,8 +2171,8 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
 
     # Daily minimum SoC (replaces noisy battery_range time series)
     if desiredfield == "battery_range":
-        qs = _period_filter(base, desiredperiod)
-        labels, counts, pcts = _daily_min_soc_histogram(qs)
+        queryset = _period_filter(base, desiredperiod)
+        labels, counts, pcts = _daily_min_soc_histogram(queryset)
         return GenerateChargeSessionHistogram(
             labels,
             counts,
@@ -2188,17 +2188,17 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
 
     # Temperature: monthly min–max ribbon (seasonal + extremes), not noisy daily lines
     if desiredfield in ("outside_temp", "inside_temp"):
-        qs = _period_filter(base, desiredperiod)
-        months, mins, maxs, avgs = _monthly_temp_series(qs, desiredfield)
+        queryset = _period_filter(base, desiredperiod)
+        months, mins, maxs, avgs = _monthly_temp_series(queryset, desiredfield)
         return GenerateMonthlyTempRibbonGraph(
             months, mins, maxs, avgs, title, size=size
         )
 
     # range_at_100 is not a DB column: battery_range / SoC * 100 (full-charge miles)
     if desiredfield == "range_at_100":
-        qs = annotate_range_at_100(_period_filter(base, desiredperiod))
+        queryset = annotate_range_at_100(_period_filter(base, desiredperiod))
         results = (
-            qs.values("DateOnlyDay")
+            queryset.values("DateOnlyDay")
             .annotate(
                 max_val=Max("range_at_100"),
                 min_val=Min("range_at_100"),
@@ -2207,9 +2207,9 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
             .order_by("DateOnlyDay")
         )
     else:
-        qs = _period_filter(base, desiredperiod)
+        queryset = _period_filter(base, desiredperiod)
         results = (
-            qs.values("DateOnlyDay")
+            queryset.values("DateOnlyDay")
             .annotate(
                 max_val=Max(desiredfield),
                 min_val=Min(desiredfield),
@@ -2994,7 +2994,7 @@ def DayMap(request, hashedVin, day=None):
     next_day = chosen + timedelta(days=1)
 
     # Full telemetry for the day (GPS may be missing on some charge samples)
-    qs = (
+    queryset = (
         TeslaCarDataSnapshot.objects.filter(
             hashedVin=hashedVin,
             Date__gte=day_start,
@@ -3020,7 +3020,7 @@ def DayMap(request, hashedVin, day=None):
 
     raw_rows = []
     vin = None
-    for s in qs.iterator(chunk_size=2000):
+    for s in queryset.iterator(chunk_size=2000):
         if vin is None and s.vin:
             vin = s.vin
         raw_rows.append(
@@ -3329,12 +3329,12 @@ def _battery_degradation_graph_uncached(hashedVin, desiredfield, desiredperiod, 
             return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
         title = GetTitleForField(desiredfield)
         base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
-        qs = _period_filter(degradation_scatter_queryset(base), desiredperiod)
-        if not qs.exists():
+        queryset = _period_filter(degradation_scatter_queryset(base), desiredperiod)
+        if not queryset.exists():
             return GenerateScatterGraph(None, None, title, size=size)
         # Full period (no row cap — [:N] by Date only kept early history).
         # Daily median collapses same-day BMS jitter (~1k days max for 10y).
-        results = qs.order_by("Date").values(
+        results = queryset.order_by("Date").values(
             "odometer",
             "battery_range",
             "Date",
@@ -3351,13 +3351,13 @@ def _battery_degradation_graph_uncached(hashedVin, desiredfield, desiredperiod, 
 
     title = GetTitleForField(desiredfield)
     base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
-    qs = _period_filter(degradation_scatter_queryset(base), desiredperiod)
-    if not qs.exists():
+    queryset = _period_filter(degradation_scatter_queryset(base), desiredperiod)
+    if not queryset.exists():
         return GenerateScatterGraph(None, None, title, size=size)
 
     # Must cover the whole period: capping by Date truncated high-mileage history
     # (e.g. 8000 dense TeslaFi rows ≈ only the first few 10k miles).
-    results = qs.order_by("Date").values(
+    results = queryset.order_by("Date").values(
         desiredfield,
         "battery_degradation",
         "Date",

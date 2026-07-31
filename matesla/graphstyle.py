@@ -4,6 +4,9 @@ Shared matplotlib styling for MaTesla graphs (dark UI + two resolutions).
 size:
   - thumb  → compact grid cards (lower DPI / smaller figure)
   - full   → lightbox or direct URL (sharper, larger)
+
+All graph endpoints should build figures through this module so colors and
+typography stay aligned with static/css/matesla.css.
 """
 
 from __future__ import annotations
@@ -28,7 +31,7 @@ CYAN = "#3ec9e0"
 WARM = "#f0b429"
 DANGER = "#ff5c6a"
 
-# Date series: min / avg / max — deliberately far apart (not 3 cool tones).
+# Date series: min / avg / max — deliberately far apart (not three cool tones).
 # Min = cool blue, Avg = amber (high contrast), Max = coral red.
 SERIES_COLORS = (ACCENT, WARM, DANGER)
 
@@ -38,6 +41,7 @@ SCATTER_EDGE = "#0b1220"
 FIT_LINEAR = DANGER
 BAR_FACE = ACCENT_SOFT
 
+# Typography / geometry presets for the two display sizes used by the UI
 GRAPH_SIZES = {
     "thumb": {
         "figsize": (7.0, 3.05),
@@ -71,6 +75,7 @@ GRAPH_SIZES = {
 
 
 def parse_graph_size(raw, default: str = "full") -> str:
+    """Normalize ?size= query values to 'thumb' or 'full'."""
     if raw is None:
         return default
     key = str(raw).strip().lower()
@@ -87,83 +92,99 @@ def graph_size_from_request(request, default: str = "full") -> str:
 
 
 def size_config(size: str) -> dict:
+    """Return the style dict for a graph size key."""
     return GRAPH_SIZES["thumb" if size == "thumb" else "full"]
 
 
 def make_figure(size: str = "full", *, bar: bool = False) -> tuple[Figure, dict]:
-    cfg = size_config(size)
-    figsize = cfg["figsize_bar"] if bar else cfg["figsize"]
-    fig = Figure(
+    """
+    Create a dark-themed Figure and its style config.
+
+    bar=True uses a shorter figure height suited to histogram cards.
+    Returns (figure, style_config) so callers never invent ad-hoc DPI/fonts.
+    """
+    style_config = size_config(size)
+    figsize = style_config["figsize_bar"] if bar else style_config["figsize"]
+    figure = Figure(
         figsize=figsize,
-        dpi=cfg["dpi"],
+        dpi=style_config["dpi"],
         facecolor=BG,
         edgecolor=BG,
         tight_layout={"pad": 0.55 if size == "thumb" else 0.9},
     )
-    return fig, cfg
+    return figure, style_config
 
 
-def style_axes(ax, cfg: dict) -> None:
-    ax.set_facecolor(AXES_BG)
-    ax.tick_params(colors=MUTED, labelsize=cfg["tick_size"], length=3.5, width=0.7)
-    ax.xaxis.label.set_color(MUTED)
-    ax.yaxis.label.set_color(MUTED)
-    ax.title.set_color(TEXT)
-    for spine in ax.spines.values():
+def style_axes(axes, style_config: dict) -> None:
+    """Apply dark grid, muted ticks, and plain Y formatting to an Axes."""
+    axes.set_facecolor(AXES_BG)
+    axes.tick_params(
+        colors=MUTED,
+        labelsize=style_config["tick_size"],
+        length=3.5,
+        width=0.7,
+    )
+    axes.xaxis.label.set_color(MUTED)
+    axes.yaxis.label.set_color(MUTED)
+    axes.title.set_color(TEXT)
+    for spine in axes.spines.values():
         spine.set_color(SPINE)
-        spine.set_linewidth(cfg["spine_width"])
-    ax.grid(True, color=GRID, linewidth=0.7, alpha=0.55, linestyle="-")
-    ax.set_axisbelow(True)
-    ax.ticklabel_format(axis="y", useOffset=False, style="plain")
+        spine.set_linewidth(style_config["spine_width"])
+    axes.grid(True, color=GRID, linewidth=0.7, alpha=0.55, linestyle="-")
+    axes.set_axisbelow(True)
+    axes.ticklabel_format(axis="y", useOffset=False, style="plain")
 
 
-def style_suptitle(fig: Figure, title, cfg: dict) -> None:
+def style_suptitle(figure: Figure, title, style_config: dict) -> None:
+    """Set a bold white figure title when present."""
     if not title:
         return
-    fig.suptitle(
+    figure.suptitle(
         title,
         color=TEXT,
-        fontsize=cfg["title_size"],
+        fontsize=style_config["title_size"],
         fontweight="bold",
         y=0.98,
     )
 
 
-def style_legend(ax, cfg: dict):
-    leg = ax.legend(
+def style_legend(axes, style_config: dict):
+    """Dark legend panel matching the rest of the UI chrome."""
+    legend = axes.legend(
         facecolor="#162338",
         edgecolor=SPINE,
         labelcolor=TEXT,
-        fontsize=cfg["legend_size"],
+        fontsize=style_config["legend_size"],
         framealpha=0.92,
         borderpad=0.5,
     )
-    if leg is not None:
-        leg.get_frame().set_linewidth(0.8)
-    return leg
+    if legend is not None:
+        legend.get_frame().set_linewidth(0.8)
+    return legend
 
 
-def finish_figure(fig: Figure, ax, title, cfg: dict) -> None:
-    style_axes(ax, cfg)
-    style_suptitle(fig, title, cfg)
+def finish_figure(figure: Figure, axes, title, style_config: dict) -> None:
+    """Apply axes + title styling and a safe tight_layout."""
+    style_axes(axes, style_config)
+    style_suptitle(figure, title, style_config)
     try:
-        fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.92))
+        figure.tight_layout(rect=(0.02, 0.02, 0.98, 0.92))
     except Exception:
         pass
 
 
-def render_png(fig: Figure, size: str = "full") -> HttpResponse:
-    """Encode figure as PNG and free it."""
-    cfg = size_config(size)
-    buf = io.BytesIO()
-    canvas = FigureCanvasAgg(fig)
-    canvas.print_png(buf)
-    data = buf.getvalue()
-    fig.clear()
-    response = HttpResponse(data, content_type="image/png")
-    response["Content-Length"] = str(len(data))
-    # Hint for intermediate caches (params include size)
+def render_png(figure: Figure, size: str = "full") -> HttpResponse:
+    """Encode a figure as PNG and free matplotlib resources."""
+    style_config = size_config(size)
+    buffer = io.BytesIO()
+    canvas = FigureCanvasAgg(figure)
+    canvas.print_png(buffer)
+    png_bytes = buffer.getvalue()
+    figure.clear()
+    response = HttpResponse(png_bytes, content_type="image/png")
+    response["Content-Length"] = str(len(png_bytes))
+    # Short private browser cache; params include size so thumb/full stay distinct
     response["Cache-Control"] = "private, max-age=120"
     response["X-MaTesla-Graph-Size"] = "thumb" if size == "thumb" else "full"
-    response["X-MaTesla-Graph-Dpi"] = str(cfg["dpi"])
+    response["X-MaTesla-Graph-Dpi"] = str(style_config["dpi"])
     return response

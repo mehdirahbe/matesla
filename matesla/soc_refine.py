@@ -29,24 +29,26 @@ PACK_CACHE_SECONDS = 3600
 
 
 def is_whole_percent(value) -> bool:
+    """True when value looks like an integer percent (Fleet API SoC)."""
     if value is None:
         return False
     try:
-        v = float(value)
+        numeric = float(value)
     except (TypeError, ValueError):
         return False
-    return abs(v - round(v)) < 1e-6
+    return abs(numeric - round(numeric)) < 1e-6
 
 
 def implied_full_range_miles(battery_range, battery_level) -> float | None:
+    """Implied 100% rated miles from one sample: range / (soc/100)."""
     try:
-        br = float(battery_range)
-        bl = float(battery_level)
+        rated_range = float(battery_range)
+        state_of_charge = float(battery_level)
     except (TypeError, ValueError):
         return None
-    if br <= 50 or bl <= 1:
+    if rated_range <= 50 or state_of_charge <= 1:
         return None
-    return br / (bl / 100.0)
+    return rated_range / (state_of_charge / 100.0)
 
 
 def refine_soc_percent(
@@ -73,14 +75,14 @@ def refine_soc_percent(
         return level  # already fractional (e.g. TeslaFi)
 
     try:
-        br = float(battery_range)
-        full = float(pack_rated_miles)
+        rated_range = float(battery_range)
+        pack_full_miles = float(pack_rated_miles)
     except (TypeError, ValueError):
         return level
-    if br <= 0 or full < 50:
+    if rated_range <= 0 or pack_full_miles < 50:
         return level
 
-    refined = 100.0 * br / full
+    refined = 100.0 * rated_range / pack_full_miles
     if refined < 0 or refined > 105:
         return level
     # Stay inside the displayed integer bucket (±~1%)
@@ -105,10 +107,10 @@ def estimate_pack_rated_miles(vin: str | None, *, use_cache: bool = True) -> flo
         if cached is not None:
             return cached
 
-    from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
     from matesla.BatteryDegradation import GetEPARangeFromCache
+    from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 
-    rows = list(
+    recent_level_range_pairs = list(
         TeslaCarDataSnapshot.objects.filter(
             vin=vin,
             battery_level__gt=5,
@@ -118,53 +120,66 @@ def estimate_pack_rated_miles(vin: str | None, *, use_cache: bool = True) -> flo
         .values_list("battery_level", "battery_range")[:PACK_SAMPLE_LIMIT]
     )
 
-    fractional_implied: list[float] = []
+    fractional_soc_implied: list[float] = []
     all_implied: list[float] = []
-    for bl, br in rows:
-        full = implied_full_range_miles(br, bl)
-        if full is None or full < 50 or full > 600:
+    for battery_level, battery_range in recent_level_range_pairs:
+        full_miles = implied_full_range_miles(battery_range, battery_level)
+        if full_miles is None or full_miles < 50 or full_miles > 600:
             continue
-        all_implied.append(full)
-        if not is_whole_percent(bl):
-            fractional_implied.append(full)
+        all_implied.append(full_miles)
+        if not is_whole_percent(battery_level):
+            fractional_soc_implied.append(full_miles)
 
-    pack = None
-    if len(fractional_implied) >= 5:
-        pack = float(median(fractional_implied))
+    pack_miles = None
+    if len(fractional_soc_implied) >= 5:
+        pack_miles = float(median(fractional_soc_implied))
     elif len(all_implied) >= 5:
-        pack = float(median(all_implied))
+        pack_miles = float(median(all_implied))
     else:
-        epa = GetEPARangeFromCache(vin)
-        if epa and epa > 50:
-            pack = float(epa)
+        epa_miles = GetEPARangeFromCache(vin)
+        if epa_miles and epa_miles > 50:
+            pack_miles = float(epa_miles)
 
-    if pack is not None and use_cache:
-        cache.set(cache_key, pack, PACK_CACHE_SECONDS)
-    return pack
+    if pack_miles is not None and use_cache:
+        cache.set(cache_key, pack_miles, PACK_CACHE_SECONDS)
+    return pack_miles
 
 
-def apply_soc_refinement(battery_level, usable_battery_level, battery_range, vin):
+def apply_soc_refinement(
+    battery_level, usable_battery_level, battery_range, vin
+):
     """
-    Refine integer API SoC fields in place-style: returns (bl, ubl).
+    Refine integer API SoC fields: returns (battery_level, usable_battery_level).
 
     usable is refined when missing, equal to battery_level, or also a whole percent.
     """
-    pack = estimate_pack_rated_miles(vin)
-    new_bl = refine_soc_percent(battery_level, battery_range, pack)
-    new_ubl = usable_battery_level
-    if usable_battery_level is None or usable_battery_level == battery_level or is_whole_percent(
-        usable_battery_level
+    pack_rated_miles = estimate_pack_rated_miles(vin)
+    refined_battery_level = refine_soc_percent(
+        battery_level, battery_range, pack_rated_miles
+    )
+    refined_usable = usable_battery_level
+    if (
+        usable_battery_level is None
+        or usable_battery_level == battery_level
+        or is_whole_percent(usable_battery_level)
     ):
         # Prefer refining usable from the same pack; if usable was None, mirror battery
-        base_u = usable_battery_level if usable_battery_level is not None else battery_level
-        refined_u = refine_soc_percent(base_u, battery_range, pack)
-        if refined_u is not None:
-            new_ubl = refined_u
-        elif new_bl is not None and usable_battery_level is None:
-            new_ubl = new_bl
-    return new_bl, new_ubl
+        usable_base = (
+            usable_battery_level
+            if usable_battery_level is not None
+            else battery_level
+        )
+        refined_from_pack = refine_soc_percent(
+            usable_base, battery_range, pack_rated_miles
+        )
+        if refined_from_pack is not None:
+            refined_usable = refined_from_pack
+        elif refined_battery_level is not None and usable_battery_level is None:
+            refined_usable = refined_battery_level
+    return refined_battery_level, refined_usable
 
 
 def invalidate_pack_cache(vin: str | None) -> None:
+    """Drop cached pack size after imports or manual EPA fixes."""
     if vin:
         cache.delete(f"matesla:pack_rated_mi:{vin}")

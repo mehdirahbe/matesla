@@ -1,15 +1,25 @@
-# proxy to use since someone in Tesla (grr) did block all cloud (ie amazon aws)
-# requests the 10/9/2020. If prod, define HTTPS_PROXY. I found that
-# proxies from https://proxy-seller.com works fine
-# HTTPS_PROXY must be something like: http://user on proxy:pw on proxy@IP address:port
+"""
+Optional HTTPS proxy for outbound Tesla API calls.
+
+Tesla blocked many cloud egress IPs (AWS, etc.) around 2020-10. Production can
+set HTTPS_PROXY (e.g. from proxy-seller) so Fleet requests leave via a residential
+or otherwise allowed address. Format:
+  http://user:password@host:port
+"""
+
 import os
 
+
 def GetProxyToUse():
+    """
+    Return a requests-style proxies dict for HTTPS, or None if unset.
+
+    Example return: {"https": "http://user:pass@1.2.3.4:8080"}
+    """
     try:
-        proxyStr = os.environ['HTTPS_PROXY']
+        proxy_url = os.environ["HTTPS_PROXY"]
     except KeyError:
         return None
-    if proxyStr is None:
+    if proxy_url is None:
         return None
-    proxiesDict = {"https": proxyStr}
-    return proxiesDict
+    return {"https": proxy_url}

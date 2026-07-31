@@ -27,17 +27,17 @@ from matesla.models.TeslaCarInfo import TeslaCarInfo
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from mysite.settings import DATABASES
 
-# in a general way, I eject cars not seen for maxdaysinthepast days
-# for period test: https://stackoverflow.com/questions/1984047/django-filter-older-than-days
-# cars should be refreshed at least once a day, ok, they can be unreachable
-# (no network), but anyway it should be short
-maxdaysinthepast = 15
+# Fleet-mix graphs only include cars seen recently enough. Cars not refreshed
+# for longer than this are treated as left the active mix (may be offline briefly,
+# but multi-week silence is enough to drop them from option/firmware charts).
+MAX_DAYS_IN_THE_PAST = 15
+# Back-compat alias for any import still using the 2020 name
+maxdaysinthepast = MAX_DAYS_IN_THE_PAST
 
 
-def GeneratePngFromGraph(fig, size="full"):
-    # activate this when you want performance analysis
-    # return HttpResponse("<html><body>todo activate this only for performance test of graphs</body></html>")
-    return render_png(fig, size=size)
+def GeneratePngFromGraph(figure, size="full"):
+    """Encode a matplotlib figure as an HTTP PNG response."""
+    return render_png(figure, size=size)
 
 
 # Return a dictionary with titles for fields
@@ -81,12 +81,16 @@ def GetTitleForField(field):
 
 
 def GenerateBarGraph(names, values, title, size="full"):
-    # Figure (not pyplot) for web-server safety:
-    # https://matplotlib.org/stable/users/explain/figure/backends.html#matplotlib-in-a-web-application-server
-    fig, cfg = make_figure(size, bar=True)
-    ax = fig.subplots(nrows=1, ncols=1, sharey=True)
+    """
+    Simple categorical bar chart (firmware versions, option frequencies, …).
+
+    Uses Figure (not pyplot) so multi-threaded web workers stay safe:
+    https://matplotlib.org/stable/users/explain/figure/backends.html
+    """
+    figure, style_config = make_figure(size, bar=True)
+    axes = figure.subplots(nrows=1, ncols=1, sharey=True)
     if names is not None and values is not None:
-        ax.bar(
+        axes.bar(
             names,
             values,
             color=BAR_FACE,
@@ -94,47 +98,53 @@ def GenerateBarGraph(names, values, title, size="full"):
             linewidth=0.4,
             alpha=0.92,
         )
-        for label in ax.get_xticklabels():
-            label.set_rotation(25)
-            label.set_ha("right")
-    finish_figure(fig, ax, title, cfg)
-    return GeneratePngFromGraph(fig, size=size)
+        for tick_label in axes.get_xticklabels():
+            tick_label.set_rotation(25)
+            tick_label.set_ha("right")
+    finish_figure(figure, axes, title, style_config)
+    return GeneratePngFromGraph(figure, size=size)
 
 
-def GetNamesAndValuesFromGroupByTotalResult(results, desiredfield):
-    names = list()
-    values = list()
+def GetNamesAndValuesFromGroupByTotalResult(results, desired_field):
+    """Turn ORM group-by rows into parallel name/value lists for bar charts."""
+    names = []
+    values = []
     for entry in results:
-        if entry[desiredfield] is None:
+        field_value = entry[desired_field]
+        if field_value is None:
             names.append(str(_("No Value")))
+        elif isinstance(field_value, bool):
+            names.append(str(_("True") if field_value else _("False")))
         else:
-            if type(entry[desiredfield]) == type(True):
-                if entry[desiredfield] is True:
-                    names.append(str(_("True")))
-                else:
-                    names.append(str(_("False")))
-            else:
-                name = str(entry[desiredfield])
-                # if large (ie firmware), keep first word
-                if len(name) > 5:
-                    name = name.split()[0]
-                names.append(name)
-        values.append(entry['total'])
+            label = str(field_value)
+            # Firmware strings are long; keep the first token for axis readability
+            if len(label) > 5:
+                label = label.split()[0]
+            names.append(label)
+        values.append(entry["total"])
     return names, values
 
 
 def FirmwareUpdates(request):
-    # query 10 most recent versions to not have an unreadable graph
+    """Bar chart of the 10 most recent firmware versions still seen in the fleet."""
     size = graph_size_from_request(request)
-    time_threshold = timezone.now() - timedelta(days=maxdaysinthepast)
-    results = TeslaFirmwareHistory.objects.filter(
-        vin__in=TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold).values('vin')).filter(
-        IsArchive=False).values(
-        'Version').annotate(
-        MostRecent=Max('Date')).annotate(
-        total=Count('Version')).order_by('-MostRecent')[:10]
-    names, values = GetNamesAndValuesFromGroupByTotalResult(results, 'Version')
-    return GenerateBarGraph(names, values, _('Most recent Firmware updates'), size=size)
+    time_threshold = timezone.now() - timedelta(days=MAX_DAYS_IN_THE_PAST)
+    results = (
+        TeslaFirmwareHistory.objects.filter(
+            vin__in=TeslaCarInfo.objects.filter(
+                LastSeenDate__gte=time_threshold
+            ).values("vin")
+        )
+        .filter(IsArchive=False)
+        .values("Version")
+        .annotate(MostRecent=Max("Date"))
+        .annotate(total=Count("Version"))
+        .order_by("-MostRecent")[:10]
+    )
+    names, values = GetNamesAndValuesFromGroupByTotalResult(results, "Version")
+    return GenerateBarGraph(
+        names, values, _("Most recent Firmware updates"), size=size
+    )
 
 
 def FirmwareUpdatesAsCSV(request):
@@ -150,34 +160,56 @@ def FirmwareUpdatesAsCSV(request):
 
 
 def StatsOnCarByModelGraph(request, desiredfield, CarModel):
-    # Check that it is one field from the TeslaCarInfo
-    validFields = TeslaCarInfo.__dict__
-    if desiredfield is None or desiredfield not in validFields:
-        # means invalid desiredfield field was passed
-        return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield)
+    """
+    Option frequency histogram for one car_type (e.g. wheel options on Model 3).
+
+    URL kwargs keep their historical names (desiredfield, CarModel) so reverse()
+    and path converters stay stable.
+    """
+    desired_field = desiredfield
+    car_model = CarModel
+    valid_fields = TeslaCarInfo.__dict__
+    if desired_field is None or desired_field not in valid_fields:
+        return HttpResponseNotFound(
+            "Graph for this field doesn't exists " + str(desired_field)
+        )
 
     size = graph_size_from_request(request)
-    time_threshold = timezone.now() - timedelta(days=maxdaysinthepast)
-    results = TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold).filter(car_type=CarModel).values(
-        desiredfield).annotate(
-        total=Count(desiredfield)).order_by(desiredfield)[:10]
-    names, values = GetNamesAndValuesFromGroupByTotalResult(results, desiredfield)
-    return GenerateBarGraph(names, values, GetTitleForField(desiredfield), size=size)
+    time_threshold = timezone.now() - timedelta(days=MAX_DAYS_IN_THE_PAST)
+    results = (
+        TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold)
+        .filter(car_type=car_model)
+        .values(desired_field)
+        .annotate(total=Count(desired_field))
+        .order_by(desired_field)[:10]
+    )
+    names, values = GetNamesAndValuesFromGroupByTotalResult(results, desired_field)
+    return GenerateBarGraph(
+        names, values, GetTitleForField(desired_field), size=size
+    )
 
 
 def StatsOnCarAllModelsGraph(request, desiredfield):
-    # Check that it is one field from the TeslaCarInfo
-    validFields = TeslaCarInfo.__dict__
-    if desiredfield is None or desiredfield not in validFields:
-        # means invalid desiredfield field was passed
-        return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield)
+    """Option frequency histogram across all recently seen cars."""
+    desired_field = desiredfield
+    valid_fields = TeslaCarInfo.__dict__
+    if desired_field is None or desired_field not in valid_fields:
+        return HttpResponseNotFound(
+            "Graph for this field doesn't exists " + str(desired_field)
+        )
 
     size = graph_size_from_request(request)
-    time_threshold = timezone.now() - timedelta(days=maxdaysinthepast)
-    results = TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold).values(desiredfield).annotate(
-        total=Count(desiredfield)).order_by(desiredfield)[:10]
-    names, values = GetNamesAndValuesFromGroupByTotalResult(results, desiredfield)
-    return GenerateBarGraph(names, values, GetTitleForField(desiredfield), size=size)
+    time_threshold = timezone.now() - timedelta(days=MAX_DAYS_IN_THE_PAST)
+    results = (
+        TeslaCarInfo.objects.filter(LastSeenDate__gte=time_threshold)
+        .values(desired_field)
+        .annotate(total=Count(desired_field))
+        .order_by(desired_field)[:10]
+    )
+    names, values = GetNamesAndValuesFromGroupByTotalResult(results, desired_field)
+    return GenerateBarGraph(
+        names, values, GetTitleForField(desired_field), size=size
+    )
 
 
 @never_cache
@@ -233,198 +265,236 @@ DEGRADATION_SCATTER_MIN_POINTS = 15
 
 
 def _soc_for_scatter(entry) -> float | None:
-    """Prefer usable_battery_level, else battery_level."""
+    """Prefer usable_battery_level, else battery_level, as float percent."""
     if not isinstance(entry, dict):
         entry = entry.__dict__
-    u = entry.get("usable_battery_level")
-    if u is not None:
+    usable = entry.get("usable_battery_level")
+    if usable is not None:
         try:
-            return float(u)
+            return float(usable)
         except (TypeError, ValueError):
             return None
-    b = entry.get("battery_level")
-    if b is None:
+    battery_level = entry.get("battery_level")
+    if battery_level is None:
         return None
     try:
-        return float(b)
+        return float(battery_level)
     except (TypeError, ValueError):
         return None
 
 
-def high_soc_scatter_q(min_soc: float = DEGRADATION_SCATTER_MIN_SOC):
-    """ORM filter: high SoC and not actively charging."""
+def high_soc_scatter_q(minimum_soc: float = DEGRADATION_SCATTER_MIN_SOC):
+    """
+    ORM filter: high SoC and not actively charging.
+
+    Charging rows couple range and SoC poorly and create vertical noise clouds.
+    """
     from django.db.models import Q
 
-    soc_q = Q(usable_battery_level__gte=min_soc) | (
-        Q(usable_battery_level__isnull=True) & Q(battery_level__gte=min_soc)
+    high_soc = Q(usable_battery_level__gte=minimum_soc) | (
+        Q(usable_battery_level__isnull=True) & Q(battery_level__gte=minimum_soc)
     )
-    # While Charging, battery_range / SoC coupling is unstable → thick vertical noise.
-    return soc_q & ~Q(charging_state="Charging")
+    return high_soc & ~Q(charging_state="Charging")
 
 
-def degradation_scatter_queryset(qs):
-    """Prefer strict high-SoC filter; fall back if too few points."""
-    strict = qs.filter(high_soc_scatter_q())
-    # exists()/[:N] avoids full count on huge tables
-    if strict[: DEGRADATION_SCATTER_MIN_POINTS].count() >= DEGRADATION_SCATTER_MIN_POINTS:
+def degradation_scatter_queryset(queryset):
+    """Prefer strict high-SoC filter; fall back if too few points for a trend."""
+    strict = queryset.filter(high_soc_scatter_q())
+    # [:N].count() avoids a full table COUNT on huge histories
+    if (
+        strict[: DEGRADATION_SCATTER_MIN_POINTS].count()
+        >= DEGRADATION_SCATTER_MIN_POINTS
+    ):
         return strict
-    return qs.filter(high_soc_scatter_q(min_soc=DEGRADATION_SCATTER_FALLBACK_SOC))
+    return queryset.filter(
+        high_soc_scatter_q(minimum_soc=DEGRADATION_SCATTER_FALLBACK_SOC)
+    )
 
 
-def _median(vals):
-    s = sorted(vals)
-    n = len(s)
-    if n == 0:
+def _median(values):
+    """Median of a non-empty numeric list (None if empty)."""
+    sorted_values = sorted(values)
+    count = len(sorted_values)
+    if count == 0:
         return None
-    mid = n // 2
-    if n % 2:
-        return s[mid]
-    return (s[mid - 1] + s[mid]) / 2.0
+    middle = count // 2
+    if count % 2:
+        return sorted_values[middle]
+    return (sorted_values[middle - 1] + sorted_values[middle]) / 2.0
 
 
-def aggregate_scatter_daily_median(xvalues, yvalues, dates):
+def aggregate_scatter_daily_median(x_values, y_values, sample_dates):
     """
-    One point per civil day (median X, median Y).
+    Collapse many same-day snapshots into one median (X, Y) point per civil day.
 
-    TeslaFi-style histories have many snapshots/day; the vertical cloud is mostly
-    same-day BMS jitter, not real degradation change.
+    TeslaFi-style histories poll often; the vertical cloud is mostly same-day
+    BMS jitter, not real degradation change. Daily median makes the trend readable.
     """
-    if not dates or len(dates) != len(xvalues) or len(xvalues) == 0:
-        return xvalues, yvalues
+    if (
+        not sample_dates
+        or len(sample_dates) != len(x_values)
+        or len(x_values) == 0
+    ):
+        return x_values, y_values
     from collections import defaultdict
 
-    buckets = defaultdict(lambda: ([], []))
-    for d, x, y in zip(dates, xvalues, yvalues):
-        if d is None or x is None or y is None:
+    # day -> (list of X, list of Y)
+    per_day = defaultdict(lambda: ([], []))
+    for sample_date, x_value, y_value in zip(sample_dates, x_values, y_values):
+        if sample_date is None or x_value is None or y_value is None:
             continue
-        day = d.date() if hasattr(d, "date") else d
+        civil_day = (
+            sample_date.date() if hasattr(sample_date, "date") else sample_date
+        )
         try:
-            buckets[day][0].append(float(x))
-            buckets[day][1].append(float(y))
+            per_day[civil_day][0].append(float(x_value))
+            per_day[civil_day][1].append(float(y_value))
         except (TypeError, ValueError):
             continue
-    if not buckets:
-        return xvalues, yvalues
-    out_x, out_y = [], []
-    for day in sorted(buckets.keys()):
-        xs, ys = buckets[day]
-        mx, my = _median(xs), _median(ys)
-        if mx is None or my is None:
+    if not per_day:
+        return x_values, y_values
+    median_x_values, median_y_values = [], []
+    for civil_day in sorted(per_day.keys()):
+        day_x_values, day_y_values = per_day[civil_day]
+        median_x = _median(day_x_values)
+        median_y = _median(day_y_values)
+        if median_x is None or median_y is None:
             continue
-        out_x.append(mx)
-        out_y.append(my)
-    return out_x, out_y
+        median_x_values.append(median_x)
+        median_y_values.append(median_y)
+    return median_x_values, median_y_values
 
 
-def GetXandYFromBatteryDegradResult(results, xfield, *, daily_median=True, min_soc=None):
-    # Prefer caller/ORM filter; default floor is fallback so soft queryset is not re-killed.
-    if min_soc is None:
-        min_soc = DEGRADATION_SCATTER_FALLBACK_SOC
-    xvalues = list()
-    yvalues = list()
-    dates = list()
+def GetXandYFromBatteryDegradResult(
+    results, x_field, *, daily_median=True, minimum_soc=None
+):
+    """
+    Extract scatter series from ORM rows: X = x_field, Y = battery_degradation.
+
+    Filters high SoC and non-charging; optionally collapses to daily medians.
+    """
+    # Prefer caller/ORM filter; default floor is fallback so soft queryset is not re-killed
+    if minimum_soc is None:
+        minimum_soc = DEGRADATION_SCATTER_FALLBACK_SOC
+    x_values = []
+    y_values = []
+    sample_dates = []
     for entry in results:
         raw = entry if isinstance(entry, dict) else entry.__dict__
         if raw.get("battery_degradation") is None:
             continue
-        if raw.get(xfield) is None:
+        if raw.get(x_field) is None:
             continue
-        soc = _soc_for_scatter(raw)
-        if soc is None or soc < min_soc:
+        state_of_charge = _soc_for_scatter(raw)
+        if state_of_charge is None or state_of_charge < minimum_soc:
             continue
-        # Skip active charging even if caller passed unfiltered rows
-        cs = raw.get("charging_state")
-        if cs == "Charging":
+        # Skip active charging even if the caller passed unfiltered rows
+        if raw.get("charging_state") == "Charging":
             continue
-        xvalues.append(raw[xfield])
-        yvalues.append(raw["battery_degradation"])
-        dates.append(raw.get("Date"))
+        x_values.append(raw[x_field])
+        y_values.append(raw["battery_degradation"])
+        sample_dates.append(raw.get("Date"))
     if daily_median:
-        return aggregate_scatter_daily_median(xvalues, yvalues, dates)
-    return xvalues, yvalues
+        return aggregate_scatter_daily_median(x_values, y_values, sample_dates)
+    return x_values, y_values
 
 
-# I want 2 decimals, and scientific notation...when it has a meaning, because
-# 10 exponant 0 is not very helpfull
-def FormatDouble2Decimals(d):
-    return "{:.2e}".format(d).replace("e+00", "")
+def FormatDouble2Decimals(value):
+    """Two-decimal scientific notation, stripping useless e+00 exponents."""
+    return "{:.2e}".format(value).replace("e+00", "")
 
 
-def GenerateScatterGraph(xvalues, yvalues, title, size="full"):
-    # From https://matplotlib.org/3.2.1/api/_as_gen/matplotlib.pyplot.scatter.html
-    fig, cfg = make_figure(size)
-    ax = fig.subplots()
-    if xvalues is not None and yvalues is not None and len(xvalues) > 0:
-        ax.scatter(
-            xvalues,
-            yvalues,
-            s=cfg["scatter_size"],
+def GenerateScatterGraph(x_values, y_values, title, size="full"):
+    """
+    Degradation scatter with a linear trend line (R² + slope per 10k miles).
+
+    Quadratic fits misled on long histories, so we only show a linear polyfit.
+    """
+    figure, style_config = make_figure(size)
+    axes = figure.subplots()
+    if x_values is not None and y_values is not None and len(x_values) > 0:
+        axes.scatter(
+            x_values,
+            y_values,
+            s=style_config["scatter_size"],
             c=SCATTER_FACE,
             alpha=0.45,
             edgecolors=SCATTER_EDGE,
             linewidths=0.25,
             zorder=2,
         )
-        # Linear trend only (quadratic fits misled on long histories).
-        if len(xvalues) >= 2:
-            sortedx = list(dict.fromkeys(xvalues))
-            sortedx.sort()
-            xv = np.asarray(xvalues, dtype=float)
-            yv = np.asarray(yvalues, dtype=float)
-            p1 = np.polyfit(xv, yv, 1)
-            f1 = np.poly1d(p1)
-            y_hat = f1(xv)
-            ss_res = float(np.sum((yv - y_hat) ** 2))
-            ss_tot = float(np.sum((yv - np.mean(yv)) ** 2))
-            r2 = 1.0 - ss_res / ss_tot if ss_tot > 0 else float("nan")
-            # Slope as percentage points of degradation per 10_000 miles
-            slope_per_10k = float(p1[0]) * 10000.0
-            r2_txt = f"{r2:.2f}" if r2 == r2 else "—"  # NaN check
-            # Legend: quality (R²) + practical slope; equation stays secondary
-            label = (
-                f"R²={r2_txt}  ·  {slope_per_10k:+.2f} pt/10k mi\n"
-                f"{FormatDouble2Decimals(p1[0])}x+{FormatDouble2Decimals(p1[1])}"
+        if len(x_values) >= 2:
+            sorted_unique_x = list(dict.fromkeys(x_values))
+            sorted_unique_x.sort()
+            x_array = np.asarray(x_values, dtype=float)
+            y_array = np.asarray(y_values, dtype=float)
+            linear_coefficients = np.polyfit(x_array, y_array, 1)
+            linear_polynomial = np.poly1d(linear_coefficients)
+            y_predicted = linear_polynomial(x_array)
+            residual_sum_squares = float(np.sum((y_array - y_predicted) ** 2))
+            total_sum_squares = float(
+                np.sum((y_array - np.mean(y_array)) ** 2)
             )
-            ax.plot(
-                sortedx,
-                f1(sortedx),
+            r_squared = (
+                1.0 - residual_sum_squares / total_sum_squares
+                if total_sum_squares > 0
+                else float("nan")
+            )
+            # Slope as percentage points of degradation per 10_000 miles
+            slope_per_10k_miles = float(linear_coefficients[0]) * 10000.0
+            r_squared_text = (
+                f"{r_squared:.2f}" if r_squared == r_squared else "—"
+            )
+            trend_label = (
+                f"R²={r_squared_text}  ·  {slope_per_10k_miles:+.2f} pt/10k mi\n"
+                f"{FormatDouble2Decimals(linear_coefficients[0])}x+"
+                f"{FormatDouble2Decimals(linear_coefficients[1])}"
+            )
+            axes.plot(
+                sorted_unique_x,
+                linear_polynomial(sorted_unique_x),
                 "-",
                 color=FIT_LINEAR,
-                linewidth=cfg["linewidth"],
-                label=label,
+                linewidth=style_config["linewidth"],
+                label=trend_label,
                 zorder=3,
             )
-            style_legend(ax, cfg)
-    finish_figure(fig, ax, title, cfg)
-    return GeneratePngFromGraph(fig, size=size)
+            style_legend(axes, style_config)
+    finish_figure(figure, axes, title, style_config)
+    return GeneratePngFromGraph(figure, size=size)
 
 
 def BatteryDegradationGraph(request, desiredfield):
-    # Similar (and reuse) wht is done for equivalent graph in personal graph,
-    # but here we mix all car data
+    """
+    Fleet-mix degradation scatter (all cars), X = desiredfield.
 
-    # Check that it is one field from the TeslaCarDataSnapshot
-    validFields = TeslaCarDataSnapshot.__dict__
-    if desiredfield is None or desiredfield not in validFields:
-        # means invalid desiredfield field was passed
-        return HttpResponseNotFound("Graph for this field doesn't exists " + desiredfield), False
+    URL kwarg name `desiredfield` is kept for stable reverse()/path matching.
+    Samples via indexed randomNr instead of ORDER BY RANDOM() so large tables
+    stay fast (first rows of the randomNr index).
+    """
+    desired_field = desiredfield
+    valid_fields = TeslaCarDataSnapshot.__dict__
+    if desired_field is None or desired_field not in valid_fields:
+        return (
+            HttpResponseNotFound(
+                "Graph for this field doesn't exists " + str(desired_field)
+            ),
+            False,
+        )
 
     size = graph_size_from_request(request)
-    count = TeslaCarDataSnapshot.objects.count()
-    if count == 0:
-        return GenerateBarGraph(None, None, GetTitleForField(desiredfield), size=size)
+    if TeslaCarDataSnapshot.objects.count() == 0:
+        return GenerateBarGraph(
+            None, None, GetTitleForField(desired_field), size=size
+        )
 
-    # to have a random sample
-    # see https://stackoverflow.com/questions/31801826/random-sample-on-django-querysets-how-will-sampling-on-querysets-affect-perform
-    # but as data grows, it it faster to have a real random number in data
-    # we are now at 6000 rows and it is 3 times faster, as using ?-->random()
-    # needs to read all the table and sort it by random.
-    # While using indexed randomNr just take the first rows of the index (yes, it uses the index).
-    results = degradation_scatter_queryset(TeslaCarDataSnapshot.objects.all()).order_by(
-        "randomNr"
-    )[:800]
+    results = degradation_scatter_queryset(
+        TeslaCarDataSnapshot.objects.all()
+    ).order_by("randomNr")[:800]
     # Fleet mix: no daily median (many cars/days); high-SoC filter is enough
-    xvalues, yxvalues = GetXandYFromBatteryDegradResult(
-        results, desiredfield, daily_median=False
+    x_values, y_values = GetXandYFromBatteryDegradResult(
+        results, desired_field, daily_median=False
     )
-    return GenerateScatterGraph(xvalues, yxvalues, GetTitleForField(desiredfield), size=size)
+    return GenerateScatterGraph(
+        x_values, y_values, GetTitleForField(desired_field), size=size
+    )
