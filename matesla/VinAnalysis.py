@@ -27,8 +27,8 @@ def GetVinDecoderUrl(vin) -> str:
     vin = str(vin).strip().upper()
     if len(vin) < 3:
         return "https://teslatap.com/vin-decoder/"
-    wmi = vin[:3]
-    if wmi in _NHTSA_FRIENDLY_WMI:
+    world_manufacturer_id = vin[:3]
+    if world_manufacturer_id in _NHTSA_FRIENDLY_WMI:
         # Official US decoder (GET form action is /decoder/VinDecoder, not /Decoder)
         return (
             "https://vpic.nhtsa.dot.gov/decoder/VinDecoder"
@@ -37,59 +37,59 @@ def GetVinDecoderUrl(vin) -> str:
     return "https://teslatap.com/vin-decoder/"
 
 
-# Return the year, see https://en.wikipedia.org/wiki/Vehicle_identification_number
-# in practical, char 10 (base 1) mean: A is 2010, K is 2019 and L 2020
-# and Y will be 2030 (no letter Z, 1 is 2031). And many holes, so complex
 def GetYearFromVin(vin):
+    """
+    Model year from VIN position 10 (1-based).
+
+    See https://en.wikipedia.org/wiki/Vehicle_identification_number
+    Practical mapping: A=2010 … K=2019, L=2020, Y=2030 (no Z), 1=2031, …
+    """
     if not vin or len(vin) < 10:
         return None
-    letter = vin[9]
-    if "A" <= letter <= "H":
-        return ord(letter) - ord("A") + 2010
-    if "J" <= letter <= "N":
-        return ord(letter) - ord("J") + 2018
-    if letter == "P":
+    year_code = vin[9]
+    if "A" <= year_code <= "H":
+        return ord(year_code) - ord("A") + 2010
+    if "J" <= year_code <= "N":
+        return ord(year_code) - ord("J") + 2018
+    if year_code == "P":
         return 2023
-    if "R" <= letter <= "T":
-        return ord(letter) - ord("R") + 2024
-    if "V" <= letter <= "Y":
-        return ord(letter) - ord("V") + 2027
-    if "1" <= letter <= "9":
-        return ord(letter) - ord("1") + 2031
+    if "R" <= year_code <= "T":
+        return ord(year_code) - ord("R") + 2024
+    if "V" <= year_code <= "Y":
+        return ord(year_code) - ord("V") + 2027
+    if "1" <= year_code <= "9":
+        return ord(year_code) - ord("1") + 2031
     return None
 
 
-# Pos 4 (base 1) is the model->S3XY
 def GetModelFromVin(vin):
+    """Model letter from VIN position 4 (1-based): S / 3 / X / Y / …"""
     if not vin or len(vin) < 4:
         return None
-    letter = vin[3]
-    return letter
+    return vin[3]
 
 
-# Pos 8 (base 1) allow to know if single or dual motor
 def IsDualMotor(vin):
+    """
+    Dual vs single motor from VIN position 8 (1-based) motor code.
+
+    Codes from TeslaTap community tables (Performance dual, dual std, RWD, …).
+    Returns True/False, or None if the letter is unknown.
+    """
     if not vin or len(vin) < 8:
         return None
-    letter = vin[7]
-    # 4=performance dual motor, cf teslatap
-    # 5 = P2 Dual Motor
-    # B = Dual Motor - Standard Model 3
-    # C = Dual Motor - Performance Model 3
-    # E = Dual Motor - Standard Model Y
-    # F = Dual Motor - Performance Model Y
-    # K = Dual Motor - China
-    if letter in ("2", "5", "B", "C", "E", "F", "K", "4"):
+    motor_code = vin[7]
+    # Dual motor codes (incl. performance dual)
+    if motor_code in ("2", "5", "B", "C", "E", "F", "K", "4"):
         return True
-    # A = Single Motor - Standard Model 3
-    # D = Single Motor - Standard or Performance Model Y
-    if letter in ("A", "D"):
+    # Single motor
+    if motor_code in ("A", "D"):
         return False
     return None
 
 
 def IsPerformanceMotor(vin) -> bool:
-    """Best-effort: VIN motor codes associated with Performance."""
+    """Best-effort: VIN motor codes associated with Performance packs."""
     if not vin or len(vin) < 8:
         return False
     return vin[7] in ("C", "F", "4")
@@ -97,59 +97,61 @@ def IsPerformanceMotor(vin) -> bool:
 
 def GetPlantRegionFromVin(vin) -> str | None:
     """
-    Manufacturing region from WMI / plant code.
-    US / CN / EU — used for EPA catalog hints (not perfect for EU-delivered US cars).
+    Manufacturing region from WMI / plant code: US / CN / EU.
+
+    Used for EPA catalog hints (not perfect for EU-delivered US-built cars).
     """
     if not vin or len(vin) < 3:
         return None
-    wmi = vin[0:3].upper()
-    # World manufacturer identifiers
-    if wmi in ("LRW",):  # Tesla China (Shanghai)
+    world_manufacturer_id = vin[0:3].upper()
+    if world_manufacturer_id in ("LRW",):  # Tesla China (Shanghai)
         return "CN"
-    if wmi in ("XP7",):  # Tesla Germany (Berlin) Model Y
+    if world_manufacturer_id in ("XP7",):  # Tesla Germany (Berlin) Model Y
         return "EU"
-    if wmi in ("5YJ", "7SA", "7G2"):  # Fremont / Austin / US
-        # Plant digit (pos 11, base 1) can refine
+    if world_manufacturer_id in ("5YJ", "7SA", "7G2"):  # Fremont / Austin / US
         if len(vin) >= 11:
-            plant = vin[10].upper()
-            if plant in ("C",):  # sometimes used; prefer WMI
-                pass
-            if plant in ("B",):
+            plant_code = vin[10].upper()
+            if plant_code in ("B",):
                 return "EU"
-            if plant in ("A",):  # Austin
+            if plant_code in ("A",):  # Austin
                 return "US"
-            if plant in ("F", "P", "R", "N", "C"):
+            if plant_code in ("F", "P", "R", "N", "C"):
                 # F=Fremont common; C on US WMI is still US
                 return "US"
         return "US"
-    # Fallback plant char only
+    # Fallback: plant character only when WMI is unfamiliar
     if len(vin) >= 11:
-        plant = vin[10].upper()
-        if plant == "C" and wmi.startswith("LR"):
+        plant_code = vin[10].upper()
+        if plant_code == "C" and world_manufacturer_id.startswith("LR"):
             return "CN"
-        if plant == "B":
+        if plant_code == "B":
             return "EU"
-        if plant in ("F", "A", "P"):
+        if plant_code in ("F", "A", "P"):
             return "US"
     return None
 
 
 def WheelInchesFromType(wheel_type) -> int | None:
-    """Extract diameter from Fleet wheel_type (Pinwheel18, Glider18, UberTurbine19…)."""
+    """
+    Extract diameter inches from Fleet wheel_type strings.
+
+    Examples: Pinwheel18, Glider18, UberTurbine19 → 18 / 19.
+    """
     if not wheel_type:
         return None
-    m = re.search(r"(1[5-9]|2[0-3])", str(wheel_type))
-    if not m:
+    diameter_match = re.search(r"(1[5-9]|2[0-3])", str(wheel_type))
+    if not diameter_match:
         return None
-    return int(m.group(1))
+    return int(diameter_match.group(1))
 
 
 def GuessTrimFromVin(vin, *, dual=None, performance=None) -> str | None:
     """
-    Rough trim from VIN only.
+    Rough trim from VIN only: 'perf', 'lr', or None if ambiguous.
 
-    Dual motor → lr (or perf). Single motor → ambiguous (sr vs lr): return None
-    so the EPA picker can use projected full-charge range to decide.
+    Dual motor → lr (or perf). Single motor → SR vs LR RWD cannot be told
+    from the motor letter alone, so return None and let EPA picker use
+    projected full-charge range.
     """
     if performance is None:
         performance = IsPerformanceMotor(vin)
@@ -159,5 +161,4 @@ def GuessTrimFromVin(vin, *, dual=None, performance=None) -> str | None:
         dual = IsDualMotor(vin)
     if dual is True:
         return "lr"
-    # RWD: SR+ vs LR RWD cannot be told from motor letter alone
     return None

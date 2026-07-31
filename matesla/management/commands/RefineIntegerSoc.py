@@ -55,82 +55,89 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         since_raw = options["since"]
-        since = parse_datetime(since_raw)
-        if since is None:
+        since_datetime = parse_datetime(since_raw)
+        if since_datetime is None:
             self.stderr.write(self.style.ERROR(f"Invalid --since: {since_raw}"))
             return
-        if timezone.is_naive(since):
-            since = timezone.make_aware(since, timezone.utc)
+        if timezone.is_naive(since_datetime):
+            since_datetime = timezone.make_aware(since_datetime, timezone.utc)
 
-        qs = TeslaCarDataSnapshot.objects.filter(
-            Date__gte=since,
+        snapshot_queryset = TeslaCarDataSnapshot.objects.filter(
+            Date__gte=since_datetime,
             battery_level__isnull=False,
             battery_range__isnull=False,
             battery_range__gt=50,
         ).order_by("vin", "Date")
         if options["vin"]:
-            qs = qs.filter(vin=options["vin"])
+            snapshot_queryset = snapshot_queryset.filter(vin=options["vin"])
         if options["hashed_vin"]:
-            qs = qs.filter(hashedVin=options["hashed_vin"])
+            snapshot_queryset = snapshot_queryset.filter(
+                hashedVin=options["hashed_vin"]
+            )
 
         # Whole-percent filter in Python (portable across DBs)
-        dry = options["dry_run"]
-        limit = options["limit"]
-        scanned = 0
-        candidates = 0
-        updated = 0
-        skipped = 0
-        examples = []
+        dry_run = options["dry_run"]
+        update_limit = options["limit"]
+        scanned_count = 0
+        whole_percent_candidates = 0
+        updated_count = 0
+        unchanged_count = 0
+        example_rows = []
 
-        # Process per VIN so pack estimate is warm and consistent
+        # Process per VIN so the pack estimate stays warm and consistent
         current_vin = None
-        batch = []
+        pending_batch = []
 
         def flush_batch(vin, rows):
-            nonlocal updated, skipped, examples
+            nonlocal updated_count, unchanged_count, example_rows
             if not vin or not rows:
                 return
             invalidate_pack_cache(vin)
-            for row in rows:
-                new_bl, new_ubl = apply_soc_refinement(
-                    row.battery_level,
-                    row.usable_battery_level,
-                    row.battery_range,
+            for snapshot in rows:
+                new_battery_level, new_usable_level = apply_soc_refinement(
+                    snapshot.battery_level,
+                    snapshot.usable_battery_level,
+                    snapshot.battery_range,
                     vin,
                 )
-                if new_bl is None:
-                    skipped += 1
+                if new_battery_level is None:
+                    unchanged_count += 1
                     continue
-                bl_changed = abs(float(new_bl) - float(row.battery_level)) > 1e-6
-                ubl_old = row.usable_battery_level
-                ubl_changed = False
-                if new_ubl is not None:
-                    if ubl_old is None:
-                        ubl_changed = True
+                battery_level_changed = (
+                    abs(float(new_battery_level) - float(snapshot.battery_level))
+                    > 1e-6
+                )
+                usable_old = snapshot.usable_battery_level
+                usable_changed = False
+                if new_usable_level is not None:
+                    if usable_old is None:
+                        usable_changed = True
                     else:
-                        ubl_changed = abs(float(new_ubl) - float(ubl_old)) > 1e-6
-                if not bl_changed and not ubl_changed:
-                    skipped += 1
+                        usable_changed = (
+                            abs(float(new_usable_level) - float(usable_old)) > 1e-6
+                        )
+                if not battery_level_changed and not usable_changed:
+                    unchanged_count += 1
                     continue
-                if len(examples) < 8:
-                    examples.append(
+                if len(example_rows) < 8:
+                    example_rows.append(
                         (
                             vin,
-                            row.Date.isoformat(),
-                            row.battery_level,
-                            new_bl,
-                            row.battery_range,
+                            snapshot.Date.isoformat(),
+                            snapshot.battery_level,
+                            new_battery_level,
+                            snapshot.battery_range,
                         )
                     )
-                if dry:
-                    updated += 1
+                if dry_run:
+                    updated_count += 1
                     continue
                 update_fields = []
-                if bl_changed:
-                    row.battery_level = new_bl
+                if battery_level_changed:
+                    snapshot.battery_level = new_battery_level
                     update_fields.append("battery_level")
-                if ubl_changed:
-                    row.usable_battery_level = new_ubl
+                if usable_changed:
+                    snapshot.usable_battery_level = new_usable_level
                     update_fields.append("usable_battery_level")
                 # Recompute degradation with refined usable SoC
                 from matesla.BatteryDegradation import (
@@ -138,48 +145,58 @@ class Command(BaseCommand):
                     GetEPARangeFromCache,
                 )
 
-                epa = GetEPARangeFromCache(vin)
+                epa_miles = GetEPARangeFromCache(vin)
                 if (
-                    row.battery_range is not None
-                    and row.usable_battery_level is not None
-                    and epa
+                    snapshot.battery_range is not None
+                    and snapshot.usable_battery_level is not None
+                    and epa_miles
                 ):
-                    row.battery_degradation = ComputeBatteryDegradationFromEPARange(
-                        row.battery_range, row.usable_battery_level, epa
+                    snapshot.battery_degradation = (
+                        ComputeBatteryDegradationFromEPARange(
+                            snapshot.battery_range,
+                            snapshot.usable_battery_level,
+                            epa_miles,
+                        )
                     )
                     update_fields.append("battery_degradation")
-                row.save(update_fields=update_fields)
-                updated += 1
+                snapshot.save(update_fields=update_fields)
+                updated_count += 1
 
-        for snap in qs.iterator(chunk_size=500):
-            scanned += 1
-            if not is_whole_percent(snap.battery_level):
+        for snapshot in snapshot_queryset.iterator(chunk_size=500):
+            scanned_count += 1
+            if not is_whole_percent(snapshot.battery_level):
                 continue
-            candidates += 1
-            if limit and updated >= limit and not dry:
+            whole_percent_candidates += 1
+            if update_limit and updated_count >= update_limit and not dry_run:
                 break
-            if limit and dry and updated >= limit:
+            if update_limit and dry_run and updated_count >= update_limit:
                 break
-            if snap.vin != current_vin:
-                flush_batch(current_vin, batch)
-                current_vin = snap.vin
-                batch = []
-            batch.append(snap)
-            if dry and limit and (updated + len(batch)) > limit:
-                # flush partial
-                pass
+            if snapshot.vin != current_vin:
+                flush_batch(current_vin, pending_batch)
+                current_vin = snapshot.vin
+                pending_batch = []
+            pending_batch.append(snapshot)
 
-        flush_batch(current_vin, batch)
+        flush_batch(current_vin, pending_batch)
 
         self.stdout.write(
-            f"since={since.isoformat()} scanned={scanned} whole_pct={candidates} "
-            f"{'would_update' if dry else 'updated'}={updated} unchanged={skipped}"
+            f"since={since_datetime.isoformat()} scanned={scanned_count} "
+            f"whole_pct={whole_percent_candidates} "
+            f"{'would_update' if dry_run else 'updated'}={updated_count} "
+            f"unchanged={unchanged_count}"
         )
-        for vin, dt, old, new, br in examples:
+        for (
+            example_vin,
+            example_date,
+            old_level,
+            new_level,
+            battery_range,
+        ) in example_rows:
             self.stdout.write(
-                f"  ex {vin} {dt} bl {old} -> {round(new, 3)} (range={br})"
+                f"  ex {example_vin} {example_date} bl {old_level} -> "
+                f"{round(new_level, 3)} (range={battery_range})"
             )
-        if dry:
+        if dry_run:
             self.stdout.write(self.style.WARNING("Dry run — no rows written."))
         else:
             self.stdout.write(self.style.SUCCESS("Done."))

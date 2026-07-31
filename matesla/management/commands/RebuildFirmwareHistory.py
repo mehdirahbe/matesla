@@ -19,12 +19,13 @@ from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.VinHash import HashTheVin
 
 
-def _as_date(dt):
-    if dt is None:
+def _as_calendar_date(value):
+    """Normalize a datetime/date to a naive local calendar date for storage."""
+    if value is None:
         return None
-    if timezone.is_aware(dt):
-        dt = timezone.localtime(dt)
-    return dt.date() if hasattr(dt, "date") else dt
+    if timezone.is_aware(value):
+        value = timezone.localtime(value)
+    return value.date() if hasattr(value, "date") else value
 
 
 class Command(BaseCommand):
@@ -39,75 +40,85 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        dry = options["dry_run"]
+        dry_run = options["dry_run"]
         vin_filter = options["vin"]
 
-        vins = (
+        distinct_vins = (
             TeslaCarDataSnapshot.objects.exclude(vin__isnull=True)
             .exclude(vin="")
             .values_list("vin", flat=True)
             .distinct()
         )
         if vin_filter:
-            vins = [vin_filter]
+            distinct_vins = [vin_filter]
 
         total_written = 0
-        for vin in vins:
-            info = TeslaCarInfo.objects.filter(vin=vin).first()
-            car_model = (info.car_type if info and info.car_type else None) or "model3"
-            hashed = HashTheVin(vin)
+        for vin in distinct_vins:
+            car_info = TeslaCarInfo.objects.filter(vin=vin).first()
+            car_model = (
+                (car_info.car_type if car_info and car_info.car_type else None)
+                or "model3"
+            )
+            hashed_vin = HashTheVin(vin)
 
-            rows = list(
+            version_first_seen_rows = list(
                 TeslaCarDataSnapshot.objects.filter(vin=vin)
                 .exclude(car_version__isnull=True)
                 .exclude(car_version="")
                 .values("car_version")
-                .annotate(first=Min("Date"))
-                .order_by("first")
+                .annotate(first_seen=Min("Date"))
+                .order_by("first_seen")
             )
-            if not rows:
-                self.stdout.write(f"{vin[-8:]}: no car_version in snapshots — skip")
+            if not version_first_seen_rows:
+                self.stdout.write(
+                    f"{vin[-8:]}: no car_version in snapshots — skip"
+                )
                 continue
 
             # Collapse consecutive identical versions (should already be unique by values())
             timeline = []
-            for r in rows:
-                ver = (r["car_version"] or "").strip()
-                if not ver:
+            for version_row in version_first_seen_rows:
+                version_string = (version_row["car_version"] or "").strip()
+                if not version_string:
                     continue
-                d = _as_date(r["first"])
-                if d is None:
+                first_seen_date = _as_calendar_date(version_row["first_seen"])
+                if first_seen_date is None:
                     continue
-                if timeline and timeline[-1][0] == ver:
+                if timeline and timeline[-1][0] == version_string:
                     continue
-                timeline.append((ver, d))
+                timeline.append((version_string, first_seen_date))
 
             self.stdout.write(
                 f"{vin[-8:]}: {len(timeline)} version(s) from snapshots "
                 f"(was {TeslaFirmwareHistory.objects.filter(vin=vin).count()} row(s))"
             )
-            if dry:
-                for ver, d in timeline[:5]:
-                    self.stdout.write(f"  {d}  {ver}")
+            if dry_run:
+                for version_string, first_seen_date in timeline[:5]:
+                    self.stdout.write(f"  {first_seen_date}  {version_string}")
                 if len(timeline) > 5:
                     self.stdout.write(f"  … +{len(timeline) - 5} more")
                 continue
 
             TeslaFirmwareHistory.objects.filter(vin=vin).delete()
-            for i, (ver, d) in enumerate(timeline):
+            for version_index, (version_string, first_seen_date) in enumerate(
+                timeline
+            ):
+                # IsArchive=True for every version except the newest
                 TeslaFirmwareHistory.objects.create(
                     vin=vin,
-                    hashedVin=hashed,
-                    Version=ver,
-                    Date=d,
+                    hashedVin=hashed_vin,
+                    Version=version_string,
+                    Date=first_seen_date,
                     CarModel=car_model,
-                    IsArchive=(i < len(timeline) - 1),
+                    IsArchive=(version_index < len(timeline) - 1),
                 )
             total_written += len(timeline)
 
-        if dry:
+        if dry_run:
             self.stdout.write(self.style.WARNING("Dry run — nothing written."))
         else:
             self.stdout.write(
-                self.style.SUCCESS(f"Done. Wrote {total_written} firmware history row(s).")
+                self.style.SUCCESS(
+                    f"Done. Wrote {total_written} firmware history row(s)."
+                )
             )

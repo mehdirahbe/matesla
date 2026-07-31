@@ -69,9 +69,10 @@ DRIVE_SEAL_MAX_AGE_MIN = 30.0
 
 
 def is_night(now: datetime | None = None) -> bool:
-    local = (now or timezone.now()).astimezone(CAPTURE_TZ)
-    h = local.hour
-    return h >= NIGHT_START_HOUR or h < NIGHT_END_HOUR
+    """True during local quiet hours (reduce wake/API traffic at night)."""
+    local_now = (now or timezone.now()).astimezone(CAPTURE_TZ)
+    hour = local_now.hour
+    return hour >= NIGHT_START_HOUR or hour < NIGHT_END_HOUR
 
 
 def _latest_activity_snapshot(vehicle: TeslaVehicle) -> TeslaCarDataSnapshot | None:

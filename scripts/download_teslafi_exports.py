@@ -41,40 +41,50 @@ USER_AGENT = (
 )
 
 
-def parse_ym(s: str) -> tuple[int, int]:
-    y, m = s.strip().split("-", 1)
-    year, month = int(y), int(m)
+def parse_year_month(value: str) -> tuple[int, int]:
+    """Parse 'YYYY-MM' into (year, month)."""
+    year_str, month_str = value.strip().split("-", 1)
+    year, month = int(year_str), int(month_str)
     if not (1 <= month <= 12):
-        raise ValueError(f"Invalid month in {s}")
+        raise ValueError(f"Invalid month in {value}")
     return year, month
 
 
 def iter_months(start: tuple[int, int], end: tuple[int, int]):
-    y, m = start
-    ey, em = end
-    while (y, m) <= (ey, em):
-        yield y, m
-        m += 1
-        if m > 12:
-            m = 1
-            y += 1
+    """Yield (year, month) from start through end inclusive."""
+    year, month = start
+    end_year, end_month = end
+    while (year, month) <= (end_year, end_month):
+        yield year, month
+        month += 1
+        if month > 12:
+            month = 1
+            year += 1
 
 
-def fname(month: int, year: int) -> str:
+def export_filename(month: int, year: int) -> str:
+    """TeslaFi export naming: MYYYY.csv (e.g. 72026.csv for July 2026)."""
     return f"{month}{year}.csv"
 
 
-def looks_like_csv(data: bytes, ctype: str) -> bool:
-    head = data[:300].lstrip(b"\xef\xbb\xbf")
-    if head.lower().startswith(b"<!doctype") or head.lower().startswith(b"<html"):
+def looks_like_csv(data: bytes, content_type: str) -> bool:
+    """True if body looks like a TeslaFi monthly CSV, not an HTML login page."""
+    data_head = data[:300].lstrip(b"\xef\xbb\xbf")
+    if data_head.lower().startswith(b"<!doctype") or data_head.lower().startswith(
+        b"<html"
+    ):
         return False
-    if "csv" in ctype.lower() or "octet-stream" in ctype.lower():
+    if "csv" in content_type.lower() or "octet-stream" in content_type.lower():
         return True
     return (
-        head.startswith(b"data_id,")
-        or head.startswith(b"Date,")
-        or b",vin," in head
-        or (b"," in head and b"\n" in data[:2000] and not head.startswith(b"<"))
+        data_head.startswith(b"data_id,")
+        or data_head.startswith(b"Date,")
+        or b",vin," in data_head
+        or (
+            b"," in data_head
+            and b"\n" in data[:2000]
+            and not data_head.startswith(b"<")
+        )
     )
 
 
@@ -492,16 +502,16 @@ def main() -> int:
             )
             return 1
 
-    start = parse_ym(args.from_ym)
-    end = parse_ym(args.to_ym)
-    exclude = {parse_ym(x) for x in args.exclude}
+    start = parse_year_month(args.from_ym)
+    end = parse_year_month(args.to_ym)
+    exclude = {parse_year_month(x) for x in args.exclude}
     months = list(iter_months(start, end))
     print(f"Will download {len(months)} month(s) → {out}")
     print("Tip: leave this terminal open; long ranges take ~2–10+ min.")
 
     ok = empty = fail = skipped = 0
     for i, (year, month) in enumerate(months):
-        path = out / fname(month, year)
+        path = out / export_filename(month, year)
         label = f"{year}-{month:02d}"
         if (year, month) in exclude:
             print(f"  skip {label} (excluded)")

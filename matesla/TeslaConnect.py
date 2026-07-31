@@ -138,21 +138,21 @@ def resolve_active_vehicle(user, request=None) -> TeslaVehicle | None:
     2) is_primary flag
     3) first vehicle by ordering
     """
-    qs = TeslaVehicle.objects.filter(user=user)
-    if not qs.exists():
+    queryset = TeslaVehicle.objects.filter(user=user)
+    if not queryset.exists():
         return None
 
     if request is not None:
         selected_id = request.session.get(SESSION_ACTIVE_VEHICLE_KEY)
         if selected_id:
-            vehicle = qs.filter(api_id=str(selected_id)).first()
+            vehicle = queryset.filter(api_id=str(selected_id)).first()
             if vehicle:
                 return vehicle
 
-    primary = qs.filter(is_primary=True).first()
+    primary = queryset.filter(is_primary=True).first()
     if primary:
         return primary
-    return qs.first()
+    return queryset.first()
 
 
 def set_active_vehicle(
@@ -344,11 +344,20 @@ def SaveDataHistory(teslaState):
         toSave = toSave.SaveIfDontExistsYet(teslaState.vin, context)
         # if we don't have epa range yet, this will force its recomputation
         if toSave and toSave.EPARange is None:
-            br = charge_state.get("battery_range")
-            usable = charge_state.get("usable_battery_level")
-            odo = vehicle_state.get("odometer")
-            if br is not None and usable is not None and odo is not None:
-                ComputeBatteryDegradation(br, usable, teslaState.vin, odo)
+            battery_range_miles = charge_state.get("battery_range")
+            usable_battery_level = charge_state.get("usable_battery_level")
+            odometer_miles = vehicle_state.get("odometer")
+            if (
+                battery_range_miles is not None
+                and usable_battery_level is not None
+                and odometer_miles is not None
+            ):
+                ComputeBatteryDegradation(
+                    battery_range_miles,
+                    usable_battery_level,
+                    teslaState.vin,
+                    odometer_miles,
+                )
         # Car variable infos
         toSave = TeslaCarDataSnapshot()
         toSave.SaveIfDontExistsYet(teslaState.vin, context)
@@ -457,10 +466,17 @@ def ParamsConnectedTesla(user, request=None):
         ret.batteryrange = 0.0
 
     odometer = vehicle_state.get("odometer")
-    usable = charge_state.get("usable_battery_level")
-    if battery_range is not None and usable is not None and odometer is not None and ret.vin:
-        ret.batterydegradation, ret.NumberCycles, ret.EPARangeMiles = ComputeBatteryDegradation(
-            battery_range, usable, ret.vin, odometer
+    usable_battery_level = charge_state.get("usable_battery_level")
+    if (
+        battery_range is not None
+        and usable_battery_level is not None
+        and odometer is not None
+        and ret.vin
+    ):
+        ret.batterydegradation, ret.NumberCycles, ret.EPARangeMiles = (
+            ComputeBatteryDegradation(
+                battery_range, usable_battery_level, ret.vin, odometer
+            )
         )
     else:
         ret.batterydegradation, ret.NumberCycles, ret.EPARangeMiles = None, None, None
