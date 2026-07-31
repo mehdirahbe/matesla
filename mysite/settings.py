@@ -102,7 +102,6 @@ INSTALLED_APPS = [
     "matesla.apps.MateslaConfig",
     "accounts.apps.AccountsConfig",
     "carimage.apps.CarimageConfig",
-    "anonymisedstats.apps.AnonymisedstatsConfig",
     "personalstats.apps.PersonalstatsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -180,12 +179,6 @@ READONLY_ALLOWED_URL_NAMES = [
     "PersoStatsFirmwareHistoryCSV",
     "StatsOnCarGraph",
     "AllMyDataAsCSV",
-    # Fleet anonymised stats
-    "AnonymisedStatsChoicePage",
-    "AnonymisedStatsOnCarByModel",
-    "AnonymisedStatsBatteryDegradationGraph",
-    "AnonymisedFirmwareUpdates",
-    "AnonymisedFirmwareUpdatesAsCSV",
 ]
 
 # Debug toolbar only when DEBUG (never on phone / release-like local)

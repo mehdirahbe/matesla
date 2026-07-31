@@ -174,6 +174,6 @@ python scripts/download_teslafi_exports.py --cookie-only \
 ## Fichiers concernés
 
 - `scripts/download_teslafi_exports.py` — export HTTP TeslaFi
-- `anonymisedstats/management/commands/ImportTeslaFiCSV.py` — import Django
+- `matesla/management/commands/ImportTeslaFiCSV.py` — import Django
 - `matesla/models/TeslaCarDataSnapshot.py` — schéma + apply/merge
 - `matesla/migrations/0037_teslafi_fields_and_floats.py` — migration float + champs

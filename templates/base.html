@@ -38,7 +38,6 @@
                 {% if allow_writes and user.is_authenticated %}
                 <a href="{% url 'AddTeslaAccount' %}" {% if request.resolver_match.url_name == 'AddTeslaAccount' %}aria-current="page"{% endif %}>{% trans 'Tesla account' %}</a>
                 {% endif %}
-                <a href="{% url 'AnonymisedStatsChoicePage' %}">{% trans 'Fleet stats' %}</a>
                 {% if allow_writes and not user.is_authenticated %}
                 <a href="{% url 'login' %}" {% if request.resolver_match.url_name == 'login' %}aria-current="page"{% endif %}>{% trans 'Login' %}</a>
                 {% endif %}
@@ -66,7 +65,6 @@
                     {% if allow_writes and user.is_authenticated %}
                     <a href="{% url 'AddTeslaAccount' %}">{% trans 'Tesla account' %}</a>
                     {% endif %}
-                    <a href="{% url 'AnonymisedStatsChoicePage' %}">{% trans 'Fleet stats' %}</a>
                     {% if user.is_authenticated %}
                     <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}

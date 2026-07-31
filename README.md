@@ -115,7 +115,7 @@ Same idea as PicturesDjango: **write is only allowed when the HTTP `Host`
 is local** (`127.0.0.1` / `localhost`). Access via the MagicDNS name
 (`*.ts.net`) is **read-only** and **does not require a MaTesla login**:
 
-- Status, personal stats, day map, fleet graphs, vehicle switcher: **yes**
+- Status, personal stats, day map, vehicle switcher: **yes**
   (anonymous viewers use the single household owner that holds the Tesla token)
 - Tesla account / OAuth, signup, admin: **no** (UI hidden; direct URLs return **404**)
 - Vehicle remote commands are **not supported** (use the official Tesla app;

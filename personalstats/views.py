@@ -8,7 +8,7 @@ from django_tables2 import SingleTableView
 from matplotlib.dates import DateFormatter, MonthLocator, num2date
 from matplotlib.ticker import FuncFormatter, MultipleLocator
 
-from anonymisedstats.views import (
+from matesla.degradation_graphs import (
     PrepareCSVFromQuery,
     GetXandYFromBatteryDegradResult,
     GenerateScatterGraph,
