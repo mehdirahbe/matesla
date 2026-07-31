@@ -361,81 +361,96 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
     return GeneratePngFromGraph(fig, size=size)
 
 
-def _monthly_temp_series(qs, field):
+def _monthly_temp_series(queryset, field_name):
     """
-    One row per calendar month: min / avg / max of `field` (°C).
+    Build one min / average / max temperature (°C) per calendar month.
 
-    Fast path: SQL daily min/avg/max on DateOnlyDay (indexed), then roll up
-    to calendar months in Python (~1 row/day instead of every sample).
+    Why daily SQL first: multi-year cars have hundreds of thousands of samples.
+    Aggregating per DateOnlyDay (indexed) yields ~1 row per day, then we roll
+    those daily stats into months in Python. That is far cheaper than scanning
+    every raw sample or running TruncMonth over the full table.
     """
-    daily = (
-        qs.filter(**{f"{field}__isnull": False})
+    daily_stats = (
+        queryset.filter(**{f"{field_name}__isnull": False})
         .exclude(DateOnlyDay__isnull=True)
         .values("DateOnlyDay")
         .annotate(
-            min_val=Min(field),
-            max_val=Max(field),
-            avg_val=Avg(field),
+            daily_minimum=Min(field_name),
+            daily_maximum=Max(field_name),
+            daily_average=Avg(field_name),
         )
         .order_by("DateOnlyDay")
     )
-    # (year, month) -> [min, max, sum_avg, n_days]
-    buckets: dict[tuple[int, int], list] = {}
-    for r in daily:
-        d = r.get("DateOnlyDay")
-        if d is None:
+
+    # year_month_key -> [month_min, month_max, sum_of_daily_averages, day_count]
+    monthly_buckets: dict[tuple[int, int], list] = {}
+    for daily_row in daily_stats:
+        calendar_day = daily_row.get("DateOnlyDay")
+        if calendar_day is None:
             continue
         try:
-            lo = float(r["min_val"])
-            hi = float(r["max_val"])
-            mid = float(r["avg_val"])
+            day_minimum = float(daily_row["daily_minimum"])
+            day_maximum = float(daily_row["daily_maximum"])
+            day_average = float(daily_row["daily_average"])
         except (TypeError, ValueError, KeyError):
             continue
-        if lo < -50 or hi > 90 or lo > hi:
+        # Drop impossible sensor glitches (cabin can be very hot; clamp extremes)
+        if day_minimum < -50 or day_maximum > 90 or day_minimum > day_maximum:
             continue
-        key = (d.year, d.month)
-        b = buckets.get(key)
-        if b is None:
-            buckets[key] = [lo, hi, mid, 1]
+
+        year_month_key = (calendar_day.year, calendar_day.month)
+        bucket = monthly_buckets.get(year_month_key)
+        if bucket is None:
+            monthly_buckets[year_month_key] = [
+                day_minimum,
+                day_maximum,
+                day_average,
+                1,
+            ]
         else:
-            if lo < b[0]:
-                b[0] = lo
-            if hi > b[1]:
-                b[1] = hi
-            b[2] += mid
-            b[3] += 1
+            if day_minimum < bucket[0]:
+                bucket[0] = day_minimum
+            if day_maximum > bucket[1]:
+                bucket[1] = day_maximum
+            bucket[2] += day_average
+            bucket[3] += 1
 
-    months = []
-    mins = []
-    maxs = []
-    avgs = []
-    for y, m in sorted(buckets.keys()):
-        lo, hi, s, n = buckets[(y, m)]
-        if n <= 0 or lo > hi:
+    month_dates = []
+    monthly_minimums = []
+    monthly_maximums = []
+    monthly_averages = []
+    for year, month in sorted(monthly_buckets.keys()):
+        month_min, month_max, average_sum, day_count = monthly_buckets[(year, month)]
+        if day_count <= 0 or month_min > month_max:
             continue
-        months.append(date(y, m, 1))
-        mins.append(lo)
-        maxs.append(hi)
-        avgs.append(s / n)
-    return months, mins, maxs, avgs
+        month_dates.append(date(year, month, 1))
+        monthly_minimums.append(month_min)
+        monthly_maximums.append(month_max)
+        monthly_averages.append(average_sum / day_count)
+    return month_dates, monthly_minimums, monthly_maximums, monthly_averages
 
 
-def _graph_png_cache_key(hashedVin, desiredfield, desiredperiod, size, *, kind="stats"):
+def _graph_png_cache_key(
+    hashed_vin, desired_field, desired_period_weeks, size, *, kind="stats"
+):
     """
-    kind distinguishes endpoints that share a field name
-    (e.g. StatsOnCar odometer time-series vs BatteryDegradation scatter).
+    Cache key for generated graph PNGs.
+
+    `kind` separates endpoints that share a field name (e.g. odometer time-series
+    on StatsOnCarGraph vs odometer scatter on BatteryDegradationGraph).
+    Language is included because axis titles are translated.
     """
-    lang = get_language() or "en"
+    language = get_language() or "en"
     return (
-        f"matesla:png:v2:{kind}:{hashedVin}:{desiredfield}:"
-        f"{desiredperiod}:{size}:{lang}"
+        f"matesla:png:v2:{kind}:{hashed_vin}:{desired_field}:"
+        f"{desired_period_weeks}:{size}:{language}"
     )
 
 
-def _png_response_from_bytes(data: bytes, size: str, *, cache_status: str):
-    """Build a graph PNG HttpResponse (same headers as render_png)."""
-    response = HttpResponse(data, content_type="image/png")
-    response["Content-Length"] = str(len(data))
+def _png_response_from_bytes(png_bytes: bytes, size: str, *, cache_status: str):
+    """Build a graph PNG HttpResponse (headers aligned with render_png)."""
+    response = HttpResponse(png_bytes, content_type="image/png")
+    response["Content-Length"] = str(len(png_bytes))
     response["Cache-Control"] = "private, max-age=120"
     response["X-MaTesla-Graph-Size"] = "thumb" if size == "thumb" else "full"
     response["X-MaTesla-Graph-Cache"] = cache_status
@@ -443,7 +458,11 @@ def _png_response_from_bytes(data: bytes, size: str, *, cache_status: str):
 
 
 def _cache_graph_png(cache_key: str, response: HttpResponse, size: str):
-    """Store successful PNG bodies; attach MISS header."""
+    """
+    Store successful PNG bodies in LocMem for a few minutes.
+
+    Speeds period switching when the user revisits a window already computed.
+    """
     if (
         response is not None
         and getattr(response, "status_code", 500) == 200
@@ -458,188 +477,216 @@ def _cache_graph_png(cache_key: str, response: HttpResponse, size: str):
     return response
 
 
-def _format_month_label(d, language):
-    """Short month label for record annotations."""
-    if d is None:
+def _format_month_label(month_date, language):
+    """Short month label for record annotations on climate charts."""
+    if month_date is None:
         return ""
     if language and language.startswith("fr"):
-        return d.strftime("%m/%Y")
-    return d.strftime("%b %Y")
+        return month_date.strftime("%m/%Y")
+    return month_date.strftime("%b %Y")
 
 
-def _month_index(d):
-    """Absolute month number for gap detection (year*12 + month)."""
-    if isinstance(d, datetime):
-        return d.year * 12 + d.month
-    return d.year * 12 + d.month
+def _calendar_month_index(month_date):
+    """Absolute month number for gap detection (year * 12 + month)."""
+    if isinstance(month_date, datetime):
+        return month_date.year * 12 + month_date.month
+    return month_date.year * 12 + month_date.month
 
 
-def _split_monthly_segments(months, mins, maxs, avgs):
+def _split_monthly_segments(month_dates, monthly_minimums, monthly_maximums, monthly_averages):
     """
-    Split series into contiguous calendar-month runs.
+    Split monthly series into contiguous calendar-month runs.
 
-    A gap of ≥ 1 missing month starts a new segment so matplotlib does not draw
-    a misleading straight line across periods with no data.
+    Why: if logging has a hole of one or more months, drawing one continuous
+    line invents a fake slope across the gap. Each segment is plotted separately.
     """
-    if not months:
+    if not month_dates:
         return []
     segments = []
-    start = 0
-    for i in range(1, len(months)):
-        gap = _month_index(months[i]) - _month_index(months[i - 1])
-        if gap > 1:
+    segment_start_index = 0
+    for index in range(1, len(month_dates)):
+        months_between = (
+            _calendar_month_index(month_dates[index])
+            - _calendar_month_index(month_dates[index - 1])
+        )
+        if months_between > 1:
             segments.append(
                 (
-                    months[start:i],
-                    mins[start:i],
-                    maxs[start:i],
-                    avgs[start:i],
+                    month_dates[segment_start_index:index],
+                    monthly_minimums[segment_start_index:index],
+                    monthly_maximums[segment_start_index:index],
+                    monthly_averages[segment_start_index:index],
                 )
             )
-            start = i
+            segment_start_index = index
     segments.append(
-        (months[start:], mins[start:], maxs[start:], avgs[start:])
+        (
+            month_dates[segment_start_index:],
+            monthly_minimums[segment_start_index:],
+            monthly_maximums[segment_start_index:],
+            monthly_averages[segment_start_index:],
+        )
     )
     return segments
 
 
-def GenerateMonthlyTempRibbonGraph(months, mins, maxs, avgs, title, size="full"):
+def GenerateMonthlyTempRibbonGraph(
+    month_dates, monthly_minimums, monthly_maximums, monthly_averages, title, size="full"
+):
     """
-    Monthly temperature ribbon: filled min–max band + average line.
-    Annotate the period record low (among monthly mins) and high (among monthly maxs).
-    Gaps of one or more missing months break the lines (no false bridges).
+    Monthly temperature ribbon chart for personal stats climate cards.
+
+    Draws a filled band between monthly min and max, a yellow average line,
+    and annotates the period record cold (lowest monthly min) and hot
+    (highest monthly max). Logging gaps of ≥1 month break the series so we
+    never invent a straight line across missing data.
     """
     fig, cfg = make_figure(size)
     language = django.utils.translation.get_language()
 
-    def _year_tick_label(x, _pos=None):
-        """Label only January majors (year anchors); other quarter ticks are bare."""
+    def year_axis_tick_label(axis_value, _position=None):
+        """Label only January major ticks (year anchors); other quarter ticks stay bare."""
         try:
-            d = num2date(x)
+            tick_date = num2date(axis_value)
         except (ValueError, OverflowError, TypeError):
             return ""
-        if d.month != 1:
+        if tick_date.month != 1:
             return ""
         if language is not None and language.startswith("fr"):
-            return d.strftime("%m/%Y")
-        return d.strftime("%b %Y")
+            return tick_date.strftime("%m/%Y")
+        return tick_date.strftime("%b %Y")
 
     ax = fig.subplots()
-    if months and mins and maxs and len(months) > 0:
-        lw = cfg["linewidth"]
+    if month_dates and monthly_minimums and monthly_maximums and len(month_dates) > 0:
+        line_width = cfg["linewidth"]
 
-        def _mid_month(m):
-            if isinstance(m, datetime):
-                return m
-            return datetime(m.year, m.month, 15)
+        def mid_month_datetime(month_date):
+            """Place each monthly point on the 15th for cleaner x spacing."""
+            if isinstance(month_date, datetime):
+                return month_date
+            return datetime(month_date.year, month_date.month, 15)
 
-        # Full x for records / limits (all months with data)
-        x_all = [_mid_month(m) for m in months]
-        segments = _split_monthly_segments(months, mins, maxs, avgs)
+        # Full x series for record markers (all months that have data)
+        all_x_positions = [mid_month_datetime(month_date) for month_date in month_dates]
+        contiguous_segments = _split_monthly_segments(
+            month_dates, monthly_minimums, monthly_maximums, monthly_averages
+        )
 
-        for si, (seg_m, seg_lo, seg_hi, seg_avg) in enumerate(segments):
-            x = [_mid_month(m) for m in seg_m]
-            # Labels only once (first segment) so the legend stays clean
-            lab_range = _("Monthly range (min–max)") if si == 0 else None
-            lab_min = _("Monthly minimum") if si == 0 else None
-            lab_avg = _("Monthly average") if si == 0 else None
-            lab_max = _("Monthly maximum") if si == 0 else None
+        for segment_index, (
+            segment_months,
+            segment_minimums,
+            segment_maximums,
+            segment_averages,
+        ) in enumerate(contiguous_segments):
+            segment_x = [mid_month_datetime(month_date) for month_date in segment_months]
+            # Legend labels only on the first segment so entries are not duplicated
+            label_range = _("Monthly range (min–max)") if segment_index == 0 else None
+            label_minimum = _("Monthly minimum") if segment_index == 0 else None
+            label_average = _("Monthly average") if segment_index == 0 else None
+            label_maximum = _("Monthly maximum") if segment_index == 0 else None
 
-            if len(x) == 1:
-                # Single month: no line to draw across time — vertical tick via markers
+            if len(segment_x) == 1:
+                # Isolated month (surrounded by logging gaps): markers only, no fake line
                 ax.fill_between(
-                    [x[0], x[0]],
-                    [seg_lo[0], seg_lo[0]],
-                    [seg_hi[0], seg_hi[0]],
+                    [segment_x[0], segment_x[0]],
+                    [segment_minimums[0], segment_minimums[0]],
+                    [segment_maximums[0], segment_maximums[0]],
                     color=ACCENT,
                     alpha=0.28,
                     linewidth=0,
                     zorder=1,
-                    label=lab_range,
+                    label=label_range,
                 )
                 ax.plot(
-                    x,
-                    seg_lo,
+                    segment_x,
+                    segment_minimums,
                     color=SERIES_COLORS[0],
                     marker="o",
                     markersize=cfg["markersize"] + 1.5,
                     linestyle="None",
                     zorder=2,
-                    label=lab_min,
+                    label=label_minimum,
                 )
                 ax.plot(
-                    x,
-                    seg_avg,
+                    segment_x,
+                    segment_averages,
                     color=SERIES_COLORS[1],
                     marker="o",
                     markersize=cfg["markersize"] + 1.5,
                     linestyle="None",
                     zorder=3,
-                    label=lab_avg,
+                    label=label_average,
                 )
                 ax.plot(
-                    x,
-                    seg_hi,
+                    segment_x,
+                    segment_maximums,
                     color=SERIES_COLORS[2],
                     marker="o",
                     markersize=cfg["markersize"] + 1.5,
                     linestyle="None",
                     zorder=2,
-                    label=lab_max,
+                    label=label_maximum,
                 )
                 continue
 
             ax.fill_between(
-                x,
-                seg_lo,
-                seg_hi,
+                segment_x,
+                segment_minimums,
+                segment_maximums,
                 color=ACCENT,
                 alpha=0.28,
                 linewidth=0,
                 zorder=1,
-                label=lab_range,
+                label=label_range,
             )
             ax.plot(
-                x,
-                seg_lo,
+                segment_x,
+                segment_minimums,
                 color=SERIES_COLORS[0],
                 linestyle="-",
-                linewidth=lw,
+                linewidth=line_width,
                 alpha=0.9,
                 zorder=2,
-                label=lab_min,
+                label=label_minimum,
             )
             ax.plot(
-                x,
-                seg_avg,
+                segment_x,
+                segment_averages,
                 color=SERIES_COLORS[1],
                 linestyle="-",
-                linewidth=lw + 0.35,
+                linewidth=line_width + 0.35,
                 zorder=3,
-                label=lab_avg,
+                label=label_average,
             )
             ax.plot(
-                x,
-                seg_hi,
+                segment_x,
+                segment_maximums,
                 color=SERIES_COLORS[2],
                 linestyle="-",
-                linewidth=lw,
+                linewidth=line_width,
                 alpha=0.9,
                 zorder=2,
-                label=lab_max,
+                label=label_maximum,
             )
 
-        # Record low = coldest monthly minimum; record high = hottest monthly maximum
-        i_min = min(range(len(mins)), key=lambda i: mins[i])
-        i_max = max(range(len(maxs)), key=lambda i: maxs[i])
-        rec_lo, rec_hi = mins[i_min], maxs[i_max]
-        d_lo, d_hi = months[i_min], months[i_max]
-        x_lo, x_hi = x_all[i_min], x_all[i_max]
+        # Record cold = lowest monthly minimum; record hot = highest monthly maximum
+        record_min_index = min(
+            range(len(monthly_minimums)), key=lambda index: monthly_minimums[index]
+        )
+        record_max_index = max(
+            range(len(monthly_maximums)), key=lambda index: monthly_maximums[index]
+        )
+        record_minimum_celsius = monthly_minimums[record_min_index]
+        record_maximum_celsius = monthly_maximums[record_max_index]
+        record_minimum_month = month_dates[record_min_index]
+        record_maximum_month = month_dates[record_max_index]
+        record_minimum_x = all_x_positions[record_min_index]
+        record_maximum_x = all_x_positions[record_max_index]
 
-        # Highlight record points
+        # Highlight record cold / hot months with markers + text callouts
         ax.scatter(
-            [x_lo],
-            [rec_lo],
+            [record_minimum_x],
+            [record_minimum_celsius],
             s=cfg["scatter_size"] + 18,
             color=SERIES_COLORS[0],
             edgecolors=TEXT,
@@ -647,8 +694,8 @@ def GenerateMonthlyTempRibbonGraph(months, mins, maxs, avgs, title, size="full")
             zorder=5,
         )
         ax.scatter(
-            [x_hi],
-            [rec_hi],
+            [record_maximum_x],
+            [record_maximum_celsius],
             s=cfg["scatter_size"] + 18,
             color=SERIES_COLORS[2],
             edgecolors=TEXT,
@@ -656,56 +703,65 @@ def GenerateMonthlyTempRibbonGraph(months, mins, maxs, avgs, title, size="full")
             zorder=5,
         )
 
-        fs = cfg["tick_size"]
-        lo_label = _("Record min %(t).1f °C · %(when)s") % {
-            "t": rec_lo,
-            "when": _format_month_label(d_lo, language),
+        annotation_font_size = cfg["tick_size"]
+        record_minimum_label = _("Record min %(t).1f °C · %(when)s") % {
+            "t": record_minimum_celsius,
+            "when": _format_month_label(record_minimum_month, language),
         }
-        hi_label = _("Record max %(t).1f °C · %(when)s") % {
-            "t": rec_hi,
-            "when": _format_month_label(d_hi, language),
+        record_maximum_label = _("Record max %(t).1f °C · %(when)s") % {
+            "t": record_maximum_celsius,
+            "when": _format_month_label(record_maximum_month, language),
         }
-        # Offset annotations away from edges when possible
-        y_span = max(maxs) - min(mins) if maxs and mins else 10.0
-        y_pad = max(1.5, y_span * 0.06)
+        temperature_span = (
+            max(monthly_maximums) - min(monthly_minimums)
+            if monthly_maximums and monthly_minimums
+            else 10.0
+        )
+        vertical_padding = max(1.5, temperature_span * 0.06)
         ax.annotate(
-            lo_label,
-            xy=(x_lo, rec_lo),
+            record_minimum_label,
+            xy=(record_minimum_x, record_minimum_celsius),
             xytext=(0, -14),
             textcoords="offset points",
             ha="center",
             va="top",
             color=SERIES_COLORS[0],
-            fontsize=fs,
+            fontsize=annotation_font_size,
             zorder=6,
             clip_on=False,
         )
         ax.annotate(
-            hi_label,
-            xy=(x_hi, rec_hi),
+            record_maximum_label,
+            xy=(record_maximum_x, record_maximum_celsius),
             xytext=(0, 12),
             textcoords="offset points",
             ha="center",
             va="bottom",
             color=SERIES_COLORS[2],
-            fontsize=fs,
+            fontsize=annotation_font_size,
             zorder=6,
             clip_on=False,
         )
 
-        ax.set_ylim(min(mins) - y_pad * 2.2, max(maxs) + y_pad * 2.8)
+        ax.set_ylim(
+            min(monthly_minimums) - vertical_padding * 2.2,
+            max(monthly_maximums) + vertical_padding * 2.8,
+        )
         style_legend(ax, cfg)
         # Graduations: small tick every month (no label), larger every 3 months
         # (Jan/Apr/Jul/Oct). Labels only on January so multi-year stays readable.
-        n_pts = len(x_all)
+        month_point_count = len(all_x_positions)
         ax.xaxis.set_minor_locator(MonthLocator())
         ax.xaxis.set_major_locator(MonthLocator(bymonth=(1, 4, 7, 10)))
-        ax.xaxis.set_major_formatter(FuncFormatter(_year_tick_label))
+        ax.xaxis.set_major_formatter(FuncFormatter(year_axis_tick_label))
         ax.tick_params(axis="x", which="minor", labelbottom=False)
-        if n_pts == 1:
-            ax.set_xlim(x_all[0] - timedelta(days=40), x_all[0] + timedelta(days=40))
+        if month_point_count == 1:
+            ax.set_xlim(
+                all_x_positions[0] - timedelta(days=40),
+                all_x_positions[0] + timedelta(days=40),
+            )
         style_axes(ax, cfg)
-        # X: monthly minor ticks, quarterly majors (labels only on January)
+        # Re-apply locators after style_axes (it may reset tick styling)
         ax.xaxis.set_minor_locator(MonthLocator())
         ax.xaxis.set_major_locator(MonthLocator(bymonth=(1, 4, 7, 10)))
         ax.tick_params(
@@ -1015,139 +1071,170 @@ def _range_bucket_index(value: float, buckets) -> int:
     return len(buckets) - 1
 
 
-def _iter_drive_sensor(qs, *extra_fields, extra_q=None):
+def _iter_drive_sensor(queryset, *extra_fields, extra_q=None):
     """
-    Stream drive-motion samples chronologically (O(1) memory via iterator).
+    Stream drive-motion samples in time order (constant memory via iterator).
 
-    Even-stride down to DRIVE_SENSOR_MAX_SCAN when the history is denser so
-    multi-year cars stay interactive.
+    When the car has denser history than DRIVE_SENSOR_MAX_SCAN, keep an even
+    stride so multi-year speed/power histograms stay interactive without
+    loading every row into a list.
     """
-    fields = {"Date", *extra_fields}
-    drive_qs = qs.filter(_drive_filter_q())
+    field_names = {"Date", *extra_fields}
+    drive_queryset = queryset.filter(_drive_filter_q())
     if extra_q is not None:
-        drive_qs = drive_qs.filter(extra_q)
-    drive_qs = drive_qs.order_by("Date").values(*fields)
+        drive_queryset = drive_queryset.filter(extra_q)
+    drive_queryset = drive_queryset.order_by("Date").values(*field_names)
     try:
-        total = drive_qs.count()
+        total_matching_rows = drive_queryset.count()
     except Exception:
-        total = 0
-    stride = max(1, (total + DRIVE_SENSOR_MAX_SCAN - 1) // DRIVE_SENSOR_MAX_SCAN) if total else 1
-    n = 0
-    kept = 0
-    for s in drive_qs.iterator(chunk_size=4000):
-        if s.get("Date") is None:
+        total_matching_rows = 0
+    sample_stride = (
+        max(
+            1,
+            (total_matching_rows + DRIVE_SENSOR_MAX_SCAN - 1) // DRIVE_SENSOR_MAX_SCAN,
+        )
+        if total_matching_rows
+        else 1
+    )
+    row_index = 0
+    samples_yielded = 0
+    for sample_row in drive_queryset.iterator(chunk_size=4000):
+        if sample_row.get("Date") is None:
             continue
-        n += 1
-        if stride > 1 and (n % stride) != 0:
+        row_index += 1
+        if sample_stride > 1 and (row_index % sample_stride) != 0:
             continue
-        yield s
-        kept += 1
-        if kept >= DRIVE_SENSOR_MAX_SCAN:
+        yield sample_row
+        samples_yielded += 1
+        if samples_yielded >= DRIVE_SENSOR_MAX_SCAN:
             break
 
 
-def _drive_speed_histogram(qs):
+def _drive_speed_histogram(queryset):
     """
-    Histogram of driving speed in km/h (API stores mph).
-    Full stream (no thin) — only bin counters, O(1) memory.
+    Histogram of driving speed in km/h.
+
+    Tesla API stores speed in mi/h; we convert before bucketing so charts match
+    European-facing labels used elsewhere on the personal stats page.
     """
-    counts = [0] * len(DRIVE_SPEED_BUCKETS_KMH)
-    for r in _iter_drive_sensor(
-        qs,
+    bucket_counts = [0] * len(DRIVE_SPEED_BUCKETS_KMH)
+    for sample_row in _iter_drive_sensor(
+        queryset,
         "speed",
         extra_q=Q(speed__isnull=False) & Q(speed__gt=DAY_MAP_STOP_SPEED),
     ):
-        sp = r.get("speed")
-        if sp is None:
+        speed_raw = sample_row.get("speed")
+        if speed_raw is None:
             continue
         try:
-            mph = float(sp)
+            speed_mph = float(speed_raw)
         except (TypeError, ValueError):
             continue
-        if mph < 0 or mph > 200:
+        if speed_mph < 0 or speed_mph > 200:
             continue
-        if mph <= DAY_MAP_STOP_SPEED:
+        if speed_mph <= DAY_MAP_STOP_SPEED:
             continue
-        kmh = mph * 1.609344
-        counts[_range_bucket_index(kmh, DRIVE_SPEED_BUCKETS_KMH)] += 1
-    total = sum(counts)
-    pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
-    labels = [b[0] for b in DRIVE_SPEED_BUCKETS_KMH]
-    return labels, counts, pcts
+        speed_kmh = speed_mph * 1.609344
+        bucket_counts[_range_bucket_index(speed_kmh, DRIVE_SPEED_BUCKETS_KMH)] += 1
+
+    sample_total = sum(bucket_counts)
+    percentages = [
+        (100.0 * count / sample_total) if sample_total else 0.0
+        for count in bucket_counts
+    ]
+    labels = [bucket[0] for bucket in DRIVE_SPEED_BUCKETS_KMH]
+    return labels, bucket_counts, percentages
 
 
-def _drive_power_histogram(qs):
+def _drive_power_histogram(queryset):
     """
-    Histogram of drive_state.power (kW). Negative = regenerative braking.
+    Histogram of drive_state.power (kW). Negative values = regenerative braking.
 
-    Single chronological stream (no subsampling): bin counts + power×Δt energy
-    so regen/traction kWh stay consistent with the % recovered.
+    Also estimates traction vs regen energy by integrating power × Δt between
+    consecutive samples (when the time gap is small enough). That recovers the
+    “% recovered” footer users care about after multi-year logging.
 
-    Returns (labels, counts, pcts, meta) with traction_kwh, regen_kwh, regen_pct.
+    Returns (labels, counts, percentages, metadata) where metadata holds
+    traction_kwh, regen_kwh, regen_pct, and which estimation mode was used.
     """
-    counts = [0] * len(DRIVE_POWER_BUCKETS_KW)
-    traction_j = 0.0  # kW·s (≈ kJ)
-    regen_j = 0.0
-    # Sample-magnitude fallback when Δt is too sparse for energy integration
-    traction_mag = 0.0
-    regen_mag = 0.0
-    prev_t = None
-    prev_p = None
-    n = 0
-    for r in _iter_drive_sensor(qs, "power", extra_q=Q(power__isnull=False)):
-        t = r.get("Date")
-        pw = r.get("power")
-        if t is None or pw is None:
+    bucket_counts = [0] * len(DRIVE_POWER_BUCKETS_KW)
+    # Power × seconds accumulates as kW·s (numerically same as kJ)
+    traction_kilowatt_seconds = 0.0
+    regen_kilowatt_seconds = 0.0
+    # Fallback when gaps are too large for time integration: sum of |power|
+    traction_power_magnitude_sum = 0.0
+    regen_power_magnitude_sum = 0.0
+    previous_sample_time = None
+    previous_power_kw = None
+    sample_count = 0
+
+    for sample_row in _iter_drive_sensor(
+        queryset, "power", extra_q=Q(power__isnull=False)
+    ):
+        sample_time = sample_row.get("Date")
+        power_raw = sample_row.get("power")
+        if sample_time is None or power_raw is None:
             continue
         try:
-            p = float(pw)
+            power_kw = float(power_raw)
         except (TypeError, ValueError):
             continue
-        if p < -400 or p > 400:
+        if power_kw < -400 or power_kw > 400:
             continue
-        counts[_range_bucket_index(p, DRIVE_POWER_BUCKETS_KW)] += 1
-        n += 1
-        if p > 0.5:
-            traction_mag += p
-        elif p < -0.5:
-            regen_mag += -p
-        if prev_t is not None and prev_p is not None:
-            dt = t - prev_t
-            if timedelta(0) < dt <= DRIVE_POWER_ENERGY_MAX_GAP:
-                p_avg = 0.5 * (prev_p + p)
-                seconds = dt.total_seconds()
-                if p_avg > 0.5:
-                    traction_j += p_avg * seconds
-                elif p_avg < -0.5:
-                    regen_j += (-p_avg) * seconds
-        prev_t, prev_p = t, p
 
-    total = sum(counts)
-    pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
-    labels = [b[0] for b in DRIVE_POWER_BUCKETS_KW]
-    traction_kwh = traction_j / 3600.0
-    regen_kwh = regen_j / 3600.0
+        bucket_counts[_range_bucket_index(power_kw, DRIVE_POWER_BUCKETS_KW)] += 1
+        sample_count += 1
+        if power_kw > 0.5:
+            traction_power_magnitude_sum += power_kw
+        elif power_kw < -0.5:
+            regen_power_magnitude_sum += -power_kw
+
+        # Trapezoid average power over the interval between two samples
+        if previous_sample_time is not None and previous_power_kw is not None:
+            time_delta = sample_time - previous_sample_time
+            if timedelta(0) < time_delta <= DRIVE_POWER_ENERGY_MAX_GAP:
+                average_power_kw = 0.5 * (previous_power_kw + power_kw)
+                interval_seconds = time_delta.total_seconds()
+                if average_power_kw > 0.5:
+                    traction_kilowatt_seconds += average_power_kw * interval_seconds
+                elif average_power_kw < -0.5:
+                    regen_kilowatt_seconds += (-average_power_kw) * interval_seconds
+        previous_sample_time = sample_time
+        previous_power_kw = power_kw
+
+    sample_total = sum(bucket_counts)
+    percentages = [
+        (100.0 * count / sample_total) if sample_total else 0.0
+        for count in bucket_counts
+    ]
+    labels = [bucket[0] for bucket in DRIVE_POWER_BUCKETS_KW]
+    traction_kwh = traction_kilowatt_seconds / 3600.0
+    regen_kwh = regen_kilowatt_seconds / 3600.0
+
     # Prefer time-integrated energy when we accumulated a meaningful amount;
-    # otherwise fall back to Σ|P| ratio (good when sampling is irregular).
+    # otherwise fall back to Σ|P| ratio (works when sampling is irregular).
     if traction_kwh >= 1.0:
-        regen_pct = 100.0 * regen_kwh / traction_kwh
-        mode = "energy"
-    elif traction_mag > 1.0:
-        regen_pct = 100.0 * regen_mag / traction_mag
-        mode = "sample"
+        regen_percent = 100.0 * regen_kwh / traction_kwh
+        estimation_mode = "energy"
+    elif traction_power_magnitude_sum > 1.0:
+        regen_percent = (
+            100.0 * regen_power_magnitude_sum / traction_power_magnitude_sum
+        )
+        estimation_mode = "sample"
         traction_kwh = None
         regen_kwh = None
     else:
-        regen_pct = None
-        mode = None
-    meta = {
-        "n_samples": n,
+        regen_percent = None
+        estimation_mode = None
+
+    metadata = {
+        "n_samples": sample_count,
         "traction_kwh": traction_kwh,
         "regen_kwh": regen_kwh,
-        "regen_pct": regen_pct,
-        "mode": mode,
+        "regen_pct": regen_percent,
+        "mode": estimation_mode,
     }
-    return labels, counts, pcts, meta
+    return labels, bucket_counts, percentages, metadata
 
 
 def _session_charge_limit(pts) -> float | None:
@@ -1273,180 +1360,250 @@ def _iter_charge_sessions(qs, extra_fields=()):
         yield cur
 
 
-def _charge_session_ok(pts) -> bool:
-    if len(pts) < 2:
+def _charge_session_ok(session_points) -> bool:
+    """True if the session is long enough to ignore plug glitches."""
+    if len(session_points) < 2:
         return False
-    minutes = max(0.0, (pts[-1]["t"] - pts[0]["t"]).total_seconds()) / 60.0
-    return minutes >= CHARGE_SESSION_MIN_MINUTES
+    duration_minutes = (
+        max(0.0, (session_points[-1]["t"] - session_points[0]["t"]).total_seconds())
+        / 60.0
+    )
+    return duration_minutes >= CHARGE_SESSION_MIN_MINUTES
 
 
 def _charge_filter_q():
+    """SQL filter: rows that look like an active charge (state or power)."""
     return Q(charging_state__iexact="Charging") | Q(
         charging_state__iexact="Starting"
     ) | Q(charger_power__gt=0.5)
 
 
-def _charge_sessions_sql_by_number(qs):
+def _charge_sessions_sql_by_number(queryset):
     """
-    Fast path: TeslaFi rows carry charge_number — one SQL GROUP BY per session.
+    Fast path for TeslaFi history: each session has a stable charge_number.
 
-    Returns list of dicts {peak_power, peak_rate, limit, energy_delta, miles_delta,
-    soc_max, minutes} or None if charge_number is unavailable.
+    One SQL GROUP BY replaces walking every charging sample in Python. That is
+    why multi-year charge histograms stay interactive.
+
+    Returns a list of session summary dicts, or None when charge_number is
+    missing (typical pure Fleet capture) so callers fall back to streaming.
     """
-    base = qs.filter(_charge_filter_q()).exclude(charge_number__isnull=True)
-    # Cheap probe (indexed filter + limit 1)
-    if not base[:1].exists():
-        return None
-    rows = base.values("charge_number").annotate(
-        peak_power=Max("charger_power"),
-        peak_rate=Max("charge_rate"),
-        lim=Max("charge_limit_soc"),
-        e0=Min("charge_energy_added"),
-        e1=Max("charge_energy_added"),
-        m0=Min("charge_miles_added_rated"),
-        m1=Max("charge_miles_added_rated"),
-        br0=Min("battery_range"),
-        br1=Max("battery_range"),
-        soc_u=Max("usable_battery_level"),
-        soc_b=Max("battery_level"),
-        t0=Min("Date"),
-        t1=Max("Date"),
-        n=Count("id"),
+    charging_rows = queryset.filter(_charge_filter_q()).exclude(
+        charge_number__isnull=True
     )
-    out = []
-    for r in rows:
-        t0, t1 = r.get("t0"), r.get("t1")
-        if t0 is None or t1 is None:
+    # Cheap probe: if the first matching row has no charge_number, skip this path
+    if not charging_rows[:1].exists():
+        return None
+
+    # Annotate aliases are full English names (result dict keys match these).
+    session_aggregates = charging_rows.values("charge_number").annotate(
+        peak_charger_power_kw=Max("charger_power"),
+        peak_charge_rate_mi_per_h=Max("charge_rate"),
+        charge_limit_soc_max=Max("charge_limit_soc"),
+        charge_energy_added_min=Min("charge_energy_added"),
+        charge_energy_added_max=Max("charge_energy_added"),
+        charge_miles_added_rated_min=Min("charge_miles_added_rated"),
+        charge_miles_added_rated_max=Max("charge_miles_added_rated"),
+        battery_range_min=Min("battery_range"),
+        battery_range_max=Max("battery_range"),
+        usable_battery_level_max=Max("usable_battery_level"),
+        battery_level_max=Max("battery_level"),
+        session_start_time=Min("Date"),
+        session_end_time=Max("Date"),
+        sample_count=Count("id"),
+    )
+
+    session_summaries = []
+    for session_row in session_aggregates:
+        session_start_time = session_row.get("session_start_time")
+        session_end_time = session_row.get("session_end_time")
+        if session_start_time is None or session_end_time is None:
             continue
-        minutes = max(0.0, (t1 - t0).total_seconds()) / 60.0
-        if minutes < CHARGE_SESSION_MIN_MINUTES and (r.get("n") or 0) < 3:
+
+        duration_minutes = (
+            max(0.0, (session_end_time - session_start_time).total_seconds()) / 60.0
+        )
+        sample_count = session_row.get("sample_count") or 0
+        # Drop very short plug glitches (same rule as the streaming path)
+        if duration_minutes < CHARGE_SESSION_MIN_MINUTES and sample_count < 3:
             continue
-        e0, e1 = r.get("e0"), r.get("e1")
-        energy = None
-        if e0 is not None and e1 is not None and e1 > e0:
-            energy = float(e1) - float(e0)
-        m0, m1 = r.get("m0"), r.get("m1")
-        miles = None
-        if m0 is not None and m1 is not None and m1 > m0:
-            miles = float(m1) - float(m0)
-        if miles is None:
-            b0, b1 = r.get("br0"), r.get("br1")
-            if b0 is not None and b1 is not None and b1 > b0:
-                miles = float(b1) - float(b0)
-        soc = r.get("soc_u") if r.get("soc_u") is not None else r.get("soc_b")
-        out.append(
+
+        # Energy added during the session = max counter − min counter
+        energy_added_kwh = None
+        energy_min = session_row.get("charge_energy_added_min")
+        energy_max = session_row.get("charge_energy_added_max")
+        if energy_min is not None and energy_max is not None and energy_max > energy_min:
+            energy_added_kwh = float(energy_max) - float(energy_min)
+
+        # Rated miles restored (Tesla units); fallback to battery_range rise
+        miles_added_rated = None
+        miles_min = session_row.get("charge_miles_added_rated_min")
+        miles_max = session_row.get("charge_miles_added_rated_max")
+        if miles_min is not None and miles_max is not None and miles_max > miles_min:
+            miles_added_rated = float(miles_max) - float(miles_min)
+        if miles_added_rated is None:
+            range_min = session_row.get("battery_range_min")
+            range_max = session_row.get("battery_range_max")
+            if (
+                range_min is not None
+                and range_max is not None
+                and range_max > range_min
+            ):
+                miles_added_rated = float(range_max) - float(range_min)
+
+        # Prefer usable SoC when the API provides it
+        peak_soc = session_row.get("usable_battery_level_max")
+        if peak_soc is None:
+            peak_soc = session_row.get("battery_level_max")
+
+        session_summaries.append(
             {
-                "peak_power": r.get("peak_power"),
-                "peak_rate": r.get("peak_rate"),
-                "limit": r.get("lim"),
-                "energy": energy,
-                "miles": miles,
-                "soc_max": float(soc) if soc is not None else None,
+                "peak_charger_power_kw": session_row.get("peak_charger_power_kw"),
+                "peak_charge_rate_mi_per_h": session_row.get(
+                    "peak_charge_rate_mi_per_h"
+                ),
+                "charge_limit_soc": session_row.get("charge_limit_soc_max"),
+                "energy_added_kwh": energy_added_kwh,
+                "miles_added_rated": miles_added_rated,
+                "peak_soc_percent": (
+                    float(peak_soc) if peak_soc is not None else None
+                ),
             }
         )
-    return out
+    return session_summaries
 
 
-def _charge_limit_session_histogram(qs):
-    """Count charge sessions by charge_limit_soc bucket. Returns (labels, counts, pcts)."""
-    counts = [0] * len(CHARGE_LIMIT_BUCKET_LABELS)
-    fast = _charge_sessions_sql_by_number(qs)
-    if fast is not None:
-        for s in fast:
-            lim = s.get("limit")
-            if lim is None:
+def _charge_limit_session_histogram(queryset):
+    """
+    How often charge sessions used each SoC limit band (100%, 80–89%, …).
+
+    Prefer the SQL charge_number path; fall back to streaming session splits
+    when TeslaFi session ids are absent.
+    """
+    bucket_counts = [0] * len(CHARGE_LIMIT_BUCKET_LABELS)
+    session_summaries = _charge_sessions_sql_by_number(queryset)
+    if session_summaries is not None:
+        for session in session_summaries:
+            charge_limit = session.get("charge_limit_soc")
+            if charge_limit is None:
                 continue
             try:
-                counts[_charge_limit_bucket_index(float(lim))] += 1
+                bucket_index = _charge_limit_bucket_index(float(charge_limit))
             except (TypeError, ValueError):
                 continue
+            bucket_counts[bucket_index] += 1
     else:
-        for pts in _iter_charge_sessions(qs):
-            lim = _session_charge_limit(pts)
-            if lim is None:
+        for session_points in _iter_charge_sessions(queryset):
+            charge_limit = _session_charge_limit(session_points)
+            if charge_limit is None:
                 continue
-            counts[_charge_limit_bucket_index(lim)] += 1
-    total = sum(counts)
-    pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
-    return list(CHARGE_LIMIT_BUCKET_LABELS), counts, pcts
+            bucket_counts[_charge_limit_bucket_index(charge_limit)] += 1
+
+    session_total = sum(bucket_counts)
+    bucket_percentages = [
+        (100.0 * count / session_total) if session_total else 0.0
+        for count in bucket_counts
+    ]
+    return list(CHARGE_LIMIT_BUCKET_LABELS), bucket_counts, bucket_percentages
 
 
-def _charge_peak_histogram(qs, *, metric: str):
+def _charge_peak_histogram(queryset, *, metric: str):
     """
-    Sessions binned by peak charger_power (kW) or peak charge_rate (mi/h).
-    Returns (labels, session_counts, amount_per_bucket, pcts, amount_unit).
-    amount_unit is "kwh" for power (charge_energy_added) or "mi" for rate.
+    Bin charge sessions by peak charger power (kW) or peak charge rate (mi/h).
+
+    Returns (labels, session_counts, amount_per_bucket, percentages, amount_unit).
+    amount_unit is "kwh" (energy added) for power bins, or "mi" (rated miles) for rate.
     """
     if metric == "charger_power":
         buckets = CHARGER_POWER_BUCKETS
-        peak_key = "charger_power"
+        peak_field_key = "charger_power"
         amount_unit = "kwh"
     else:
         buckets = CHARGE_RATE_BUCKETS
-        peak_key = "charge_rate"
+        peak_field_key = "charge_rate"
         amount_unit = "mi"
 
-    n_b = len(buckets)
-    counts = [0] * n_b
-    amount_tot = [0.0] * n_b
+    bucket_count = len(buckets)
+    session_counts = [0] * bucket_count
+    amount_per_bucket = [0.0] * bucket_count
 
-    fast = _charge_sessions_sql_by_number(qs)
-    if fast is not None:
-        for s in fast:
-            peak = s.get("peak_power" if peak_key == "charger_power" else "peak_rate")
-            if (peak is None or peak <= 0) and peak_key == "charger_power":
-                rate = s.get("peak_rate")
-                if rate is not None and 0 < float(rate) <= 49:
-                    peak = 7.0
-            if peak is None or peak <= 0:
+    session_summaries = _charge_sessions_sql_by_number(queryset)
+    if session_summaries is not None:
+        for session in session_summaries:
+            if peak_field_key == "charger_power":
+                peak_value = session.get("peak_charger_power_kw")
+            else:
+                peak_value = session.get("peak_charge_rate_mi_per_h")
+
+            # Fleet/TeslaFi often omit charger_power on AC; infer AC from low rate
+            if (
+                (peak_value is None or peak_value <= 0)
+                and peak_field_key == "charger_power"
+            ):
+                charge_rate = session.get("peak_charge_rate_mi_per_h")
+                if charge_rate is not None and 0 < float(charge_rate) <= 49:
+                    peak_value = 7.0  # typical home AC, for bucketing only
+
+            if peak_value is None or peak_value <= 0:
                 continue
             try:
-                peak_f = float(peak)
+                peak_float = float(peak_value)
             except (TypeError, ValueError):
                 continue
-            idx = _range_bucket_index(peak_f, buckets)
-            counts[idx] += 1
-            if amount_unit == "kwh":
-                amt = s.get("energy")
-                if amt is None and s.get("miles"):
-                    amt = float(s["miles"]) * 0.22
-            else:
-                amt = s.get("miles")
-            if amt is not None and amt > 0:
-                amount_tot[idx] += float(amt)
-    else:
-        for pts in _iter_charge_sessions(qs):
-            peak = _session_float_max(pts, peak_key)
-            # Fleet/TeslaFi often omit charger_power on AC; infer AC from low charge_rate
-            if (peak is None or peak <= 0) and peak_key == "charger_power":
-                rate = _session_float_max(pts, "charge_rate")
-                if rate is not None and 0 < rate <= 49:
-                    peak = 7.0  # typical home AC for bucketing only
-            if peak is None or peak <= 0:
-                continue
-            idx = _range_bucket_index(peak, buckets)
-            counts[idx] += 1
-            if amount_unit == "kwh":
-                amt = _session_delta_field(pts, "charge_energy_added")
-                # Fallback: rough kWh from rated miles if energy counter missing
-                if amt is None:
-                    miles = _session_delta_field(pts, "charge_miles_added_rated")
-                    if miles is None:
-                        miles = _session_delta_field(pts, "battery_range")
-                    if miles is not None and miles > 0:
-                        # ~0.22 kWh/mi fleet average (same ballpark as daymap pack estimate)
-                        amt = miles * 0.22
-            else:
-                amt = _session_delta_field(pts, "charge_miles_added_rated")
-                if amt is None:
-                    amt = _session_delta_field(pts, "battery_range")
-            if amt is not None and amt > 0:
-                amount_tot[idx] += amt
 
-    total = sum(counts)
-    pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
-    labels = [b[0] for b in buckets]
-    return labels, counts, amount_tot, pcts, amount_unit
+            bucket_index = _range_bucket_index(peak_float, buckets)
+            session_counts[bucket_index] += 1
+
+            if amount_unit == "kwh":
+                amount = session.get("energy_added_kwh")
+                if amount is None and session.get("miles_added_rated"):
+                    # ~0.22 kWh/mi fleet average when energy counter is missing
+                    amount = float(session["miles_added_rated"]) * 0.22
+            else:
+                amount = session.get("miles_added_rated")
+            if amount is not None and amount > 0:
+                amount_per_bucket[bucket_index] += float(amount)
+    else:
+        # Streaming fallback (no TeslaFi charge_number)
+        for session_points in _iter_charge_sessions(queryset):
+            peak_value = _session_float_max(session_points, peak_field_key)
+            if (
+                (peak_value is None or peak_value <= 0)
+                and peak_field_key == "charger_power"
+            ):
+                charge_rate = _session_float_max(session_points, "charge_rate")
+                if charge_rate is not None and 0 < charge_rate <= 49:
+                    peak_value = 7.0
+            if peak_value is None or peak_value <= 0:
+                continue
+            bucket_index = _range_bucket_index(peak_value, buckets)
+            session_counts[bucket_index] += 1
+            if amount_unit == "kwh":
+                amount = _session_delta_field(session_points, "charge_energy_added")
+                if amount is None:
+                    miles = _session_delta_field(
+                        session_points, "charge_miles_added_rated"
+                    )
+                    if miles is None:
+                        miles = _session_delta_field(session_points, "battery_range")
+                    if miles is not None and miles > 0:
+                        amount = miles * 0.22
+            else:
+                amount = _session_delta_field(
+                    session_points, "charge_miles_added_rated"
+                )
+                if amount is None:
+                    amount = _session_delta_field(session_points, "battery_range")
+            if amount is not None and amount > 0:
+                amount_per_bucket[bucket_index] += amount
+
+    session_total = sum(session_counts)
+    percentages = [
+        (100.0 * count / session_total) if session_total else 0.0
+        for count in session_counts
+    ]
+    labels = [bucket[0] for bucket in buckets]
+    return labels, session_counts, amount_per_bucket, percentages, amount_unit
 
 
 def _end_soc_bucket_index(soc: float) -> int:
@@ -1501,31 +1658,38 @@ def _sample_soc(p) -> float | None:
     return None
 
 
-def _charge_end_soc_histogram(qs):
-    """Sessions classified by max SoC reached while charging."""
-    counts = [0] * len(CHARGE_END_SOC_BUCKET_LABELS)
-    fast = _charge_sessions_sql_by_number(qs)
-    if fast is not None:
-        for s in fast:
-            peak = s.get("soc_max")
-            if peak is None:
+def _charge_end_soc_histogram(queryset):
+    """
+    Sessions classified by peak SoC reached while charging (end-of-charge habit).
+
+    Uses charge_number SQL summaries when available; otherwise streams samples.
+    """
+    bucket_counts = [0] * len(CHARGE_END_SOC_BUCKET_LABELS)
+    session_summaries = _charge_sessions_sql_by_number(queryset)
+    if session_summaries is not None:
+        for session in session_summaries:
+            peak_soc = session.get("peak_soc_percent")
+            if peak_soc is None:
                 continue
-            counts[_end_soc_bucket_index(peak)] += 1
+            bucket_counts[_end_soc_bucket_index(peak_soc)] += 1
     else:
-        for pts in _iter_charge_sessions(qs):
-            peak = None
-            for p in pts:
-                soc = _sample_soc(p)
-                if soc is None:
+        for session_points in _iter_charge_sessions(queryset):
+            peak_soc = None
+            for sample in session_points:
+                state_of_charge = _sample_soc(sample)
+                if state_of_charge is None:
                     continue
-                if peak is None or soc > peak:
-                    peak = soc
-            if peak is None:
+                if peak_soc is None or state_of_charge > peak_soc:
+                    peak_soc = state_of_charge
+            if peak_soc is None:
                 continue
-            counts[_end_soc_bucket_index(peak)] += 1
-    total = sum(counts)
-    pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
-    return list(CHARGE_END_SOC_BUCKET_LABELS), counts, pcts
+            bucket_counts[_end_soc_bucket_index(peak_soc)] += 1
+    session_total = sum(bucket_counts)
+    percentages = [
+        (100.0 * count / session_total) if session_total else 0.0
+        for count in bucket_counts
+    ]
+    return list(CHARGE_END_SOC_BUCKET_LABELS), bucket_counts, percentages
 
 
 def _daily_min_soc_histogram(qs):
@@ -2246,17 +2410,19 @@ def _thin_segments_to_cap(segments, max_points):
     return out
 
 
-def _build_lifetime_map_payload(hashedVin, desiredperiod):
+def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
     """
-    Drive GPS polylines + period summary KPIs (TeslaFi-style lifetime strip).
+    Build lifetime-map JSON: drive GPS polylines + summary KPIs for a period.
 
-    Even-stride scans dense multi-year histories (≤ LIFETIME_MAP_MAX_SCAN rows)
-    so the stats page stays interactive; map is distance-thinned and capped.
+    Why stride: a multi-year car can have 100k+ drive GPS samples. Walking every
+    row in Python (with haversine) made period=10y feel broken (~5s for the map
+    alone). We process at most LIFETIME_MAP_MAX_SCAN evenly spaced samples, thin
+    the path by distance, and still estimate trips from odometer gaps.
     """
-    base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
-    qs = _period_filter(base, desiredperiod)
-    drive_qs = (
-        qs.filter(_drive_filter_q())
+    base_queryset = TeslaCarDataSnapshot.objects.filter(hashedVin=hashed_vin)
+    period_queryset = _period_filter(base_queryset, desired_period_weeks)
+    drive_gps_queryset = (
+        period_queryset.filter(_drive_filter_q())
         .filter(latitude__isnull=False, longitude__isnull=False)
         .order_by("Date")
         .values(
@@ -2272,195 +2438,258 @@ def _build_lifetime_map_payload(hashedVin, desiredperiod):
         )
     )
     try:
-        total_drive_gps = drive_qs.count()
+        total_drive_gps_samples = drive_gps_queryset.count()
     except Exception:
-        total_drive_gps = 0
-    stride = (
-        max(1, (total_drive_gps + LIFETIME_MAP_MAX_SCAN - 1) // LIFETIME_MAP_MAX_SCAN)
-        if total_drive_gps
+        total_drive_gps_samples = 0
+    sample_stride = (
+        max(
+            1,
+            (total_drive_gps_samples + LIFETIME_MAP_MAX_SCAN - 1)
+            // LIFETIME_MAP_MAX_SCAN,
+        )
+        if total_drive_gps_samples
         else 1
     )
-    # Coarser spatial thin when striding (samples already farther apart)
-    min_move_m = LIFETIME_MAP_MIN_MOVE_M * (1.0 + 0.5 * (stride - 1))
+    # When we already skip samples, require a larger move before keeping a point
+    minimum_move_meters = LIFETIME_MAP_MIN_MOVE_M * (1.0 + 0.5 * (sample_stride - 1))
 
-    segments = []  # list of [[lat, lon], ...]
-    cur_path = []
-    last_kept_lat = last_kept_lon = None
-    last_t = None
-    raw_gps = 0
-    n_pts = 0  # running path-point count (avoid O(n) sum each keep)
+    path_segments = []  # list of polylines: each is [[lat, lon], ...]
+    current_path = []
+    last_kept_latitude = last_kept_longitude = None
+    last_sample_time = None
+    raw_gps_sample_count = 0
+    path_point_count = 0  # running count (avoid summing segment lengths each keep)
 
-    # Trip KPI accumulators (gap-split, independent of map thinning)
-    drives = 0
-    km_total = 0.0
-    rated_mi_used = 0.0
-    hours_total = 0.0
-    temp_sum = 0.0
-    temp_n = 0
-    trip_t0 = trip_odo0 = trip_r0 = None
-    trip_t1 = trip_odo1 = trip_r1 = None
-    vin = None
-    # Scale KPIs when we only process every stride-th sample (odo deltas are fine;
-    # trip counts stay representative; hours use real timestamps so OK).
-    scan_i = 0
+    # Trip KPI accumulators (gap-split; independent of map path thinning)
+    drive_count = 0
+    kilometers_driven = 0.0
+    rated_miles_used = 0.0
+    driving_hours_total = 0.0
+    outside_temp_sum = 0.0
+    outside_temp_sample_count = 0
+    trip_start_time = trip_start_odometer = trip_start_rated_range = None
+    trip_end_time = trip_end_odometer = trip_end_rated_range = None
+    vehicle_vin = None
+    scan_row_index = 0
 
     def finalize_trip():
-        nonlocal drives, km_total, rated_mi_used, hours_total
-        nonlocal trip_t0, trip_odo0, trip_r0, trip_t1, trip_odo1, trip_r1
-        if trip_t0 is None or trip_t1 is None:
-            trip_t0 = trip_odo0 = trip_r0 = None
-            trip_t1 = trip_odo1 = trip_r1 = None
+        """Close the open trip if it moved far/long enough to count as a drive."""
+        nonlocal drive_count, kilometers_driven, rated_miles_used, driving_hours_total
+        nonlocal trip_start_time, trip_start_odometer, trip_start_rated_range
+        nonlocal trip_end_time, trip_end_odometer, trip_end_rated_range
+        if trip_start_time is None or trip_end_time is None:
+            trip_start_time = trip_start_odometer = trip_start_rated_range = None
+            trip_end_time = trip_end_odometer = trip_end_rated_range = None
             return
-        if trip_odo0 is not None and trip_odo1 is not None and trip_odo1 >= trip_odo0:
-            miles = float(trip_odo1) - float(trip_odo0)
-            km = miles * 1.609344
+        if (
+            trip_start_odometer is not None
+            and trip_end_odometer is not None
+            and trip_end_odometer >= trip_start_odometer
+        ):
+            miles_driven = float(trip_end_odometer) - float(trip_start_odometer)
+            kilometers = miles_driven * 1.609344
         else:
-            km = 0.0
-        seconds = max(0.0, (trip_t1 - trip_t0).total_seconds())
-        # With stride, samples are farther apart — still require real odo move
-        if km >= LIFETIME_MAP_MIN_TRIP_KM and seconds >= 60:
-            drives += 1
-            km_total += km
-            hours_total += seconds / 3600.0
-            if trip_r0 is not None and trip_r1 is not None and trip_r0 > trip_r1:
-                used = float(trip_r0) - float(trip_r1)
-                if used > 0.25:
-                    rated_mi_used += used
-        trip_t0 = trip_odo0 = trip_r0 = None
-        trip_t1 = trip_odo1 = trip_r1 = None
+            kilometers = 0.0
+        duration_seconds = max(
+            0.0, (trip_end_time - trip_start_time).total_seconds()
+        )
+        if kilometers >= LIFETIME_MAP_MIN_TRIP_KM and duration_seconds >= 60:
+            drive_count += 1
+            kilometers_driven += kilometers
+            driving_hours_total += duration_seconds / 3600.0
+            if (
+                trip_start_rated_range is not None
+                and trip_end_rated_range is not None
+                and trip_start_rated_range > trip_end_rated_range
+            ):
+                rated_range_drop = (
+                    float(trip_start_rated_range) - float(trip_end_rated_range)
+                )
+                if rated_range_drop > 0.25:
+                    rated_miles_used += rated_range_drop
+        trip_start_time = trip_start_odometer = trip_start_rated_range = None
+        trip_end_time = trip_end_odometer = trip_end_rated_range = None
 
-    def flush_path():
-        nonlocal cur_path, last_kept_lat, last_kept_lon
-        if len(cur_path) >= 2:
-            segments.append(cur_path)
-        elif len(cur_path) == 1:
-            segments.append(cur_path)
-        cur_path = []
-        last_kept_lat = last_kept_lon = None
+    def flush_current_path():
+        """Push the open polyline into path_segments (if it has any points)."""
+        nonlocal current_path, last_kept_latitude, last_kept_longitude
+        if len(current_path) >= 2:
+            path_segments.append(current_path)
+        elif len(current_path) == 1:
+            path_segments.append(current_path)
+        current_path = []
+        last_kept_latitude = last_kept_longitude = None
 
-    progressive_cap = LIFETIME_MAP_MAX_POINTS * 2
+    progressive_point_cap = LIFETIME_MAP_MAX_POINTS * 2
 
-    for s in drive_qs.iterator(chunk_size=4000):
-        scan_i += 1
-        if stride > 1 and (scan_i % stride) != 0:
+    for sample_row in drive_gps_queryset.iterator(chunk_size=4000):
+        scan_row_index += 1
+        if sample_stride > 1 and (scan_row_index % sample_stride) != 0:
             continue
-        t = s.get("Date")
-        lat, lon = s.get("latitude"), s.get("longitude")
-        if t is None or lat is None or lon is None:
+
+        sample_time = sample_row.get("Date")
+        latitude_raw = sample_row.get("latitude")
+        longitude_raw = sample_row.get("longitude")
+        if sample_time is None or latitude_raw is None or longitude_raw is None:
             continue
         try:
-            lat_f, lon_f = float(lat), float(lon)
+            latitude = float(latitude_raw)
+            longitude = float(longitude_raw)
         except (TypeError, ValueError):
             continue
-        if not (-90.0 <= lat_f <= 90.0 and -180.0 <= lon_f <= 180.0):
+        if not (-90.0 <= latitude <= 90.0 and -180.0 <= longitude <= 180.0):
             continue
-        if abs(lat_f) < 1e-5 and abs(lon_f) < 1e-5:
+        if abs(latitude) < 1e-5 and abs(longitude) < 1e-5:
             continue  # null island / unset GPS
 
-        raw_gps += 1
-        if vin is None and s.get("vin"):
-            vin = s["vin"]
+        raw_gps_sample_count += 1
+        if vehicle_vin is None and sample_row.get("vin"):
+            vehicle_vin = sample_row["vin"]
 
-        # --- KPI trip state ---
-        # When striding, enlarge gap threshold so we don't split every sample
-        gap = LIFETIME_MAP_GAP if stride == 1 else LIFETIME_MAP_GAP * stride
-        if last_t is not None and (t - last_t) > gap:
+        # When striding, enlarge the trip-gap so we do not split every kept sample
+        trip_gap = (
+            LIFETIME_MAP_GAP
+            if sample_stride == 1
+            else LIFETIME_MAP_GAP * sample_stride
+        )
+        if last_sample_time is not None and (sample_time - last_sample_time) > trip_gap:
             finalize_trip()
-            flush_path()
-        odo = s.get("odometer")
+            flush_current_path()
+
+        odometer_raw = sample_row.get("odometer")
         try:
-            odo_f = float(odo) if odo is not None else None
+            odometer_miles = (
+                float(odometer_raw) if odometer_raw is not None else None
+            )
         except (TypeError, ValueError):
-            odo_f = None
-        r = _rated_range_miles(s.get("battery_range"), s.get("ideal_battery_range"))
-        ot = s.get("outside_temp")
-        if ot is not None:
+            odometer_miles = None
+        rated_range_miles = _rated_range_miles(
+            sample_row.get("battery_range"),
+            sample_row.get("ideal_battery_range"),
+        )
+        outside_temp_raw = sample_row.get("outside_temp")
+        if outside_temp_raw is not None:
             try:
-                temp_sum += float(ot)
-                temp_n += 1
+                outside_temp_sum += float(outside_temp_raw)
+                outside_temp_sample_count += 1
             except (TypeError, ValueError):
                 pass
 
-        if trip_t0 is None:
-            trip_t0, trip_odo0, trip_r0 = t, odo_f, r
-        trip_t1 = t
-        if odo_f is not None:
-            trip_odo1 = odo_f
-        if r is not None:
-            trip_r1 = r
+        if trip_start_time is None:
+            trip_start_time = sample_time
+            trip_start_odometer = odometer_miles
+            trip_start_rated_range = rated_range_miles
+        trip_end_time = sample_time
+        if odometer_miles is not None:
+            trip_end_odometer = odometer_miles
+        if rated_range_miles is not None:
+            trip_end_rated_range = rated_range_miles
 
-        # --- Map path (distance thin) ---
-        keep = False
-        if last_kept_lat is None:
-            keep = True
+        # Keep path points only when the car moved enough (drops GPS jitter)
+        keep_path_point = False
+        if last_kept_latitude is None:
+            keep_path_point = True
         else:
-            dist = _haversine_m(last_kept_lat, last_kept_lon, lat_f, lon_f)
-            if dist >= min_move_m:
-                keep = True
-        if keep:
-            cur_path.append([round(lat_f, 5), round(lon_f, 5)])
-            last_kept_lat, last_kept_lon = lat_f, lon_f
-            n_pts += 1
-            if n_pts > progressive_cap:
-                if cur_path:
-                    segments.append(cur_path)
-                    cur_path = []
-                    last_kept_lat = last_kept_lon = None
-                segments = _thin_segments_to_cap(segments, LIFETIME_MAP_MAX_POINTS)
-                n_pts = sum(len(seg) for seg in segments)
-                progressive_cap = LIFETIME_MAP_MAX_POINTS * 2
+            distance_meters = _haversine_m(
+                last_kept_latitude,
+                last_kept_longitude,
+                latitude,
+                longitude,
+            )
+            if distance_meters >= minimum_move_meters:
+                keep_path_point = True
+        if keep_path_point:
+            current_path.append([round(latitude, 5), round(longitude, 5)])
+            last_kept_latitude = latitude
+            last_kept_longitude = longitude
+            path_point_count += 1
+            if path_point_count > progressive_point_cap:
+                if current_path:
+                    path_segments.append(current_path)
+                    current_path = []
+                    last_kept_latitude = last_kept_longitude = None
+                path_segments = _thin_segments_to_cap(
+                    path_segments, LIFETIME_MAP_MAX_POINTS
+                )
+                path_point_count = sum(len(segment) for segment in path_segments)
+                progressive_point_cap = LIFETIME_MAP_MAX_POINTS * 2
 
-        last_t = t
+        last_sample_time = sample_time
 
     finalize_trip()
-    flush_path()
-    segments = _thin_segments_to_cap(segments, LIFETIME_MAP_MAX_POINTS)
-    # Drop 1-point stubs unless they are the only evidence of travel
-    multi = [s for s in segments if len(s) >= 2]
-    if multi:
-        segments = multi
+    flush_current_path()
+    path_segments = _thin_segments_to_cap(path_segments, LIFETIME_MAP_MAX_POINTS)
+    # Prefer multi-point polylines; single-point stubs are only kept if nothing else
+    multi_point_segments = [
+        segment for segment in path_segments if len(segment) >= 2
+    ]
+    if multi_point_segments:
+        path_segments = multi_point_segments
 
-    path_points = sum(len(s) for s in segments)
-    rated_km_used = rated_mi_used * 1.609344 if rated_mi_used > 0 else 0.0
-    efficiency_pct = None
-    if rated_km_used > 1.0 and km_total > 1.0:
-        efficiency_pct = 100.0 * km_total / rated_km_used
-        if efficiency_pct < 10 or efficiency_pct > 200:
-            efficiency_pct = None
-    # ~220 Wh/mi fleet average → Wh/km and kWh used from rated miles
-    kwh_used = rated_mi_used * 0.22 if rated_mi_used > 0 else None
-    wh_per_km = None
-    if kwh_used is not None and km_total > 1.0:
-        wh_per_km = (kwh_used * 1000.0) / km_total
-    avg_kmh = (km_total / hours_total) if hours_total > 0.05 else None
-    avg_temp = (temp_sum / temp_n) if temp_n else None
+    path_points = sum(len(segment) for segment in path_segments)
+    rated_kilometers_used = (
+        rated_miles_used * 1.609344 if rated_miles_used > 0 else 0.0
+    )
+    efficiency_percent = None
+    if rated_kilometers_used > 1.0 and kilometers_driven > 1.0:
+        efficiency_percent = 100.0 * kilometers_driven / rated_kilometers_used
+        if efficiency_percent < 10 or efficiency_percent > 200:
+            efficiency_percent = None
+    # ~0.22 kWh/mi fleet average → energy and Wh/km from rated miles used
+    energy_used_kwh = rated_miles_used * 0.22 if rated_miles_used > 0 else None
+    watt_hours_per_km = None
+    if energy_used_kwh is not None and kilometers_driven > 1.0:
+        watt_hours_per_km = (energy_used_kwh * 1000.0) / kilometers_driven
+    average_speed_kmh = (
+        (kilometers_driven / driving_hours_total)
+        if driving_hours_total > 0.05
+        else None
+    )
+    average_outside_temp_c = (
+        (outside_temp_sum / outside_temp_sample_count)
+        if outside_temp_sample_count
+        else None
+    )
 
-    # Human-readable driving time
-    total_minutes = int(round(hours_total * 60.0))
+    total_minutes = int(round(driving_hours_total * 60.0))
     drive_days = total_minutes // (24 * 60)
-    rem = total_minutes % (24 * 60)
-    drive_hours = rem // 60
-    drive_mins = rem % 60
+    remaining_minutes = total_minutes % (24 * 60)
+    drive_hours = remaining_minutes // 60
+    drive_minutes = remaining_minutes % 60
 
     return {
         "ok": True,
-        "period_weeks": int(desiredperiod) if desiredperiod else 0,
-        "segments": segments,
+        "period_weeks": int(desired_period_weeks) if desired_period_weeks else 0,
+        "segments": path_segments,
         "path_points": path_points,
-        "raw_gps_samples": raw_gps,
-        "drives": drives,
-        "km_driven": round(km_total, 1) if km_total > 0 else 0.0,
-        "rated_km_used": round(rated_km_used, 1) if rated_km_used > 0 else 0.0,
-        "wh_per_km": round(wh_per_km) if wh_per_km is not None else None,
-        "efficiency_pct": round(efficiency_pct, 2) if efficiency_pct is not None else None,
-        "kwh_used": round(kwh_used, 1) if kwh_used is not None else None,
-        "avg_kmh": round(avg_kmh, 1) if avg_kmh is not None else None,
-        "avg_temp_c": round(avg_temp, 1) if avg_temp is not None else None,
+        "raw_gps_samples": raw_gps_sample_count,
+        "drives": drive_count,
+        "km_driven": round(kilometers_driven, 1) if kilometers_driven > 0 else 0.0,
+        "rated_km_used": (
+            round(rated_kilometers_used, 1) if rated_kilometers_used > 0 else 0.0
+        ),
+        "wh_per_km": (
+            round(watt_hours_per_km) if watt_hours_per_km is not None else None
+        ),
+        "efficiency_pct": (
+            round(efficiency_percent, 2) if efficiency_percent is not None else None
+        ),
+        "kwh_used": (
+            round(energy_used_kwh, 1) if energy_used_kwh is not None else None
+        ),
+        "avg_kmh": (
+            round(average_speed_kmh, 1) if average_speed_kmh is not None else None
+        ),
+        "avg_temp_c": (
+            round(average_outside_temp_c, 1)
+            if average_outside_temp_c is not None
+            else None
+        ),
         "drive_time": {
             "days": drive_days,
             "hours": drive_hours,
-            "minutes": drive_mins,
-            "total_hours": round(hours_total, 2),
+            "minutes": drive_minutes,
+            "total_hours": round(driving_hours_total, 2),
         },
         "has_track": path_points > 0,
     }
