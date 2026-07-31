@@ -235,6 +235,11 @@ DATABASES = {
         "OPTIONS": {
             "timeout": 30,  # seconds to wait on locks instead of immediate OperationalError
         },
+        # Django TestCase always uses this separate file (never db.sqlite3).
+        # Destroyed after the test run. *.sqlite3 is gitignored.
+        "TEST": {
+            "NAME": BASE_DIR / "test_matesla.sqlite3",
+        },
     }
 }
 
