@@ -81,9 +81,9 @@ EFFICIENCY_TEMP_BIN_C = 5
 # Gap longer than this between drive samples starts a new trip
 EFFICIENCY_TRIP_GAP = timedelta(minutes=15)
 # Cap drive samples for binning (enough for stable histograms; not raw time series)
-EFFICIENCY_MAX_DRIVE_ROWS = 20000
+EFFICIENCY_MAX_DRIVE_ROWS = 8000
 # Lifetime map (stats page): path + summary KPIs for the selected period
-LIFETIME_MAP_MAX_POINTS = 5000
+LIFETIME_MAP_MAX_POINTS = 4000
 # Split polyline when consecutive drive samples are farther apart than this
 LIFETIME_MAP_GAP = timedelta(minutes=30)
 # Ignore GPS jitter while "driving" but barely moving (~180 m)
@@ -92,9 +92,13 @@ LIFETIME_MAP_MIN_MOVE_M = 180.0
 LIFETIME_MAP_MIN_TRIP_KM = 1.0
 # Soft cache so flipping chart period does not re-scan every time
 LIFETIME_MAP_CACHE_SECONDS = 600
+# Even-stride cap: process at most this many drive-GPS rows for lifetime map
+LIFETIME_MAP_MAX_SCAN = 16000
 # Charge sessions shorter than this are ignored (plug glitches)
 CHARGE_SESSION_MIN_MINUTES = 5
 CHARGE_SESSION_GAP = timedelta(minutes=30)
+# Max charging samples scanned for session histograms (even stride if denser)
+CHARGE_SESSION_MAX_SCAN = 40000
 # charge_limit_soc histogram buckets (high → low), labels for axis
 CHARGE_LIMIT_BUCKET_LABELS = (
     "100%",
@@ -184,7 +188,7 @@ DRIVE_POWER_BAR_COLORS = (
 )
 # Hard safety: stop scanning drive sensors after this many valid rows (O(1) memory
 # streaming — no list). Far above normal multi-year logs; avoids pathological DB.
-DRIVE_SENSOR_MAX_SCAN = 200000
+DRIVE_SENSOR_MAX_SCAN = 25000
 # When integrating power×Δt to kWh, ignore gaps larger than this
 # (TeslaFi / adaptive capture can be 10–60 s between drive samples)
 DRIVE_POWER_ENERGY_MAX_GAP = timedelta(seconds=90)
@@ -361,36 +365,44 @@ def _monthly_temp_series(qs, field):
     """
     One row per calendar month: min / avg / max of `field` (°C).
 
-    Streams (Date, value) and aggregates in Python — much faster than
-    TruncMonth + GROUP BY on large SQLite histories.
+    Fast path: SQL daily min/avg/max on DateOnlyDay (indexed), then roll up
+    to calendar months in Python (~1 row/day instead of every sample).
     """
-    # (year, month) -> [min, max, sum, n]
-    buckets: dict[tuple[int, int], list] = {}
-    pairs = (
+    daily = (
         qs.filter(**{f"{field}__isnull": False})
-        .order_by()  # drop default ordering for a plain scan
-        .values_list("Date", field)
-        .iterator(chunk_size=5000)
+        .exclude(DateOnlyDay__isnull=True)
+        .values("DateOnlyDay")
+        .annotate(
+            min_val=Min(field),
+            max_val=Max(field),
+            avg_val=Avg(field),
+        )
+        .order_by("DateOnlyDay")
     )
-    for dt, val in pairs:
-        if dt is None or val is None:
+    # (year, month) -> [min, max, sum_avg, n_days]
+    buckets: dict[tuple[int, int], list] = {}
+    for r in daily:
+        d = r.get("DateOnlyDay")
+        if d is None:
             continue
         try:
-            v = float(val)
-        except (TypeError, ValueError):
+            lo = float(r["min_val"])
+            hi = float(r["max_val"])
+            mid = float(r["avg_val"])
+        except (TypeError, ValueError, KeyError):
             continue
-        if v < -50 or v > 90:
+        if lo < -50 or hi > 90 or lo > hi:
             continue
-        key = (dt.year, dt.month)
+        key = (d.year, d.month)
         b = buckets.get(key)
         if b is None:
-            buckets[key] = [v, v, v, 1]
+            buckets[key] = [lo, hi, mid, 1]
         else:
-            if v < b[0]:
-                b[0] = v
-            if v > b[1]:
-                b[1] = v
-            b[2] += v
+            if lo < b[0]:
+                b[0] = lo
+            if hi > b[1]:
+                b[1] = hi
+            b[2] += mid
             b[3] += 1
 
     months = []
@@ -1007,21 +1019,30 @@ def _iter_drive_sensor(qs, *extra_fields, extra_q=None):
     """
     Stream drive-motion samples chronologically (O(1) memory via iterator).
 
-    Yields dict rows with Date + extra_fields. Stops after DRIVE_SENSOR_MAX_SCAN
-    valid rows as a hard safety bound.
+    Even-stride down to DRIVE_SENSOR_MAX_SCAN when the history is denser so
+    multi-year cars stay interactive.
     """
     fields = {"Date", *extra_fields}
     drive_qs = qs.filter(_drive_filter_q())
     if extra_q is not None:
         drive_qs = drive_qs.filter(extra_q)
     drive_qs = drive_qs.order_by("Date").values(*fields)
+    try:
+        total = drive_qs.count()
+    except Exception:
+        total = 0
+    stride = max(1, (total + DRIVE_SENSOR_MAX_SCAN - 1) // DRIVE_SENSOR_MAX_SCAN) if total else 1
     n = 0
+    kept = 0
     for s in drive_qs.iterator(chunk_size=4000):
         if s.get("Date") is None:
             continue
-        yield s
         n += 1
-        if n >= DRIVE_SENSOR_MAX_SCAN:
+        if stride > 1 and (n % stride) != 0:
+            continue
+        yield s
+        kept += 1
+        if kept >= DRIVE_SENSOR_MAX_SCAN:
             break
 
 
@@ -1197,6 +1218,9 @@ def _iter_charge_sessions(qs, extra_fields=()):
     """
     Yield lists of sample dicts for each charge session (≥ min duration).
     SQL: charging samples only; split on CHARGE_SESSION_GAP.
+
+    Even-stride when denser than CHARGE_SESSION_MAX_SCAN so 10y histories
+    stay under ~1s for session histograms.
     """
     fields = {
         "Date",
@@ -1213,13 +1237,28 @@ def _iter_charge_sessions(qs, extra_fields=()):
     charge_q = Q(charging_state__iexact="Charging") | Q(
         charging_state__iexact="Starting"
     ) | Q(charger_power__gt=0.5)
-    rows = qs.filter(charge_q).order_by("Date").values(*fields)
+    base = qs.filter(charge_q).order_by("Date").values(*fields)
+    try:
+        total = base.count()
+    except Exception:
+        total = 0
+    stride = (
+        max(1, (total + CHARGE_SESSION_MAX_SCAN - 1) // CHARGE_SESSION_MAX_SCAN)
+        if total
+        else 1
+    )
 
     cur = []
-    for r in rows.iterator(chunk_size=4000):
+    n = 0
+    kept = 0
+    for r in base.iterator(chunk_size=4000):
         t = r.get("Date")
         if t is None:
             continue
+        n += 1
+        if stride > 1 and (n % stride) != 0:
+            continue
+        kept += 1
         p = dict(r)
         p["t"] = t
         if cur and (t - cur[-1]["t"]) > CHARGE_SESSION_GAP:
@@ -1228,6 +1267,8 @@ def _iter_charge_sessions(qs, extra_fields=()):
             cur = [p]
         else:
             cur.append(p)
+        if kept >= CHARGE_SESSION_MAX_SCAN and not cur:
+            break
     if cur and _charge_session_ok(cur):
         yield cur
 
@@ -1239,14 +1280,92 @@ def _charge_session_ok(pts) -> bool:
     return minutes >= CHARGE_SESSION_MIN_MINUTES
 
 
+def _charge_filter_q():
+    return Q(charging_state__iexact="Charging") | Q(
+        charging_state__iexact="Starting"
+    ) | Q(charger_power__gt=0.5)
+
+
+def _charge_sessions_sql_by_number(qs):
+    """
+    Fast path: TeslaFi rows carry charge_number — one SQL GROUP BY per session.
+
+    Returns list of dicts {peak_power, peak_rate, limit, energy_delta, miles_delta,
+    soc_max, minutes} or None if charge_number is unavailable.
+    """
+    base = qs.filter(_charge_filter_q()).exclude(charge_number__isnull=True)
+    # Cheap probe (indexed filter + limit 1)
+    if not base[:1].exists():
+        return None
+    rows = base.values("charge_number").annotate(
+        peak_power=Max("charger_power"),
+        peak_rate=Max("charge_rate"),
+        lim=Max("charge_limit_soc"),
+        e0=Min("charge_energy_added"),
+        e1=Max("charge_energy_added"),
+        m0=Min("charge_miles_added_rated"),
+        m1=Max("charge_miles_added_rated"),
+        br0=Min("battery_range"),
+        br1=Max("battery_range"),
+        soc_u=Max("usable_battery_level"),
+        soc_b=Max("battery_level"),
+        t0=Min("Date"),
+        t1=Max("Date"),
+        n=Count("id"),
+    )
+    out = []
+    for r in rows:
+        t0, t1 = r.get("t0"), r.get("t1")
+        if t0 is None or t1 is None:
+            continue
+        minutes = max(0.0, (t1 - t0).total_seconds()) / 60.0
+        if minutes < CHARGE_SESSION_MIN_MINUTES and (r.get("n") or 0) < 3:
+            continue
+        e0, e1 = r.get("e0"), r.get("e1")
+        energy = None
+        if e0 is not None and e1 is not None and e1 > e0:
+            energy = float(e1) - float(e0)
+        m0, m1 = r.get("m0"), r.get("m1")
+        miles = None
+        if m0 is not None and m1 is not None and m1 > m0:
+            miles = float(m1) - float(m0)
+        if miles is None:
+            b0, b1 = r.get("br0"), r.get("br1")
+            if b0 is not None and b1 is not None and b1 > b0:
+                miles = float(b1) - float(b0)
+        soc = r.get("soc_u") if r.get("soc_u") is not None else r.get("soc_b")
+        out.append(
+            {
+                "peak_power": r.get("peak_power"),
+                "peak_rate": r.get("peak_rate"),
+                "limit": r.get("lim"),
+                "energy": energy,
+                "miles": miles,
+                "soc_max": float(soc) if soc is not None else None,
+            }
+        )
+    return out
+
+
 def _charge_limit_session_histogram(qs):
     """Count charge sessions by charge_limit_soc bucket. Returns (labels, counts, pcts)."""
     counts = [0] * len(CHARGE_LIMIT_BUCKET_LABELS)
-    for pts in _iter_charge_sessions(qs):
-        lim = _session_charge_limit(pts)
-        if lim is None:
-            continue
-        counts[_charge_limit_bucket_index(lim)] += 1
+    fast = _charge_sessions_sql_by_number(qs)
+    if fast is not None:
+        for s in fast:
+            lim = s.get("limit")
+            if lim is None:
+                continue
+            try:
+                counts[_charge_limit_bucket_index(float(lim))] += 1
+            except (TypeError, ValueError):
+                continue
+    else:
+        for pts in _iter_charge_sessions(qs):
+            lim = _session_charge_limit(pts)
+            if lim is None:
+                continue
+            counts[_charge_limit_bucket_index(lim)] += 1
     total = sum(counts)
     pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
     return list(CHARGE_LIMIT_BUCKET_LABELS), counts, pcts
@@ -1271,33 +1390,58 @@ def _charge_peak_histogram(qs, *, metric: str):
     counts = [0] * n_b
     amount_tot = [0.0] * n_b
 
-    for pts in _iter_charge_sessions(qs):
-        peak = _session_float_max(pts, peak_key)
-        # Fleet/TeslaFi often omit charger_power on AC; infer AC from low charge_rate
-        if (peak is None or peak <= 0) and peak_key == "charger_power":
-            rate = _session_float_max(pts, "charge_rate")
-            if rate is not None and 0 < rate <= 49:
-                peak = 7.0  # typical home AC for bucketing only
-        if peak is None or peak <= 0:
-            continue
-        idx = _range_bucket_index(peak, buckets)
-        counts[idx] += 1
-        if amount_unit == "kwh":
-            amt = _session_delta_field(pts, "charge_energy_added")
-            # Fallback: rough kWh from rated miles if energy counter missing
-            if amt is None:
-                miles = _session_delta_field(pts, "charge_miles_added_rated")
-                if miles is None:
-                    miles = _session_delta_field(pts, "battery_range")
-                if miles is not None and miles > 0:
-                    # ~0.22 kWh/mi fleet average (same ballpark as daymap pack estimate)
-                    amt = miles * 0.22
-        else:
-            amt = _session_delta_field(pts, "charge_miles_added_rated")
-            if amt is None:
-                amt = _session_delta_field(pts, "battery_range")
-        if amt is not None and amt > 0:
-            amount_tot[idx] += amt
+    fast = _charge_sessions_sql_by_number(qs)
+    if fast is not None:
+        for s in fast:
+            peak = s.get("peak_power" if peak_key == "charger_power" else "peak_rate")
+            if (peak is None or peak <= 0) and peak_key == "charger_power":
+                rate = s.get("peak_rate")
+                if rate is not None and 0 < float(rate) <= 49:
+                    peak = 7.0
+            if peak is None or peak <= 0:
+                continue
+            try:
+                peak_f = float(peak)
+            except (TypeError, ValueError):
+                continue
+            idx = _range_bucket_index(peak_f, buckets)
+            counts[idx] += 1
+            if amount_unit == "kwh":
+                amt = s.get("energy")
+                if amt is None and s.get("miles"):
+                    amt = float(s["miles"]) * 0.22
+            else:
+                amt = s.get("miles")
+            if amt is not None and amt > 0:
+                amount_tot[idx] += float(amt)
+    else:
+        for pts in _iter_charge_sessions(qs):
+            peak = _session_float_max(pts, peak_key)
+            # Fleet/TeslaFi often omit charger_power on AC; infer AC from low charge_rate
+            if (peak is None or peak <= 0) and peak_key == "charger_power":
+                rate = _session_float_max(pts, "charge_rate")
+                if rate is not None and 0 < rate <= 49:
+                    peak = 7.0  # typical home AC for bucketing only
+            if peak is None or peak <= 0:
+                continue
+            idx = _range_bucket_index(peak, buckets)
+            counts[idx] += 1
+            if amount_unit == "kwh":
+                amt = _session_delta_field(pts, "charge_energy_added")
+                # Fallback: rough kWh from rated miles if energy counter missing
+                if amt is None:
+                    miles = _session_delta_field(pts, "charge_miles_added_rated")
+                    if miles is None:
+                        miles = _session_delta_field(pts, "battery_range")
+                    if miles is not None and miles > 0:
+                        # ~0.22 kWh/mi fleet average (same ballpark as daymap pack estimate)
+                        amt = miles * 0.22
+            else:
+                amt = _session_delta_field(pts, "charge_miles_added_rated")
+                if amt is None:
+                    amt = _session_delta_field(pts, "battery_range")
+            if amt is not None and amt > 0:
+                amount_tot[idx] += amt
 
     total = sum(counts)
     pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
@@ -1360,17 +1504,25 @@ def _sample_soc(p) -> float | None:
 def _charge_end_soc_histogram(qs):
     """Sessions classified by max SoC reached while charging."""
     counts = [0] * len(CHARGE_END_SOC_BUCKET_LABELS)
-    for pts in _iter_charge_sessions(qs):
-        peak = None
-        for p in pts:
-            soc = _sample_soc(p)
-            if soc is None:
+    fast = _charge_sessions_sql_by_number(qs)
+    if fast is not None:
+        for s in fast:
+            peak = s.get("soc_max")
+            if peak is None:
                 continue
-            if peak is None or soc > peak:
-                peak = soc
-        if peak is None:
-            continue
-        counts[_end_soc_bucket_index(peak)] += 1
+            counts[_end_soc_bucket_index(peak)] += 1
+    else:
+        for pts in _iter_charge_sessions(qs):
+            peak = None
+            for p in pts:
+                soc = _sample_soc(p)
+                if soc is None:
+                    continue
+                if peak is None or soc > peak:
+                    peak = soc
+            if peak is None:
+                continue
+            counts[_end_soc_bucket_index(peak)] += 1
     total = sum(counts)
     pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
     return list(CHARGE_END_SOC_BUCKET_LABELS), counts, pcts
@@ -2098,8 +2250,8 @@ def _build_lifetime_map_payload(hashedVin, desiredperiod):
     """
     Drive GPS polylines + period summary KPIs (TeslaFi-style lifetime strip).
 
-    Single scan of drive samples with GPS; map is distance-thinned and capped.
-    Metrics use odometer / rated-range / temp on the same trip segmentation.
+    Even-stride scans dense multi-year histories (≤ LIFETIME_MAP_MAX_SCAN rows)
+    so the stats page stays interactive; map is distance-thinned and capped.
     """
     base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
     qs = _period_filter(base, desiredperiod)
@@ -2119,12 +2271,24 @@ def _build_lifetime_map_payload(hashedVin, desiredperiod):
             "vin",
         )
     )
+    try:
+        total_drive_gps = drive_qs.count()
+    except Exception:
+        total_drive_gps = 0
+    stride = (
+        max(1, (total_drive_gps + LIFETIME_MAP_MAX_SCAN - 1) // LIFETIME_MAP_MAX_SCAN)
+        if total_drive_gps
+        else 1
+    )
+    # Coarser spatial thin when striding (samples already farther apart)
+    min_move_m = LIFETIME_MAP_MIN_MOVE_M * (1.0 + 0.5 * (stride - 1))
 
     segments = []  # list of [[lat, lon], ...]
     cur_path = []
     last_kept_lat = last_kept_lon = None
     last_t = None
     raw_gps = 0
+    n_pts = 0  # running path-point count (avoid O(n) sum each keep)
 
     # Trip KPI accumulators (gap-split, independent of map thinning)
     drives = 0
@@ -2136,6 +2300,9 @@ def _build_lifetime_map_payload(hashedVin, desiredperiod):
     trip_t0 = trip_odo0 = trip_r0 = None
     trip_t1 = trip_odo1 = trip_r1 = None
     vin = None
+    # Scale KPIs when we only process every stride-th sample (odo deltas are fine;
+    # trip counts stay representative; hours use real timestamps so OK).
+    scan_i = 0
 
     def finalize_trip():
         nonlocal drives, km_total, rated_mi_used, hours_total
@@ -2150,6 +2317,7 @@ def _build_lifetime_map_payload(hashedVin, desiredperiod):
         else:
             km = 0.0
         seconds = max(0.0, (trip_t1 - trip_t0).total_seconds())
+        # With stride, samples are farther apart — still require real odo move
         if km >= LIFETIME_MAP_MIN_TRIP_KM and seconds >= 60:
             drives += 1
             km_total += km
@@ -2166,7 +2334,6 @@ def _build_lifetime_map_payload(hashedVin, desiredperiod):
         if len(cur_path) >= 2:
             segments.append(cur_path)
         elif len(cur_path) == 1:
-            # Keep lonely points as degenerate segment (drawn as a small circle later)
             segments.append(cur_path)
         cur_path = []
         last_kept_lat = last_kept_lon = None
@@ -2174,6 +2341,9 @@ def _build_lifetime_map_payload(hashedVin, desiredperiod):
     progressive_cap = LIFETIME_MAP_MAX_POINTS * 2
 
     for s in drive_qs.iterator(chunk_size=4000):
+        scan_i += 1
+        if stride > 1 and (scan_i % stride) != 0:
+            continue
         t = s.get("Date")
         lat, lon = s.get("latitude"), s.get("longitude")
         if t is None or lat is None or lon is None:
@@ -2192,7 +2362,9 @@ def _build_lifetime_map_payload(hashedVin, desiredperiod):
             vin = s["vin"]
 
         # --- KPI trip state ---
-        if last_t is not None and (t - last_t) > LIFETIME_MAP_GAP:
+        # When striding, enlarge gap threshold so we don't split every sample
+        gap = LIFETIME_MAP_GAP if stride == 1 else LIFETIME_MAP_GAP * stride
+        if last_t is not None and (t - last_t) > gap:
             finalize_trip()
             flush_path()
         odo = s.get("odometer")
@@ -2211,7 +2383,11 @@ def _build_lifetime_map_payload(hashedVin, desiredperiod):
 
         if trip_t0 is None:
             trip_t0, trip_odo0, trip_r0 = t, odo_f, r
-        trip_t1, trip_odo1, trip_r1 = t, odo_f if odo_f is not None else trip_odo1, r if r is not None else trip_r1
+        trip_t1 = t
+        if odo_f is not None:
+            trip_odo1 = odo_f
+        if r is not None:
+            trip_r1 = r
 
         # --- Map path (distance thin) ---
         keep = False
@@ -2219,19 +2395,19 @@ def _build_lifetime_map_payload(hashedVin, desiredperiod):
             keep = True
         else:
             dist = _haversine_m(last_kept_lat, last_kept_lon, lat_f, lon_f)
-            if dist >= LIFETIME_MAP_MIN_MOVE_M:
+            if dist >= min_move_m:
                 keep = True
         if keep:
             cur_path.append([round(lat_f, 5), round(lon_f, 5)])
             last_kept_lat, last_kept_lon = lat_f, lon_f
-            # Progressive thin if we are exploding memory mid-scan
-            n_pts = sum(len(seg) for seg in segments) + len(cur_path)
+            n_pts += 1
             if n_pts > progressive_cap:
                 if cur_path:
                     segments.append(cur_path)
                     cur_path = []
                     last_kept_lat = last_kept_lon = None
                 segments = _thin_segments_to_cap(segments, LIFETIME_MAP_MAX_POINTS)
+                n_pts = sum(len(seg) for seg in segments)
                 progressive_cap = LIFETIME_MAP_MAX_POINTS * 2
 
         last_t = t
