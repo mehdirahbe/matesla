@@ -95,9 +95,14 @@
     .daymap-meta {
         margin-top: 0 !important;
         padding: 14px 16px !important;
+        /* Card must not clip table horizontal scroll on phones */
+        overflow: visible;
+        max-width: 100%;
     }
     .daymap-meta p {
         margin-bottom: 0.35rem;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
     .daymap-meta .table-responsive {
         margin-bottom: 0.35rem !important;
@@ -109,9 +114,48 @@
     .daymap-meta .table td {
         padding: 6px 8px;
     }
-    .daymap-stops table {
+    .daymap-stops {
+        overflow: visible;
+        max-width: 100%;
+    }
+    /* Wide KPI / drives / charge tables: pan sideways on narrow screens.
+       width:100% alone compresses columns so headers clip with no scroll. */
+    .daymap-page .table-responsive {
+        display: block;
         width: 100%;
-        font-size: .95rem;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+        touch-action: pan-x pan-y;
+        margin-left: 0;
+        margin-right: 0;
+        /* Subtle edge fade so it is obvious more columns exist */
+        background:
+            linear-gradient(to right, var(--app-surface, #121a28) 40%, rgba(18, 26, 40, 0)) left center / 18px 100% no-repeat local,
+            linear-gradient(to left, var(--app-surface, #121a28) 40%, rgba(18, 26, 40, 0)) right center / 18px 100% no-repeat local;
+    }
+    .daymap-page .table-responsive > .table {
+        width: max-content;
+        min-width: 100%;
+        max-width: none;
+        margin-bottom: 0;
+        font-size: 0.85rem;
+    }
+    .daymap-page .table-responsive > .table th,
+    .daymap-page .table-responsive > .table td {
+        white-space: nowrap;
+    }
+    /* Address column: wide enough to read on phone once you pan sideways.
+       Horizontal scroll is expected — do not crush long Nominatim labels. */
+    .daymap-page .table-responsive > .table td.small,
+    .daymap-page .table-responsive > .table td:last-child {
+        white-space: normal;
+        min-width: 18rem;
+        max-width: 28rem;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
     a.gmaps-pending {
         font-variant-numeric: tabular-nums;
@@ -124,6 +168,19 @@
         }
         .daymap-page .page-heading__copy .eyebrow {
             display: none;
+        }
+    }
+    @media (max-width: 700px) {
+        .daymap-meta,
+        .daymap-stops {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+        /* Pull scroll area to the card edge for a longer thumb swipe */
+        .daymap-page .table-responsive {
+            margin-left: -4px;
+            margin-right: -4px;
+            padding-bottom: 4px; /* room for scrollbar / thumb */
         }
     }
 {% endblock %}
@@ -191,7 +248,7 @@
 
     {# Day totals — same columns as the drives table #}
     <div class="table-responsive mb-2">
-    <table class="table table-sm table-bordered mb-1" style="max-width: 1100px;">
+    <table class="table table-sm table-bordered mb-1">
         <thead>
         <tr>
             <th>{% trans 'Distance' %}</th>

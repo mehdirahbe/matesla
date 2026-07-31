@@ -2262,7 +2262,21 @@ pre.key-box {
 }
 
 .table-responsive {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
     border-radius: 12px;
+}
+
+/* Prefer natural column width so nowrap headers create a real horizontal scroll */
+.table-responsive > .table {
+    width: max-content;
+    min-width: 100%;
+    max-width: none;
 }
 
 .gmaps-link {
