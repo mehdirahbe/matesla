@@ -47,9 +47,6 @@ class TeslaUnauthorisedException(Exception):
     pass
 
 
-class TeslaCommandException(Exception):
-    pass
-
 
 class TeslaNoUserException(Exception):
     pass
@@ -512,60 +509,3 @@ def ParamsConnectedTesla(user, request=None):
     except Exception:
         traceback.print_exc()
     return ret
-
-
-def SetTeslaParamater(data, user, commandToCall, request=None):
-    teslaatoken = Connect(user, request)
-    api_call_headers = {'Authorization': 'Bearer ' + teslaatoken.access_token}
-    api_call_response = requests.post(
-        api_url(f"/api/1/vehicles/{teslaatoken.vehicle_id}/command/{commandToCall}"),
-        proxies=GetProxyToUse(), headers=api_call_headers, verify=True, data=data, timeout=60)
-    if api_call_response is not None and api_call_response.status_code == 408:
-        raise TeslaIsAsleepException
-    if api_call_response is not None and api_call_response.status_code == 401:
-        raise TeslaUnauthorisedException
-    if api_call_response is None or api_call_response.status_code != 200:
-        raise TeslaCommandException()
-
-
-def SetChargeLevel(desiredchargelevel, user, request=None):
-    data = {'percent': str(desiredchargelevel)}
-    SetTeslaParamater(data, user, 'set_charge_limit', request=request)
-
-
-def SetDriverTempCelcius(desiredtemperature, user, request=None):
-    data = {'driver_temp': str(desiredtemperature)}
-    SetTeslaParamater(data, user, 'set_temps', request=request)
-
-
-# See https://tesla-api.timdorr.com/vehicle/commands/remotestart
-def ActivateRemoteStartDrive(password, user, request=None):
-    data = {'password': str(password)}
-    SetTeslaParamater(data, user, 'remote_start_drive', request=request)
-
-
-# rem execute a command, see https://www.teslaapi.io/vehicles/commands for list
-def executeCommand(user, command, setOn=None, addParamName=None, addParamValue=None, request=None):
-    teslaatoken = Connect(user, request)
-    api_call_headers = {'Authorization': 'Bearer ' + teslaatoken.access_token}
-    if setOn is None and addParamName is None:
-        api_call_response = requests.post(
-            api_url(f"/api/1/vehicles/{teslaatoken.vehicle_id}/command/{command}"),
-            proxies=GetProxyToUse(), headers=api_call_headers, verify=True, timeout=60)
-    else:
-        if setOn is not None:
-            data = {'on': str(setOn)}
-            api_call_response = requests.post(
-                api_url(f"/api/1/vehicles/{teslaatoken.vehicle_id}/command/{command}"),
-                proxies=GetProxyToUse(), headers=api_call_headers, verify=True, data=data, timeout=60)
-        else:
-            data = {addParamName: str(addParamValue)}
-            api_call_response = requests.post(
-                api_url(f"/api/1/vehicles/{teslaatoken.vehicle_id}/command/{command}"),
-                proxies=GetProxyToUse(), headers=api_call_headers, verify=True, data=data, timeout=60)
-    if api_call_response is not None and api_call_response.status_code == 408:
-        raise TeslaIsAsleepException
-    if api_call_response is not None and api_call_response.status_code == 401:
-        raise TeslaUnauthorisedException
-    if api_call_response is None or api_call_response.status_code != 200:
-        raise TeslaCommandException()

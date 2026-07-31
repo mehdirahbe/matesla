@@ -128,7 +128,7 @@ MIDDLEWARE = [
 ]
 
 # Read-only for Tailscale / remote Host (same pattern as PicturesDjango).
-# Full write (commands, Tesla OAuth, admin) only on these Host headers.
+# Full write (Tesla OAuth, admin, setup) only on these Host headers.
 WRITABLE_HOSTS = [
     h.strip()
     for h in os.environ.get("MATESLA_WRITABLE_HOSTS", "127.0.0.1,localhost").split(",")
@@ -139,7 +139,7 @@ WRITABLE_HOSTS = [
 _owner_id = os.environ.get("MATESLA_OWNER_USER_ID", "").strip()
 MATESLA_OWNER_USER_ID = int(_owner_id) if _owner_id.isdigit() else None
 MATESLA_OWNER_USERNAME = os.environ.get("MATESLA_OWNER_USERNAME", "").strip() or None
-# POST allowed remotely (session / auth only — never car commands).
+# POST allowed remotely (session / auth only — not Tesla setup).
 READONLY_SAFE_POST_URL_NAMES = [
     "login",
     "logout",
@@ -165,7 +165,6 @@ READONLY_ALLOWED_URL_NAMES = [
     "teslastatusJson",
     "teslaasleep",
     "TeslaServerError",
-    "TeslaServerCmdFail",
     "NoTeslaVehicules",
     "ConnectionError",
     "select_vehicle",

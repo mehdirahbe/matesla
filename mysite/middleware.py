@@ -10,8 +10,8 @@ _MUTATING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 class ReadOnlyRemoteMiddleware:
     """
-    Tailscale / remote Host → read-only: only whitelisted views, no car commands
-    or Tesla account setup. Local 127.0.0.1 / localhost stay fully writable.
+    Tailscale / remote Host → read-only: only whitelisted views, no Tesla
+    account setup. Local 127.0.0.1 / localhost stay fully writable.
     """
 
     def __init__(self, get_response):

@@ -8,30 +8,16 @@ from matesla.BatteryDegradation import GetEPARange
 from matesla.urls import urlpatterns
 from matesla.views import returnColorFronContext, ValidColorCodes
 
-# all URLs from this app need a logged user
-allURLs = {'',
-           'matesla/asleep',
-           'matesla/getdesiredchargelevel',
-           'matesla/getdesiredtemperature',
-           'matesla/flash_lights',
-           'matesla/honk_horn',
-           'matesla/start_climate',
-           'matesla/stop_climate',
-           'matesla/unlock_car',
-           'matesla/lock_car',
-           'matesla/AddTeslaAccount',
-           'matesla/TeslaServerError',
-           'matesla/TeslaServerCmdFail',
-           'matesla/NoTeslaVehicules',
-           'matesla/ConnectionError',
-           'matesla/sentry_start',
-           'matesla/sentry_stop',
-           'matesla/valet_start',
-           'matesla/valet_stop',
-           'matesla/chargeport_open',
-           'matesla/chargeport_close',
-           'matesla/charge_start',
-           'matesla/charge_stop'}
+# URLs that require login (or redirect when anonymous). Status/read-only only —
+# vehicle command endpoints were removed (Fleet Vehicle Command Protocol).
+allURLs = {
+    "",
+    "matesla/asleep",
+    "matesla/AddTeslaAccount",
+    "matesla/TeslaServerError",
+    "matesla/NoTeslaVehicules",
+    "matesla/ConnectionError",
+}
 
 
 class MaTeslaTestCase(TestCase):

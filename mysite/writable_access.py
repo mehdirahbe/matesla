@@ -1,7 +1,7 @@
 """
 Writable vs read-only access by Host (same idea as PicturesDjango).
 
-Local (127.0.0.1 / localhost): full control — Tesla setup, car commands.
+Local (127.0.0.1 / localhost): full control — Tesla setup, admin.
 Remote (Tailscale HTTPS hostname, etc.): login + browse only.
 """
 
@@ -52,7 +52,7 @@ def _readonly_allowed_url_names():
 def reject_readonly_remote_access(request):
     """
     On remote hosts, allow only whitelisted url names; everything else → 404
-    (including admin and car-command URLs).
+    (including admin and Tesla setup URLs).
     """
     if is_writable_request(request):
         return None

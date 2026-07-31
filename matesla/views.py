@@ -31,12 +31,7 @@ from matesla.TeslaPartner import (
     check_public_key_reachable,
     register_partner_account,
 )
-from .forms import (
-    DesiredChargeLevelForm,
-    DesiredTemperatureForm,
-    RemoteStartDriveForm,
-    TeslaAppSettingsForm,
-)
+from .forms import TeslaAppSettingsForm
 from .models.TeslaAppSettings import TeslaAppSettings
 from .models.TeslaOAuthPending import TeslaOAuthPending
 from .models.TeslaToken import TeslaToken, TeslaVehicle
@@ -61,46 +56,6 @@ def view_internal_capture(request):
     return JsonResponse(stats)
 
 
-@never_cache
-def getdesiredchargelevel(request):
-    user = get_user(request)
-    if not user.is_authenticated:
-        return redirect('login')
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = DesiredChargeLevelForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # redirect to a new URL:
-            SetChargeLevel(form.cleaned_data["DesiredChargeLevel"], user, request=request)
-            return redirect("tesla_status")
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = DesiredChargeLevelForm(initial={'DesiredChargeLevel': '90'})
-    return render(request, 'matesla/getdesiredchargelevel.html', {'form': form})
-
-
-@never_cache
-def getdesiredtemperature(request):
-    user = get_user(request)
-    if not user.is_authenticated:
-        return redirect('login')
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = DesiredTemperatureForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # redirect to a new URL:
-            SetDriverTempCelcius(form.cleaned_data["DesiredTemperature"], user, request=request)
-            return redirect("tesla_status")
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = DesiredTemperatureForm(initial={'DesiredTemperature': '20'})
-    return render(request, 'matesla/getdesiredtemperature.html', {'form': form})
 
 
 def view_teslacss(request):
@@ -120,11 +75,6 @@ def view_TeslaServerError(request):
     return singleAction(request, lambda request, user: HttpResponse(
         loader.get_template('matesla/TeslaServerError.html').render({}, request)), True)
 
-
-@never_cache
-def view_TeslaServerCmdFail(request):
-    return singleAction(request, lambda request, user: HttpResponse(
-        loader.get_template('matesla/TeslaServerCmdFail.html').render({}, request)), True)
 
 
 @never_cache
@@ -434,8 +384,6 @@ def singleActionJson(request, func):
         return JsonResponse({'error': 'TeslaAuthenticationException'})
     except TeslaServerException:
         return JsonResponse({'error': 'TeslaServerException'})
-    except TeslaCommandException:
-        return JsonResponse({'error': 'TeslaCommandException'})
     except TeslaNoVehiculeException:
         return JsonResponse({'error': 'TeslaNoVehiculeException'})
     except requests.exceptions.ConnectionError:
@@ -472,8 +420,6 @@ def singleAction(request, func, shouldReturnFunc=False):
         return redirect('AddTeslaAccount')
     except TeslaServerException:
         return redirect('TeslaServerError')
-    except TeslaCommandException:
-        return redirect('TeslaServerCmdFail')
     except TeslaNoVehiculeException:
         return redirect('NoTeslaVehicules')
     except requests.exceptions.ConnectionError:
@@ -483,41 +429,6 @@ def singleAction(request, func, shouldReturnFunc=False):
         return HttpResponse(type(exc).__name__)
     return redirect("tesla_status")
 
-
-# View which honk (dont call during the night!) and then display status page
-@never_cache
-def Viewhonk_horn(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'honk_horn', request=request))
-
-
-# View which flash lights and then display status page
-@never_cache
-def Viewflash_lights(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'flash_lights', request=request))
-
-
-# View which start car warmup and then display status page
-@never_cache
-def Viewstart_climate(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'auto_conditioning_start', request=request))
-
-
-# View which stop car warmup and then display status page
-@never_cache
-def Viewstop_climate(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'auto_conditioning_stop', request=request))
-
-
-# View which stop car warmup and then display status page
-@never_cache
-def Viewunlock_car(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'door_unlock', request=request))
-
-
-# View which stop car warmup and then display status page
-@never_cache
-def Viewlock_car(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'door_lock', request=request))
 
 
 # Connect Tesla account via Fleet API OAuth (tokens stored in DB)
@@ -836,78 +747,3 @@ def view_select_vehicle(request):
     return redirect("tesla_status")
 
 
-# Start sentry
-@never_cache
-def view_sentry_start(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'set_sentry_mode', True, request=request))
-
-
-# Stop sentry
-@never_cache
-def view_sentry_stop(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'set_sentry_mode', False, request=request))
-
-
-# Start valet mode
-@never_cache
-def view_valet_start(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'set_valet_mode', True, request=request))
-
-
-# Stop valet mode
-@never_cache
-def view_valet_stop(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'set_valet_mode', False, request=request))
-
-
-# Open charge port
-@never_cache
-def view_chargeport_open(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'charge_port_door_open', request=request))
-
-
-# Close charge port
-@never_cache
-def view_chargeport_close(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'charge_port_door_close', request=request))
-
-
-# Start charge
-@never_cache
-def view_charge_start(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'charge_start', request=request))
-
-
-# Stop charge
-@never_cache
-def view_charge_stop(request):
-    return singleAction(request, lambda request, user: executeCommand(user, 'charge_stop', request=request))
-
-
-# Start install of software update, with a 2 minutes timeout, as the car propose
-@never_cache
-def view_install_software_update(request):
-    return singleAction(request,
-                        lambda request, user: executeCommand(user, 'schedule_software_update', None, 'offset_sec', 120, request=request))
-
-
-# Activate remote drive, show a dialog asking PW
-@never_cache
-def view_remote_start_drive(request):
-    user = get_user(request)
-    if not user.is_authenticated:
-        return redirect('login')
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = RemoteStartDriveForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # redirect to a new URL:
-            ActivateRemoteStartDrive(form.cleaned_data["TeslaPassword"], user, request=request)
-            return redirect("tesla_status")
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = RemoteStartDriveForm(initial={'TeslaPassword': ''})
-    return render(request, 'matesla/getRemote_start_drivePassword.html', {'form': form})

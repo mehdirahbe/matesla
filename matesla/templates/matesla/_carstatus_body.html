@@ -72,71 +72,6 @@
 
 </section>
 
-{% if allow_writes %}
-<div class="section-heading">
-    <div>
-        <span class="section-kicker">{% trans 'Remote control' %}</span>
-        <h2>{% trans 'Quick commands' %}</h2>
-        <p>{% trans 'The most useful commands, without detours.' %}</p>
-    </div>
-</div>
-
-<section class="action-grid" aria-label="{% trans 'Remote commands' %}">
-    {% if locked is True %}
-    <a href="{% url 'unlock_car' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">{% trans 'LOCK · ON' %}</span><span class="action-tile__arrow">→</span></span>
-        <span><strong>{% trans 'Unlock car' %}</strong><small>{% trans 'Car is currently locked' %}</small></span>
-    </a>
-    {% else %}
-    <a href="{% url 'lock_car' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">{% trans 'LOCK · OFF' %}</span><span class="action-tile__arrow">→</span></span>
-        <span><strong>{% trans 'Lock car' %}</strong><small>{% trans 'Car is currently unlocked' %}</small></span>
-    </a>
-    {% endif %}
-
-    {% if is_climate_on is True %}
-    <a href="{% url 'stop_climate' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">{% trans 'CLIMATE · ON' %}</span><span class="action-tile__arrow">→</span></span>
-        <span><strong>{% trans 'Stop climate' %}</strong><small>{{ inside_temp }}° · {{ driver_temp_setting }}°</small></span>
-    </a>
-    {% else %}
-    <a href="{% url 'start_climate' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">{% trans 'CLIMATE · OFF' %}</span><span class="action-tile__arrow">→</span></span>
-        <span><strong>{% trans 'Start climate' %}</strong><small>{{ inside_temp }}° · {{ driver_temp_setting }}°</small></span>
-    </a>
-    {% endif %}
-
-    {% if charge_port_door_open is True %}
-    <a href="{% url 'chargeport_close' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">{% trans 'PORT · OPEN' %}</span><span class="action-tile__arrow">→</span></span>
-        <span><strong>{% trans 'Close charge port' %}</strong><small>{{ charging_state }}</small></span>
-    </a>
-    {% else %}
-    <a href="{% url 'chargeport_open' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">{% trans 'PORT · CLOSED' %}</span><span class="action-tile__arrow">→</span></span>
-        <span><strong>{% trans 'Open charge port' %}</strong><small>{{ charging_state }}</small></span>
-    </a>
-    {% endif %}
-
-    <a href="{% url 'flash_lights' %}" class="action-tile">
-        <span class="action-tile__top"><span class="action-tile__code">{% trans 'LIGHTS' %}</span><span class="action-tile__arrow">→</span></span>
-        <span><strong>{% trans 'Flash lights' %}</strong><small>{% trans 'Locate the car visually' %}</small></span>
-    </a>
-
-    <a href="{% url 'honk_horn' %}" class="action-tile"
-       data-confirm="{% trans 'Sound the horn now?' %}">
-        <span class="action-tile__top"><span class="action-tile__code">{% trans 'HORN' %}</span><span class="action-tile__arrow">→</span></span>
-        <span><strong>{% trans 'Honk horn' %}</strong><small>{% trans 'Use with consideration' %}</small></span>
-    </a>
-
-    <a href="{% url 'remote_start_drive' %}" class="action-tile"
-       data-confirm="{% trans 'Continue to remote drive activation?' %}">
-        <span class="action-tile__top"><span class="action-tile__code">{% trans 'REMOTE DRIVE' %}</span><span class="action-tile__arrow">→</span></span>
-        <span><strong>{% trans 'Start without key' %}</strong><small>{% trans 'Requires account password' %}</small></span>
-    </a>
-</section>
-{% endif %}
-
 <div class="section-heading">
     <div>
         <span class="section-kicker">{% trans 'Telemetry' %}</span>
@@ -169,29 +104,13 @@
             <div class="data-row">
                 <dt>{% trans 'Sentry' %}</dt>
                 <dd>
-                    {% if allow_writes %}
-                        {% if sentry_mode is True %}
-                        <a href="{% url 'sentry_stop' %}" class="btn btn-sm btn-secondary">{% trans 'Active, stop?' %}</a>
-                        {% else %}
-                        <a href="{% url 'sentry_start' %}" class="btn btn-sm btn-secondary">{% trans 'Inactive, start?' %}</a>
-                        {% endif %}
-                    {% else %}
-                        {% if sentry_mode is True %}{% trans 'Active' %}{% else %}{% trans 'Inactive' %}{% endif %}
-                    {% endif %}
+                    {% if sentry_mode is True %}{% trans 'Active' %}{% else %}{% trans 'Inactive' %}{% endif %}
                 </dd>
             </div>
             <div class="data-row">
                 <dt>{% trans 'Valet mode' %}</dt>
                 <dd>
-                    {% if allow_writes %}
-                        {% if valet_mode is True %}
-                        <a href="{% url 'valet_stop' %}" class="btn btn-sm btn-secondary">{% trans 'Active, stop?' %}</a>
-                        {% else %}
-                        <a href="{% url 'valet_start' %}" class="btn btn-sm btn-secondary">{% trans 'Inactive, start?' %}</a>
-                        {% endif %}
-                    {% else %}
-                        {% if valet_mode is True %}{% trans 'Active' %}{% else %}{% trans 'Inactive' %}{% endif %}
-                    {% endif %}
+                    {% if valet_mode is True %}{% trans 'Active' %}{% else %}{% trans 'Inactive' %}{% endif %}
                 </dd>
             </div>
         </dl>
@@ -212,13 +131,7 @@
                 {% endif %}
                 <div class="data-row">
                     <dt>{% trans 'Battery charge limit (%)' %}</dt>
-                    <dd>
-                        {% if allow_writes %}
-                        <a href="{% url 'getdesiredchargelevel' %}" class="btn btn-sm btn-secondary">{{ charge_limit_soc }}% · {% trans 'Change' %}</a>
-                        {% else %}
-                        {{ charge_limit_soc }}%
-                        {% endif %}
-                    </dd>
+                    <dd>{{ charge_limit_soc }}%</dd>
                 </div>
             </dl>
             <dl class="data-list data-column">
@@ -229,18 +142,6 @@
                 <div class="data-row"><dt>{% trans 'Power in kW' %}</dt><dd>{{ charger_power }} kW</dd></div>
                 <div class="data-row"><dt>{% trans 'Number of phases' %}</dt><dd>{{ charger_phases }}</dd></div>
                 <div class="data-row"><dt>{% trans 'Time left in minutes' %}</dt><dd>{{ minutes_to_full_charge }} min</dd></div>
-                {% if allow_writes %}
-                <div class="data-row">
-                    <dt>{% trans 'Charging' %}</dt>
-                    <dd>
-                        {% if charging_state != "Charging" %}
-                        <a href="{% url 'charge_start' %}" class="btn btn-sm btn-primary">{% trans 'Start charge' %}</a>
-                        {% else %}
-                        <a href="{% url 'charge_stop' %}" class="btn btn-sm btn-danger" data-confirm="{% trans 'Stop charging now?' %}">{% trans 'Stop charge' %}</a>
-                        {% endif %}
-                    </dd>
-                </div>
-                {% endif %}
                 {% else %}
                 <div class="empty-state"><span class="text-muted">{% trans 'Vehicle is unplugged' %}</span></div>
                 {% endif %}
@@ -272,13 +173,7 @@
             <div class="data-row"><dt>{% trans 'Outside temperature' %}</dt><dd>{{ outside_temp }}°</dd></div>
             <div class="data-row">
                 <dt>{% trans 'Driver Temperature setting' %}</dt>
-                <dd>
-                    {% if allow_writes %}
-                    <a href="{% url 'getdesiredtemperature' %}" class="btn btn-sm btn-secondary">{{ driver_temp_setting }}° · {% trans 'Change' %}</a>
-                    {% else %}
-                    {{ driver_temp_setting }}°
-                    {% endif %}
-                </dd>
+                <dd>{{ driver_temp_setting }}°</dd>
             </div>
         </dl>
     </article>
@@ -291,13 +186,7 @@
         <dl class="data-list">
             <div class="data-row"><dt>{% trans 'Firmware version' %}</dt><dd>{{ car_version }}</dd></div>
             {% if hasUpdateReady %}
-            <div class="data-row"><dt>{% trans 'Update ready' %}</dt><dd>
-                {% if allow_writes %}
-                <a href="{% url 'install_software_update' %}" class="btn btn-sm btn-primary">{% trans 'Install' %} {{ UpdateVersion }}</a>
-                {% else %}
-                {{ UpdateVersion }}
-                {% endif %}
-            </dd></div>
+            <div class="data-row"><dt>{% trans 'Update ready' %}</dt><dd>{{ UpdateVersion }}</dd></div>
             {% endif %}
             {% if hasUpdateScheduled %}
             <div class="data-row"><dt>{% trans 'Scheduled update' %}</dt><dd>{{ UpdateVersion }} · {{ UpdateVersionTimeSeconds }} s</dd></div>

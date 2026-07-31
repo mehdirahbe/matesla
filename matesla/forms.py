@@ -1,5 +1,4 @@
 from django import forms
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
 
 from .models.TeslaAppSettings import TeslaAppSettings
@@ -7,27 +6,6 @@ from .models.TeslaAppSettings import TeslaAppSettings
 EU_API = "https://fleet-api.prd.eu.vn.cloud.tesla.com"
 NA_API = "https://fleet-api.prd.na.vn.cloud.tesla.com"
 CN_API = "https://fleet-api.prd.cn.vn.cloud.tesla.cn"
-
-
-class DesiredChargeLevelForm(forms.Form):
-    DesiredChargeLevel = forms.IntegerField(
-        label=_("Desired Charge Level"),
-        validators=[MinValueValidator(50), MaxValueValidator(100)],
-    )
-
-
-class DesiredTemperatureForm(forms.Form):
-    DesiredTemperature = forms.IntegerField(
-        label=_("Driver temperature"),
-        validators=[MinValueValidator(15), MaxValueValidator(28)],
-    )
-
-
-class RemoteStartDriveForm(forms.Form):
-    TeslaPassword = forms.CharField(
-        widget=forms.PasswordInput,
-        label=_("Please enter your Tesla account password"),
-    )
 
 
 class TeslaAppSettingsForm(forms.ModelForm):

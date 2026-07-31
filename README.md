@@ -18,19 +18,20 @@ https://github.com/mehdirahbe/matesla/blob/master/matesla/templates/matesla/cars
 https://github.com/mehdirahbe/matesla/blob/master/templates/base.html
 
 How to:
-1) To add a new link, you have to adapt urls.py, views.py (to serve it) and carstatus.html (to display the link). See for example sentry or door lock.
+1) To display extra live fields on the status page, adapt `_carstatus_body.html`
+   (and `PreparestatusDictionary` if the value is computed).
 
-2) If you want to display an additional information on the car, you probably only have to adapt carstatus.html, except if it is a computed value (such as battery degradattion) where you will also have to adapt views.py to compute the value and put it in the context passed to rendering.
+2) Change look: adapt CSS under `static/` / templates.
 
-3) Change look: adapt CSS in base.html
+Vehicle commands (lock, climate, charge start, …) were removed: modern cars
+require Tesla’s Vehicle Command Protocol; the official app covers remote
+control. matesla focuses on status, history, maps, and stats.
 
 Todo:
-1) Improve look of AddTeslaAccount form https://afternoon-scrubland-61531.herokuapp.com/fr/matesla/AddTeslaAccount
+1) Improve look of AddTeslaAccount form
 2) Allow to set EPA range
-3) Allow to control overheat
-4) When doing a command, avoid a page refresh
-5) Allow to change PW+add feature in case of lost PW
-6) Add more languages. If you are a native speaker, please don't hesitate
+3) Allow to change PW+add feature in case of lost PW
+4) Add more languages. If you are a native speaker, please don't hesitate
 to add a new language. No need to be a programmer to do that, just ask me to prepare
 and I will prepare a text file to just translate.
 
@@ -116,9 +117,10 @@ is local** (`127.0.0.1` / `localhost`). Access via the MagicDNS name
 
 - Status, personal stats, day map, fleet graphs, vehicle switcher: **yes**
   (anonymous viewers use the single household owner that holds the Tesla token)
-- Car commands, Tesla account / OAuth, signup, admin: **no** (UI hidden;
-  direct URLs return **404**)
-- Local `http://127.0.0.1:8001` still needs **login** for full control
+- Tesla account / OAuth, signup, admin: **no** (UI hidden; direct URLs return **404**)
+- Vehicle remote commands are **not supported** (use the official Tesla app;
+  Fleet Vehicle Command Protocol is out of scope for matesla)
+- Local `http://127.0.0.1:8001` still needs **login** for setup / full access
 
 Override if needed:
 
