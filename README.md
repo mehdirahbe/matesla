@@ -68,11 +68,33 @@ with **photos** and **MaTesla** on different HTTPS ports.
 
 ### 1. Run MaTesla locally
 
+**Option A — systemd (daemon, same pattern as PicturesDjango)**  
+Starts at boot on `127.0.0.1:8001`. **`Restart=no`**: if you `stop` or kill
+the service to free the port for `runserver`, it stays down until the next
+boot (or `systemctl start`).
+
+```bash
+cd /path/to/matesla
+# once: install unit under /etc/systemd/system/
+./config/install_gunicorn_service.sh
+
+systemctl status matesla-gunicorn.service
+# before manual runserver:
+sudo systemctl stop matesla-gunicorn.service
+# remove completely:
+# ./config/uninstall_gunicorn_service.sh
+```
+
+**Option B — manual (dev)**
+
 ```bash
 cd /path/to/matesla
 source .venv/bin/activate
 python manage.py collectstatic --noinput
+# free the port if the daemon was running:
+# sudo systemctl stop matesla-gunicorn.service
 python manage.py runserver 127.0.0.1:8001
+# or: gunicorn mysite.wsgi:application --bind 127.0.0.1:8001 --workers 1
 ```
 
 ### 2. Configure Tailscale Serve

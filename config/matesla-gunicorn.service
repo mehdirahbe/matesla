@@ -1,0 +1,19 @@
+[Unit]
+Description=MaTesla (Gunicorn)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mehdi
+Group=mehdi
+WorkingDirectory=/home/mehdi/PycharmProjects/matesla
+EnvironmentFile=-/home/mehdi/PycharmProjects/matesla/.env
+# One worker: SQLite + in-process capture (/matesla/internal/capture).
+# Bind localhost only — Tailscale Serve proxies :8443 → here.
+ExecStart=/home/mehdi/PycharmProjects/matesla/.venv/bin/gunicorn mysite.wsgi:application --bind 127.0.0.1:8001 --reload --timeout 200 --workers 1
+# Start at boot, but do NOT restart if killed (so you can free the port for runserver).
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
