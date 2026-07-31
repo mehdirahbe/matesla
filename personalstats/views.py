@@ -1,6 +1,5 @@
 import django
 from django.db.models import Max, Min, Avg, Count, F, FloatField, Case, When, Q
-from django.db.models.functions import TruncMonth
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import render
 from django.template import loader
@@ -37,12 +36,18 @@ from matesla.graphstyle import (
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.VinHash import IsValidHash
-from django.utils.translation import gettext as _
+from django.core.cache import cache
+from django.utils.translation import get_language, gettext as _
 from datetime import date, timedelta, datetime
 from math import asin, cos, radians, sin, sqrt
 from zoneinfo import ZoneInfo
 import json
 import re
+
+# Short-lived PNG cache (per car / field / period / size / language).
+# Cuts repeat loads of the stats grid; invalidate by waiting or process restart
+# (LocMem). Not a substitute for correct period filters.
+GRAPH_PNG_CACHE_SECONDS = 300
 
 # Create your views here.
 
@@ -356,48 +361,89 @@ def _monthly_temp_series(qs, field):
     """
     One row per calendar month: min / avg / max of `field` (°C).
 
-    Uses TruncMonth(Date) so sparse DateOnlyDay gaps still group correctly.
-    Skips months with no non-null samples.
+    Streams (Date, value) and aggregates in Python — much faster than
+    TruncMonth + GROUP BY on large SQLite histories.
     """
-    rows = (
+    # (year, month) -> [min, max, sum, n]
+    buckets: dict[tuple[int, int], list] = {}
+    pairs = (
         qs.filter(**{f"{field}__isnull": False})
-        .annotate(month=TruncMonth("Date"))
-        .values("month")
-        .annotate(
-            min_val=Min(field),
-            max_val=Max(field),
-            avg_val=Avg(field),
-            n=Count("id"),
-        )
-        .order_by("month")
+        .order_by()  # drop default ordering for a plain scan
+        .values_list("Date", field)
+        .iterator(chunk_size=5000)
     )
+    for dt, val in pairs:
+        if dt is None or val is None:
+            continue
+        try:
+            v = float(val)
+        except (TypeError, ValueError):
+            continue
+        if v < -50 or v > 90:
+            continue
+        key = (dt.year, dt.month)
+        b = buckets.get(key)
+        if b is None:
+            buckets[key] = [v, v, v, 1]
+        else:
+            if v < b[0]:
+                b[0] = v
+            if v > b[1]:
+                b[1] = v
+            b[2] += v
+            b[3] += 1
+
     months = []
     mins = []
     maxs = []
     avgs = []
-    for r in rows:
-        m = r.get("month")
-        if m is None:
+    for y, m in sorted(buckets.keys()):
+        lo, hi, s, n = buckets[(y, m)]
+        if n <= 0 or lo > hi:
             continue
-        # TruncMonth may return datetime
-        if isinstance(m, datetime):
-            m = m.date()
-        elif hasattr(m, "date") and not isinstance(m, date):
-            m = m.date()
-        try:
-            lo = float(r["min_val"])
-            hi = float(r["max_val"])
-            mid = float(r["avg_val"])
-        except (TypeError, ValueError, KeyError):
-            continue
-        # Sanity: ignore impossible sensor glitches
-        if lo < -50 or hi > 90 or lo > hi:
-            continue
-        months.append(m)
+        months.append(date(y, m, 1))
         mins.append(lo)
         maxs.append(hi)
-        avgs.append(mid)
+        avgs.append(s / n)
     return months, mins, maxs, avgs
+
+
+def _graph_png_cache_key(hashedVin, desiredfield, desiredperiod, size, *, kind="stats"):
+    """
+    kind distinguishes endpoints that share a field name
+    (e.g. StatsOnCar odometer time-series vs BatteryDegradation scatter).
+    """
+    lang = get_language() or "en"
+    return (
+        f"matesla:png:v2:{kind}:{hashedVin}:{desiredfield}:"
+        f"{desiredperiod}:{size}:{lang}"
+    )
+
+
+def _png_response_from_bytes(data: bytes, size: str, *, cache_status: str):
+    """Build a graph PNG HttpResponse (same headers as render_png)."""
+    response = HttpResponse(data, content_type="image/png")
+    response["Content-Length"] = str(len(data))
+    response["Cache-Control"] = "private, max-age=120"
+    response["X-MaTesla-Graph-Size"] = "thumb" if size == "thumb" else "full"
+    response["X-MaTesla-Graph-Cache"] = cache_status
+    return response
+
+
+def _cache_graph_png(cache_key: str, response: HttpResponse, size: str):
+    """Store successful PNG bodies; attach MISS header."""
+    if (
+        response is not None
+        and getattr(response, "status_code", 500) == 200
+        and response.content
+        and response.content[:8] == b"\x89PNG\r\n\x1a\n"
+    ):
+        try:
+            cache.set(cache_key, response.content, GRAPH_PNG_CACHE_SECONDS)
+        except Exception:
+            pass
+        response["X-MaTesla-Graph-Cache"] = "MISS"
+    return response
 
 
 def _format_month_label(d, language):
@@ -1645,6 +1691,24 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
     if isValid is False:
         return response
     size = graph_size_from_request(request)
+    cache_key = _graph_png_cache_key(
+        hashedVin, desiredfield, desiredperiod, size
+    )
+    try:
+        hit = cache.get(cache_key)
+    except Exception:
+        hit = None
+    if hit is not None:
+        return _png_response_from_bytes(hit, size, cache_status="HIT")
+
+    response = _stats_on_car_graph_uncached(
+        request, hashedVin, desiredfield, desiredperiod, size
+    )
+    return _cache_graph_png(cache_key, response, size)
+
+
+def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod, size):
+    """Actual PNG generation (no cache). Called by StatsOnCarGraph."""
     title = GetTitleForField(desiredfield)
     base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
     if not base.exists():
@@ -2837,10 +2901,26 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield, desiredperiod=0):
     Optional query ?size=thumb|full (default full).
     """
     size = graph_size_from_request(request)
+    cache_key = _graph_png_cache_key(
+        hashedVin, desiredfield, desiredperiod, size, kind="degrad"
+    )
+    try:
+        hit = cache.get(cache_key)
+    except Exception:
+        hit = None
+    if hit is not None:
+        return _png_response_from_bytes(hit, size, cache_status="HIT")
+
+    response = _battery_degradation_graph_uncached(
+        hashedVin, desiredfield, desiredperiod, size
+    )
+    return _cache_graph_png(cache_key, response, size)
+
+
+def _battery_degradation_graph_uncached(hashedVin, desiredfield, desiredperiod, size):
     # Computed scatter (Y = range at 100%), not a real model field on X axis alone
     if desiredfield == "range_at_100_odometer":
         if not IsValidHash(hashedVin):
-            # means invalid hashedVin field was passed
             return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
         title = GetTitleForField(desiredfield)
         base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)

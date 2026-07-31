@@ -201,3 +201,110 @@ class PersonalStatsGraphTests(TestCase):
             hashedVin=FAKE_HASHED_VIN
         ).count()
         self.assertEqual(other, 0)
+
+
+class PersonalStatsGraphPerfTests(TestCase):
+    """
+    Time each graph on seeded fake data and rank the slowest.
+
+    Run with -v2 to see the PERF report in the test output:
+      python manage.py test personalstats.tests.PersonalStatsGraphPerfTests -v2
+    """
+
+    # Soft ceiling on fake data (catch regressions, not real multi-year fleets)
+    THUMB_BUDGET_S = 1.5
+    CACHE_HIT_BUDGET_S = 0.05
+
+    @classmethod
+    def setUpTestData(cls):
+        assert_not_production_database()
+        seed_fake_car_telemetry(
+            hashed_vin=FAKE_HASHED_VIN,
+            vin=FAKE_VIN,
+            days=400,
+            samples_per_day=8,
+        )
+
+    def setUp(self):
+        assert_not_production_database()
+        # Isolate timings from other tests' LocMem cache entries
+        from django.core.cache import cache
+
+        cache.clear()
+
+    def test_rank_graph_timings_and_cache(self):
+        import time
+
+        c = Client()
+        period = 520
+        rows = []
+
+        def _time_get(path, label):
+            t0 = time.perf_counter()
+            resp = c.get(path)
+            dt = time.perf_counter() - t0
+            rows.append((dt, label, resp.status_code, len(resp.content),
+                         resp.get("X-MaTesla-Graph-Cache", "")))
+            self.assertEqual(resp.status_code, 200, label)
+            return resp, dt
+
+        for field in STATS_ON_CAR_GRAPH_FIELDS:
+            _time_get(
+                f"/en/personalstats/StatsOnCarGraph/{FAKE_HASHED_VIN}/"
+                f"{field}/{period}?size=thumb",
+                f"StatsOnCar/{field}/thumb",
+            )
+        for field in BATTERY_DEGRADATION_FIELDS:
+            _time_get(
+                f"/en/personalstats/BatteryDegradationGraph/{FAKE_HASHED_VIN}/"
+                f"{field}/{period}?size=thumb",
+                f"Degrad/{field}/thumb",
+            )
+        _time_get(
+            f"/en/personalstats/LifetimeMapData/{FAKE_HASHED_VIN}?period={period}",
+            "LifetimeMapData",
+        )
+
+        rows.sort(key=lambda r: r[0], reverse=True)
+        report = ["\n--- Graph PERF ranking (slowest first, fake ~4k rows) ---"]
+        total = 0.0
+        for dt, label, code, nbytes, cache_hdr in rows:
+            total += dt
+            report.append(
+                f"  {dt * 1000:7.1f} ms  {code}  cache={cache_hdr or '-':4}  "
+                f"{nbytes:6d} B  {label}"
+            )
+        report.append(f"  TOTAL thumbs+map: {total * 1000:.0f} ms ({total:.2f}s)")
+        print("\n".join(report))
+
+        # No single thumb should be pathologically slow on this small seed
+        for dt, label, *_ in rows:
+            if label == "LifetimeMapData":
+                continue
+            self.assertLess(
+                dt,
+                self.THUMB_BUDGET_S,
+                f"{label} took {dt:.2f}s (budget {self.THUMB_BUDGET_S}s)",
+            )
+
+        # Second request of a known-heavy chart must hit cache and be cheap
+        heavy = "outside_temp"
+        path = (
+            f"/en/personalstats/StatsOnCarGraph/{FAKE_HASHED_VIN}/"
+            f"{heavy}/{period}?size=thumb"
+        )
+        # ensure first fill
+        c.get(path)
+        t0 = time.perf_counter()
+        resp = c.get(path)
+        dt_hit = time.perf_counter() - t0
+        print(
+            f"  CACHE HIT recheck {heavy}/thumb: {dt_hit * 1000:.1f} ms  "
+            f"header={resp.get('X-MaTesla-Graph-Cache')}"
+        )
+        self.assertEqual(resp.get("X-MaTesla-Graph-Cache"), "HIT")
+        self.assertLess(
+            dt_hit,
+            self.CACHE_HIT_BUDGET_S,
+            f"cache hit too slow: {dt_hit:.3f}s",
+        )

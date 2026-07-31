@@ -249,8 +249,11 @@ $(function () {
     // Mount lightbox on body ASAP so fixed positioning tracks the viewport
     ensureLightboxOnBody(document.getElementById("graph-lightbox"));
 
-    // On first load: data-src uses stats_period; re-apply so select and URLs stay in sync
-    ChangeDesiredPeriodFunction();
+    // Sync hidden vehicle-switch period only. Do NOT call ChangeDesiredPeriodFunction()
+    // on first paint: it forces src= on every card and regenerates 5 PNGs even when
+    // data-src already matches #DesiredPeriod. lazysizes loads data-src; changing
+    // the period select still calls ChangeDesiredPeriodFunction via .change().
+    syncVehicleSwitchPeriod();
 
     document.querySelectorAll("[data-graph-expand]").forEach(function (btn) {
         btn.addEventListener("click", function (ev) {
