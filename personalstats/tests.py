@@ -9,6 +9,7 @@ from django.test import Client, TestCase
 from django.db import connection
 
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+from mysite.test_helpers import configured_language_codes
 from personalstats.test_factories import (
     FAKE_HASHED_VIN,
     FAKE_VIN,
@@ -62,7 +63,7 @@ class PersonalStatsUrlTests(TestCase):
 
     def test_bogus_url_fails(self):
         client = Client()
-        for lang in ("fr", "en"):
+        for lang in configured_language_codes():
             response = client.get(
                 f"/{lang}/personalstats/StatsOnCarGraph/fakesha/dontexist/5"
             )
@@ -73,6 +74,97 @@ class PersonalStatsUrlTests(TestCase):
             self.assertEqual(
                 response.status_code, 404, "SQL-injection-ish hash should 404"
             )
+
+    def test_invalid_hash_rejected_on_all_personal_routes(self):
+        """Path tokens must pass IsValidHash — no SQL/path smuggling."""
+        client = Client()
+        bad = "--"
+        paths = (
+            f"/en/personalstats/Stats/{bad}",
+            f"/en/personalstats/DayMap/{bad}",
+            f"/en/personalstats/DayMap/{bad}/2024-01-15",
+            f"/en/personalstats/LifetimeMapData/{bad}",
+            f"/en/personalstats/FirmwareHistory/{bad}",
+            f"/en/personalstats/FirmwareHistoryCSV/{bad}",
+            f"/en/personalstats/AllMyDataAsCSV/{bad}",
+            f"/en/personalstats/BatteryDegradationGraph/{bad}/odometer/52",
+        )
+        for path in paths:
+            response = client.get(path)
+            self.assertEqual(response.status_code, 404, path)
+
+
+class PersonalStatsPageTests(TestCase):
+    """HTML / CSV / map pages that do not call Tesla Fleet (local DB only)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        assert_not_production_database()
+        seed_fake_car_telemetry(
+            hashed_vin=FAKE_HASHED_VIN,
+            vin=FAKE_VIN,
+            days=30,
+            samples_per_day=6,
+        )
+
+    def setUp(self):
+        assert_not_production_database()
+
+    def test_day_map_page_ok(self):
+        client = Client()
+        response = client.get(f"/en/personalstats/DayMap/{FAKE_HASHED_VIN}")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "daymap", status_code=200)
+
+    def test_day_map_with_iso_day(self):
+        client = Client()
+        # Seed uses recent UTC days — pick an ISO date that may be empty or full
+        response = client.get(
+            f"/en/personalstats/DayMap/{FAKE_HASHED_VIN}/2020-01-01"
+        )
+        # Empty day still renders the day map shell (200), not 500
+        self.assertEqual(response.status_code, 200)
+
+    def test_firmware_history_page_ok(self):
+        client = Client()
+        response = client.get(
+            f"/en/personalstats/FirmwareHistory/{FAKE_HASHED_VIN}"
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_firmware_history_csv_ok(self):
+        client = Client()
+        response = client.get(
+            f"/en/personalstats/FirmwareHistoryCSV/{FAKE_HASHED_VIN}"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/csv", response.get("Content-Type", ""))
+
+    def test_all_my_data_csv_ok(self):
+        client = Client()
+        response = client.get(
+            f"/en/personalstats/AllMyDataAsCSV/{FAKE_HASHED_VIN}"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/csv", response.get("Content-Type", ""))
+        self.assertGreater(len(response.content), 50)
+
+    def test_resolve_address_validates_coords(self):
+        client = Client()
+        bad = client.get("/en/personalstats/ResolveAddress")
+        self.assertEqual(bad.status_code, 400)
+        out = client.get(
+            "/en/personalstats/ResolveAddress?lat=999&lon=0"
+        )
+        self.assertEqual(out.status_code, 400)
+        # Valid coords: may return unresolved_or_quota without Nominatim —
+        # must not 500
+        okish = client.get(
+            "/en/personalstats/ResolveAddress?lat=50.85&lon=4.35"
+        )
+        self.assertIn(okish.status_code, (200,))
+        payload = okish.json()
+        self.assertIn("ok", payload)
 
 
 class PersonalStatsGraphTests(TestCase):
@@ -107,7 +199,7 @@ class PersonalStatsGraphTests(TestCase):
 
     def test_stats_page_ok(self):
         client = Client()
-        for lang in ("fr", "en"):
+        for lang in configured_language_codes():
             response = client.get(f"/{lang}/personalstats/Stats/{FAKE_HASHED_VIN}")
             self.assertEqual(
                 response.status_code, 200, f"Stats page failed for {lang}"

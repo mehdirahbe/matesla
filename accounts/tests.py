@@ -1,10 +1,7 @@
-from django.test import TestCase
-# Inspired from https://docs.djangoproject.com/en/3.0/topics/testing/tools/
-from django.test import Client
+from django.test import Client, TestCase
 
-# Inspired from https://docs.djangoproject.com/en/3.0/topics/testing/overview/
-# Create your tests here.
 from accounts.urls import urlpatterns
+from mysite.test_helpers import configured_language_codes
 
 
 class AccountsTestCase(TestCase):
@@ -14,9 +11,9 @@ class AccountsTestCase(TestCase):
 
     def test_UrlWorks(self):
         client = Client()
-        for lang in {"fr","en"}:
-            response = client.post("/"+lang+'/accounts/signup/')
-            self.assertEqual(response.status_code, 200, lang+' signup did fail')
-        response = client.post('/accounts/signup/')
+        for lang in configured_language_codes():
+            response = client.post("/" + lang + "/accounts/signup/")
+            self.assertEqual(response.status_code, 200, lang + " signup did fail")
+        response = client.post("/accounts/signup/")
         # test on 302 as it must redirect to a language
-        self.assertEqual(response.status_code, 302, 'Int signup did fail')
+        self.assertEqual(response.status_code, 302, "Int signup did fail")
