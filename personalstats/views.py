@@ -246,13 +246,13 @@ def GetTitleForField(field):
 
 def _range_at_100_from_entry(entry):
     """Rated range extrapolated to 100% SoC (miles). Same basis as degradation."""
-    br = entry.battery_range
+    battery_range = entry.battery_range
     level = entry.usable_battery_level
     if level is None or level <= 0:
         level = entry.battery_level
-    if br is None or level is None or level <= 0:
+    if battery_range is None or level is None or level <= 0:
         return None
-    return float(br) / float(level) * 100.0
+    return float(battery_range) / float(level) * 100.0
 
 
 def _entry_get(entry, key, default=None):
@@ -277,15 +277,15 @@ def GetXandYRangeAt100(results, xfield, *, daily_median=True, min_soc=None):
             level = _entry_get(entry, "battery_level")
         if level is None or float(level) < min_soc:
             continue
-        br = _entry_get(entry, "battery_range")
-        if br is None or level is None or float(level) <= 0:
+        battery_range = _entry_get(entry, "battery_range")
+        if battery_range is None or level is None or float(level) <= 0:
             continue
-        y = float(br) / float(level) * 100.0
-        x = _entry_get(entry, xfield)
-        if x is None:
+        range_at_100 = float(battery_range) / float(level) * 100.0
+        x_value = _entry_get(entry, xfield)
+        if x_value is None:
             continue
-        xvalues.append(x)
-        yvalues.append(y)
+        xvalues.append(x_value)
+        yvalues.append(range_at_100)
         dates.append(_entry_get(entry, "Date"))
     if daily_median:
         return aggregate_scatter_daily_median(xvalues, yvalues, dates)
@@ -321,14 +321,14 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
 
     axes = figure.subplots()
     if datesList is not None and minvalues is not None and len(datesList) > 0:
-        lw = style_config["linewidth"]
+        line_width = style_config["linewidth"]
         # Lines only (no markers) — clearer on dense multi-week series
         axes.plot(
             datesList,
             minvalues,
             color=SERIES_COLORS[0],
             linestyle="-",
-            linewidth=lw,
+            linewidth=line_width,
             label=_("Minimum"),
             zorder=2,
         )
@@ -337,7 +337,7 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
             avgvalues,
             color=SERIES_COLORS[1],
             linestyle="-",
-            linewidth=lw + 0.25,
+            linewidth=line_width + 0.25,
             label=_("Average"),
             zorder=3,
         )
@@ -346,7 +346,7 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
             maxvalues,
             color=SERIES_COLORS[2],
             linestyle="-",
-            linewidth=lw,
+            linewidth=line_width,
             label=_("Maximum"),
             zorder=2,
         )
@@ -354,8 +354,10 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
         axes.xaxis.set_major_formatter(formatter)
         # One day of data still plots fine; widen x-axis so a single point is not clipped
         if len(datesList) == 1:
-            d = datesList[0]
-            axes.set_xlim(d - timedelta(days=1), d + timedelta(days=1))
+            only_day = datesList[0]
+            axes.set_xlim(
+                only_day - timedelta(days=1), only_day + timedelta(days=1)
+            )
         figure.autofmt_xdate()
     finish_figure(figure, axes, title, style_config)
     return GeneratePngFromGraph(figure, size=size)
@@ -884,34 +886,42 @@ def _extract_efficiency_trips_from_drive_rows(rows):
 
     # Split on long gaps between consecutive drive samples
     segments = []
-    cur = [rows[0]]
-    for p in rows[1:]:
-        prev_t, t = cur[-1]["t"], p["t"]
-        if prev_t is None or t is None or (t - prev_t) > EFFICIENCY_TRIP_GAP:
-            if len(cur) >= 2:
-                segments.append(cur)
-            cur = [p]
+    current_segment = [rows[0]]
+    for sample in rows[1:]:
+        prev_time, sample_time = current_segment[-1]["t"], sample["t"]
+        if (
+            prev_time is None
+            or sample_time is None
+            or (sample_time - prev_time) > EFFICIENCY_TRIP_GAP
+        ):
+            if len(current_segment) >= 2:
+                segments.append(current_segment)
+            current_segment = [sample]
         else:
-            cur.append(p)
-    if len(cur) >= 2:
-        segments.append(cur)
+            current_segment.append(sample)
+    if len(current_segment) >= 2:
+        segments.append(current_segment)
 
     trips = []
-    for pts in segments:
-        a, b = pts[0], pts[-1]
-        seconds = max(0.0, (b["t"] - a["t"]).total_seconds())
+    for points in segments:
+        start_pt, end_pt = points[0], points[-1]
+        seconds = max(0.0, (end_pt["t"] - start_pt["t"]).total_seconds())
         if seconds < 60:
             continue
-        odo_a, odo_b = a.get("odometer"), b.get("odometer")
-        if odo_a is None or odo_b is None or odo_b < odo_a:
+        odo_start, odo_end = start_pt.get("odometer"), end_pt.get("odometer")
+        if odo_start is None or odo_end is None or odo_end < odo_start:
             continue
-        miles = float(odo_b) - float(odo_a)
+        miles = float(odo_end) - float(odo_start)
         km = miles * 1.609344
         if km < EFFICIENCY_MIN_KM:
             continue
-        r0 = _rated_range_miles(a.get("battery_range"), a.get("ideal_battery_range"))
-        r1 = _rated_range_miles(b.get("battery_range"), b.get("ideal_battery_range"))
-        eff = _trip_efficiency_pct(r0, r1, miles)
+        range_start = _rated_range_miles(
+            start_pt.get("battery_range"), start_pt.get("ideal_battery_range")
+        )
+        range_end = _rated_range_miles(
+            end_pt.get("battery_range"), end_pt.get("ideal_battery_range")
+        )
+        eff = _trip_efficiency_pct(range_start, range_end, miles)
         if eff is None:
             continue
         hours = seconds / 3600.0
@@ -919,11 +929,11 @@ def _extract_efficiency_trips_from_drive_rows(rows):
         if avg_kmh is None or avg_kmh < 5 or avg_kmh > 160:
             continue
         temps = []
-        for p in pts:
-            ot = p.get("outside_temp")
-            if ot is not None:
+        for sample in points:
+            outside_temp = sample.get("outside_temp")
+            if outside_temp is not None:
                 try:
-                    temps.append(float(ot))
+                    temps.append(float(outside_temp))
                 except (TypeError, ValueError):
                     pass
         avg_temp = sum(temps) / len(temps) if temps else None
@@ -944,16 +954,16 @@ def _bin_trips(trips, *, key, bin_width, label_fmt):
     Returns (labels, mean_efficiency, total_km) sorted by bin start.
     """
     buckets = {}  # bin_start -> [effs], km_sum
-    for t in trips:
-        val = t.get(key)
+    for trip in trips:
+        val = trip.get(key)
         if val is None:
             continue
         start = int(val // bin_width) * bin_width
         if key == "avg_kmh" and start < 10:
             continue  # match TeslaFi-style focus on real road speeds
-        b = buckets.setdefault(start, {"effs": [], "km": 0.0})
-        b["effs"].append(t["efficiency_pct"])
-        b["km"] += t["km"]
+        bucket = buckets.setdefault(start, {"effs": [], "km": 0.0})
+        bucket["effs"].append(trip["efficiency_pct"])
+        bucket["km"] += trip["km"]
 
     if not buckets:
         return [], [], []
@@ -962,21 +972,21 @@ def _bin_trips(trips, *, key, bin_width, label_fmt):
     effs = []
     kms = []
     for start in sorted(buckets.keys()):
-        b = buckets[start]
-        if not b["effs"]:
+        bucket = buckets[start]
+        if not bucket["effs"]:
             continue
         labels.append(label_fmt(start, start + bin_width))
-        effs.append(sum(b["effs"]) / len(b["effs"]))
-        kms.append(b["km"])
+        effs.append(sum(bucket["effs"]) / len(bucket["effs"]))
+        kms.append(bucket["km"])
     return labels, effs, kms
 
 
 def _downsample_rows_inplace(rows, max_rows):
     """Keep chronological order; thin evenly to at most max_rows."""
-    n = len(rows)
-    if n <= max_rows:
+    count = len(rows)
+    if count <= max_rows:
         return rows
-    step = max(1, (n + max_rows - 1) // max_rows)
+    step = max(1, (count + max_rows - 1) // max_rows)
     return rows[::step][:max_rows]
 
 
@@ -1000,18 +1010,18 @@ def _load_efficiency_trips(queryset):
 
     rows = []
     cap = EFFICIENCY_MAX_DRIVE_ROWS
-    for s in drive_qs.iterator(chunk_size=4000):
-        t = s.get("Date")
-        if t is None:
+    for sample in drive_qs.iterator(chunk_size=4000):
+        sample_time = sample.get("Date")
+        if sample_time is None:
             continue
         rows.append(
             {
-                "t": t,
-                "speed": s.get("speed"),
-                "odometer": s.get("odometer"),
-                "battery_range": s.get("battery_range"),
-                "ideal_battery_range": s.get("ideal_battery_range"),
-                "outside_temp": s.get("outside_temp"),
+                "t": sample_time,
+                "speed": sample.get("speed"),
+                "odometer": sample.get("odometer"),
+                "battery_range": sample.get("battery_range"),
+                "ideal_battery_range": sample.get("ideal_battery_range"),
+                "outside_temp": sample.get("outside_temp"),
             }
         )
         if len(rows) >= cap * 2:
@@ -1029,7 +1039,7 @@ def _efficiency_bins_for_queryset(queryset, *, by_speed: bool):
             trips,
             key="avg_kmh",
             bin_width=EFFICIENCY_SPEED_BIN_KMH,
-            label_fmt=lambda a, b: f"{int(a)}–{int(b)}",
+            label_fmt=lambda lo, hi: f"{int(lo)}–{int(hi)}",
         )
         xlabel = _("Average speed (km/h)")
     else:
@@ -1037,7 +1047,7 @@ def _efficiency_bins_for_queryset(queryset, *, by_speed: bool):
             trips,
             key="avg_temp_c",
             bin_width=EFFICIENCY_TEMP_BIN_C,
-            label_fmt=lambda a, b: f"{int(a)}–{int(b)}",
+            label_fmt=lambda lo, hi: f"{int(lo)}–{int(hi)}",
         )
         xlabel = _("Outside temperature (°C)")
     return labels, eff, kms, xlabel
@@ -1045,29 +1055,29 @@ def _efficiency_bins_for_queryset(queryset, *, by_speed: bool):
 
 def _charge_limit_bucket_index(limit_pct: float) -> int:
     """Map a charge limit % into CHARGE_LIMIT_BUCKET_LABELS index."""
-    x = float(limit_pct)
-    if x >= 99.5:
+    limit_value = float(limit_pct)
+    if limit_value >= 99.5:
         return 0  # 100%
-    if x >= 95:
+    if limit_value >= 95:
         return 1  # 95–99
-    if x >= 90:
+    if limit_value >= 90:
         return 2  # 90–94
-    if x >= 80:
+    if limit_value >= 80:
         return 3  # 80–89
-    if x >= 70:
+    if limit_value >= 70:
         return 4  # 70–79
     return 5  # < 70
 
 
 def _range_bucket_index(value: float, buckets) -> int:
     """Map value into bucket list of (label, lo, hi) high→low; lo/hi may be None."""
-    x = float(value)
-    for i, (_lab, lo, hi) in enumerate(buckets):
-        if lo is not None and x < lo:
+    number = float(value)
+    for index, (_label, lower, upper) in enumerate(buckets):
+        if lower is not None and number < lower:
             continue
-        if hi is not None and x >= hi:
+        if upper is not None and number >= upper:
             continue
-        return i
+        return index
     return len(buckets) - 1
 
 
@@ -1237,23 +1247,23 @@ def _drive_power_histogram(queryset):
     return labels, bucket_counts, percentages, metadata
 
 
-def _session_charge_limit(pts) -> float | None:
+def _session_charge_limit(points) -> float | None:
     """
     Representative charge limit for a charge session.
     Prefer charge_limit_soc (median of samples); else peak SoC reached.
     """
     limits = []
     peaks = []
-    for p in pts:
-        lim = p.get("charge_limit_soc")
-        if lim is not None:
+    for point in points:
+        limit = point.get("charge_limit_soc")
+        if limit is not None:
             try:
-                limits.append(float(lim))
+                limits.append(float(limit))
             except (TypeError, ValueError):
                 pass
-        soc = p.get("usable_battery_level")
+        soc = point.get("usable_battery_level")
         if soc is None:
-            soc = p.get("battery_level")
+            soc = point.get("battery_level")
         if soc is not None:
             try:
                 peaks.append(float(soc))
@@ -1267,32 +1277,32 @@ def _session_charge_limit(pts) -> float | None:
     return None
 
 
-def _session_float_max(pts, key) -> float | None:
+def _session_float_max(points, key) -> float | None:
     best = None
-    for p in pts:
-        v = p.get(key)
-        if v is None:
+    for point in points:
+        value = point.get(key)
+        if value is None:
             continue
         try:
-            fv = float(v)
+            number = float(value)
         except (TypeError, ValueError):
             continue
-        if fv < 0:
+        if number < 0:
             continue
-        if best is None or fv > best:
-            best = fv
+        if best is None or number > best:
+            best = number
     return best
 
 
-def _session_delta_field(pts, key) -> float | None:
+def _session_delta_field(points, key) -> float | None:
     """Positive delta of a cumulative field over the session (max - min of samples)."""
     vals = []
-    for p in pts:
-        v = p.get(key)
-        if v is None:
+    for point in points:
+        value = point.get(key)
+        if value is None:
             continue
         try:
-            vals.append(float(v))
+            vals.append(float(value))
         except (TypeError, ValueError):
             continue
     if len(vals) < 2:
@@ -1335,29 +1345,31 @@ def _iter_charge_sessions(queryset, extra_fields=()):
         else 1
     )
 
-    cur = []
-    n = 0
+    current_session = []
+    sample_index = 0
     kept = 0
-    for r in base.iterator(chunk_size=4000):
-        t = r.get("Date")
-        if t is None:
+    for row in base.iterator(chunk_size=4000):
+        sample_time = row.get("Date")
+        if sample_time is None:
             continue
-        n += 1
-        if stride > 1 and (n % stride) != 0:
+        sample_index += 1
+        if stride > 1 and (sample_index % stride) != 0:
             continue
         kept += 1
-        p = dict(r)
-        p["t"] = t
-        if cur and (t - cur[-1]["t"]) > CHARGE_SESSION_GAP:
-            if _charge_session_ok(cur):
-                yield cur
-            cur = [p]
+        point = dict(row)
+        point["t"] = sample_time
+        if current_session and (
+            sample_time - current_session[-1]["t"]
+        ) > CHARGE_SESSION_GAP:
+            if _charge_session_ok(current_session):
+                yield current_session
+            current_session = [point]
         else:
-            cur.append(p)
-        if kept >= CHARGE_SESSION_MAX_SCAN and not cur:
+            current_session.append(point)
+        if kept >= CHARGE_SESSION_MAX_SCAN and not current_session:
             break
-    if cur and _charge_session_ok(cur):
-        yield cur
+    if current_session and _charge_session_ok(current_session):
+        yield current_session
 
 
 def _charge_session_ok(session_points) -> bool:
@@ -1608,51 +1620,51 @@ def _charge_peak_histogram(queryset, *, metric: str):
 
 def _end_soc_bucket_index(soc: float) -> int:
     """Peak SoC during charge → CHARGE_END_SOC_BUCKET_LABELS."""
-    x = float(soc)
-    if x >= 99.5:
+    peak_soc = float(soc)
+    if peak_soc >= 99.5:
         return 0
-    if x >= 95:
+    if peak_soc >= 95:
         return 1
-    if x >= 90:
+    if peak_soc >= 90:
         return 2
-    if x >= 80:
+    if peak_soc >= 80:
         return 3
-    if x >= 70:
+    if peak_soc >= 70:
         return 4
-    if x >= 50:
+    if peak_soc >= 50:
         return 5
     return 6
 
 
 def _daily_min_soc_bucket_index(soc: float) -> int:
     """Daily min SoC → DAILY_MIN_SOC_BUCKET_LABELS."""
-    x = float(soc)
-    if x < 5:
+    soc_value = float(soc)
+    if soc_value < 5:
         return 0
-    if x < 10:
+    if soc_value < 10:
         return 1
-    if x < 20:
+    if soc_value < 20:
         return 2
-    if x < 30:
+    if soc_value < 30:
         return 3
-    if x < 40:
+    if soc_value < 40:
         return 4
-    if x < 50:
+    if soc_value < 50:
         return 5
     return 6
 
 
-def _sample_soc(p) -> float | None:
-    u = p.get("usable_battery_level")
-    if u is not None:
+def _sample_soc(sample) -> float | None:
+    usable = sample.get("usable_battery_level")
+    if usable is not None:
         try:
-            return float(u)
+            return float(usable)
         except (TypeError, ValueError):
             pass
-    b = p.get("battery_level")
-    if b is not None:
+    battery = sample.get("battery_level")
+    if battery is not None:
         try:
-            return float(b)
+            return float(battery)
         except (TypeError, ValueError):
             pass
     return None
@@ -1707,24 +1719,24 @@ def _daily_min_soc_histogram(queryset):
     for row in day_mins.iterator(chunk_size=2000):
         if row.get("DateOnlyDay") is None:
             continue
-        mu, mb = row.get("min_u"), row.get("min_b")
+        min_usable, min_battery = row.get("min_u"), row.get("min_b")
         # Prefer usable min when available, else battery_level min
         day_min = None
-        if mu is not None:
+        if min_usable is not None:
             try:
-                day_min = float(mu)
+                day_min = float(min_usable)
             except (TypeError, ValueError):
                 day_min = None
-        if day_min is None and mb is not None:
+        if day_min is None and min_battery is not None:
             try:
-                day_min = float(mb)
+                day_min = float(min_battery)
             except (TypeError, ValueError):
                 day_min = None
         if day_min is None:
             continue
         counts[_daily_min_soc_bucket_index(day_min)] += 1
     total = sum(counts)
-    pcts = [(100.0 * c / total) if total else 0.0 for c in counts]
+    pcts = [(100.0 * count / total) if total else 0.0 for count in counts]
     return list(DAILY_MIN_SOC_BUCKET_LABELS), counts, pcts
 
 
@@ -1788,26 +1800,26 @@ def GenerateChargeSessionHistogram(
         ymax = max(counts) if counts else 1
         # Room above tallest bar for 2-line labels (not 3 lines over short bars)
         axes.set_ylim(0, ymax * 1.18)
-        fs = max(6.0, style_config["tick_size"] - 0.5)
-        for i, (bar, c, p) in enumerate(zip(bars, counts, pcts)):
-            if c <= 0:
+        label_font_size = max(6.0, style_config["tick_size"] - 0.5)
+        for index, (bar, count, percentage) in enumerate(zip(bars, counts, pcts)):
+            if count <= 0:
                 continue
             # Compact: "73 (5%)" or "12.4k (20%)" for large drive-sample counts
-            if c >= 10000:
-                c_txt = f"{c / 1000:.0f}k"
-            elif c >= 1000:
-                c_txt = f"{c / 1000:.1f}k"
+            if count >= 10000:
+                count_text = f"{count / 1000:.0f}k"
+            elif count >= 1000:
+                count_text = f"{count / 1000:.1f}k"
             else:
-                c_txt = str(c)
-            label = f"{c_txt} ({p:.0f}%)"
-            amt = None
-            if amount_per_bucket is not None and i < len(amount_per_bucket):
-                amt = amount_per_bucket[i]
-            if amt is not None and amt >= 0.5:
+                count_text = str(count)
+            label = f"{count_text} ({percentage:.0f}%)"
+            amount = None
+            if amount_per_bucket is not None and index < len(amount_per_bucket):
+                amount = amount_per_bucket[index]
+            if amount is not None and amount >= 0.5:
                 if amount_unit == "kwh":
-                    label = f"{c_txt} ({p:.0f}%)\n{amt:.0f} kWh"
+                    label = f"{count_text} ({percentage:.0f}%)\n{amount:.0f} kWh"
                 else:
-                    label = f"{c_txt} ({p:.0f}%)\n{amt:.0f} mi"
+                    label = f"{count_text} ({percentage:.0f}%)\n{amount:.0f} mi"
             axes.annotate(
                 label,
                 xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
@@ -1816,7 +1828,7 @@ def GenerateChargeSessionHistogram(
                 ha="center",
                 va="bottom",
                 color=TEXT,
-                fontsize=fs,
+                fontsize=label_font_size,
                 fontweight="normal",
                 zorder=3,
                 clip_on=False,
@@ -1909,10 +1921,10 @@ def GenerateEfficiencyBinGraph(labels, efficiency, km_totals, title, xlabel, siz
         )
         # Annotate a few efficiency values when not too crowded
         if len(labels) <= 18:
-            for i, e in enumerate(efficiency):
+            for index, efficiency_pct in enumerate(efficiency):
                 axes.annotate(
-                    f"{e:.0f}%",
-                    (i, e),
+                    f"{efficiency_pct:.0f}%",
+                    (index, efficiency_pct),
                     textcoords="offset points",
                     xytext=(0, 7),
                     ha="center",
@@ -2271,14 +2283,14 @@ def _vehicle_chrome_context(request, hashedVin):
         active = resolve_active_vehicle(user, request)
         context["user_vehicles"] = [
             {
-                "api_id": v.api_id,
-                "vin": v.vin,
-                "display_name": v.display_name,
-                "label": v.label,
-                "state": v.state,
-                "is_primary": v.is_primary,
+                "api_id": vehicle.api_id,
+                "vin": vehicle.vin,
+                "display_name": vehicle.display_name,
+                "label": vehicle.label,
+                "state": vehicle.state,
+                "is_primary": vehicle.is_primary,
             }
-            for v in vehicles
+            for vehicle in vehicles
         ]
         context["active_vehicle_api_id"] = active.api_id if active else None
         context["active_vehicle_label"] = active.label if active else None
@@ -2308,41 +2320,48 @@ def _parse_day_string(raw):
     if not raw:
         return None
     # 2024-12-31
-    m = re.fullmatch(r"(\d{4})-(\d{1,2})-(\d{1,2})", raw)
-    if m:
+    match = re.fullmatch(r"(\d{4})-(\d{1,2})-(\d{1,2})", raw)
+    if match:
         try:
-            return date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+            return date(
+                int(match.group(1)), int(match.group(2)), int(match.group(3))
+            )
         except ValueError:
             return None
     # 31/12/2024 or 31-12-2024
-    m = re.fullmatch(r"(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})", raw)
-    if m:
+    match = re.fullmatch(r"(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})", raw)
+    if match:
         try:
-            return date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
+            return date(
+                int(match.group(3)), int(match.group(2)), int(match.group(1))
+            )
         except ValueError:
             return None
     return None
 
 
-def _downsample_indices(n, max_points):
-    if n <= max_points or max_points < 2:
-        return list(range(n))
+def _downsample_indices(count, max_points):
+    if count <= max_points or max_points < 2:
+        return list(range(count))
     # always keep first and last
-    idxs = {0, n - 1}
-    step = (n - 1) / (max_points - 1)
-    for i in range(1, max_points - 1):
-        idxs.add(int(round(i * step)))
-    return sorted(idxs)
+    indices = {0, count - 1}
+    step = (count - 1) / (max_points - 1)
+    for index in range(1, max_points - 1):
+        indices.add(int(round(index * step)))
+    return sorted(indices)
 
 
 def _haversine_m(lat1, lon1, lat2, lon2):
     """Great-circle distance in metres between two WGS84 points."""
-    r = 6371000.0
-    p1, p2 = radians(lat1), radians(lat2)
+    earth_radius_m = 6371000.0
+    phi1, phi2 = radians(lat1), radians(lat2)
     dphi = radians(lat2 - lat1)
-    dlmb = radians(lon2 - lon1)
-    a = sin(dphi / 2.0) ** 2 + cos(p1) * cos(p2) * sin(dlmb / 2.0) ** 2
-    return 2.0 * r * asin(min(1.0, sqrt(a)))
+    dlambda = radians(lon2 - lon1)
+    haversine = (
+        sin(dphi / 2.0) ** 2
+        + cos(phi1) * cos(phi2) * sin(dlambda / 2.0) ** 2
+    )
+    return 2.0 * earth_radius_m * asin(min(1.0, sqrt(haversine)))
 
 
 def _thin_segments_to_cap(segments, max_points):
@@ -2353,61 +2372,77 @@ def _thin_segments_to_cap(segments, max_points):
     dropped when the budget runs out), then thins points inside each.
     Always keeps ≥2 points on retained multi-point segments.
     """
-    multi = [s for s in segments if len(s) >= 2]
-    if not multi:
-        return [s for s in segments if s]
-    total = sum(len(s) for s in multi)
+    multi_point = [segment for segment in segments if len(segment) >= 2]
+    if not multi_point:
+        return [segment for segment in segments if segment]
+    total = sum(len(segment) for segment in multi_point)
     if total <= max_points or max_points < 2:
-        return multi
+        return multi_point
 
     # Each kept segment needs ≥2 points → hard cap on segment count
-    max_segs = max(1, max_points // 2)
-    if len(multi) > max_segs:
-        keep_idx = _downsample_indices(len(multi), max_segs)
-        multi = [multi[i] for i in keep_idx]
+    max_segments = max(1, max_points // 2)
+    if len(multi_point) > max_segments:
+        keep_indices = _downsample_indices(len(multi_point), max_segments)
+        multi_point = [multi_point[index] for index in keep_indices]
 
-    weights = [len(s) for s in multi]
-    wsum = float(sum(weights) or 1)
+    weights = [len(segment) for segment in multi_point]
+    weight_sum = float(sum(weights) or 1)
     # Proportional target, then fix so sum(allow) == max_points and each ≥2
-    raw = [max(2, int(round(max_points * (w / wsum)))) for w in weights]
+    raw_allow = [
+        max(2, int(round(max_points * (weight / weight_sum)))) for weight in weights
+    ]
     # Clamp to segment length
-    allow = [min(len(s), a) for s, a in zip(multi, raw)]
+    allow = [
+        min(len(segment), allowed)
+        for segment, allowed in zip(multi_point, raw_allow)
+    ]
     # Redistribute if over/under budget
     diff = max_points - sum(allow)
-    i = 0
-    n = len(allow)
+    cursor = 0
+    count = len(allow)
     # Prefer giving extra points to longer segments
-    order = sorted(range(n), key=lambda k: weights[k], reverse=(diff > 0))
+    order = sorted(
+        range(count), key=lambda index: weights[index], reverse=(diff > 0)
+    )
     guard = 0
-    while diff != 0 and n and guard < max_points * 4:
-        k = order[i % n]
-        if diff > 0 and allow[k] < len(multi[k]):
-            allow[k] += 1
+    while diff != 0 and count and guard < max_points * 4:
+        order_index = order[cursor % count]
+        if diff > 0 and allow[order_index] < len(multi_point[order_index]):
+            allow[order_index] += 1
             diff -= 1
-        elif diff < 0 and allow[k] > 2:
-            allow[k] -= 1
+        elif diff < 0 and allow[order_index] > 2:
+            allow[order_index] -= 1
             diff += 1
-        i += 1
+        cursor += 1
         guard += 1
 
-    out = []
-    for s, a in zip(multi, allow):
-        idxs = _downsample_indices(len(s), max(2, min(a, len(s))))
-        out.append([s[j] for j in idxs])
+    thinned = []
+    for segment, allowed in zip(multi_point, allow):
+        indices = _downsample_indices(
+            len(segment), max(2, min(allowed, len(segment)))
+        )
+        thinned.append([segment[index] for index in indices])
     # Hard safety: never exceed max_points even if redistribution stalled
-    total_out = sum(len(s) for s in out)
-    if total_out > max_points and len(out) > 1:
-        keep_n = max(1, max_points // 2)
-        keep_idx = _downsample_indices(len(out), min(len(out), keep_n))
-        out = [out[i] for i in keep_idx]
+    total_out = sum(len(segment) for segment in thinned)
+    if total_out > max_points and len(thinned) > 1:
+        keep_count = max(1, max_points // 2)
+        keep_indices = _downsample_indices(
+            len(thinned), min(len(thinned), keep_count)
+        )
+        thinned = [thinned[index] for index in keep_indices]
         # final even thin of all remaining points
         flat_budget = max_points
-        per = max(2, flat_budget // max(1, len(out)))
-        out = [
-            [s[j] for j in _downsample_indices(len(s), min(len(s), per))]
-            for s in out
+        per_segment = max(2, flat_budget // max(1, len(thinned)))
+        thinned = [
+            [
+                segment[index]
+                for index in _downsample_indices(
+                    len(segment), min(len(segment), per_segment)
+                )
+            ]
+            for segment in thinned
         ]
-    return out
+    return thinned
 
 
 def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
@@ -2695,15 +2730,19 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
     }
 
 
-def _point_kind(p):
+def _point_kind(sample):
     """Classify a sample: charge | drive | park."""
-    cs = (p.get("charging_state") or "").strip().lower()
-    cp = p.get("charger_power")
-    if cs == "charging" or (cp is not None and cp > 0.5):
+    charging_state = (sample.get("charging_state") or "").strip().lower()
+    charger_power = sample.get("charger_power")
+    if charging_state == "charging" or (
+        charger_power is not None and charger_power > 0.5
+    ):
         return "charge"
-    sh = (p.get("shift_state") or "").strip().upper()
-    sp = p.get("speed")
-    if sh in ("D", "R", "N") or (sp is not None and sp > DAY_MAP_STOP_SPEED):
+    shift_state = (sample.get("shift_state") or "").strip().upper()
+    speed = sample.get("speed")
+    if shift_state in ("D", "R", "N") or (
+        speed is not None and speed > DAY_MAP_STOP_SPEED
+    ):
         return "drive"
     return "park"
 
@@ -2719,13 +2758,13 @@ def _estimate_pack_kwh(epa_range_miles):
     return 75.0
 
 
-def _soc(p):
+def _soc(sample):
     """Prefer usable_battery_level, else battery_level."""
-    u = p.get("usable_battery_level")
-    if u is not None:
-        return float(u)
-    b = p.get("battery_level")
-    return float(b) if b is not None else None
+    usable = sample.get("usable_battery_level")
+    if usable is not None:
+        return float(usable)
+    battery = sample.get("battery_level")
+    return float(battery) if battery is not None else None
 
 
 def _is_integer_percent(value):
@@ -2735,7 +2774,7 @@ def _is_integer_percent(value):
     return abs(float(value) - round(float(value))) < 1e-6
 
 
-def _soc_delta_from_range(a, b, soc_ref, rising):
+def _soc_delta_from_range(start_sample, end_sample, soc_ref, rising):
     """
     Estimate SoC change from rated battery_range delta.
 
@@ -2744,24 +2783,25 @@ def _soc_delta_from_range(a, b, soc_ref, rising):
     mile). TeslaFi historical imports already have fractional SoC — callers
     should prefer that when available.
     """
-    ra, rb = a.get("battery_range"), b.get("battery_range")
-    if ra is None or rb is None or soc_ref is None or soc_ref <= 1:
+    range_start = start_sample.get("battery_range")
+    range_end = end_sample.get("battery_range")
+    if range_start is None or range_end is None or soc_ref is None or soc_ref <= 1:
         return None
     if rising:
-        if rb <= ra:
+        if range_end <= range_start:
             return None
-        delta_range = rb - ra
+        delta_range = range_end - range_start
     else:
-        if ra <= rb:
+        if range_start <= range_end:
             return None
-        delta_range = ra - rb
-    full = ra / (soc_ref / 100.0)
-    if full < 50:
+        delta_range = range_start - range_end
+    full_pack_range = range_start / (soc_ref / 100.0)
+    if full_pack_range < 50:
         return None
-    return delta_range / full * 100.0
+    return delta_range / full_pack_range * 100.0
 
 
-def _drive_soc_metrics(a, b):
+def _drive_soc_metrics(start_sample, end_sample):
     """
     SoC start/end/used for a drive segment.
 
@@ -2769,12 +2809,17 @@ def _drive_soc_metrics(a, b):
     percents and the API delta is ~0, refine used (and displayed end) from
     battery_range so short trips still get a kWh/100 km estimate.
     """
-    soc_a, soc_b = _soc(a), _soc(b)
+    soc_a, soc_b = _soc(start_sample), _soc(end_sample)
     used_api = None
     if soc_a is not None and soc_b is not None:
         used_api = soc_a - soc_b
 
-    used_range = _soc_delta_from_range(a, b, soc_a if soc_a is not None else soc_b, rising=False)
+    used_range = _soc_delta_from_range(
+        start_sample,
+        end_sample,
+        soc_a if soc_a is not None else soc_b,
+        rising=False,
+    )
     api_coarse = _is_integer_percent(soc_a) and _is_integer_percent(soc_b)
 
     soc_used = used_api
@@ -2795,14 +2840,19 @@ def _drive_soc_metrics(a, b):
     return soc_a, display_end, soc_used
 
 
-def _charge_soc_metrics(a, b):
+def _charge_soc_metrics(start_sample, end_sample):
     """SoC start/end/added for a charge segment (same coarse-SoC refinement)."""
-    soc_a, soc_b = _soc(a), _soc(b)
+    soc_a, soc_b = _soc(start_sample), _soc(end_sample)
     added_api = None
     if soc_a is not None and soc_b is not None:
         added_api = soc_b - soc_a
 
-    added_range = _soc_delta_from_range(a, b, soc_a if soc_a is not None else soc_b, rising=True)
+    added_range = _soc_delta_from_range(
+        start_sample,
+        end_sample,
+        soc_a if soc_a is not None else soc_b,
+        rising=True,
+    )
     api_coarse = _is_integer_percent(soc_a) and _is_integer_percent(soc_b)
 
     soc_added = added_api
@@ -2839,85 +2889,97 @@ def _segment_day(rows, pack_kwh):
 
     # Group consecutive points of the same kind
     groups = []
-    cur_kind = _point_kind(rows[0])
-    cur = [rows[0]]
-    for p in rows[1:]:
-        k = _point_kind(p)
-        if k == cur_kind:
-            cur.append(p)
+    current_kind = _point_kind(rows[0])
+    current_points = [rows[0]]
+    for sample in rows[1:]:
+        kind = _point_kind(sample)
+        if kind == current_kind:
+            current_points.append(sample)
         else:
-            groups.append((cur_kind, cur))
-            cur_kind = k
-            cur = [p]
-    groups.append((cur_kind, cur))
+            groups.append((current_kind, current_points))
+            current_kind = kind
+            current_points = [sample]
+    groups.append((current_kind, current_points))
 
     drives = []
     charges = []
-    for gi, (kind, pts) in enumerate(groups):
-        if len(pts) < 1:
+    for group_index, (kind, points) in enumerate(groups):
+        if len(points) < 1:
             continue
-        a, b = pts[0], pts[-1]
-        seconds = max(0.0, (b["t"] - a["t"]).total_seconds())
+        start_pt, end_pt = points[0], points[-1]
+        seconds = max(0.0, (end_pt["t"] - start_pt["t"]).total_seconds())
         minutes = seconds / 60.0
         hours = seconds / 3600.0
 
         if kind == "drive":
             # Timing anchors: actual drive samples only for start clock
-            t_start_pt = pts[0]
-            t_end_pt = pts[-1]
+            time_start_pt = points[0]
+            time_end_pt = points[-1]
             # Address / metrics anchors (may use parking)
-            geo_start = t_start_pt
-            geo_end = t_end_pt
-            if gi > 0 and groups[gi - 1][0] in ("park", "charge"):
-                prev_pts = groups[gi - 1][1]
-                if prev_pts:
-                    geo_start = prev_pts[-1]
-            if gi + 1 < len(groups) and groups[gi + 1][0] in ("park", "charge"):
-                next_pts = groups[gi + 1][1]
-                if next_pts:
+            geo_start = time_start_pt
+            geo_end = time_end_pt
+            if group_index > 0 and groups[group_index - 1][0] in ("park", "charge"):
+                previous_points = groups[group_index - 1][1]
+                if previous_points:
+                    geo_start = previous_points[-1]
+            if group_index + 1 < len(groups) and groups[group_index + 1][0] in (
+                "park",
+                "charge",
+            ):
+                next_points = groups[group_index + 1][1]
+                if next_points:
                     # Arrival park: end clock + GPS (trip finished when parked)
-                    t_end_pt = next_pts[0]
-                    geo_end = next_pts[0]
+                    time_end_pt = next_points[0]
+                    geo_end = next_points[0]
 
-            seconds = max(0.0, (t_end_pt["t"] - t_start_pt["t"]).total_seconds())
+            seconds = max(
+                0.0, (time_end_pt["t"] - time_start_pt["t"]).total_seconds()
+            )
             minutes = seconds / 60.0
             hours = seconds / 3600.0
 
             # Need a real movement span
-            if minutes < 1.0 and len(pts) < 3:
+            if minutes < 1.0 and len(points) < 3:
                 continue
             # Odo / SoC from parking when available (full trip), else drive ends
-            odo_a, odo_b = geo_start.get("odometer"), geo_end.get("odometer")
+            odo_start = geo_start.get("odometer")
+            odo_end = geo_end.get("odometer")
             miles = None
-            if odo_a is not None and odo_b is not None and odo_b >= odo_a:
-                miles = odo_b - odo_a
+            if odo_start is not None and odo_end is not None and odo_end >= odo_start:
+                miles = odo_end - odo_start
             # Tiny odo blips are noise
             if miles is not None and miles < 0.05 and minutes < 3:
                 continue
             km = miles * 1.609344 if miles is not None else None
-            soc_a, soc_b, soc_used = _drive_soc_metrics(geo_start, geo_end)
+            soc_start, soc_end, soc_used = _drive_soc_metrics(geo_start, geo_end)
             kwh_used = None
             if soc_used is not None and soc_used > 0:
                 kwh_used = soc_used / 100.0 * pack_kwh
             kwh_per_100km = None
             if kwh_used is not None and km is not None and km > 0.2:
                 kwh_per_100km = kwh_used / km * 100.0
-            avg_mph = (miles / hours) if (miles is not None and hours > 0.01) else None
+            avg_mph = (
+                (miles / hours) if (miles is not None and hours > 0.01) else None
+            )
             avg_kmh = (km / hours) if (km is not None and hours > 0.01) else None
             drives.append(
                 {
                     "kind": "drive",
-                    "start": t_start_pt["t"],
-                    "end": t_end_pt["t"],
-                    "start_local": t_start_pt["t"].astimezone(DAY_MAP_TZ).strftime("%H:%M"),
-                    "end_local": t_end_pt["t"].astimezone(DAY_MAP_TZ).strftime("%H:%M"),
+                    "start": time_start_pt["t"],
+                    "end": time_end_pt["t"],
+                    "start_local": time_start_pt["t"]
+                    .astimezone(DAY_MAP_TZ)
+                    .strftime("%H:%M"),
+                    "end_local": time_end_pt["t"]
+                    .astimezone(DAY_MAP_TZ)
+                    .strftime("%H:%M"),
                     "minutes": int(round(minutes)),
                     "miles": miles,
                     "km": km,
                     "avg_mph": avg_mph,
                     "avg_kmh": avg_kmh,
-                    "soc_start": soc_a,
-                    "soc_end": soc_b,
+                    "soc_start": soc_start,
+                    "soc_end": soc_end,
                     "soc_used": soc_used,
                     "kwh_used": kwh_used,
                     "kwh_per_100km": kwh_per_100km,
@@ -2928,30 +2990,47 @@ def _segment_day(rows, pack_kwh):
                 }
             )
         elif kind == "charge":
-            if minutes < 1.0 and len(pts) < 2:
+            if minutes < 1.0 and len(points) < 2:
                 continue
-            soc_a, soc_b, soc_added = _charge_soc_metrics(a, b)
-            e_a, e_b = a.get("charge_energy_added"), b.get("charge_energy_added")
+            soc_start, soc_end, soc_added = _charge_soc_metrics(start_pt, end_pt)
+            energy_start = start_pt.get("charge_energy_added")
+            energy_end = end_pt.get("charge_energy_added")
             kwh_added = None
-            if e_a is not None and e_b is not None and e_b >= e_a:
-                kwh_added = e_b - e_a
+            if (
+                energy_start is not None
+                and energy_end is not None
+                and energy_end >= energy_start
+            ):
+                kwh_added = energy_end - energy_start
             elif soc_added is not None and soc_added > 0:
                 kwh_added = soc_added / 100.0 * pack_kwh
-            powers = [p["charger_power"] for p in pts if p.get("charger_power") is not None]
+            powers = [
+                point["charger_power"]
+                for point in points
+                if point.get("charger_power") is not None
+            ]
             max_power = max(powers) if powers else None
             # mid GPS for address
-            gps_pts = [p for p in pts if p.get("lat") is not None and p.get("lon") is not None]
-            mid = gps_pts[len(gps_pts) // 2] if gps_pts else a
+            gps_points = [
+                point
+                for point in points
+                if point.get("lat") is not None and point.get("lon") is not None
+            ]
+            mid = gps_points[len(gps_points) // 2] if gps_points else start_pt
             charges.append(
                 {
                     "kind": "charge",
-                    "start": a["t"],
-                    "end": b["t"],
-                    "start_local": a["t"].astimezone(DAY_MAP_TZ).strftime("%H:%M"),
-                    "end_local": b["t"].astimezone(DAY_MAP_TZ).strftime("%H:%M"),
+                    "start": start_pt["t"],
+                    "end": end_pt["t"],
+                    "start_local": start_pt["t"]
+                    .astimezone(DAY_MAP_TZ)
+                    .strftime("%H:%M"),
+                    "end_local": end_pt["t"]
+                    .astimezone(DAY_MAP_TZ)
+                    .strftime("%H:%M"),
                     "minutes": int(round(minutes)),
-                    "soc_start": soc_a,
-                    "soc_end": soc_b,
+                    "soc_start": soc_start,
+                    "soc_end": soc_end,
                     "soc_added": soc_added,
                     "kwh_added": kwh_added,
                     "max_power_kw": max_power,
@@ -3020,48 +3099,52 @@ def DayMap(request, hashedVin, day=None):
 
     raw_rows = []
     vin = None
-    for s in queryset.iterator(chunk_size=2000):
-        if vin is None and s.vin:
-            vin = s.vin
+    for sample in queryset.iterator(chunk_size=2000):
+        if vin is None and sample.vin:
+            vin = sample.vin
         raw_rows.append(
             {
-                "t": s.Date,
-                "lat": float(s.latitude) if s.latitude is not None else None,
-                "lon": float(s.longitude) if s.longitude is not None else None,
-                "speed": float(s.speed) if s.speed is not None else None,
-                "odometer": float(s.odometer) if s.odometer is not None else None,
-                "shift_state": s.shift_state,
-                "battery_level": float(s.battery_level)
-                if s.battery_level is not None
+                "t": sample.Date,
+                "lat": float(sample.latitude) if sample.latitude is not None else None,
+                "lon": float(sample.longitude) if sample.longitude is not None else None,
+                "speed": float(sample.speed) if sample.speed is not None else None,
+                "odometer": float(sample.odometer) if sample.odometer is not None else None,
+                "shift_state": sample.shift_state,
+                "battery_level": float(sample.battery_level)
+                if sample.battery_level is not None
                 else None,
-                "usable_battery_level": float(s.usable_battery_level)
-                if s.usable_battery_level is not None
+                "usable_battery_level": float(sample.usable_battery_level)
+                if sample.usable_battery_level is not None
                 else None,
-                "battery_range": float(s.battery_range)
-                if s.battery_range is not None
+                "battery_range": float(sample.battery_range)
+                if sample.battery_range is not None
                 else None,
-                "charging_state": s.charging_state,
-                "charger_power": float(s.charger_power)
-                if s.charger_power is not None
+                "charging_state": sample.charging_state,
+                "charger_power": float(sample.charger_power)
+                if sample.charger_power is not None
                 else None,
-                "charge_energy_added": float(s.charge_energy_added)
-                if s.charge_energy_added is not None
+                "charge_energy_added": float(sample.charge_energy_added)
+                if sample.charge_energy_added is not None
                 else None,
             }
         )
 
     # Map polyline: GPS only
-    gps_rows = [p for p in raw_rows if p["lat"] is not None and p["lon"] is not None]
+    gps_rows = [
+        point
+        for point in raw_rows
+        if point["lat"] is not None and point["lon"] is not None
+    ]
     total_points = len(gps_rows)
-    idxs = _downsample_indices(total_points, DAY_MAP_MAX_POINTS)
+    indices = _downsample_indices(total_points, DAY_MAP_MAX_POINTS)
     path = [
         {
-            "lat": gps_rows[i]["lat"],
-            "lon": gps_rows[i]["lon"],
-            "t": gps_rows[i]["t"].astimezone(DAY_MAP_TZ).strftime("%H:%M:%S"),
-            "speed": gps_rows[i]["speed"],
+            "lat": gps_rows[index]["lat"],
+            "lon": gps_rows[index]["lon"],
+            "t": gps_rows[index]["t"].astimezone(DAY_MAP_TZ).strftime("%H:%M:%S"),
+            "speed": gps_rows[index]["speed"],
         }
-        for i in idxs
+        for index in indices
     ]
 
     # Pack size for kWh estimates
@@ -3095,21 +3178,22 @@ def DayMap(request, hashedVin, day=None):
         end_lat, end_lon = gps_rows[-1]["lat"], gps_rows[-1]["lon"]
         start_addr = addr_cached(start_lat, start_lon)
         end_addr = addr_cached(end_lat, end_lon)
-    for d in drives:
-        d["start_address"] = addr_cached(d.get("lat"), d.get("lon"))
-        d["end_address"] = addr_cached(d.get("end_lat"), d.get("end_lon"))
-    for c in charges:
-        c["address"] = addr_cached(c.get("lat"), c.get("lon"))
+    for drive in drives:
+        drive["start_address"] = addr_cached(drive.get("lat"), drive.get("lon"))
+        drive["end_address"] = addr_cached(drive.get("end_lat"), drive.get("end_lon"))
+    for charge in charges:
+        charge["address"] = addr_cached(charge.get("lat"), charge.get("lon"))
 
     # Day totals from drives (same metrics as the drives table)
-    miles_driven = sum(d["miles"] or 0 for d in drives) or None
-    miles_driven_km = sum(d["km"] or 0 for d in drives) or None
+    miles_driven = sum(drive["miles"] or 0 for drive in drives) or None
+    miles_driven_km = sum(drive["km"] or 0 for drive in drives) or None
     if miles_driven == 0:
         miles_driven = None
     if miles_driven_km == 0:
         miles_driven_km = None
     drive_hours = sum(
-        max(0.0, (d["end"] - d["start"]).total_seconds()) / 3600.0 for d in drives
+        max(0.0, (drive["end"] - drive["start"]).total_seconds()) / 3600.0
+        for drive in drives
     )
     day_avg_mph = (
         miles_driven / drive_hours
@@ -3123,9 +3207,13 @@ def DayMap(request, hashedVin, day=None):
     )
     day_soc_start = drives[0].get("soc_start") if drives else None
     day_soc_end = drives[-1].get("soc_end") if drives else None
-    soc_used_vals = [d["soc_used"] for d in drives if d.get("soc_used") is not None]
+    soc_used_vals = [
+        drive["soc_used"] for drive in drives if drive.get("soc_used") is not None
+    ]
     day_soc_used = sum(soc_used_vals) if soc_used_vals else None
-    kwh_used_vals = [d["kwh_used"] for d in drives if d.get("kwh_used") is not None]
+    kwh_used_vals = [
+        drive["kwh_used"] for drive in drives if drive.get("kwh_used") is not None
+    ]
     day_kwh_used = sum(kwh_used_vals) if kwh_used_vals else None
     day_kwh_per_100km = None
     if (
@@ -3137,9 +3225,9 @@ def DayMap(request, hashedVin, day=None):
 
     # Unified timeline for the template (drives + charges, chronological)
     timeline = sorted(
-        [{"type": "drive", **d} for d in drives]
-        + [{"type": "charge", **c} for c in charges],
-        key=lambda x: x["start"],
+        [{"type": "drive", **drive} for drive in drives]
+        + [{"type": "charge", **charge} for charge in charges],
+        key=lambda item: item["start"],
     )
 
     context = _vehicle_chrome_context(request, hashedVin)
@@ -3254,32 +3342,44 @@ def ResolveAddress(request):
     if not (-90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0):
         return JsonResponse({"ok": False, "error": "out_of_range"}, status=400)
 
-    la, lo = round(lat, 4), round(lon, 4)
+    lat_rounded, lon_rounded = round(lat, 4), round(lon, 4)
     from matesla.models.AddressFromLatLong import (
         LookupCachedAddress,
         GetAddressFromLatLong,
     )
 
-    cached = LookupCachedAddress(la, lo)
+    cached = LookupCachedAddress(lat_rounded, lon_rounded)
     if cached is not None:
         return JsonResponse(
-            {"ok": True, "lat": la, "lon": lo, "address": cached, "cached": True}
+            {
+                "ok": True,
+                "lat": lat_rounded,
+                "lon": lon_rounded,
+                "address": cached,
+                "cached": True,
+            }
         )
 
-    address = GetAddressFromLatLong(la, lo)
+    address = GetAddressFromLatLong(lat_rounded, lon_rounded)
     if not address or address == "Unknown":
         return JsonResponse(
             {
                 "ok": False,
-                "lat": la,
-                "lon": lo,
+                "lat": lat_rounded,
+                "lon": lon_rounded,
                 "address": None,
                 "cached": False,
                 "error": "unresolved_or_quota",
             }
         )
     return JsonResponse(
-        {"ok": True, "lat": la, "lon": lo, "address": address, "cached": False}
+        {
+            "ok": True,
+            "lat": lat_rounded,
+            "lon": lon_rounded,
+            "address": address,
+            "cached": False,
+        }
     )
 
 
@@ -3387,11 +3487,11 @@ def _firmware_timeline(entries_chrono):
 
     today = date_cls.today()
     items = []
-    n = len(entries_chrono)
-    for i, row in enumerate(entries_chrono):
+    entry_count = len(entries_chrono)
+    for index, row in enumerate(entries_chrono):
         start = row.Date
-        if i + 1 < n:
-            end = entries_chrono[i + 1].Date
+        if index + 1 < entry_count:
+            end = entries_chrono[index + 1].Date
         else:
             end = today
         days_on = None
@@ -3400,17 +3500,17 @@ def _firmware_timeline(entries_chrono):
                 days_on = max(0, (end - start).days)
             except Exception:
                 days_on = None
-        ver = (row.Version or "").strip()
+        version_text = (row.Version or "").strip()
         # "2025.20.3 8252e1d331" → primary "2025.20.3", build hash aside
-        parts = ver.split(None, 1)
+        parts = version_text.split(None, 1)
         items.append(
             {
                 "date": start,
-                "version": ver,
-                "version_short": parts[0] if parts else ver,
+                "version": version_text,
+                "version_short": parts[0] if parts else version_text,
                 "version_build": parts[1] if len(parts) > 1 else "",
                 "days_on": days_on,
-                "is_current": not row.IsArchive and i == n - 1,
+                "is_current": not row.IsArchive and index == entry_count - 1,
                 "is_archive": bool(row.IsArchive),
             }
         )

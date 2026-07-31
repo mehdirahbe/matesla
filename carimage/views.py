@@ -87,8 +87,16 @@ JUNIPER_MY_WHEELS = frozenset({
 })
 
 
-def _norm(s: str) -> str:
-    return (s or "").strip().lower().replace("_", "").replace("-", "").replace(" ", "")
+def normalize_token(value: str) -> str:
+    """Lowercase token with separators stripped (Fleet names / URL segments)."""
+    return (
+        (value or "")
+        .strip()
+        .lower()
+        .replace("_", "")
+        .replace("-", "")
+        .replace(" ", "")
+    )
 
 
 def map_color_code(color: str) -> str:
@@ -99,17 +107,20 @@ def map_color_code(color: str) -> str:
     upper = raw.upper().lstrip("$")
     if upper in VALID_COMPOSITOR_COLORS:
         return upper
-    mapped = EXTERIOR_COLOR_TO_CODE.get(_norm(raw))
+    mapped = EXTERIOR_COLOR_TO_CODE.get(normalize_token(raw))
     if mapped and mapped in VALID_COMPOSITOR_COLORS:
         return mapped
     if mapped:
-        return "PMNG" if "grey" in _norm(raw) or "gray" in _norm(raw) else "PPSW"
+        token = normalize_token(raw)
+        return "PMNG" if "grey" in token or "gray" in token else "PPSW"
     return "PPSW"
 
 
 def normalize_car_model(car_model: str) -> str:
     """Map Fleet car_type to short compositor model key."""
-    m = (car_model or "model3").strip().lower().replace(" ", "").replace("_", "")
+    model_key = (
+        (car_model or "model3").strip().lower().replace(" ", "").replace("_", "")
+    )
     aliases = {
         "model3": "m3",
         "m3": "m3",
@@ -123,23 +134,23 @@ def normalize_car_model(car_model: str) -> str:
         "cybertruck": "ct",
         "ct": "ct",
     }
-    return aliases.get(m, "m3")
+    return aliases.get(model_key, "m3")
 
 
 def is_highland_m3(wheel: str) -> bool:
-    return _norm(wheel) in HIGHLAND_M3_WHEELS
+    return normalize_token(wheel) in HIGHLAND_M3_WHEELS
 
 
 def is_juniper_my(wheel: str) -> bool:
-    key = _norm(wheel)
+    key = normalize_token(wheel)
     if key in JUNIPER_MY_WHEELS:
         return True
     # Newer Fleet names often include these tokens
-    return any(t in key for t in ("crossflow", "helix", "juniper"))
+    return any(token in key for token in ("crossflow", "helix", "juniper"))
 
 
 def m3_wheel_codes(wheel: str) -> tuple[str, str]:
-    key = _norm(wheel)
+    key = normalize_token(wheel)
     if key in WHEEL_TYPE_M3:
         return WHEEL_TYPE_M3[key]
     if "18" in key:
@@ -158,10 +169,10 @@ def studio_url(
     bkba_opt: str = "1",
 ) -> str:
     """Build a design_studio_2 compositor URL (current Tesla design studio)."""
-    opts = ",".join(f"${o.lstrip('$')}" for o in options)
+    option_codes = ",".join(f"${option.lstrip('$')}" for option in options)
     return (
         "https://static-assets.tesla.com/configurator/compositor?"
-        f"context=design_studio_2&options={opts}"
+        f"context=design_studio_2&options={option_codes}"
         f"&view={view}&model={model}&size={size}"
         f"&bkba_opt={bkba_opt}&crop=0,0,0,0&overlay=0"
     )
@@ -170,7 +181,7 @@ def studio_url(
 def build_compositor_url(color: str, wheel: str, car_model: str, size: str = "1920") -> str:
     color_code = map_color_code(color)
     model = normalize_car_model(car_model)
-    wheel_key = _norm(wheel)
+    wheel_key = normalize_token(wheel)
 
     # --- Cybertruck ---
     if model == "ct":
@@ -273,7 +284,7 @@ def crop_empty_background(
     """
     rgba = im.convert("RGBA")
     alpha = rgba.getchannel("A")
-    mask = alpha.point(lambda p: 255 if p >= alpha_threshold else 0)
+    mask = alpha.point(lambda pixel: 255 if pixel >= alpha_threshold else 0)
     bbox = mask.getbbox()
     if not bbox:
         return rgba
@@ -297,8 +308,8 @@ def CreateImageFile(image):
     """Download from Tesla, crop empty background, store PNG."""
     fetch_url = _fetch_url(image.image_url)
     raw = urlopen(fetch_url, timeout=60).read()
-    im = Image.open(io.BytesIO(raw))
-    cropped = crop_empty_background(im)
+    image_data = Image.open(io.BytesIO(raw))
+    cropped = crop_empty_background(image_data)
 
     buf = io.BytesIO()
     cropped.save(buf, format="PNG", optimize=True)

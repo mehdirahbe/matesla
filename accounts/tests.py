@@ -13,10 +13,10 @@ class AccountsTestCase(TestCase):
         self.assertGreaterEqual(len(urlpatterns), 1, 'urlpatterns is accounts.urls is empty')
 
     def test_UrlWorks(self):
-        c = Client()
+        client = Client()
         for lang in {"fr","en"}:
-            response = c.post("/"+lang+'/accounts/signup/')
+            response = client.post("/"+lang+'/accounts/signup/')
             self.assertEqual(response.status_code, 200, lang+' signup did fail')
-        response = c.post('/accounts/signup/')
+        response = client.post('/accounts/signup/')
         # test on 302 as it must redirect to a language
         self.assertEqual(response.status_code, 302, 'Int signup did fail')

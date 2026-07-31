@@ -13,7 +13,7 @@ class AccountsTestCase(TestCase):
         self.assertGreaterEqual(len(urlpatterns), 1, 'urlpatterns is anonymisedstats.urls is empty')
 
     def test_UrlWorks(self):
-        c = Client()
+        client = Client()
         allFields = {
             'car_type',
             'charge_port_type',
@@ -34,27 +34,27 @@ class AccountsTestCase(TestCase):
         }
         for lang in {"fr", "en"}:
             # scatter chart on battery degradation vs odometer
-            response = c.post('/'+lang+'/anonymisedstats/BatteryDegradationGraph/odometer')
+            response = client.post('/'+lang+'/anonymisedstats/BatteryDegradationGraph/odometer')
             self.assertEqual(response.status_code, 200, 'BatteryDegradationGraph anonymisedstats did fail')
             # scatter chart on battery degradation vs Number of Cycles
-            response = c.post('/'+lang+'/anonymisedstats/BatteryDegradationGraph/NumberCycles')
+            response = client.post('/'+lang+'/anonymisedstats/BatteryDegradationGraph/NumberCycles')
             self.assertEqual(response.status_code, 200, 'BatteryDegradationGraph anonymisedstats did fail')
             # bar chart on car infos
-            response = c.post('/'+lang+'/anonymisedstats/firmwareupdates')
+            response = client.post('/'+lang+'/anonymisedstats/firmwareupdates')
             self.assertEqual(response.status_code, 200, 'firmwareupdates anonymisedstats did fail')
-            response = c.post('/'+lang+'/anonymisedstats/FirmwareUpdatesAsCSV')
+            response = client.post('/'+lang+'/anonymisedstats/FirmwareUpdatesAsCSV')
             self.assertEqual(response.status_code, 200, 'FirmwareUpdatesAsCSV anonymisedstats did fail')
             for field in allFields:
-                response = c.post('/'+lang+'/anonymisedstats/StatsOnCarGraph/'+field)
+                response = client.post('/'+lang+'/anonymisedstats/StatsOnCarGraph/'+field)
                 self.assertEqual(response.status_code, 200, field+' anonymisedstats did fail')
                 # bar chart on car infos by car type
-                response = c.post('/'+lang+'/anonymisedstats/StatsOnCarGraph/'+field+'/model3')
+                response = client.post('/'+lang+'/anonymisedstats/StatsOnCarGraph/'+field+'/model3')
                 self.assertEqual(response.status_code, 200, field+' anonymisedstats did fail')
 
     def test_BogusUrlFails(self):
-        c = Client()
+        client = Client()
         for lang in {"fr", "en"}:
-            response = c.post('/'+lang+'/anonymisedstats/')
+            response = client.post('/'+lang+'/anonymisedstats/')
             self.assertEqual(response.status_code, 404, 'anonymisedstats without params did work')
-            response = c.post('/'+lang+'/anonymisedstats/StatsOnCarGraph/field/car_type/crap')
+            response = client.post('/'+lang+'/anonymisedstats/StatsOnCarGraph/field/car_type/crap')
             self.assertEqual(response.status_code, 404, 'anonymisedstats with too much params did work')

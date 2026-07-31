@@ -12,7 +12,7 @@ from matesla.BatteryDegradation import (
 from matesla.models.VinHash import HashTheVin
 
 
-def _int(value, default=None):
+def parse_int(value, default=None):
     if value is None or value == "":
         return default
     try:
@@ -21,7 +21,7 @@ def _int(value, default=None):
         return default
 
 
-def _float(value, default=None):
+def parse_float(value, default=None):
     if value is None or value == "":
         return default
     try:
@@ -30,25 +30,25 @@ def _float(value, default=None):
         return default
 
 
-def _bool(value, default=None):
+def parse_bool(value, default=None):
     if value is None or value == "":
         return default
     if isinstance(value, str):
-        v = value.strip().lower()
-        if v in ("0", "false", "no", "off", "none"):
+        text = value.strip().lower()
+        if text in ("0", "false", "no", "off", "none"):
             return False
-        if v in ("1", "true", "yes", "on"):
+        if text in ("1", "true", "yes", "on"):
             return True
     return bool(value)
 
 
-def _str(value, default=None):
+def parse_str(value, default=None):
     if value is None or value == "":
         return default
-    s = str(value).strip()
-    if s in ("<invalid>", "None", "null"):
+    text = str(value).strip()
+    if text in ("<invalid>", "None", "null"):
         return default
-    return s
+    return text
 
 
 class TeslaCarDataSnapshot(models.Model):
@@ -167,42 +167,42 @@ class TeslaCarDataSnapshot(models.Model):
             else when.date()
         )
 
-        self.display_name = _str(context.get("display_name"))
-        self.state = _str(context.get("state"))
+        self.display_name = parse_str(context.get("display_name"))
+        self.state = parse_str(context.get("state"))
 
-        self.battery_level = _float(charge_state.get("battery_level"))
-        self.battery_range = _float(charge_state.get("battery_range"))
-        self.charge_limit_soc = _float(charge_state.get("charge_limit_soc"))
-        self.charge_rate = _float(charge_state.get("charge_rate"))
-        self.charger_actual_current = _float(charge_state.get("charger_actual_current"))
-        self.charger_phases = _float(charge_state.get("charger_phases"))
-        self.charger_power = _float(charge_state.get("charger_power"))
-        self.charger_voltage = _float(charge_state.get("charger_voltage"))
-        self.charging_state = _str(charge_state.get("charging_state"), "Unknown")
-        self.est_battery_range = _float(
+        self.battery_level = parse_float(charge_state.get("battery_level"))
+        self.battery_range = parse_float(charge_state.get("battery_range"))
+        self.charge_limit_soc = parse_float(charge_state.get("charge_limit_soc"))
+        self.charge_rate = parse_float(charge_state.get("charge_rate"))
+        self.charger_actual_current = parse_float(charge_state.get("charger_actual_current"))
+        self.charger_phases = parse_float(charge_state.get("charger_phases"))
+        self.charger_power = parse_float(charge_state.get("charger_power"))
+        self.charger_voltage = parse_float(charge_state.get("charger_voltage"))
+        self.charging_state = parse_str(charge_state.get("charging_state"), "Unknown")
+        self.est_battery_range = parse_float(
             charge_state.get("est_battery_range") or charge_state.get("battery_range")
         )
-        self.ideal_battery_range = _float(charge_state.get("ideal_battery_range"))
-        self.fast_charger_brand = _str(charge_state.get("fast_charger_brand"))
-        self.fast_charger_present = _bool(charge_state.get("fast_charger_present"))
-        self.fast_charger_type = _str(charge_state.get("fast_charger_type"))
-        self.max_range_charge_counter = _float(charge_state.get("max_range_charge_counter"))
-        self.usable_battery_level = _float(
+        self.ideal_battery_range = parse_float(charge_state.get("ideal_battery_range"))
+        self.fast_charger_brand = parse_str(charge_state.get("fast_charger_brand"))
+        self.fast_charger_present = parse_bool(charge_state.get("fast_charger_present"))
+        self.fast_charger_type = parse_str(charge_state.get("fast_charger_type"))
+        self.max_range_charge_counter = parse_float(charge_state.get("max_range_charge_counter"))
+        self.usable_battery_level = parse_float(
             charge_state.get("usable_battery_level"), self.battery_level
         )
-        self.charge_energy_added = _float(charge_state.get("charge_energy_added"))
-        self.charge_miles_added_rated = _float(charge_state.get("charge_miles_added_rated"))
-        self.charge_miles_added_ideal = _float(charge_state.get("charge_miles_added_ideal"))
-        self.time_to_full_charge = _float(charge_state.get("time_to_full_charge"))
-        self.charge_current_request = _float(charge_state.get("charge_current_request"))
-        self.charge_current_request_max = _float(
+        self.charge_energy_added = parse_float(charge_state.get("charge_energy_added"))
+        self.charge_miles_added_rated = parse_float(charge_state.get("charge_miles_added_rated"))
+        self.charge_miles_added_ideal = parse_float(charge_state.get("charge_miles_added_ideal"))
+        self.time_to_full_charge = parse_float(charge_state.get("time_to_full_charge"))
+        self.charge_current_request = parse_float(charge_state.get("charge_current_request"))
+        self.charge_current_request_max = parse_float(
             charge_state.get("charge_current_request_max")
         )
-        self.charge_port_door_open = _bool(charge_state.get("charge_port_door_open"))
-        self.battery_heater_on = _bool(charge_state.get("battery_heater_on"))
-        self.battery_current = _float(charge_state.get("battery_current"))
-        self.energy_remaining = _float(charge_state.get("energy_remaining"))
-        self.pack_voltage = _float(charge_state.get("pack_voltage"))
+        self.charge_port_door_open = parse_bool(charge_state.get("charge_port_door_open"))
+        self.battery_heater_on = parse_bool(charge_state.get("battery_heater_on"))
+        self.battery_current = parse_float(charge_state.get("battery_current"))
+        self.energy_remaining = parse_float(charge_state.get("energy_remaining"))
+        self.pack_voltage = parse_float(charge_state.get("pack_voltage"))
 
         climate_keeper_mode = climate_state.get("climate_keeper_mode")
         if climate_keeper_mode is None:
@@ -211,30 +211,30 @@ class TeslaCarDataSnapshot(models.Model):
             self.climate_keeper_mode = (
                 bool(climate_keeper_mode) and climate_keeper_mode != "off"
             )
-        self.driver_temp_setting = _float(climate_state.get("driver_temp_setting"))
-        self.inside_temp = _float(climate_state.get("inside_temp"))
-        self.is_climate_on = _bool(climate_state.get("is_climate_on"))
-        self.outside_temp = _float(climate_state.get("outside_temp"))
-        self.passenger_temp_setting = _float(climate_state.get("passenger_temp_setting"))
-        self.is_auto_conditioning_on = _bool(climate_state.get("is_auto_conditioning_on"))
-        self.fan_status = _float(climate_state.get("fan_status"))
-        self.is_front_defroster_on = _bool(climate_state.get("is_front_defroster_on"))
-        self.is_rear_defroster_on = _bool(climate_state.get("is_rear_defroster_on"))
+        self.driver_temp_setting = parse_float(climate_state.get("driver_temp_setting"))
+        self.inside_temp = parse_float(climate_state.get("inside_temp"))
+        self.is_climate_on = parse_bool(climate_state.get("is_climate_on"))
+        self.outside_temp = parse_float(climate_state.get("outside_temp"))
+        self.passenger_temp_setting = parse_float(climate_state.get("passenger_temp_setting"))
+        self.is_auto_conditioning_on = parse_bool(climate_state.get("is_auto_conditioning_on"))
+        self.fan_status = parse_float(climate_state.get("fan_status"))
+        self.is_front_defroster_on = parse_bool(climate_state.get("is_front_defroster_on"))
+        self.is_rear_defroster_on = parse_bool(climate_state.get("is_rear_defroster_on"))
 
-        self.latitude = _float(drive_state.get("latitude"))
-        self.longitude = _float(drive_state.get("longitude"))
-        self.power = _float(drive_state.get("power"))
-        self.speed = _float(drive_state.get("speed"))
-        self.heading = _float(drive_state.get("heading"))
-        self.shift_state = _str(drive_state.get("shift_state"))
-        self.gps_as_of = _int(drive_state.get("gps_as_of"))
-        self.elevation = _float(drive_state.get("elevation") or context.get("elevation"))
+        self.latitude = parse_float(drive_state.get("latitude"))
+        self.longitude = parse_float(drive_state.get("longitude"))
+        self.power = parse_float(drive_state.get("power"))
+        self.speed = parse_float(drive_state.get("speed"))
+        self.heading = parse_float(drive_state.get("heading"))
+        self.shift_state = parse_str(drive_state.get("shift_state"))
+        self.gps_as_of = parse_int(drive_state.get("gps_as_of"))
+        self.elevation = parse_float(drive_state.get("elevation") or context.get("elevation"))
 
-        self.odometer = _float(vehicle_state.get("odometer"))
-        self.locked = _bool(vehicle_state.get("locked"))
-        self.car_version = _str(vehicle_state.get("car_version"))
-        self.is_user_present = _bool(vehicle_state.get("is_user_present"))
-        self.sentry_mode = _bool(vehicle_state.get("sentry_mode"))
+        self.odometer = parse_float(vehicle_state.get("odometer"))
+        self.locked = parse_bool(vehicle_state.get("locked"))
+        self.car_version = parse_str(vehicle_state.get("car_version"))
+        self.is_user_present = parse_bool(vehicle_state.get("is_user_present"))
+        self.sentry_mode = parse_bool(vehicle_state.get("sentry_mode"))
 
         self._recompute_derived()
         return self
@@ -250,71 +250,71 @@ class TeslaCarDataSnapshot(models.Model):
             else when.date()
         )
 
-        self.display_name = _str(row.get("display_name") or row.get("vehicle_name"))
-        self.state = _str(row.get("state"))
+        self.display_name = parse_str(row.get("display_name") or row.get("vehicle_name"))
+        self.state = parse_str(row.get("state"))
 
-        self.battery_level = _float(row.get("battery_level"))
-        self.battery_range = _float(row.get("battery_range"))
-        self.charge_limit_soc = _float(row.get("charge_limit_soc"))
-        self.charge_rate = _float(row.get("charge_rate"))
-        self.charger_actual_current = _float(row.get("charger_actual_current"))
-        self.charger_phases = _float(row.get("charger_phases"))
-        self.charger_power = _float(row.get("charger_power"))
-        self.charger_voltage = _float(row.get("charger_voltage"))
-        self.charging_state = _str(row.get("charging_state"), "Unknown")
-        self.est_battery_range = _float(
+        self.battery_level = parse_float(row.get("battery_level"))
+        self.battery_range = parse_float(row.get("battery_range"))
+        self.charge_limit_soc = parse_float(row.get("charge_limit_soc"))
+        self.charge_rate = parse_float(row.get("charge_rate"))
+        self.charger_actual_current = parse_float(row.get("charger_actual_current"))
+        self.charger_phases = parse_float(row.get("charger_phases"))
+        self.charger_power = parse_float(row.get("charger_power"))
+        self.charger_voltage = parse_float(row.get("charger_voltage"))
+        self.charging_state = parse_str(row.get("charging_state"), "Unknown")
+        self.est_battery_range = parse_float(
             row.get("est_battery_range") or row.get("battery_range")
         )
-        self.ideal_battery_range = _float(row.get("ideal_battery_range"))
-        self.fast_charger_brand = _str(row.get("fast_charger_brand"))
-        self.fast_charger_present = _bool(row.get("fast_charger_present"))
-        self.fast_charger_type = _str(row.get("fast_charger_type"))
-        self.max_range_charge_counter = _float(row.get("max_range_charge_counter"))
-        self.usable_battery_level = _float(
+        self.ideal_battery_range = parse_float(row.get("ideal_battery_range"))
+        self.fast_charger_brand = parse_str(row.get("fast_charger_brand"))
+        self.fast_charger_present = parse_bool(row.get("fast_charger_present"))
+        self.fast_charger_type = parse_str(row.get("fast_charger_type"))
+        self.max_range_charge_counter = parse_float(row.get("max_range_charge_counter"))
+        self.usable_battery_level = parse_float(
             row.get("usable_battery_level"), self.battery_level
         )
-        self.charge_energy_added = _float(row.get("charge_energy_added"))
-        self.charge_miles_added_rated = _float(row.get("charge_miles_added_rated"))
-        self.charge_miles_added_ideal = _float(row.get("charge_miles_added_ideal"))
-        self.time_to_full_charge = _float(row.get("time_to_full_charge"))
-        self.charge_current_request = _float(row.get("charge_current_request"))
-        self.charge_current_request_max = _float(row.get("charge_current_request_max"))
-        self.charge_port_door_open = _bool(row.get("charge_port_door_open"))
-        self.battery_heater_on = _bool(row.get("battery_heater_on"))
-        self.battery_current = _float(row.get("battery_current"))
-        self.energy_remaining = _float(row.get("energy_remaining"))
-        self.pack_voltage = _float(row.get("pack_voltage"))
+        self.charge_energy_added = parse_float(row.get("charge_energy_added"))
+        self.charge_miles_added_rated = parse_float(row.get("charge_miles_added_rated"))
+        self.charge_miles_added_ideal = parse_float(row.get("charge_miles_added_ideal"))
+        self.time_to_full_charge = parse_float(row.get("time_to_full_charge"))
+        self.charge_current_request = parse_float(row.get("charge_current_request"))
+        self.charge_current_request_max = parse_float(row.get("charge_current_request_max"))
+        self.charge_port_door_open = parse_bool(row.get("charge_port_door_open"))
+        self.battery_heater_on = parse_bool(row.get("battery_heater_on"))
+        self.battery_current = parse_float(row.get("battery_current"))
+        self.energy_remaining = parse_float(row.get("energy_remaining"))
+        self.pack_voltage = parse_float(row.get("pack_voltage"))
 
-        self.climate_keeper_mode = _bool(row.get("climate_keeper_mode"))
-        self.driver_temp_setting = _float(row.get("driver_temp_setting"))
-        self.inside_temp = _float(row.get("inside_temp"))
-        self.is_climate_on = _bool(row.get("is_climate_on"))
-        self.outside_temp = _float(row.get("outside_temp"))
-        self.passenger_temp_setting = _float(row.get("passenger_temp_setting"))
-        self.is_auto_conditioning_on = _bool(row.get("is_auto_conditioning_on"))
-        self.fan_status = _float(row.get("fan_status"))
-        self.is_front_defroster_on = _bool(row.get("is_front_defroster_on"))
-        self.is_rear_defroster_on = _bool(row.get("is_rear_defroster_on"))
+        self.climate_keeper_mode = parse_bool(row.get("climate_keeper_mode"))
+        self.driver_temp_setting = parse_float(row.get("driver_temp_setting"))
+        self.inside_temp = parse_float(row.get("inside_temp"))
+        self.is_climate_on = parse_bool(row.get("is_climate_on"))
+        self.outside_temp = parse_float(row.get("outside_temp"))
+        self.passenger_temp_setting = parse_float(row.get("passenger_temp_setting"))
+        self.is_auto_conditioning_on = parse_bool(row.get("is_auto_conditioning_on"))
+        self.fan_status = parse_float(row.get("fan_status"))
+        self.is_front_defroster_on = parse_bool(row.get("is_front_defroster_on"))
+        self.is_rear_defroster_on = parse_bool(row.get("is_rear_defroster_on"))
 
-        self.latitude = _float(row.get("latitude"))
-        self.longitude = _float(row.get("longitude"))
-        self.power = _float(row.get("power"))
-        self.speed = _float(row.get("speed"))
-        self.heading = _float(row.get("heading"))
-        self.shift_state = _str(row.get("shift_state"))
-        self.gps_as_of = _int(row.get("gps_as_of"))
-        self.elevation = _float(row.get("elevation"))
+        self.latitude = parse_float(row.get("latitude"))
+        self.longitude = parse_float(row.get("longitude"))
+        self.power = parse_float(row.get("power"))
+        self.speed = parse_float(row.get("speed"))
+        self.heading = parse_float(row.get("heading"))
+        self.shift_state = parse_str(row.get("shift_state"))
+        self.gps_as_of = parse_int(row.get("gps_as_of"))
+        self.elevation = parse_float(row.get("elevation"))
 
-        self.odometer = _float(row.get("odometer"))
-        self.locked = _bool(row.get("locked"))
-        self.car_version = _str(row.get("car_version"))
-        self.is_user_present = _bool(row.get("is_user_present"))
-        self.sentry_mode = _bool(row.get("sentry_mode"))
+        self.odometer = parse_float(row.get("odometer"))
+        self.locked = parse_bool(row.get("locked"))
+        self.car_version = parse_str(row.get("car_version"))
+        self.is_user_present = parse_bool(row.get("is_user_present"))
+        self.sentry_mode = parse_bool(row.get("sentry_mode"))
 
-        self.idle_number = _int(row.get("idleNumber") or row.get("idle_number"))
-        self.sleep_number = _int(row.get("sleepNumber") or row.get("sleep_number"))
-        self.drive_number = _int(row.get("driveNumber") or row.get("drive_number"))
-        self.charge_number = _int(row.get("chargeNumber") or row.get("charge_number"))
+        self.idle_number = parse_int(row.get("idleNumber") or row.get("idle_number"))
+        self.sleep_number = parse_int(row.get("sleepNumber") or row.get("sleep_number"))
+        self.drive_number = parse_int(row.get("driveNumber") or row.get("drive_number"))
+        self.charge_number = parse_int(row.get("chargeNumber") or row.get("charge_number"))
 
         self._recompute_derived()
         return self
@@ -322,61 +322,61 @@ class TeslaCarDataSnapshot(models.Model):
     def merge_from_flat_row(self, row):
         """Complete empty fields on an existing row from TeslaFi data (nearest-minute merge)."""
         field_map = {
-            "display_name": lambda: _str(row.get("display_name") or row.get("vehicle_name")),
-            "state": lambda: _str(row.get("state")),
-            "battery_level": lambda: _float(row.get("battery_level")),
-            "battery_range": lambda: _float(row.get("battery_range")),
-            "charge_limit_soc": lambda: _float(row.get("charge_limit_soc")),
-            "charge_rate": lambda: _float(row.get("charge_rate")),
-            "charger_actual_current": lambda: _float(row.get("charger_actual_current")),
-            "charger_phases": lambda: _float(row.get("charger_phases")),
-            "charger_power": lambda: _float(row.get("charger_power")),
-            "charger_voltage": lambda: _float(row.get("charger_voltage")),
-            "charging_state": lambda: _str(row.get("charging_state")),
-            "est_battery_range": lambda: _float(row.get("est_battery_range")),
-            "ideal_battery_range": lambda: _float(row.get("ideal_battery_range")),
-            "fast_charger_brand": lambda: _str(row.get("fast_charger_brand")),
-            "fast_charger_present": lambda: _bool(row.get("fast_charger_present")),
-            "fast_charger_type": lambda: _str(row.get("fast_charger_type")),
-            "max_range_charge_counter": lambda: _float(row.get("max_range_charge_counter")),
-            "usable_battery_level": lambda: _float(row.get("usable_battery_level")),
-            "charge_energy_added": lambda: _float(row.get("charge_energy_added")),
-            "charge_miles_added_rated": lambda: _float(row.get("charge_miles_added_rated")),
-            "charge_miles_added_ideal": lambda: _float(row.get("charge_miles_added_ideal")),
-            "time_to_full_charge": lambda: _float(row.get("time_to_full_charge")),
-            "charge_current_request": lambda: _float(row.get("charge_current_request")),
-            "charge_current_request_max": lambda: _float(row.get("charge_current_request_max")),
-            "charge_port_door_open": lambda: _bool(row.get("charge_port_door_open")),
-            "battery_heater_on": lambda: _bool(row.get("battery_heater_on")),
-            "battery_current": lambda: _float(row.get("battery_current")),
-            "energy_remaining": lambda: _float(row.get("energy_remaining")),
-            "pack_voltage": lambda: _float(row.get("pack_voltage")),
-            "driver_temp_setting": lambda: _float(row.get("driver_temp_setting")),
-            "inside_temp": lambda: _float(row.get("inside_temp")),
-            "is_climate_on": lambda: _bool(row.get("is_climate_on")),
-            "outside_temp": lambda: _float(row.get("outside_temp")),
-            "passenger_temp_setting": lambda: _float(row.get("passenger_temp_setting")),
-            "is_auto_conditioning_on": lambda: _bool(row.get("is_auto_conditioning_on")),
-            "fan_status": lambda: _float(row.get("fan_status")),
-            "is_front_defroster_on": lambda: _bool(row.get("is_front_defroster_on")),
-            "is_rear_defroster_on": lambda: _bool(row.get("is_rear_defroster_on")),
-            "latitude": lambda: _float(row.get("latitude")),
-            "longitude": lambda: _float(row.get("longitude")),
-            "power": lambda: _float(row.get("power")),
-            "speed": lambda: _float(row.get("speed")),
-            "heading": lambda: _float(row.get("heading")),
-            "shift_state": lambda: _str(row.get("shift_state")),
-            "gps_as_of": lambda: _int(row.get("gps_as_of")),
-            "elevation": lambda: _float(row.get("elevation")),
-            "odometer": lambda: _float(row.get("odometer")),
-            "locked": lambda: _bool(row.get("locked")),
-            "car_version": lambda: _str(row.get("car_version")),
-            "is_user_present": lambda: _bool(row.get("is_user_present")),
-            "sentry_mode": lambda: _bool(row.get("sentry_mode")),
-            "idle_number": lambda: _int(row.get("idleNumber") or row.get("idle_number")),
-            "sleep_number": lambda: _int(row.get("sleepNumber") or row.get("sleep_number")),
-            "drive_number": lambda: _int(row.get("driveNumber") or row.get("drive_number")),
-            "charge_number": lambda: _int(row.get("chargeNumber") or row.get("charge_number")),
+            "display_name": lambda: parse_str(row.get("display_name") or row.get("vehicle_name")),
+            "state": lambda: parse_str(row.get("state")),
+            "battery_level": lambda: parse_float(row.get("battery_level")),
+            "battery_range": lambda: parse_float(row.get("battery_range")),
+            "charge_limit_soc": lambda: parse_float(row.get("charge_limit_soc")),
+            "charge_rate": lambda: parse_float(row.get("charge_rate")),
+            "charger_actual_current": lambda: parse_float(row.get("charger_actual_current")),
+            "charger_phases": lambda: parse_float(row.get("charger_phases")),
+            "charger_power": lambda: parse_float(row.get("charger_power")),
+            "charger_voltage": lambda: parse_float(row.get("charger_voltage")),
+            "charging_state": lambda: parse_str(row.get("charging_state")),
+            "est_battery_range": lambda: parse_float(row.get("est_battery_range")),
+            "ideal_battery_range": lambda: parse_float(row.get("ideal_battery_range")),
+            "fast_charger_brand": lambda: parse_str(row.get("fast_charger_brand")),
+            "fast_charger_present": lambda: parse_bool(row.get("fast_charger_present")),
+            "fast_charger_type": lambda: parse_str(row.get("fast_charger_type")),
+            "max_range_charge_counter": lambda: parse_float(row.get("max_range_charge_counter")),
+            "usable_battery_level": lambda: parse_float(row.get("usable_battery_level")),
+            "charge_energy_added": lambda: parse_float(row.get("charge_energy_added")),
+            "charge_miles_added_rated": lambda: parse_float(row.get("charge_miles_added_rated")),
+            "charge_miles_added_ideal": lambda: parse_float(row.get("charge_miles_added_ideal")),
+            "time_to_full_charge": lambda: parse_float(row.get("time_to_full_charge")),
+            "charge_current_request": lambda: parse_float(row.get("charge_current_request")),
+            "charge_current_request_max": lambda: parse_float(row.get("charge_current_request_max")),
+            "charge_port_door_open": lambda: parse_bool(row.get("charge_port_door_open")),
+            "battery_heater_on": lambda: parse_bool(row.get("battery_heater_on")),
+            "battery_current": lambda: parse_float(row.get("battery_current")),
+            "energy_remaining": lambda: parse_float(row.get("energy_remaining")),
+            "pack_voltage": lambda: parse_float(row.get("pack_voltage")),
+            "driver_temp_setting": lambda: parse_float(row.get("driver_temp_setting")),
+            "inside_temp": lambda: parse_float(row.get("inside_temp")),
+            "is_climate_on": lambda: parse_bool(row.get("is_climate_on")),
+            "outside_temp": lambda: parse_float(row.get("outside_temp")),
+            "passenger_temp_setting": lambda: parse_float(row.get("passenger_temp_setting")),
+            "is_auto_conditioning_on": lambda: parse_bool(row.get("is_auto_conditioning_on")),
+            "fan_status": lambda: parse_float(row.get("fan_status")),
+            "is_front_defroster_on": lambda: parse_bool(row.get("is_front_defroster_on")),
+            "is_rear_defroster_on": lambda: parse_bool(row.get("is_rear_defroster_on")),
+            "latitude": lambda: parse_float(row.get("latitude")),
+            "longitude": lambda: parse_float(row.get("longitude")),
+            "power": lambda: parse_float(row.get("power")),
+            "speed": lambda: parse_float(row.get("speed")),
+            "heading": lambda: parse_float(row.get("heading")),
+            "shift_state": lambda: parse_str(row.get("shift_state")),
+            "gps_as_of": lambda: parse_int(row.get("gps_as_of")),
+            "elevation": lambda: parse_float(row.get("elevation")),
+            "odometer": lambda: parse_float(row.get("odometer")),
+            "locked": lambda: parse_bool(row.get("locked")),
+            "car_version": lambda: parse_str(row.get("car_version")),
+            "is_user_present": lambda: parse_bool(row.get("is_user_present")),
+            "sentry_mode": lambda: parse_bool(row.get("sentry_mode")),
+            "idle_number": lambda: parse_int(row.get("idleNumber") or row.get("idle_number")),
+            "sleep_number": lambda: parse_int(row.get("sleepNumber") or row.get("sleep_number")),
+            "drive_number": lambda: parse_int(row.get("driveNumber") or row.get("drive_number")),
+            "charge_number": lambda: parse_int(row.get("chargeNumber") or row.get("charge_number")),
         }
         changed = []
         for name, getter in field_map.items():

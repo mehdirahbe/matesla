@@ -184,9 +184,9 @@ def returnColorFronContext(context):
         return _EXTERIOR_NAME_TO_CODE[key]
 
     # Nested vehicle_config if not flattened yet
-    vc = context.get("vehicle_config") or {}
-    if isinstance(vc, dict):
-        exterior = vc.get("exterior_color") or ""
+    vehicle_config = context.get("vehicle_config") or {}
+    if isinstance(vehicle_config, dict):
+        exterior = vehicle_config.get("exterior_color") or ""
         key = exterior.strip().lower().replace("_", "").replace("-", "").replace(" ", "")
         if key in _EXTERIOR_NAME_TO_CODE:
             return _EXTERIOR_NAME_TO_CODE[key]
@@ -232,14 +232,14 @@ def PreparestatusDictionary(request, user):
     # Dicts (not model instances) so statusJson can JSON-serialize the context
     context["user_vehicles"] = [
         {
-            "api_id": v.api_id,
-            "vin": v.vin,
-            "display_name": v.display_name,
-            "label": v.label,
-            "state": v.state,
-            "is_primary": v.is_primary,
+            "api_id": vehicle.api_id,
+            "vin": vehicle.vin,
+            "display_name": vehicle.display_name,
+            "label": vehicle.label,
+            "state": vehicle.state,
+            "is_primary": vehicle.is_primary,
         }
-        for v in vehicles
+        for vehicle in vehicles
     ]
     context["active_vehicle_api_id"] = active.api_id if active else None
     context["active_vehicle_label"] = active.label if active else None
@@ -319,14 +319,14 @@ def _vehicle_list_context(user, request):
     return {
         "user_vehicles": [
             {
-                "api_id": v.api_id,
-                "vin": v.vin,
-                "display_name": v.display_name,
-                "label": v.label,
-                "state": v.state,
-                "is_primary": v.is_primary,
+                "api_id": vehicle.api_id,
+                "vin": vehicle.vin,
+                "display_name": vehicle.display_name,
+                "label": vehicle.label,
+                "state": vehicle.state,
+                "is_primary": vehicle.is_primary,
             }
-            for v in vehicles
+            for vehicle in vehicles
         ],
         "active_vehicle_api_id": active.api_id if active else None,
         "active_vehicle_label": active.label if active else None,
@@ -440,9 +440,9 @@ def singleActionJson(request, func):
         return JsonResponse({'error': 'TeslaNoVehiculeException'})
     except requests.exceptions.ConnectionError:
         return JsonResponse({'error': 'ConnectionError'})
-    except Exception as ex:
+    except Exception as exc:
         traceback.print_exc()
-        return JsonResponse({'error': type(ex).__name__})
+        return JsonResponse({'error': type(exc).__name__})
     return JsonResponse({'error': 'How did we arrive here?'})
 
 
@@ -478,9 +478,9 @@ def singleAction(request, func, shouldReturnFunc=False):
         return redirect('NoTeslaVehicules')
     except requests.exceptions.ConnectionError:
         return redirect('ConnectionError')
-    except Exception as ex:
+    except Exception as exc:
         traceback.print_exc()
-        return HttpResponse(type(ex).__name__)
+        return HttpResponse(type(exc).__name__)
     return redirect("tesla_status")
 
 

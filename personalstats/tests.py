@@ -61,15 +61,15 @@ class PersonalStatsUrlTests(TestCase):
         )
 
     def test_bogus_url_fails(self):
-        c = Client()
+        client = Client()
         for lang in ("fr", "en"):
-            response = c.get(
+            response = client.get(
                 f"/{lang}/personalstats/StatsOnCarGraph/fakesha/dontexist/5"
             )
             self.assertEqual(
                 response.status_code, 404, "bogus field should 404"
             )
-            response = c.get(f"/{lang}/personalstats/Stats/--")
+            response = client.get(f"/{lang}/personalstats/Stats/--")
             self.assertEqual(
                 response.status_code, 404, "SQL-injection-ish hash should 404"
             )
@@ -106,9 +106,9 @@ class PersonalStatsGraphTests(TestCase):
         assert_not_production_database()
 
     def test_stats_page_ok(self):
-        c = Client()
+        client = Client()
         for lang in ("fr", "en"):
-            response = c.get(f"/{lang}/personalstats/Stats/{FAKE_HASHED_VIN}")
+            response = client.get(f"/{lang}/personalstats/Stats/{FAKE_HASHED_VIN}")
             self.assertEqual(
                 response.status_code, 200, f"Stats page failed for {lang}"
             )
@@ -122,7 +122,7 @@ class PersonalStatsGraphTests(TestCase):
         self.assertGreater(len(body), 1500, f"{label} PNG too small ({len(body)})")
 
     def test_all_stats_on_car_graphs_return_png(self):
-        c = Client()
+        client = Client()
         period = 520  # weeks — full seeded range
         for field in STATS_ON_CAR_GRAPH_FIELDS:
             for size in ("thumb", "full"):
@@ -130,24 +130,24 @@ class PersonalStatsGraphTests(TestCase):
                     f"/en/personalstats/StatsOnCarGraph/{FAKE_HASHED_VIN}/"
                     f"{field}/{period}?size={size}"
                 )
-                response = c.get(url)
+                response = client.get(url)
                 self._assert_png(response, f"{field}/{size}")
 
     def test_battery_degradation_scatter_png(self):
-        c = Client()
+        client = Client()
         for field in BATTERY_DEGRADATION_FIELDS:
             url = (
                 f"/en/personalstats/BatteryDegradationGraph/{FAKE_HASHED_VIN}/"
                 f"{field}/520?size=thumb"
             )
-            response = c.get(url)
+            response = client.get(url)
             self._assert_png(response, f"degrad/{field}")
 
     def test_drive_histograms_have_content(self):
         """Speed/power histograms should not be empty PNGs of an empty axes only."""
-        c = Client()
+        client = Client()
         for field in ("speed", "power"):
-            response = c.get(
+            response = client.get(
                 f"/en/personalstats/StatsOnCarGraph/{FAKE_HASHED_VIN}/{field}/520"
                 f"?size=full"
             )
@@ -156,26 +156,26 @@ class PersonalStatsGraphTests(TestCase):
             self.assertGreater(len(response.content), 8000, field)
 
     def test_monthly_temp_ribbon_png(self):
-        c = Client()
+        client = Client()
         for field in ("outside_temp", "inside_temp"):
-            response = c.get(
+            response = client.get(
                 f"/en/personalstats/StatsOnCarGraph/{FAKE_HASHED_VIN}/{field}/520"
                 f"?size=full"
             )
             self._assert_png(response, field)
 
     def test_charge_histograms_png(self):
-        c = Client()
+        client = Client()
         for field in ("charger_power", "charge_limit_soc", "charge_rate"):
-            response = c.get(
+            response = client.get(
                 f"/en/personalstats/StatsOnCarGraph/{FAKE_HASHED_VIN}/{field}/520"
                 f"?size=full"
             )
             self._assert_png(response, field)
 
     def test_lifetime_map_json(self):
-        c = Client()
-        response = c.get(
+        client = Client()
+        response = client.get(
             f"/en/personalstats/LifetimeMapData/{FAKE_HASHED_VIN}?period=520"
         )
         self.assertEqual(response.status_code, 200)
@@ -188,9 +188,9 @@ class PersonalStatsGraphTests(TestCase):
 
     def test_empty_hashed_vin_still_returns_png(self):
         """Unknown but valid hash: graphs render empty axes, not 500."""
-        c = Client()
+        client = Client()
         empty_hash = "b" * 56
-        response = c.get(
+        response = client.get(
             f"/en/personalstats/StatsOnCarGraph/{empty_hash}/outside_temp/52"
             f"?size=thumb"
         )
@@ -235,13 +235,13 @@ class PersonalStatsGraphPerfTests(TestCase):
     def test_rank_graph_timings_and_cache(self):
         import time
 
-        c = Client()
+        client = Client()
         period = 520
         rows = []
 
         def _time_get(path, label):
             t0 = time.perf_counter()
-            resp = c.get(path)
+            resp = client.get(path)
             dt = time.perf_counter() - t0
             rows.append((dt, label, resp.status_code, len(resp.content),
                          resp.get("X-MaTesla-Graph-Cache", "")))
@@ -294,9 +294,9 @@ class PersonalStatsGraphPerfTests(TestCase):
             f"{heavy}/{period}?size=thumb"
         )
         # ensure first fill
-        c.get(path)
+        client.get(path)
         t0 = time.perf_counter()
-        resp = c.get(path)
+        resp = client.get(path)
         dt_hit = time.perf_counter() - t0
         print(
             f"  CACHE HIT recheck {heavy}/thumb: {dt_hit * 1000:.1f} ms  "

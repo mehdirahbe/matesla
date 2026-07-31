@@ -106,10 +106,10 @@ def _snap_age_minutes(
     if snap is None or getattr(snap, "Date", None) is None:
         return None
     now = now or timezone.now()
-    dt = snap.Date
-    if timezone.is_naive(dt):
-        dt = timezone.make_aware(dt, timezone.utc)
-    return max(0.0, (now - dt).total_seconds() / 60.0)
+    snapshot_at = snap.Date
+    if timezone.is_naive(snapshot_at):
+        snapshot_at = timezone.make_aware(snapshot_at, timezone.utc)
+    return max(0.0, (now - snapshot_at).total_seconds() / 60.0)
 
 
 def _snap_is_fresh(
@@ -135,8 +135,8 @@ def _is_driving(snap: TeslaCarDataSnapshot | None) -> bool:
 def _is_charging(snap: TeslaCarDataSnapshot | None) -> bool:
     if snap is None:
         return False
-    cs = (snap.charging_state or "").strip()
-    return cs in {"Charging", "Starting"}
+    charging_state = (snap.charging_state or "").strip()
+    return charging_state in {"Charging", "Starting"}
 
 
 def _is_dc_charging(snap: TeslaCarDataSnapshot | None) -> bool:
@@ -144,8 +144,8 @@ def _is_dc_charging(snap: TeslaCarDataSnapshot | None) -> bool:
         return False
     if snap.fast_charger_present:
         return True
-    fct = (snap.fast_charger_type or "").strip().lower()
-    if fct and fct not in {"", "none", "ac", "<invalid>"}:
+    fast_charger_type = (snap.fast_charger_type or "").strip().lower()
+    if fast_charger_type and fast_charger_type not in {"", "none", "ac", "<invalid>"}:
         # e.g. Tesla, Combo, CHAdeMO
         if fct not in {"ac_single", "ac_three"}:
             return True
@@ -558,13 +558,13 @@ def capture_all_online_vehicles() -> dict:
             continue
 
         vehicles = list(TeslaVehicle.objects.filter(user_id=user_id))
-        due = [v for v in vehicles if vehicle_is_due(v, now=now)]
-        for v in vehicles:
-            if v not in due:
+        due = [vehicle for vehicle in vehicles if vehicle_is_due(vehicle, now=now)]
+        for vehicle in vehicles:
+            if vehicle not in due:
                 stats["skipped_wait"] += 1
-                label = (v.display_name or v.vin or v.api_id).strip()
-                mins = poll_interval_minutes(v, now=now)
-                kind = activity_kind(v)
+                label = (vehicle.display_name or vehicle.vin or vehicle.api_id).strip()
+                mins = poll_interval_minutes(vehicle, now=now)
+                kind = activity_kind(vehicle)
                 _log(
                     messages,
                     f"  {label}: attente (prochain poll ≥ {mins} min, kind={kind})",
@@ -575,7 +575,8 @@ def capture_all_online_vehicles() -> dict:
 
         any_due = True
         due_labels = ", ".join(
-            (v.display_name or v.vin or v.api_id).strip() for v in due
+            (vehicle.display_name or vehicle.vin or vehicle.api_id).strip()
+            for vehicle in due
         )
         _log(messages, f"user {user_id}: voitures dues → {due_labels}")
 
@@ -619,7 +620,7 @@ def capture_all_online_vehicles() -> dict:
             traceback.print_exc()
             _log(messages, "  Avertissement: refresh états locaux a échoué")
 
-        due_ids = {v.pk for v in due}
+        due_ids = {vehicle.pk for vehicle in due}
         for vehicle in TeslaVehicle.objects.filter(user_id=user_id, pk__in=due_ids):
             label = (vehicle.display_name or vehicle.vin or vehicle.api_id).strip()
             try:

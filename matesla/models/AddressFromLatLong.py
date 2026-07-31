@@ -111,15 +111,15 @@ def _pick_one_language(part, prefer_fr=True):
     From "Uccle - Ukkel" or "België / Belgique / Belgien", keep one label.
     Prefer French when we can detect it (UI is primarily FR for BE users).
     """
-    p = part.strip()
-    if not p:
-        return p
-    if " - " in p:
-        options = [x.strip() for x in p.split(" - ") if x.strip()]
-    elif " / " in p:
-        options = [x.strip() for x in p.split(" / ") if x.strip()]
+    part_text = part.strip()
+    if not part_text:
+        return part_text
+    if " - " in part_text:
+        options = [option.strip() for option in part_text.split(" - ") if option.strip()]
+    elif " / " in part_text:
+        options = [option.strip() for option in part_text.split(" / ") if option.strip()]
     else:
-        return p
+        return part_text
     if len(options) == 1:
         return options[0]
     if prefer_fr:
@@ -132,10 +132,10 @@ def _pick_one_language(part, prefer_fr=True):
             "Flandre",
             "Wallonie",
         }
-        for o in options:
-            if o in preferred:
-                return o
-        fr_markers = (
+        for option in options:
+            if option in preferred:
+                return option
+        french_markers = (
             "é",
             "è",
             "ê",
@@ -152,11 +152,11 @@ def _pick_one_language(part, prefer_fr=True):
             "Bruxelles",
         )
 
-        def fr_score(s):
-            return sum(1 for m in fr_markers if m in s)
+        def french_score(label):
+            return sum(1 for marker in french_markers if marker in label)
 
-        ranked = sorted(options, key=fr_score, reverse=True)
-        if fr_score(ranked[0]) > fr_score(ranked[-1]):
+        ranked = sorted(options, key=french_score, reverse=True)
+        if french_score(ranked[0]) > french_score(ranked[-1]):
             return ranked[0]
     return options[0]
 
@@ -171,9 +171,9 @@ def CleanAddressDisplay(address):
         return address
     parts = []
     for part in address.split(","):
-        p = _pick_one_language(part, prefer_fr=True)
-        if p:
-            parts.append(p)
+        cleaned_part = _pick_one_language(part, prefer_fr=True)
+        if cleaned_part:
+            parts.append(cleaned_part)
     return ", ".join(parts)
 
 
@@ -260,8 +260,8 @@ def _format_from_components(raw_address):
 
 def _has_street_detail(raw_address: dict) -> bool:
     return any(
-        raw_address.get(k)
-        for k in (
+        raw_address.get(field_name)
+        for field_name in (
             "road",
             "pedestrian",
             "footway",

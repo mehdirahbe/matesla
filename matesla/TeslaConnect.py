@@ -299,14 +299,14 @@ def refresh_vehicle_states_from_list(user, list_payload: dict | None) -> None:
     """Update TeslaVehicle.state from a /vehicles list response."""
     if not list_payload:
         return
-    for v in list_payload.get("response") or []:
-        api_id = str(v.get("id") or "")
+    for vehicle_entry in list_payload.get("response") or []:
+        api_id = str(vehicle_entry.get("id") or "")
         if not api_id:
             continue
         TeslaVehicle.objects.filter(user=user, api_id=api_id).update(
-            state=v.get("state") or "",
-            display_name=v.get("display_name") or "",
-            vin=v.get("vin") or "",
+            state=vehicle_entry.get("state") or "",
+            display_name=vehicle_entry.get("display_name") or "",
+            vin=vehicle_entry.get("vin") or "",
         )
 
 
@@ -318,9 +318,11 @@ def get_vehicle_connectivity(access_token, vehicle_id, list_payload=None) -> str
     payload = list_payload if list_payload is not None else get_vehicles_list_payload(access_token)
     if not payload:
         return None
-    for v in payload.get("response") or []:
-        if str(v.get("id")) == str(vehicle_id) or str(v.get("vehicle_id")) == str(vehicle_id):
-            return v.get("state")
+    for vehicle_entry in payload.get("response") or []:
+        if str(vehicle_entry.get("id")) == str(vehicle_id) or str(
+            vehicle_entry.get("vehicle_id")
+        ) == str(vehicle_id):
+            return vehicle_entry.get("state")
     return None
 
 

@@ -13,17 +13,17 @@ class CarImageTestCase(TestCase):
         self.assertGreaterEqual(len(urlpatterns), 1, 'urlpatterns is carimage.urls is empty')
 
     def test_UrlWorks(self):
-        c = Client()
-        response = c.post('/carimage/PBSB/somewheel/someCarModel')
+        client = Client()
+        response = client.post('/carimage/PBSB/somewheel/someCarModel')
         self.assertEqual(response.status_code, 200, 'CarImage did fail')
 
     def test_BadUrlFails(self):
-        c = Client()
-        response = c.post('/carimage/PBSB/somewheel/')
+        client = Client()
+        response = client.post('/carimage/PBSB/somewheel/')
         self.assertEqual(response.status_code, 404, 'Bad CarImage did work')
-        response = c.post('/carimage/PBSB/someCarModel')
+        response = client.post('/carimage/PBSB/someCarModel')
         self.assertEqual(response.status_code, 404, 'Bad CarImage did work')
-        response = c.post('/carimage/somewheel/someCarModel')
+        response = client.post('/carimage/somewheel/someCarModel')
         self.assertEqual(response.status_code, 404, 'Bad CarImage did work')
-        response = c.post('/carimage/')
+        response = client.post('/carimage/')
         self.assertEqual(response.status_code, 404, 'Bad CarImage did work')
