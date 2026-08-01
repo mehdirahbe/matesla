@@ -20,10 +20,12 @@ from matesla.degradation_graphs import (
 from matesla.graphstyle import (
     ACCENT,
     ACCENT_SOFT,
+    AXES_BG,
     DANGER,
     ENERGY,
     MUTED,
     SERIES_COLORS,
+    SPINE,
     TEXT,
     WARM,
     finish_figure,
@@ -37,8 +39,9 @@ from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.VinHash import IsValidHash
 from django.core.cache import cache
+from django.utils import timezone
 from django.utils.translation import get_language, gettext as _
-from datetime import date, timedelta, datetime
+from datetime import date, datetime, timedelta, timezone as dt_timezone
 from math import asin, cos, radians, sin, sqrt
 from zoneinfo import ZoneInfo
 import json
@@ -61,8 +64,17 @@ COMPUTED_GRAPH_FIELDS = frozenset(
         "range_at_100_odometer",
         "efficiency_by_speed",
         "efficiency_by_temp",
+        "fleet_poll_cost",
     }
 )
+
+# Tesla Fleet "Data" (vehicle_data) pay-per-use: 500 requests / $1 (USD list price).
+# Local estimate from MaTesla capture samples only (this car).
+FLEET_DATA_USD_PER_REQUEST = 0.002
+# Approximate USD→EUR for EU Fleet apps (Tesla portal converts; not live ECB).
+FLEET_USD_TO_EUR = 0.92
+# Cost graph is always day-by-day and never longer than this.
+FLEET_POLL_MAX_DAYS = 30
 
 # Calendar "day" for history maps: user mental model is local civil date, not UTC midnight
 DAY_MAP_TZ = ZoneInfo("Europe/Brussels")
@@ -229,6 +241,8 @@ def GetTitleForFieldDico():
         # Trip efficiency vs rated range drop (100% = matched EPA-rated prediction)
         "efficiency_by_speed": _("Efficiency vs average speed"),
         "efficiency_by_temp": _("Efficiency vs outside temperature"),
+        # Local estimate of Fleet Data $ from stored vehicle_data samples
+        "fleet_poll_cost": _("Fleet poll cost (estimate)"),
     }
     return dico
 
@@ -308,6 +322,240 @@ def annotate_range_at_100(queryset):
             output_field=FloatField(),
         )
     ).filter(range_at_100__isnull=False, battery_range__isnull=False)
+
+def _matesla_capture_only(queryset):
+    """
+    Keep rows from live MaTesla Fleet capture, drop TeslaFi CSV history.
+
+    TeslaFi fills idle/sleep/drive/charge session counters; Fleet capture
+    leaves them null (see TeslaCarDataSnapshot.apply_vehicle_data_context).
+    """
+    return queryset.filter(
+        charge_number__isnull=True,
+        drive_number__isnull=True,
+        idle_number__isnull=True,
+        sleep_number__isnull=True,
+    )
+
+
+def _fleet_poll_window_days(desiredperiod) -> int:
+    """Honor period selector but never exceed FLEET_POLL_MAX_DAYS (day-by-day)."""
+    if desiredperiod is None or desiredperiod <= 0:
+        return FLEET_POLL_MAX_DAYS
+    # desiredperiod is weeks on the stats page; 1 Month (4) and above → full 30 days
+    week_days = int(desiredperiod) * 7
+    if week_days >= FLEET_POLL_MAX_DAYS:
+        return FLEET_POLL_MAX_DAYS
+    return max(1, week_days)
+
+
+def _fleet_cost_currency() -> tuple[str, str, float]:
+    """
+    Display currency for Fleet Data estimates.
+
+    Tesla list price is USD; EU developer apps usually see EUR on the portal.
+    We key off the configured Fleet API region (not VIN plant — Shanghai-built
+    cars used in Europe still bill on the EU app).
+    Returns (code, symbol, price_per_request_in_that_currency).
+    """
+    base = ""
+    try:
+        from matesla.models.TeslaAppSettings import TeslaAppSettings
+
+        settings_row = TeslaAppSettings.objects.order_by("pk").first()
+        if settings_row and settings_row.api_base:
+            base = settings_row.api_base
+    except Exception:
+        pass
+    if not base:
+        try:
+            from matesla.TeslaConnect import fleet_api_base
+
+            base = fleet_api_base() or ""
+        except Exception:
+            base = ""
+    low = base.lower()
+    if ".eu." in low or "eu.vn" in low:
+        return (
+            "EUR",
+            "€",
+            FLEET_DATA_USD_PER_REQUEST * FLEET_USD_TO_EUR,
+        )
+    # NA and rest of world: keep Tesla's USD list price
+    return "USD", "$", FLEET_DATA_USD_PER_REQUEST
+
+
+def _fmt_fleet_money(amount: float, symbol: str) -> str:
+    if amount >= 0.01:
+        return f"{symbol}{amount:.2f}"
+    return f"{symbol}{amount:.3f}"
+
+
+def _fleet_poll_buckets(queryset, *, days: int):
+    """
+    Count billable-ish MaTesla polls per local civil day (Europe/Brussels).
+
+    One successful vehicle_data ≈ one saved sample. Samples in the same local
+    minute are collapsed (status page + cron can double-save within seconds).
+
+    Returns (labels, counts) for the last `days` local days including today.
+    """
+    days = max(1, min(int(days), FLEET_POLL_MAX_DAYS))
+    now_local = timezone.now().astimezone(DAY_MAP_TZ)
+    end = now_local.date()
+    start = end - timedelta(days=days - 1)
+    start_dt = datetime.combine(start, datetime.min.time(), tzinfo=DAY_MAP_TZ)
+    end_dt = datetime.combine(end + timedelta(days=1), datetime.min.time(), tzinfo=DAY_MAP_TZ)
+
+    from collections import Counter
+
+    day_counts: Counter = Counter()
+    seen_minute: set[tuple] = set()
+    for raw in (
+        queryset.filter(Date__gte=start_dt, Date__lt=end_dt)
+        .order_by("Date")
+        .values_list("Date", flat=True)
+        .iterator()
+    ):
+        if raw is None:
+            continue
+        dt = raw
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt, dt_timezone.utc)
+        local = dt.astimezone(DAY_MAP_TZ)
+        minute_key = (local.date(), local.hour, local.minute)
+        if minute_key in seen_minute:
+            continue
+        seen_minute.add(minute_key)
+        day_counts[local.date()] += 1
+
+    language = get_language()
+    labels = []
+    counts = []
+    cursor = start
+    while cursor <= end:
+        if language == "fr":
+            labels.append(cursor.strftime("%d/%m"))
+        else:
+            labels.append(cursor.strftime("%m/%d"))
+        counts.append(int(day_counts.get(cursor, 0)))
+        cursor += timedelta(days=1)
+    return labels, counts
+
+
+def GenerateFleetPollCostGraph(
+    labels,
+    counts,
+    title,
+    size="full",
+    *,
+    currency_code: str = "USD",
+    currency_symbol: str = "$",
+    price_per_request: float = FLEET_DATA_USD_PER_REQUEST,
+):
+    """
+    Bar chart: estimated Fleet Data cost per day for one car (MaTesla only).
+
+    Y-axis = display currency (EUR for EU Fleet apps, else USD).
+    """
+    figure, style_config = make_figure(size, bar=True)
+    axes = figure.subplots()
+    total_n = sum(counts) if counts else 0
+    total_cost = total_n * price_per_request
+
+    if labels and counts and total_n > 0:
+        cost_per_bar = [c * price_per_request for c in counts]
+        x = list(range(len(labels)))
+        bars = axes.bar(
+            x,
+            cost_per_bar,
+            color=ACCENT_SOFT,
+            edgecolor=ACCENT,
+            linewidth=0.5,
+            alpha=0.92,
+            zorder=2,
+        )
+        ymax = max(cost_per_bar) if cost_per_bar else price_per_request
+        axes.set_ylim(0, ymax * 1.22)
+        label_font = max(5.5, style_config["tick_size"] - 1.0)
+        annotate = len(labels) <= 31
+        for bar, count, cost in zip(bars, counts, cost_per_bar):
+            if count <= 0 or not annotate:
+                continue
+            text = f"{count}\n{_fmt_fleet_money(cost, currency_symbol)}"
+            axes.annotate(
+                text,
+                xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                xytext=(0, 2),
+                textcoords="offset points",
+                ha="center",
+                va="bottom",
+                color=TEXT,
+                fontsize=label_font,
+                zorder=3,
+                clip_on=False,
+            )
+        axes.set_xticks(x)
+        rotation = 45 if len(labels) > 14 else 22
+        axes.set_xticklabels(labels, rotation=rotation, ha="right")
+        if currency_code == "EUR":
+            axes.set_ylabel(_("Estimated cost (EUR)"), color=MUTED)
+        else:
+            axes.set_ylabel(_("Estimated cost (USD)"), color=MUTED)
+        axes.set_xlabel(_("Day"), color=MUTED)
+
+        # Secondary axis: raw request counts (same bars, different scale)
+        axes2 = axes.twinx()
+        axes2.set_ylim(
+            axes.get_ylim()[0] / price_per_request,
+            axes.get_ylim()[1] / price_per_request,
+        )
+        axes2.set_ylabel(_("Data requests"), color=MUTED)
+        axes2.tick_params(colors=MUTED, labelsize=style_config["tick_size"])
+        for spine in axes2.spines.values():
+            spine.set_color(SPINE)
+            spine.set_linewidth(style_config["spine_width"])
+        axes2.set_facecolor(AXES_BG)
+        axes2.grid(False)
+
+        foot = _(
+            "n=%(n)s polls · est. %(money)s Data (@ %(rate)s/req) · this car · "
+            "TeslaFi excluded · max %(days)s days · Tesla portal may lag"
+        ) % {
+            "n": total_n,
+            "money": _fmt_fleet_money(total_cost, currency_symbol),
+            "rate": _fmt_fleet_money(price_per_request, currency_symbol),
+            "days": FLEET_POLL_MAX_DAYS,
+        }
+        figure.text(
+            0.5,
+            0.01,
+            foot,
+            ha="center",
+            va="bottom",
+            color=MUTED,
+            fontsize=max(6.0, style_config["tick_size"] - 0.5),
+        )
+        finish_figure(figure, axes, title, style_config)
+        try:
+            figure.tight_layout(rect=(0.02, 0.06, 0.98, 0.92))
+        except Exception:
+            pass
+    else:
+        axes.text(
+            0.5,
+            0.5,
+            _("No MaTesla samples in this period"),
+            ha="center",
+            va="center",
+            color=MUTED,
+            fontsize=style_config["label_size"],
+            transform=axes.transAxes,
+        )
+        finish_figure(figure, axes, title, style_config)
+
+    return GeneratePngFromGraph(figure, size=size)
+
 
 def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="full"):
     # matplotlib 3.9+ removed Axes.plot_date — use plot() with date objects
@@ -2040,6 +2288,8 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
     title = GetTitleForField(desiredfield)
     base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
     if not base.exists():
+        if desiredfield == "fleet_poll_cost":
+            return GenerateFleetPollCostGraph([], [], title, size=size)
         if desiredfield in ("efficiency_by_speed", "efficiency_by_temp"):
             return GenerateEfficiencyBinGraph(
                 None, None, None, title, "", size=size
@@ -2059,6 +2309,22 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
                 [], [], [], [], title, size=size
             )
         return GenerateDateGraph(None, None, None, None, title, size=size)
+
+    # Fleet Data cost: MaTesla capture only, day-by-day, max 30 days
+    if desiredfield == "fleet_poll_cost":
+        days = _fleet_poll_window_days(desiredperiod)
+        queryset = _matesla_capture_only(base)
+        labels, counts = _fleet_poll_buckets(queryset, days=days)
+        cur_code, cur_symbol, price = _fleet_cost_currency()
+        return GenerateFleetPollCostGraph(
+            labels,
+            counts,
+            title,
+            size=size,
+            currency_code=cur_code,
+            currency_symbol=cur_symbol,
+            price_per_request=price,
+        )
 
     # Trip efficiency histograms (not a raw time series field)
     if desiredfield in ("efficiency_by_speed", "efficiency_by_temp"):

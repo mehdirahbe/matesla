@@ -159,6 +159,30 @@
                  data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' period %}?size=thumb" width="700" height="305">
         </div>
     </article>
+
+    <article class="graph-card" data-graph-card="fleet">
+        <header class="graph-card__header">
+            <div>
+                <span class="graph-card__index">{% trans '06 · FLEET' %}</span>
+                <h2>{% trans 'Fleet poll cost' %}</h2>
+            </div>
+            <button type="button" class="graph-card__expand" data-graph-expand
+                    title="{% trans 'Expand' %}" aria-label="{% trans 'Expand chart' %}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"/>
+                </svg>
+            </button>
+        </header>
+        <div class="graph-card__controls">
+            <p class="text-muted" style="margin:0;font-size:0.85rem;">
+                {% trans 'MaTesla polls only (TeslaFi excluded), day by day, max 30 days. EUR if Fleet app is EU, else USD. One saved sample ≈ one Data request; Tesla portal can lag.' %}
+            </p>
+        </div>
+        <div class="graph-card__media" data-graph-media>
+            <img id="fleetPollGraphImg" class="lazyload" alt="{% trans 'Fleet poll cost' %}"
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'fleet_poll_cost' period %}?size=thumb" width="700" height="305">
+        </div>
+    </article>
 </section>
 
 {# Lifetime map — full width under charts; period follows #DesiredPeriod #}
@@ -170,7 +194,7 @@
          data-leaflet-icon-base="{% static 'leaflet/images/' %}">
     <header class="lifetime-map-card__header">
         <div>
-            <span class="graph-card__index">{% trans '06 · MAP' %}</span>
+            <span class="graph-card__index">{% trans '07 · MAP' %}</span>
             <h2>{% trans 'Lifetime map' %}</h2>
             <p class="lifetime-map-card__sub text-muted">{% trans 'GPS tracks and trip totals for the selected period.' %}</p>
         </div>

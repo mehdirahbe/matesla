@@ -139,6 +139,20 @@ function ChangeBatteryDegradationImageSourceFunction()
 
 $('#degradationGraphCriteria').change(ChangeBatteryDegradationImageSourceFunction);
 
+// Fleet poll cost estimate (single graph — no criteria dropdown)
+var fleetPollPictureUrl = "{% url 'StatsOnCarGraph' hashedVin 'fleet_poll_cost' 123456789%}";
+
+function ChangeFleetPollImageSourceFunction()
+{
+    var choiceDesiredPeriod = parseInt($('#DesiredPeriod').val());
+    var url = withGraphSize(
+        fleetPollPictureUrl.replace("123456789", choiceDesiredPeriod),
+        "thumb"
+    );
+    $('#fleetPollGraphImg').attr({"data-src": url, "src": url});
+    refreshOpenLightboxIfNeeded("fleet");
+}
+
 function syncVehicleSwitchPeriod()
 {
     // Hidden field on vehicle switcher form — keep period when changing car
@@ -157,6 +171,7 @@ function ChangeDesiredPeriodFunction()
     ChangeUsageImageSourceFunction();
     ChangeTemperatureImageSourceFunction();
     ChangeDriveImageSourceFunction();
+    ChangeFleetPollImageSourceFunction();
     syncVehicleSwitchPeriod();
     if (typeof reloadLifetimeMap === "function") {
         reloadLifetimeMap();

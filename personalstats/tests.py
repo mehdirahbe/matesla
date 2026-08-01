@@ -36,6 +36,7 @@ STATS_ON_CAR_GRAPH_FIELDS = (
     "range_at_100",
     "efficiency_by_speed",
     "efficiency_by_temp",
+    "fleet_poll_cost",
 )
 
 BATTERY_DEGRADATION_FIELDS = (

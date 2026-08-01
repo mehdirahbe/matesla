@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: matesla\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 22:00+0000\n"
+"POT-Creation-Date: 2026-08-01 10:04+0000\n"
 "PO-Revision-Date: 2026-07-27 22:00+0000\n"
 "Last-Translator: MaTesla\n"
 "Language-Team: Spanish\n"
@@ -23,147 +23,54 @@ msgstr "Crear cuenta"
 msgid "Login"
 msgstr "Iniciar sesión"
 
-msgid "Firmware and cars Stats"
-msgstr "Estadísticas de firmware y coches"
+#, python-format
+msgid "Cannot reach %(url)s: %(err)s"
+msgstr "No se puede alcanzar %(url)s: %(err)s"
 
-msgid "Fleet intelligence"
-msgstr "Inteligencia de flota"
+#, python-format
+msgid "%(url)s → HTTP %(code)s"
+msgstr "%(url)s → HTTP %(code)s"
+
+#, python-format
+msgid "%(url)s does not contain a valid public key PEM"
+msgstr "%(url)s no contiene un PEM de clave pública válido"
+
+#, python-format
+msgid ""
+"%(url)s is reachable but does not match the local key (%(path)s). Re-upload "
+"the file."
+msgstr ""
+"%(url)s es accesible pero no coincide con la clave local (%(path)s). Vuelve "
+"a subir el archivo."
+
+#, python-format
+msgid "Public key OK: %(url)s"
+msgstr "Clave pública correcta: %(url)s"
+
+msgid "Missing Client ID / Secret."
+msgstr "Faltan Client ID / Secret."
+
+#, python-format
+msgid "Partner token failed (%(code)s): %(body)s"
+msgstr "Token partner fallido (%(code)s): %(body)s"
+
+msgid "Missing app settings."
+msgstr "Faltan ajustes de la aplicación."
 
 msgid ""
-"An anonymised view of the fleet for battery health, equipment and software "
-"versions."
+"Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g. "
+"robotcar.example.com)."
 msgstr ""
-"Vista anonimizada de la flota para situar batería, equipamiento y versiones "
-"de software."
+"Tesla rechaza localhost como dominio partner. Usa un dominio HTTPS público "
+"(ej. robotcar.example.com)."
 
-msgid "Back to my car"
-msgstr "Volver a mi coche"
+#, python-format
+msgid "Public key not reachable by Tesla before register: %(msg)s"
+msgstr "Clave pública no accesible por Tesla antes del registro: %(msg)s"
 
-msgid "Fleet charts"
-msgstr "Gráficos de flota"
-
-msgid "01 · BATTERY HEALTH"
-msgstr "01 · SALUD BATERÍA"
-
-msgid "02 · SOFTWARE"
-msgstr "02 · Software"
-
-msgid "03 · FLEET"
-msgstr "03 · FLOTA"
-
-msgid "Battery degradation graphs"
-msgstr "Gráficos de degradación de batería"
-
-msgid "Battery graph"
-msgstr "Gráfico de batería"
-
-msgid "Firmware version"
-msgstr "Versión de firmware"
-
-msgid "Firmware graph"
-msgstr "Gráfico de firmware"
-
-msgid "Most recent Firmware updates"
-msgstr "Actualizaciones de firmware más recientes"
-
-msgid "Download Firmware Stats"
-msgstr "Descargar estadísticas de firmware"
-
-msgid "Cars statistics"
-msgstr "Estadísticas de coches"
-
-msgid "Car criterion"
-msgstr "Criterio del coche"
-
-msgid "Car model"
-msgstr "Modelo de coche"
-
-msgid "All models"
-msgstr "Todos los modelos"
-
-msgid "Car addition Date"
-msgstr "Fecha de alta del coche"
-
-msgid "Car type"
-msgstr "Tipo de coche"
-
-msgid "Charge port"
-msgstr "Puerto de carga"
-
-msgid "Exterior color"
-msgstr "Color exterior"
-
-msgid "Has air suspension"
-msgstr "Suspensión neumática"
-
-msgid "Has ludicrous mode"
-msgstr "Modo Ludicrous"
-
-msgid "Is charge port motorized"
-msgstr "Puerto de carga motorizado"
-
-msgid "Has rear seat heaters"
-msgstr "Asientos traseros calefactados"
-
-msgid "Right hand drive"
-msgstr "Conducción a la derecha"
-
-msgid "Roof color"
-msgstr "Color del techo"
-
-msgid "Wheel"
-msgstr "Ruedas"
-
-msgid "Is sentry mode available"
-msgstr "Modo Sentry disponible"
-
-msgid "Is FSD enabled"
-msgstr "Conducción autónoma (FSD) activa"
-
-msgid "European union car"
-msgstr "Coche de la Unión Europea"
-
-msgid "EPA Range (miles)"
-msgstr "Autonomía EPA (millas)"
-
-msgid "Is Dual Motor"
-msgstr "Doble motor"
-
-msgid "Car year"
-msgstr "Año del coche"
-
-msgid "Outside temperature (°C)"
-msgstr "Temperatura exterior (°C)"
-
-msgid "Odometer (miles)"
-msgstr "Odómetro (millas)"
-
-msgid "Battery level (%)"
-msgstr "Nivel de batería (%)"
-
-msgid "Battery charge limit (%)"
-msgstr "Límite de carga de la batería (%)"
-
-msgid "Estim. number of battery cycles"
-msgstr "N.º estimado de ciclos de batería"
-
-msgid "No Value"
-msgstr "Sin valor"
-
-msgid "True"
-msgstr "Verdadero"
-
-msgid "False"
-msgstr "Falso"
-
-msgid "Desired Charge Level"
-msgstr "Nivel de carga deseado"
-
-msgid "Driver temperature"
-msgstr "Temperatura del conductor"
-
-msgid "Please enter your Tesla account password"
-msgstr "Introduce la contraseña de tu cuenta Tesla"
+#, python-format
+msgid "Partner register failed (%(code)s): %(body)s"
+msgstr "Registro partner fallido (%(code)s): %(body)s"
 
 msgid "Client ID"
 msgstr "Client ID"
@@ -177,6 +84,16 @@ msgstr "URI de redirección OAuth"
 msgid "Fleet API region"
 msgstr "Región API Fleet"
 
+msgid "Partner domain (public HTTPS)"
+msgstr "Dominio partner (HTTPS público)"
+
+msgid ""
+"E.g. robotcar.example.com — not localhost. Must also be an Allowed Origin on "
+"developer.tesla.com"
+msgstr ""
+"Ej. robotcar.example.com — no localhost. También debe ser un Allowed Origin "
+"en developer.tesla.com"
+
 msgid "Europe / Middle East / Africa (recommended for Belgium)"
 msgstr "Europa / Oriente Medio / África (recomendado para Bélgica)"
 
@@ -186,8 +103,168 @@ msgstr "Norteamérica / Asia-Pacífico (excl. China)"
 msgid "China"
 msgstr "China"
 
+msgid "Tesla connection"
+msgstr "Conexión Tesla"
+
+msgid "Tesla Fleet API"
+msgstr "API Tesla Fleet"
+
+msgid "Connect your car."
+msgstr "Conecta tu coche."
+
+msgid ""
+"Configure the app, register the partner domain, then authorize MaTesla. Your "
+"secrets stay stored locally."
+msgstr ""
+"Configura la app, registra el dominio partner y autoriza MaTesla. Tus "
+"secretos se guardan en local."
+
+msgid "Developer application"
+msgstr "Aplicación de desarrollador"
+
+msgid "Tesla Client ID and secret"
+msgstr "Client ID y secret de Tesla"
+
+msgid "Partner domain"
+msgstr "Dominio partner"
+
+msgid "Public key and EU region"
+msgstr "Clave pública y región EU"
+
+msgid "Tesla account"
+msgstr "Cuenta Tesla"
+
+msgid "OAuth authorization"
+msgstr "Autorización OAuth"
+
+msgid "Account connected"
+msgstr "Cuenta conectada"
+
+#, python-format
+msgid "OAuth authorization is active until %(date)s."
+msgstr "La autorización OAuth está activa hasta el %(date)s."
+
+msgid "OAuth authorization is active."
+msgstr "La autorización OAuth está activa."
+
+msgid "default vehicle"
+msgstr "vehículo predeterminado"
+
+msgid "Unknown state"
+msgstr "Estado desconocido"
+
+msgid "active"
+msgstr "activo"
+
+msgid "No vehicles synchronized. Finish partner registration, then resync."
+msgstr ""
+"Ningún vehículo sincronizado. Termina el registro partner y resincroniza."
+
+msgid "Active vehicle"
+msgstr "Vehículo activo"
+
+msgid "Use this vehicle"
+msgstr "Usar este vehículo"
+
+msgid "Resync"
+msgstr "Resincronizar"
+
+msgid "Renew OAuth"
+msgstr "Renovar OAuth"
+
+msgid "Disconnect this Tesla account?"
+msgstr "¿Desconectar esta cuenta Tesla?"
+
+msgid "Disconnect"
+msgstr "Desconectar"
+
+msgid ""
+"Copy credentials from <a class=\"text-link\" href=\"https://developer.tesla."
+"com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com ↗</a>."
+msgstr ""
+"Copia las credenciales de <a class=\"text-link\" href=\"https://developer."
+"tesla.com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com "
+"↗</a>."
+
+msgid "Save application"
+msgstr "Guardar la aplicación"
+
+msgid ""
+"Tesla verifies a public key on the allowed domain before granting vehicle "
+"access."
+msgstr ""
+"Tesla verifica una clave pública en el dominio autorizado antes de dar "
+"acceso a los vehículos."
+
+#, python-format
+msgid "Domain %(domain)s registered as partner for the EU region."
+msgstr "Dominio %(domain)s registrado como partner en la región EU."
+
+msgid ""
+"Expected domain: <code>mehdirahbe.github.io</code> · Allowed Origin: "
+"<code>https://mehdirahbe.github.io</code>"
+msgstr ""
+"Dominio esperado: <code>mehdirahbe.github.io</code> · Allowed Origin: "
+"<code>https://mehdirahbe.github.io</code>"
+
+msgid ""
+"Use <code>mehdirahbe.github.io</code> as the partner domain, without a "
+"protocol."
+msgstr ""
+"Usa <code>mehdirahbe.github.io</code> como dominio partner, sin protocolo."
+
+msgid ""
+"Keep <code>https://mehdirahbe.github.io</code> in the allowed origins of the "
+"Tesla dashboard."
+msgstr ""
+"Mantén <code>https://mehdirahbe.github.io</code> en los orígenes permitidos "
+"del panel de Tesla."
+
+msgid "Verify the published key, register the EU region, then resync vehicles."
+msgstr ""
+"Verifica la clave publicada, registra la región EU y resincroniza los "
+"vehículos."
+
+msgid "Generate EC key"
+msgstr "Generar clave EC"
+
+msgid "Verify key"
+msgstr "Verificar clave"
+
+msgid "Register · EU"
+msgstr "Registrar · EU"
+
+msgid "Public URL"
+msgstr "URL pública"
+
+msgid "Local file"
+msgstr "Archivo local"
+
+msgid "Show public key"
+msgstr "Mostrar clave pública"
+
+msgid "Tesla account authorization"
+msgstr "Autorización de la cuenta Tesla"
+
+msgid ""
+"Tesla will ask you to confirm access. MaTesla never receives your password."
+msgstr ""
+"Tesla te pedirá confirmar el acceso. MaTesla nunca recibe tu contraseña."
+
+msgid "Redirect URI"
+msgstr "URI de redirección"
+
+msgid "Sign in with Tesla"
+msgstr "Iniciar sesión con Tesla"
+
+msgid "Save the Client ID and secret in step 1 first."
+msgstr "Guarda primero el Client ID y el secret en el paso 1."
+
 msgid "Connection error"
 msgstr "Error de conexión"
+
+msgid "Network"
+msgstr "Red"
 
 msgid "Connection error. Please check your internet connection."
 msgstr "Error de conexión. Comprueba tu conexión a internet."
@@ -195,11 +272,11 @@ msgstr "Error de conexión. Comprueba tu conexión a internet."
 msgid "Retry?"
 msgstr "¿Reintentar?"
 
-msgid "Tesla account"
-msgstr "Cuenta Tesla"
-
 msgid "No vehicles"
 msgstr "Sin vehículos"
+
+msgid "Empty garage"
+msgstr "Garaje vacío"
 
 msgid ""
 "No vehicles are associated to your account. Please retry when your car will "
@@ -207,12 +284,6 @@ msgid ""
 msgstr ""
 "No hay vehículos asociados a tu cuenta. Reinténtalo cuando el coche esté "
 "disponible."
-
-msgid "Command failed"
-msgstr "Comando fallido"
-
-msgid "Tesla server did return an error when executing a command"
-msgstr "El servidor Tesla devolvió un error al ejecutar un comando"
 
 msgid "Tesla server error"
 msgstr "Error del servidor Tesla"
@@ -235,6 +306,7 @@ msgstr "dormido"
 msgid "offline"
 msgstr "sin conexión"
 
+#, python-format
 msgid "%(name)s vehicle"
 msgstr "vehículo %(name)s"
 
@@ -259,102 +331,6 @@ msgstr "Firmware"
 msgid "Charge status"
 msgstr "Estado de carga"
 
-msgid "My data"
-msgstr "Mis datos"
-
-msgid "Day map"
-msgstr "Mapa del día"
-
-msgid "Firmware history"
-msgstr "Historial de firmware"
-
-msgid "Remote control"
-msgstr "Control remoto"
-
-msgid "Quick commands"
-msgstr "Comandos rápidos"
-
-msgid "The most useful commands, without detours."
-msgstr "Los comandos más útiles, sin rodeos."
-
-msgid "Remote commands"
-msgstr "Comandos remotos"
-
-msgid "LOCK · ON"
-msgstr "CIERRE · ON"
-
-msgid "Unlock car"
-msgstr "Desbloquear"
-
-msgid "Car is currently locked"
-msgstr "El coche está bloqueado"
-
-msgid "LOCK · OFF"
-msgstr "CIERRE · OFF"
-
-msgid "Lock car"
-msgstr "Bloquear el coche"
-
-msgid "Car is currently unlocked"
-msgstr "El coche está desbloqueado"
-
-msgid "CLIMATE · ON"
-msgstr "CLIMA · ON"
-
-msgid "Stop climate"
-msgstr "Detener climatización"
-
-msgid "CLIMATE · OFF"
-msgstr "CLIMA · OFF"
-
-msgid "Start climate"
-msgstr "Iniciar climatización"
-
-msgid "PORT · OPEN"
-msgstr "PUERTO · ABIERTO"
-
-msgid "Close charge port"
-msgstr "Cerrar puerto de carga"
-
-msgid "PORT · CLOSED"
-msgstr "PUERTO · CERRADO"
-
-msgid "Open charge port"
-msgstr "Abrir puerto de carga"
-
-msgid "LIGHTS"
-msgstr "LUCES"
-
-msgid "Flash lights"
-msgstr "Parpadear luces"
-
-msgid "Locate the car visually"
-msgstr "Localizar el coche visualmente"
-
-msgid "Sound the horn now?"
-msgstr "¿Tocar el claxon ahora?"
-
-msgid "HORN"
-msgstr "CLAXON"
-
-msgid "Honk horn"
-msgstr "Tocar el claxon"
-
-msgid "Use with consideration"
-msgstr "Usar con precaución"
-
-msgid "Continue to remote drive activation?"
-msgstr "¿Continuar con la activación de conducción remota?"
-
-msgid "REMOTE DRIVE"
-msgstr "CONDUCCIÓN REMOTA"
-
-msgid "Start without key"
-msgstr "Arrancar sin llave"
-
-msgid "Requires account password"
-msgstr "Requiere la contraseña de la cuenta"
-
 msgid "Telemetry"
 msgstr "Telemetría"
 
@@ -376,14 +352,23 @@ msgstr "Identidad"
 msgid "State"
 msgstr "Estado"
 
+msgid "Car type"
+msgstr "Tipo de coche"
+
+msgid "Exterior color"
+msgstr "Color exterior"
+
+msgid "Wheel"
+msgstr "Ruedas"
+
 msgid "Sentry"
 msgstr "Sentry"
 
-msgid "Active, stop?"
-msgstr "Activo, ¿detener?"
+msgid "Active"
+msgstr "Activo"
 
-msgid "Inactive, start?"
-msgstr "Inactivo, ¿iniciar?"
+msgid "Inactive"
+msgstr "Inactivo"
 
 msgid "Valet mode"
 msgstr "Modo valet"
@@ -391,20 +376,23 @@ msgstr "Modo valet"
 msgid "Battery level"
 msgstr "Nivel de batería"
 
+#, python-format
 msgid "Usable battery level (%%)"
 msgstr "Nivel de batería utilizable (%%)"
 
 msgid "Battery range km"
 msgstr "Autonomía de batería km"
 
+#, python-format
 msgid "Battery degradation (%%)"
 msgstr "Degradación de la batería (%%)"
 
+#, python-format
 msgid "Battery charge limit (%%)"
 msgstr "Límite de carga de la batería (%%)"
 
-msgid "Change"
-msgstr "Cambiar"
+msgid "Charge port"
+msgstr "Puerto de carga"
 
 msgid "Voltage in V"
 msgstr "Tensión en V"
@@ -420,18 +408,6 @@ msgstr "Número de fases"
 
 msgid "Time left in minutes"
 msgstr "Tiempo restante en minutos"
-
-msgid "Charging"
-msgstr "Carga"
-
-msgid "Start charge"
-msgstr "Iniciar carga"
-
-msgid "Stop charging now?"
-msgstr "¿Detener la carga ahora?"
-
-msgid "Stop charge"
-msgstr "Detener carga"
 
 msgid "Vehicle is unplugged"
 msgstr "El vehículo no está enchufado"
@@ -450,6 +426,12 @@ msgstr "Ubicación"
 
 msgid "Map"
 msgstr "Mapa"
+
+msgid "Estim. number of battery cycles"
+msgstr "N.º estimado de ciclos de batería"
+
+msgid "EPA Range (miles)"
+msgstr "Autonomía EPA (millas)"
 
 msgid "Climate information"
 msgstr "Información climática"
@@ -472,11 +454,11 @@ msgstr "Temperatura del conductor"
 msgid "Software"
 msgstr "Software"
 
+msgid "Firmware version"
+msgstr "Versión de firmware"
+
 msgid "Update ready"
 msgstr "Actualización lista"
-
-msgid "Install"
-msgstr "Instalar"
 
 msgid "Scheduled update"
 msgstr "Actualización programada"
@@ -502,54 +484,39 @@ msgstr "Atajos del vehículo"
 msgid "Status"
 msgstr "Estado"
 
+msgid "My data"
+msgstr "Mis datos"
+
+msgid "Day map"
+msgstr "Mapa del día"
+
+msgid "Firmware history"
+msgstr "Historial de firmware"
+
 msgid "Your tesla is asleep"
 msgstr "Tu Tesla está dormido"
 
-msgid "Activate drive mode without phone/card"
-msgstr "Activar el modo de conducción sin teléfono/tarjeta"
-
-msgid ""
-"Once done you have 2 minutes to start driving the car. Also please unlock "
-"car if not yet done"
-msgstr ""
-"Hecho esto, tienes 2 minutos para empezar a conducir. Desbloquea el coche si"
-" aún no lo has hecho"
-
-msgid "Activate"
-msgstr "Activar"
-
-msgid "Cancel"
-msgstr "Cancelar"
-
-msgid "Save"
-msgstr "Guardar"
-
-msgid "History mode"
-msgstr "Modo historial"
-
-msgid "Live data unavailable"
-msgstr "Datos en directo no disponibles"
+msgid "Sleep mode"
+msgstr "Modo reposo"
 
 msgid "Fleet API limit reached"
 msgstr "Límite de la API Fleet alcanzado"
 
-msgid "The car is resting. MaTesla shows its history without ever waking it."
-msgstr ""
-"El coche descansa. MaTesla muestra su historial sin despertarlo nunca."
+msgid "Live data unavailable"
+msgstr "Datos en directo no disponibles"
+
+msgid "History mode"
+msgstr "Modo historial"
 
 msgid ""
 "MaTesla still shows history. Live status will return when the Tesla Fleet "
 "free credit resets or a payment method is added."
 msgstr ""
-"MaTesla sigue mostrando el historial. El estado en directo volverá cuando se"
-" reinicie el crédito gratuito de Tesla Fleet o se añada un método de pago."
+"MaTesla sigue mostrando el historial. El estado en directo volverá cuando se "
+"reinicie el crédito gratuito de Tesla Fleet o se añada un método de pago."
 
-msgid ""
-"No live data right now. Wake the car from the Tesla app if needed, then "
-"refresh its status here."
-msgstr ""
-"No hay datos en directo. Despierta el coche desde la app Tesla si hace falta"
-" y actualiza su estado aquí."
+msgid "The car is resting. MaTesla shows its history without ever waking it."
+msgstr "El coche descansa. MaTesla muestra su historial sin despertarlo nunca."
 
 msgid ""
 "Tesla disabled this account for usage limits (free monthly credit "
@@ -559,14 +526,93 @@ msgid ""
 msgstr ""
 "Tesla desactivó esta cuenta por límite de uso (crédito mensual gratuito "
 "agotado). No es que el coche duerma: el selector puede seguir mostrando «en "
-"línea» del último control correcto. La captura se pausa hasta que se levante"
-" el límite. Los gráficos de historial siguen disponibles abajo."
+"línea» del último control correcto. La captura se pausa hasta que se levante "
+"el límite. Los gráficos de historial siguen disponibles abajo."
+
+msgid ""
+"No live data right now. Wake the car from the Tesla app if needed, then "
+"refresh its status here."
+msgstr ""
+"No hay datos en directo. Despierta el coche desde la app Tesla si hace falta "
+"y actualiza su estado aquí."
 
 msgid "No history yet"
 msgstr "Aún no hay historial"
 
 msgid "The VIN for this vehicle is not known to MaTesla yet."
 msgstr "MaTesla aún no conoce el VIN de este vehículo."
+
+msgid "Developer credentials saved."
+msgstr "Credenciales de desarrollador guardadas."
+
+#, python-format
+msgid "Keys generated: %(pub)s (to publish) and %(priv)s (secret, local)."
+msgstr "Claves generadas: %(pub)s (a publicar) y %(priv)s (secreta, local)."
+
+msgid "Set a partner domain first."
+msgstr "Indica primero un dominio partner."
+
+#, python-format
+msgid ""
+"Partner register OK for « %(domain)s ». You can reconnect / resync vehicles "
+"now. Detail: %(result)s"
+msgstr ""
+"Registro partner OK para « %(domain)s ». Ya puedes reconectar / "
+"resincronizar vehículos. Detalle: %(result)s"
+
+msgid "No Tesla token — sign in first."
+msgstr "No hay token Tesla: inicia sesión primero."
+
+#, python-format
+msgid "%(count)s vehicle(s) synchronized. Active: %(label)s."
+msgstr "%(count)s vehículo(s) sincronizado(s). Activo: %(label)s."
+
+msgid "No vehicles on the Tesla account."
+msgstr "No hay vehículos en la cuenta Tesla."
+
+#, python-format
+msgid "Resync failed: %(err)s"
+msgstr "Resincronización fallida: %(err)s"
+
+msgid "Tesla account disconnected (tokens and vehicles removed)."
+msgstr "Cuenta Tesla desconectada (tokens y vehículos eliminados)."
+
+msgid "Active vehicle updated."
+msgstr "Vehículo activo actualizado."
+
+msgid "Unknown vehicle."
+msgstr "Vehículo desconocido."
+
+msgid "Configure the Client ID and Client Secret first."
+msgstr "Configura primero el Client ID y el Client Secret."
+
+#, python-format
+msgid "Tesla denied authorization: %(error)s (%(desc)s)"
+msgstr "Tesla denegó la autorización: %(error)s (%(desc)s)"
+
+msgid "Invalid OAuth callback (missing code or state). Please try again."
+msgstr "Callback OAuth no válido (falta code o state). Inténtalo de nuevo."
+
+msgid ""
+"Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again, "
+"then use “Sign in with Tesla”."
+msgstr ""
+"Callback OAuth no válido (state desconocido o caducado). Vuelve a entrar en "
+"MaTesla y usa «Iniciar sesión con Tesla»."
+
+msgid "OAuth user not found."
+msgstr "Usuario OAuth no encontrado."
+
+msgid "Connected to Tesla, but no vehicles found on the account."
+msgstr "Conectado a Tesla, pero no se encontraron vehículos en la cuenta."
+
+#, python-format
+msgid "Tesla connected — %(count)s vehicle(s): %(names)s. Active: %(label)s."
+msgstr "Tesla conectado — %(count)s vehículo(s): %(names)s. Activo: %(label)s."
+
+#, python-format
+msgid "Unexpected error: %(err)s"
+msgstr "Error inesperado: %(err)s"
 
 msgid "English"
 msgstr "Inglés"
@@ -577,8 +623,40 @@ msgstr "Francés"
 msgid "Espanol"
 msgstr "Español"
 
+msgid "Write operations are only allowed from the local server."
+msgstr "Las operaciones de escritura solo se permiten desde el servidor local."
+
+msgid "Software timeline"
+msgstr "Cronología de software"
+
+msgid "All firmware versions detected on your vehicle, in chronological order."
+msgstr ""
+"Todas las versiones de firmware detectadas en tu vehículo, en orden "
+"cronológico."
+
 msgid "Download my Data"
 msgstr "Descargar mis datos"
+
+msgid "Version timeline"
+msgstr "Línea de tiempo de versiones"
+
+#, python-format
+msgid "%(n)s version detected"
+msgid_plural "%(n)s versions detected"
+msgstr[0] "%(n)s versión detectada"
+msgstr[1] "%(n)s versiones detectadas"
+
+msgid "newest on the left"
+msgstr "las más recientes a la izquierda"
+
+#, python-format
+msgid "%(n)s day"
+msgid_plural "%(n)s days"
+msgstr[0] "%(n)s día"
+msgstr[1] "%(n)s días"
+
+msgid "Current"
+msgstr "Actual"
 
 msgid "Period"
 msgstr "Periodo"
@@ -613,11 +691,20 @@ msgstr "10 años"
 msgid "Personal charts"
 msgstr "Gráficos personales"
 
+msgid "01 · BATTERY"
+msgstr "01 · BATERÍA"
+
+msgid "Battery degradation graphs"
+msgstr "Gráficos de degradación de batería"
+
 msgid "Expand"
 msgstr "Ampliar"
 
 msgid "Expand chart"
 msgstr "Ampliar el gráfico"
+
+msgid "Battery graph"
+msgstr "Gráfico de batería"
 
 msgid "Degradation vs odometer"
 msgstr "Degradación vs odómetro"
@@ -631,11 +718,26 @@ msgstr "Autonomía a carga completa vs odómetro"
 msgid "Range at full charge over time"
 msgstr "Autonomía a carga completa en el tiempo"
 
+msgid "02 · CHARGE"
+msgstr "02 · CARGA"
+
 msgid "Charge related graphs"
 msgstr "Gráficos relacionados con la carga"
 
 msgid "Charge graph"
 msgstr "Gráfico de carga"
+
+msgid "03 · USAGE"
+msgstr "03 · USO"
+
+msgid "Trip efficiency graphs"
+msgstr "Gráficos de eficiencia de viajes"
+
+msgid "Usage graph"
+msgstr "Gráfico de uso"
+
+msgid "04 · CLIMATE"
+msgstr "04 · CLIMA"
 
 msgid "Temperature related graphs"
 msgstr "Gráficos de temperatura"
@@ -643,11 +745,74 @@ msgstr "Gráficos de temperatura"
 msgid "Temperature graph"
 msgstr "Gráfico de temperatura"
 
+msgid "05 · DRIVE"
+msgstr "05 · CONDUCCIÓN"
+
 msgid "Drive related graphs"
 msgstr "Gráficos de conducción"
 
 msgid "Drive graph"
 msgstr "Gráfico de conducción"
+
+msgid "06 · FLEET"
+msgstr "06 · FLOTA"
+
+msgid "Fleet poll cost"
+msgstr "Coste del polling Fleet"
+
+msgid ""
+"MaTesla polls only (TeslaFi excluded), day by day, max 30 days. EUR if Fleet "
+"app is EU, else USD. One saved sample ≈ one Data request; Tesla portal can "
+"lag."
+msgstr ""
+"Solo polls MaTesla (TeslaFi excluido), día a día, máx. 30 días. EUR si la "
+"app Fleet es EU, si no USD. Una muestra ≈ una petición Data; el portal "
+"Tesla puede ir retrasado."
+
+msgid "Lifetime map"
+msgstr "Mapa lifetime"
+
+msgid "07 · MAP"
+msgstr "07 · MAPA"
+
+msgid "GPS tracks and trip totals for the selected period."
+msgstr "Trazas GPS y totales de viajes del período seleccionado."
+
+msgid "Fullscreen map"
+msgstr "Mapa a pantalla completa"
+
+msgid "Drives"
+msgstr "Trayectos"
+
+msgid "Kilometers driven"
+msgstr "Kilómetros recorridos"
+
+msgid "Rated km used"
+msgstr "Km de autonomía usados"
+
+msgid "Wh/km"
+msgstr "Wh/km"
+
+msgid "Efficiency"
+msgstr "Eficiencia"
+
+msgid "kWh used"
+msgstr "kWh usados"
+
+msgid "Avg speed"
+msgstr "Velocidad media"
+
+msgid "Avg temp"
+msgstr "Temp. media"
+
+msgid "Time driving"
+msgstr "Tiempo de conducción"
+
+msgid "Lifetime GPS map"
+msgstr "Mapa GPS lifetime"
+
+msgid "Loading map…"
+msgstr "Cargando mapa…"
 
 msgid "Close"
 msgstr "Cerrar"
@@ -655,11 +820,45 @@ msgstr "Cerrar"
 msgid "Press Esc or click outside to close."
 msgstr "Pulsa Esc o haz clic fuera para cerrar."
 
+msgid "No GPS track for this period."
+msgstr "Sin traza GPS para este período."
+
+msgid "Could not load the map."
+msgstr "No se pudo cargar el mapa."
+
+msgid "d"
+msgstr "d"
+
+msgid "h"
+msgstr "h"
+
+msgid "min"
+msgstr "min"
+
+msgid "Exit fullscreen"
+msgstr "Salir de pantalla completa"
+
 msgid "Personal stats"
 msgstr "Estadísticas personales"
 
+msgid "Telemetry archive"
+msgstr "Archivo de telemetría"
+
+msgid ""
+"Understand how your car evolves through battery, charge, climate and drive "
+"history."
+msgstr ""
+"Comprende la evolución de tu coche a través de batería, carga, clima y "
+"conducción."
+
+msgid "Journey replay"
+msgstr "Repetición del trayecto"
+
 msgid "Where was the car"
 msgstr "Dónde estaba el coche"
+
+msgid "drives, charges and GPS points"
+msgstr "trayectos, cargas y puntos GPS"
 
 msgid "Previous day"
 msgstr "Día anterior"
@@ -682,14 +881,12 @@ msgstr "No hay puntos GPS para este día (solo telemetría)."
 msgid "GPS points"
 msgstr "Puntos GPS"
 
+#, python-format
 msgid "%(n)s drawn on map"
 msgstr "%(n)s dibujados en el mapa"
 
 msgid "Track"
 msgstr "Recorrido"
-
-msgid "Drives"
-msgstr "Trayectos"
 
 msgid "Charges"
 msgstr "Cargas"
@@ -703,9 +900,6 @@ msgstr "Fin"
 msgid "Distance"
 msgstr "Distancia"
 
-msgid "Avg speed"
-msgstr "Velocidad media"
-
 msgid "SoC start"
 msgstr "SoC inicial"
 
@@ -718,6 +912,7 @@ msgstr "SoC consumido"
 msgid "kWh/100 km"
 msgstr "kWh/100 km"
 
+#, python-format
 msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range)."
 msgstr ""
 "Las estimaciones kWh usan un pack de ~%(kwh)s kWh (según autonomía EPA)."
@@ -758,6 +953,9 @@ msgstr "No hay datos para este día."
 msgid "Try another date with the arrows or the date picker."
 msgstr "Prueba otra fecha con las flechas o el selector de fecha."
 
+msgid "Outside temperature (°C)"
+msgstr "Temperatura exterior (°C)"
+
 msgid "Driver temperature (°C)"
 msgstr "Temperatura del conductor (°C)"
 
@@ -767,8 +965,11 @@ msgstr "Temperatura interior (°C)"
 msgid "Passenger temperature (°C)"
 msgstr "Temperatura del pasajero (°C)"
 
-msgid "Speed (mi/h)"
-msgstr "Velocidad (mi/h)"
+msgid "Odometer (miles)"
+msgstr "Odómetro (millas)"
+
+msgid "Speed distribution"
+msgstr "Distribución de velocidades"
 
 msgid "Latitude"
 msgstr "Latitud"
@@ -776,11 +977,8 @@ msgstr "Latitud"
 msgid "Longitude"
 msgstr "Longitud"
 
-msgid "Power (kW)"
-msgstr "Potencia (kW)"
-
-msgid "Charge limit distribution"
-msgstr "Distribución del límite de carga"
+msgid "Power distribution"
+msgstr "Distribución de potencia"
 
 msgid "SoC at end of charge"
 msgstr "SoC al final de la carga"
@@ -788,84 +986,11 @@ msgstr "SoC al final de la carga"
 msgid "Daily minimum SoC"
 msgstr "SoC mínimo diario"
 
-msgid "Peak SoC during charge"
-msgstr "SoC máx. durante la carga"
-
-msgid "sessions classified by max SoC while charging"
-msgstr "sesiones clasificadas por SoC máx. en carga"
-
-msgid "one value per calendar day"
-msgstr "un valor por día civil"
-
-msgid "Days"
-msgstr "Días"
-
-msgid "Charger power distribution"
-msgstr "Distribución de la potencia de carga"
+msgid "Charge limit distribution"
+msgstr "Distribución del límite de carga"
 
 msgid "Charge rate distribution"
 msgstr "Distribución de la velocidad de carga"
-
-msgid "Peak charger power"
-msgstr "Potencia máxima alcanzada"
-
-msgid "Peak charge rate"
-msgstr "Velocidad de carga máxima alcanzada"
-
-msgid "Sessions ≥ %(min)s min · n=%(n)s · peak per session"
-msgstr "Sesiones ≥ %(min)s min · n=%(n)s · pico por sesión"
-
-msgid "mi = rated range added"
-msgstr "mi = autonomía nominal añadida"
-
-msgid "n=%(n)s sessions (≥%(min)s min) · bars = peak · mi = range added"
-msgstr ""
-"n=%(n)s sesiones (≥%(min)s min) · barras = pico · mi = autonomía añadida"
-
-msgid "n=%(n)s sessions (≥%(min)s min) · bars = peak kW · kWh added"
-msgstr "n=%(n)s sesiones (≥%(min)s min) · barras = pico kW · kWh añadidos"
-
-msgid "n=%(n)s sessions (≥%(min)s min)"
-msgstr "n=%(n)s sesiones (≥%(min)s min)"
-
-msgid "Charge sessions"
-msgstr "Sesiones de carga"
-
-msgid "Charge limit"
-msgstr "Límite de carga"
-
-msgid "Sessions ≥ %(min)s min · n=%(n)s"
-msgstr "Sesiones ≥ %(min)s min · n=%(n)s"
-
-msgid "Efficiency vs average speed"
-msgstr "Eficiencia según la velocidad media"
-
-msgid "Efficiency vs outside temperature"
-msgstr "Eficiencia según la temperatura exterior"
-
-msgid "Average speed (km/h)"
-msgstr "Velocidad media (km/h)"
-
-msgid "Efficiency (%)"
-msgstr "Eficiencia (%)"
-
-msgid "Distance (km)"
-msgstr "Distancia (km)"
-
-msgid "Distance recorded (km)"
-msgstr "Distancia registrada (km)"
-
-msgid "Efficiency"
-msgstr "Eficiencia"
-
-msgid "Trips ≥ 10 km · 100% = matched rated range use"
-msgstr "Viajes ≥ 10 km · 100 % = consumo igual a la autonomía nominal"
-
-msgid "Battery range (miles)"
-msgstr "Autonomía de batería (millas)"
-
-msgid "Charge rate (mi/h)"
-msgstr "Velocidad de carga (mi/h)"
 
 msgid "Charger actual current (A)"
 msgstr "Corriente real del cargador (A)"
@@ -873,8 +998,8 @@ msgstr "Corriente real del cargador (A)"
 msgid "Charger phases"
 msgstr "Fases del cargador"
 
-msgid "Charger power (kW)"
-msgstr "Potencia del cargador (kW)"
+msgid "Charger power distribution"
+msgstr "Distribución de la potencia de carga"
 
 msgid "Charger voltage (V)"
 msgstr "Tensión del cargador (V)"
@@ -894,6 +1019,38 @@ msgstr "Autonomía a carga completa (millas)"
 msgid "Range at full charge vs odometer (miles)"
 msgstr "Autonomía a carga completa vs odómetro (millas)"
 
+msgid "Efficiency vs average speed"
+msgstr "Eficiencia según la velocidad media"
+
+msgid "Efficiency vs outside temperature"
+msgstr "Eficiencia según la temperatura exterior"
+
+msgid "Fleet poll cost (estimate)"
+msgstr "Coste del polling Fleet (estimación)"
+
+msgid "Estimated cost (EUR)"
+msgstr "Coste estimado (EUR)"
+
+msgid "Estimated cost (USD)"
+msgstr "Coste estimado (USD)"
+
+msgid "Day"
+msgstr "Día"
+
+msgid "Data requests"
+msgstr "Peticiones Data"
+
+#, python-format
+msgid ""
+"n=%(n)s polls · est. %(money)s Data (@ %(rate)s/req) · this car · TeslaFi "
+"excluded · max %(days)s days · Tesla portal may lag"
+msgstr ""
+"n=%(n)s polls · est. %(money)s Data (@ %(rate)s/req) · este coche · "
+"TeslaFi excluido · máx. %(days)s días · el portal Tesla puede ir retrasado"
+
+msgid "No MaTesla samples in this period"
+msgstr "No hay muestras MaTesla en este período"
+
 msgid "Minimum"
 msgstr "Mínimo"
 
@@ -902,6 +1059,124 @@ msgstr "Media"
 
 msgid "Maximum"
 msgstr "Máximo"
+
+msgid "Monthly range (min–max)"
+msgstr "Rango mensual (mín–máx)"
+
+msgid "Monthly minimum"
+msgstr "Mínimo mensual"
+
+msgid "Monthly average"
+msgstr "Media mensual"
+
+msgid "Monthly maximum"
+msgstr "Máximo mensual"
+
+#, python-format
+msgid "Record min %(t).1f °C · %(when)s"
+msgstr "Récord mín. %(t).1f °C · %(when)s"
+
+#, python-format
+msgid "Record max %(t).1f °C · %(when)s"
+msgstr "Récord máx. %(t).1f °C · %(when)s"
+
+msgid ""
+"One min / avg / max per calendar month · band = monthly range · gaps = no "
+"data"
+msgstr ""
+"Un mín / media / máx por mes civil · banda = rango mensual · huecos = sin "
+"datos"
+
+msgid "Average speed (km/h)"
+msgstr "Velocidad media (km/h)"
+
+msgid "Charge limit"
+msgstr "Límite de carga"
+
+msgid "Charge sessions"
+msgstr "Sesiones de carga"
+
+#, python-format
+msgid "n=%(n)s sessions (≥%(min)s min) · bars = peak kW · kWh added"
+msgstr "n=%(n)s sesiones (≥%(min)s min) · barras = pico kW · kWh añadidos"
+
+#, python-format
+msgid "n=%(n)s sessions (≥%(min)s min) · bars = peak · mi = range added"
+msgstr ""
+"n=%(n)s sesiones (≥%(min)s min) · barras = pico · mi = autonomía añadida"
+
+#, python-format
+msgid "n=%(n)s"
+msgstr "n=%(n)s"
+
+#, python-format
+msgid "n=%(n)s sessions (≥%(min)s min)"
+msgstr "n=%(n)s sesiones (≥%(min)s min)"
+
+msgid "Distance recorded (km)"
+msgstr "Distancia registrada (km)"
+
+msgid "Efficiency (%)"
+msgstr "Eficiencia (%)"
+
+msgid "Distance (km)"
+msgstr "Distancia (km)"
+
+msgid "Trips ≥ 10 km · 100% = matched rated range use"
+msgstr "Viajes ≥ 10 km · 100 % = consumo igual a la autonomía nominal"
+
+msgid "Samples"
+msgstr "Muestras"
+
+msgid "Speed (km/h)"
+msgstr "Velocidad (km/h)"
+
+msgid "drive samples only · Tesla speed converted mph→km/h"
+msgstr "solo muestras en marcha · velocidad Tesla convertida mi/h→km/h"
+
+#, python-format
+msgid ""
+"n=%(n)s · regen %(regen).1f kWh / traction %(trac).1f kWh = %(pct).1f%% "
+"recovered"
+msgstr ""
+"n=%(n)s · regen. %(regen).1f kWh / tracción %(trac).1f kWh = %(pct).1f%% "
+"recuperados"
+
+#, python-format
+msgid ""
+"n=%(n)s · regen vs traction = %(pct).1f%% (sample power ratio · green = "
+"regen)"
+msgstr ""
+"n=%(n)s · regen. vs tracción = %(pct).1f%% (ratio de muestras · verde = "
+"regen.)"
+
+#, python-format
+msgid "n=%(n)s drive samples · green = regen · blue/red = traction"
+msgstr "n=%(n)s muestras · verde = regen. · azul/rojo = tracción"
+
+msgid "No drive power samples in this period"
+msgstr "Sin muestras de potencia en este período"
+
+msgid "Power (kW) · negative = regen"
+msgstr "Potencia (kW) · negativo = regeneración"
+
+msgid "Peak charger power"
+msgstr "Potencia máxima alcanzada"
+
+msgid "Peak charge rate"
+msgstr "Velocidad de carga máxima alcanzada"
+
+msgid "Peak SoC during charge"
+msgstr "SoC máx. durante la carga"
+
+msgid "sessions classified by max SoC while charging"
+msgstr "sesiones clasificadas por SoC máx. en carga"
+
+msgid "one value per calendar day"
+msgstr "un valor por día civil"
+
+msgid "Days"
+msgstr "Días"
 
 msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
 msgstr "Fecha no válida. Usa DD/MM/AAAA o AAAA-MM-DD."
@@ -914,12 +1189,6 @@ msgstr "Compañero de vehículo de código abierto"
 
 msgid "Main navigation"
 msgstr "Navegación principal"
-
-msgid "Fleet stats"
-msgstr "Estadísticas de flota"
-
-msgid "Signup"
-msgstr "Crear cuenta"
 
 msgid "logout"
 msgstr "Cerrar sesión"
@@ -943,8 +1212,8 @@ msgid ""
 "updates are also available."
 msgstr ""
 "MaTesla es un sitio web libre en Python/Django que usa la API de Tesla para "
-"conectar con tu coche, ver su estado y ubicación, y controlar a distancia la"
-" carga, la temperatura, etc. También hay estadísticas de actualizaciones de "
+"conectar con tu coche, ver su estado y ubicación, y controlar a distancia la "
+"carga, la temperatura, etc. También hay estadísticas de actualizaciones de "
 "firmware."
 
 msgid "Private space"
@@ -952,6 +1221,9 @@ msgstr "Espacio privado"
 
 msgid "Forgotten password?"
 msgstr "¿Contraseña olvidada?"
+
+msgid "Signup"
+msgstr "Crear cuenta"
 
 msgid "Your tesla odometer graph in function of time. Who drives the most?"
 msgstr ""
@@ -973,8 +1245,8 @@ msgid ""
 "The password reset link was invalid, possibly because it has already been "
 "used. Please request a new password reset."
 msgstr ""
-"El enlace de restablecimiento no es válido, quizá porque ya se usó. Solicita"
-" uno nuevo."
+"El enlace de restablecimiento no es válido, quizá porque ya se usó. Solicita "
+"uno nuevo."
 
 msgid "Password reset"
 msgstr "Restablecer contraseña"
@@ -1018,489 +1290,307 @@ msgstr "Atentamente, el equipo MaTesla"
 msgid "Send e-mail"
 msgstr "Enviar correo"
 
-msgid "01 · BATTERY"
-msgstr "01 · BATERÍA"
+#~ msgid ""
+#~ "Estimated Data cost from saved samples for this car only (not the Tesla "
+#~ "portal total)."
+#~ msgstr ""
+#~ "Coste Data estimado a partir de las muestras guardadas solo de este coche "
+#~ "(no el total del portal Tesla)."
 
-msgid "02 · CHARGE"
-msgstr "02 · CARGA"
+#~ msgid "Week (Monday)"
+#~ msgstr "Semana (lunes)"
 
-msgid "03 · USAGE"
-msgstr "03 · USO"
+#, python-format
+#~ msgid ""
+#~ "n=%(n)s saved samples · est. $%(usd).2f Data (@ $%(rate).3f/req) · this "
+#~ "car only · not Tesla portal total"
+#~ msgstr ""
+#~ "n=%(n)s muestras · est. $%(usd).2f Data (@ $%(rate).3f/req) · solo este "
+#~ "coche · no el total del portal Tesla"
 
-msgid "04 · CLIMATE"
-msgstr "04 · CLIMA"
+#~ msgid "Firmware and cars Stats"
+#~ msgstr "Estadísticas de firmware y coches"
 
-msgid "05 · DRIVE"
-msgstr "05 · CONDUCCIÓN"
+#~ msgid "Fleet intelligence"
+#~ msgstr "Inteligencia de flota"
 
-msgid "03 · CLIMATE"
-msgstr "03 · CLIMA"
+#~ msgid ""
+#~ "An anonymised view of the fleet for battery health, equipment and "
+#~ "software versions."
+#~ msgstr ""
+#~ "Vista anonimizada de la flota para situar batería, equipamiento y "
+#~ "versiones de software."
 
-msgid "04 · DRIVE"
-msgstr "04 · CONDUCCIÓN"
+#~ msgid "Back to my car"
+#~ msgstr "Volver a mi coche"
 
-msgid "Trip efficiency graphs"
-msgstr "Gráficos de eficiencia de viajes"
+#~ msgid "Fleet charts"
+#~ msgstr "Gráficos de flota"
 
-msgid "Usage graph"
-msgstr "Gráfico de uso"
+#~ msgid "01 · BATTERY HEALTH"
+#~ msgstr "01 · SALUD BATERÍA"
 
-msgid "Sleep mode"
-msgstr "Modo reposo"
+#~ msgid "02 · SOFTWARE"
+#~ msgstr "02 · Software"
 
-msgid "Network"
-msgstr "Red"
+#~ msgid "Firmware graph"
+#~ msgstr "Gráfico de firmware"
 
-msgid "Empty garage"
-msgstr "Garaje vacío"
+#~ msgid "Most recent Firmware updates"
+#~ msgstr "Actualizaciones de firmware más recientes"
 
-msgid "Tesla Fleet API"
-msgstr "API Tesla Fleet"
+#~ msgid "Download Firmware Stats"
+#~ msgstr "Descargar estadísticas de firmware"
 
-msgid "Command interrupted"
-msgstr "Comando interrumpido"
+#~ msgid "Cars statistics"
+#~ msgstr "Estadísticas de coches"
 
-msgid "Charge settings"
-msgstr "Ajustes de carga"
+#~ msgid "Car criterion"
+#~ msgstr "Criterio del coche"
 
-msgid "Climate settings"
-msgstr "Ajustes de climatización"
+#~ msgid "Car model"
+#~ msgstr "Modelo de coche"
 
-msgid "Sensitive command"
-msgstr "Comando sensible"
+#~ msgid "All models"
+#~ msgstr "Todos los modelos"
 
-msgid "Telemetry archive"
-msgstr "Archivo de telemetría"
+#~ msgid "Car addition Date"
+#~ msgstr "Fecha de alta del coche"
 
-msgid ""
-"Understand how your car evolves through battery, charge, climate and drive "
-"history."
-msgstr ""
-"Comprende la evolución de tu coche a través de batería, carga, clima y "
-"conducción."
+#~ msgid "Has air suspension"
+#~ msgstr "Suspensión neumática"
 
-msgid "Journey replay"
-msgstr "Repetición del trayecto"
+#~ msgid "Has ludicrous mode"
+#~ msgstr "Modo Ludicrous"
 
-msgid "drives, charges and GPS points"
-msgstr "trayectos, cargas y puntos GPS"
+#~ msgid "Is charge port motorized"
+#~ msgstr "Puerto de carga motorizado"
 
-msgid "Software timeline"
-msgstr "Cronología de software"
+#~ msgid "Has rear seat heaters"
+#~ msgstr "Asientos traseros calefactados"
 
-msgid ""
-"All firmware versions detected on your vehicle, in chronological order."
-msgstr ""
-"Todas las versiones de firmware detectadas en tu vehículo, en orden "
-"cronológico."
+#~ msgid "Right hand drive"
+#~ msgstr "Conducción a la derecha"
 
-msgid "Active"
-msgstr "Activo"
+#~ msgid "Roof color"
+#~ msgstr "Color del techo"
 
-msgid "Inactive"
-msgstr "Inactivo"
+#~ msgid "Is sentry mode available"
+#~ msgstr "Modo Sentry disponible"
 
-msgid "Write operations are only allowed from the local server."
-msgstr ""
-"Las operaciones de escritura solo se permiten desde el servidor local."
+#~ msgid "Is FSD enabled"
+#~ msgstr "Conducción autónoma (FSD) activa"
 
-msgid "Tesla connection"
-msgstr "Conexión Tesla"
+#~ msgid "European union car"
+#~ msgstr "Coche de la Unión Europea"
 
-msgid "Connect your car."
-msgstr "Conecta tu coche."
+#~ msgid "Is Dual Motor"
+#~ msgstr "Doble motor"
 
-msgid ""
-"Configure the app, register the partner domain, then authorize MaTesla. Your"
-" secrets stay stored locally."
-msgstr ""
-"Configura la app, registra el dominio partner y autoriza MaTesla. Tus "
-"secretos se guardan en local."
+#~ msgid "Car year"
+#~ msgstr "Año del coche"
 
-msgid "Developer application"
-msgstr "Aplicación de desarrollador"
-
-msgid "Tesla Client ID and secret"
-msgstr "Client ID y secret de Tesla"
+#~ msgid "Battery level (%)"
+#~ msgstr "Nivel de batería (%)"
 
-msgid "Partner domain"
-msgstr "Dominio partner"
+#~ msgid "Battery charge limit (%)"
+#~ msgstr "Límite de carga de la batería (%)"
 
-msgid "Public key and EU region"
-msgstr "Clave pública y región EU"
+#~ msgid "No Value"
+#~ msgstr "Sin valor"
 
-msgid "OAuth authorization"
-msgstr "Autorización OAuth"
+#~ msgid "True"
+#~ msgstr "Verdadero"
 
-msgid "Account connected"
-msgstr "Cuenta conectada"
+#~ msgid "False"
+#~ msgstr "Falso"
 
-msgid "OAuth authorization is active until %(date)s."
-msgstr "La autorización OAuth está activa hasta el %(date)s."
+#~ msgid "Desired Charge Level"
+#~ msgstr "Nivel de carga deseado"
 
-msgid "OAuth authorization is active."
-msgstr "La autorización OAuth está activa."
+#~ msgid "Driver temperature"
+#~ msgstr "Temperatura del conductor"
 
-msgid "default vehicle"
-msgstr "vehículo predeterminado"
+#~ msgid "Please enter your Tesla account password"
+#~ msgstr "Introduce la contraseña de tu cuenta Tesla"
 
-msgid "Unknown state"
-msgstr "Estado desconocido"
+#~ msgid "Command failed"
+#~ msgstr "Comando fallido"
 
-msgid "active"
-msgstr "activo"
+#~ msgid "Tesla server did return an error when executing a command"
+#~ msgstr "El servidor Tesla devolvió un error al ejecutar un comando"
 
-msgid "No vehicles synchronized. Finish partner registration, then resync."
-msgstr ""
-"Ningún vehículo sincronizado. Termina el registro partner y resincroniza."
+#~ msgid "Remote control"
+#~ msgstr "Control remoto"
 
-msgid "Active vehicle"
-msgstr "Vehículo activo"
+#~ msgid "Quick commands"
+#~ msgstr "Comandos rápidos"
 
-msgid "Use this vehicle"
-msgstr "Usar este vehículo"
+#~ msgid "The most useful commands, without detours."
+#~ msgstr "Los comandos más útiles, sin rodeos."
 
-msgid "Resync"
-msgstr "Resincronizar"
+#~ msgid "Remote commands"
+#~ msgstr "Comandos remotos"
 
-msgid "Renew OAuth"
-msgstr "Renovar OAuth"
+#~ msgid "LOCK · ON"
+#~ msgstr "CIERRE · ON"
 
-msgid "Disconnect this Tesla account?"
-msgstr "¿Desconectar esta cuenta Tesla?"
+#~ msgid "Unlock car"
+#~ msgstr "Desbloquear"
 
-msgid "Disconnect"
-msgstr "Desconectar"
+#~ msgid "Car is currently locked"
+#~ msgstr "El coche está bloqueado"
 
-msgid ""
-"Copy credentials from <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>."
-msgstr ""
-"Copia las credenciales de <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>."
+#~ msgid "LOCK · OFF"
+#~ msgstr "CIERRE · OFF"
 
-msgid "Save application"
-msgstr "Guardar la aplicación"
+#~ msgid "Lock car"
+#~ msgstr "Bloquear el coche"
 
-msgid ""
-"Tesla verifies a public key on the allowed domain before granting vehicle "
-"access."
-msgstr ""
-"Tesla verifica una clave pública en el dominio autorizado antes de dar "
-"acceso a los vehículos."
+#~ msgid "Car is currently unlocked"
+#~ msgstr "El coche está desbloqueado"
 
-msgid "Domain %(domain)s registered as partner for the EU region."
-msgstr "Dominio %(domain)s registrado como partner en la región EU."
+#~ msgid "CLIMATE · ON"
+#~ msgstr "CLIMA · ON"
 
-msgid ""
-"Expected domain: <code>mehdirahbe.github.io</code> · Allowed Origin: "
-"<code>https://mehdirahbe.github.io</code>"
-msgstr ""
-"Dominio esperado: <code>mehdirahbe.github.io</code> · Allowed Origin: "
-"<code>https://mehdirahbe.github.io</code>"
+#~ msgid "Stop climate"
+#~ msgstr "Detener climatización"
 
-msgid ""
-"Use <code>mehdirahbe.github.io</code> as the partner domain, without a "
-"protocol."
-msgstr ""
-"Usa <code>mehdirahbe.github.io</code> como dominio partner, sin protocolo."
+#~ msgid "CLIMATE · OFF"
+#~ msgstr "CLIMA · OFF"
 
-msgid ""
-"Keep <code>https://mehdirahbe.github.io</code> in the allowed origins of the"
-" Tesla dashboard."
-msgstr ""
-"Mantén <code>https://mehdirahbe.github.io</code> en los orígenes permitidos "
-"del panel de Tesla."
+#~ msgid "Start climate"
+#~ msgstr "Iniciar climatización"
 
-msgid ""
-"Verify the published key, register the EU region, then resync vehicles."
-msgstr ""
-"Verifica la clave publicada, registra la región EU y resincroniza los "
-"vehículos."
+#~ msgid "PORT · OPEN"
+#~ msgstr "PUERTO · ABIERTO"
 
-msgid "Generate EC key"
-msgstr "Generar clave EC"
+#~ msgid "Close charge port"
+#~ msgstr "Cerrar puerto de carga"
 
-msgid "Verify key"
-msgstr "Verificar clave"
+#~ msgid "PORT · CLOSED"
+#~ msgstr "PUERTO · CERRADO"
 
-msgid "Register · EU"
-msgstr "Registrar · EU"
+#~ msgid "Open charge port"
+#~ msgstr "Abrir puerto de carga"
 
-msgid "Public URL"
-msgstr "URL pública"
+#~ msgid "LIGHTS"
+#~ msgstr "LUCES"
 
-msgid "Local file"
-msgstr "Archivo local"
+#~ msgid "Flash lights"
+#~ msgstr "Parpadear luces"
 
-msgid "Show public key"
-msgstr "Mostrar clave pública"
+#~ msgid "Locate the car visually"
+#~ msgstr "Localizar el coche visualmente"
 
-msgid "Tesla account authorization"
-msgstr "Autorización de la cuenta Tesla"
+#~ msgid "Sound the horn now?"
+#~ msgstr "¿Tocar el claxon ahora?"
 
-msgid ""
-"Tesla will ask you to confirm access. MaTesla never receives your password."
-msgstr ""
-"Tesla te pedirá confirmar el acceso. MaTesla nunca recibe tu contraseña."
+#~ msgid "HORN"
+#~ msgstr "CLAXON"
 
-msgid "Redirect URI"
-msgstr "URI de redirección"
+#~ msgid "Honk horn"
+#~ msgstr "Tocar el claxon"
 
-msgid "Sign in with Tesla"
-msgstr "Iniciar sesión con Tesla"
+#~ msgid "Use with consideration"
+#~ msgstr "Usar con precaución"
 
-msgid "Save the Client ID and secret in step 1 first."
-msgstr "Guarda primero el Client ID y el secret en el paso 1."
+#~ msgid "Continue to remote drive activation?"
+#~ msgstr "¿Continuar con la activación de conducción remota?"
 
-msgid "Partner domain (public HTTPS)"
-msgstr "Dominio partner (HTTPS público)"
+#~ msgid "REMOTE DRIVE"
+#~ msgstr "CONDUCCIÓN REMOTA"
 
-msgid ""
-"E.g. robotcar.example.com — not localhost. Must also be an Allowed Origin on"
-" developer.tesla.com"
-msgstr ""
-"Ej. robotcar.example.com — no localhost. También debe ser un Allowed Origin "
-"en developer.tesla.com"
+#~ msgid "Start without key"
+#~ msgstr "Arrancar sin llave"
 
-msgid "Developer credentials saved."
-msgstr "Credenciales de desarrollador guardadas."
+#~ msgid "Requires account password"
+#~ msgstr "Requiere la contraseña de la cuenta"
 
-msgid "Keys generated: %(pub)s (to publish) and %(priv)s (secret, local)."
-msgstr "Claves generadas: %(pub)s (a publicar) y %(priv)s (secreta, local)."
+#~ msgid "Active, stop?"
+#~ msgstr "Activo, ¿detener?"
 
-msgid "Set a partner domain first."
-msgstr "Indica primero un dominio partner."
+#~ msgid "Inactive, start?"
+#~ msgstr "Inactivo, ¿iniciar?"
 
-msgid ""
-"Partner register OK for « %(domain)s ». You can reconnect / resync vehicles "
-"now. Detail: %(result)s"
-msgstr ""
-"Registro partner OK para « %(domain)s ». Ya puedes reconectar / "
-"resincronizar vehículos. Detalle: %(result)s"
+#~ msgid "Change"
+#~ msgstr "Cambiar"
 
-msgid "No Tesla token — sign in first."
-msgstr "No hay token Tesla: inicia sesión primero."
+#~ msgid "Charging"
+#~ msgstr "Carga"
 
-msgid "%(count)s vehicle(s) synchronized. Active: %(label)s."
-msgstr "%(count)s vehículo(s) sincronizado(s). Activo: %(label)s."
+#~ msgid "Start charge"
+#~ msgstr "Iniciar carga"
 
-msgid "No vehicles on the Tesla account."
-msgstr "No hay vehículos en la cuenta Tesla."
+#~ msgid "Stop charging now?"
+#~ msgstr "¿Detener la carga ahora?"
 
-msgid "Resync failed: %(err)s"
-msgstr "Resincronización fallida: %(err)s"
+#~ msgid "Stop charge"
+#~ msgstr "Detener carga"
 
-msgid "Tesla account disconnected (tokens and vehicles removed)."
-msgstr "Cuenta Tesla desconectada (tokens y vehículos eliminados)."
+#~ msgid "Install"
+#~ msgstr "Instalar"
 
-msgid "Active vehicle updated."
-msgstr "Vehículo activo actualizado."
+#~ msgid "Activate drive mode without phone/card"
+#~ msgstr "Activar el modo de conducción sin teléfono/tarjeta"
 
-msgid "Unknown vehicle."
-msgstr "Vehículo desconocido."
+#~ msgid ""
+#~ "Once done you have 2 minutes to start driving the car. Also please unlock "
+#~ "car if not yet done"
+#~ msgstr ""
+#~ "Hecho esto, tienes 2 minutos para empezar a conducir. Desbloquea el coche "
+#~ "si aún no lo has hecho"
 
-msgid "Configure the Client ID and Client Secret first."
-msgstr "Configura primero el Client ID y el Client Secret."
+#~ msgid "Activate"
+#~ msgstr "Activar"
 
-msgid "Tesla denied authorization: %(error)s (%(desc)s)"
-msgstr "Tesla denegó la autorización: %(error)s (%(desc)s)"
+#~ msgid "Cancel"
+#~ msgstr "Cancelar"
 
-msgid "Invalid OAuth callback (missing code or state). Please try again."
-msgstr "Callback OAuth no válido (falta code o state). Inténtalo de nuevo."
+#~ msgid "Save"
+#~ msgstr "Guardar"
 
-msgid ""
-"Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again,"
-" then use “Sign in with Tesla”."
-msgstr ""
-"Callback OAuth no válido (state desconocido o caducado). Vuelve a entrar en "
-"MaTesla y usa «Iniciar sesión con Tesla»."
+#~ msgid "Speed (mi/h)"
+#~ msgstr "Velocidad (mi/h)"
 
-msgid "OAuth user not found."
-msgstr "Usuario OAuth no encontrado."
+#~ msgid "Power (kW)"
+#~ msgstr "Potencia (kW)"
 
-msgid "Connected to Tesla, but no vehicles found on the account."
-msgstr "Conectado a Tesla, pero no se encontraron vehículos en la cuenta."
+#~ msgid "Sessions ≥ %(min)s min · n=%(n)s · peak per session"
+#~ msgstr "Sesiones ≥ %(min)s min · n=%(n)s · pico por sesión"
 
-msgid "Tesla connected — %(count)s vehicle(s): %(names)s. Active: %(label)s."
-msgstr ""
-"Tesla conectado — %(count)s vehículo(s): %(names)s. Activo: %(label)s."
+#~ msgid "mi = rated range added"
+#~ msgstr "mi = autonomía nominal añadida"
 
-msgid "Unexpected error: %(err)s"
-msgstr "Error inesperado: %(err)s"
+#~ msgid "Sessions ≥ %(min)s min · n=%(n)s"
+#~ msgstr "Sesiones ≥ %(min)s min · n=%(n)s"
 
-msgid "Active vehicle: %(label)s"
-msgstr "Vehículo activo: %(label)s"
+#~ msgid "Battery range (miles)"
+#~ msgstr "Autonomía de batería (millas)"
 
-msgid "Cannot reach %(url)s: %(err)s"
-msgstr "No se puede alcanzar %(url)s: %(err)s"
+#~ msgid "Charge rate (mi/h)"
+#~ msgstr "Velocidad de carga (mi/h)"
 
-msgid "%(url)s → HTTP %(code)s"
-msgstr "%(url)s → HTTP %(code)s"
+#~ msgid "Charger power (kW)"
+#~ msgstr "Potencia del cargador (kW)"
 
-msgid "%(url)s does not contain a valid public key PEM"
-msgstr "%(url)s no contiene un PEM de clave pública válido"
+#~ msgid "03 · CLIMATE"
+#~ msgstr "03 · CLIMA"
 
-msgid ""
-"%(url)s is reachable but does not match the local key (%(path)s). Re-upload "
-"the file."
-msgstr ""
-"%(url)s es accesible pero no coincide con la clave local (%(path)s). Vuelve "
-"a subir el archivo."
+#~ msgid "04 · DRIVE"
+#~ msgstr "04 · CONDUCCIÓN"
 
-msgid "Public key OK: %(url)s"
-msgstr "Clave pública correcta: %(url)s"
+#~ msgid "Command interrupted"
+#~ msgstr "Comando interrumpido"
 
-msgid "Missing Client ID / Secret."
-msgstr "Faltan Client ID / Secret."
+#~ msgid "Charge settings"
+#~ msgstr "Ajustes de carga"
 
-msgid "Partner token failed (%(code)s): %(body)s"
-msgstr "Token partner fallido (%(code)s): %(body)s"
+#~ msgid "Climate settings"
+#~ msgstr "Ajustes de climatización"
 
-msgid "Missing app settings."
-msgstr "Faltan ajustes de la aplicación."
+#~ msgid "Sensitive command"
+#~ msgstr "Comando sensible"
 
-msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g."
-" robotcar.example.com)."
-msgstr ""
-"Tesla rechaza localhost como dominio partner. Usa un dominio HTTPS público "
-"(ej. robotcar.example.com)."
-
-msgid "Public key not reachable by Tesla before register: %(msg)s"
-msgstr "Clave pública no accesible por Tesla antes del registro: %(msg)s"
-
-msgid "Partner register failed (%(code)s): %(body)s"
-msgstr "Registro partner fallido (%(code)s): %(body)s"
-
-msgid "Version timeline"
-msgstr "Línea de tiempo de versiones"
-
-msgid "Current"
-msgstr "Actual"
-
-msgid "%(n)s version detected"
-msgid_plural "%(n)s versions detected"
-msgstr[0] "%(n)s versión detectada"
-msgstr[1] "%(n)s versiones detectadas"
-
-msgid "%(n)s day"
-msgid_plural "%(n)s days"
-msgstr[0] "%(n)s día"
-msgstr[1] "%(n)s días"
-
-msgid "newest on the left"
-msgstr "las más recientes a la izquierda"
-
-msgid "Speed distribution"
-msgstr "Distribución de velocidades"
-
-msgid "Power distribution"
-msgstr "Distribución de potencia"
-
-msgid "Speed (km/h)"
-msgstr "Velocidad (km/h)"
-
-msgid "Samples"
-msgstr "Muestras"
-
-msgid "drive samples only · Tesla speed converted mph→km/h"
-msgstr "solo muestras en marcha · velocidad Tesla convertida mi/h→km/h"
-
-msgid "Power (kW) · negative = regen"
-msgstr "Potencia (kW) · negativo = regeneración"
-
-msgid ""
-"n=%(n)s · regen %(regen).1f kWh / traction %(trac).1f kWh = %(pct).1f%% "
-"recovered"
-msgstr ""
-"n=%(n)s · regen. %(regen).1f kWh / tracción %(trac).1f kWh = %(pct).1f%% "
-"recuperados"
-
-msgid ""
-"n=%(n)s · regen vs traction = %(pct).1f%% (sample power ratio · green = "
-"regen)"
-msgstr ""
-"n=%(n)s · regen. vs tracción = %(pct).1f%% (ratio de muestras · verde = "
-"regen.)"
-
-msgid "n=%(n)s drive samples · green = regen · blue/red = traction"
-msgstr "n=%(n)s muestras · verde = regen. · azul/rojo = tracción"
-
-msgid "No drive power samples in this period"
-msgstr "Sin muestras de potencia en este período"
-
-msgid "Monthly range (min–max)"
-msgstr "Rango mensual (mín–máx)"
-
-msgid "Monthly minimum"
-msgstr "Mínimo mensual"
-
-msgid "Monthly average"
-msgstr "Media mensual"
-
-msgid "Monthly maximum"
-msgstr "Máximo mensual"
-
-msgid "Record min %(t).1f °C · %(when)s"
-msgstr "Récord mín. %(t).1f °C · %(when)s"
-
-msgid "Record max %(t).1f °C · %(when)s"
-msgstr "Récord máx. %(t).1f °C · %(when)s"
-
-msgid ""
-"One min / avg / max per calendar month · band = monthly range · gaps = no "
-"data"
-msgstr ""
-"Un mín / media / máx por mes civil · banda = rango mensual · huecos = sin "
-"datos"
-
-msgid "Lifetime map"
-msgstr "Mapa lifetime"
-
-msgid "06 · MAP"
-msgstr "06 · MAPA"
-
-msgid "GPS tracks and trip totals for the selected period."
-msgstr "Trazas GPS y totales de viajes del período seleccionado."
-
-msgid "Lifetime GPS map"
-msgstr "Mapa GPS lifetime"
-
-msgid "Loading map…"
-msgstr "Cargando mapa…"
-
-msgid "No GPS track for this period."
-msgstr "Sin traza GPS para este período."
-
-msgid "Could not load the map."
-msgstr "No se pudo cargar el mapa."
-
-msgid "Kilometers driven"
-msgstr "Kilómetros recorridos"
-
-msgid "Rated km used"
-msgstr "Km de autonomía usados"
-
-msgid "Wh/km"
-msgstr "Wh/km"
-
-msgid "kWh used"
-msgstr "kWh usados"
-
-msgid "Avg temp"
-msgstr "Temp. media"
-
-msgid "Time driving"
-msgstr "Tiempo de conducción"
-
-msgid "d"
-msgstr "d"
-
-msgid "h"
-msgstr "h"
-
-msgid "min"
-msgstr "min"
+#~ msgid "Active vehicle: %(label)s"
+#~ msgstr "Vehículo activo: %(label)s"
