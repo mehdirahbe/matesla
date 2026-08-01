@@ -47,20 +47,21 @@ NIGHT_END_HOUR = 6
 
 # Intervals in minutes (user policy).
 INTERVAL_DRIVING_MIN = 2
-INTERVAL_DC_CHARGE_MIN = 2
-INTERVAL_AC_CHARGE_MIN = 5
+INTERVAL_DC_CHARGE_MIN = 2  # Supercharge: always 2 min (day and night)
+INTERVAL_AC_CHARGE_MIN = 15  # wall AC lasts hours; day only (night → 30)
 INTERVAL_CABIN_MIN = 2  # user present, dog/camp/climate keeper
 INTERVAL_SENTRY_MIN = 5  # sentry only (no cabin activity)
 INTERVAL_ONLINE_IDLE_MIN = 5  # online but no cabin / sentry signal
 INTERVAL_ASLEEP_DAY_MIN = 5
-INTERVAL_NIGHT_DEFAULT_MIN = 30  # anything except driving at night
+INTERVAL_NIGHT_DEFAULT_MIN = 30  # idle/AC/etc. at night; not drive/DC
 
 # DC heuristic: Supercharger / fast pack, or power well above typical AC.
 DC_POWER_KW_MIN = 20.0
 DRIVING_SPEED_MPH_MIN = 1.0
 # Last snapshot older than this is not trusted for drive/charge/cabin/sentry.
 # Otherwise a car that finished charging and went to sleep stays "ac_charge" forever.
-ACTIVITY_SNAP_MAX_AGE_MIN = 15.0
+# Must exceed AC day interval (15) so mid-session polls still see a "fresh" charge flag.
+ACTIVITY_SNAP_MAX_AGE_MIN = 20.0
 # Min gap when forcing a poll because telemetry is stale while list says online.
 STALE_ONLINE_FORCE_POLL_MIN = 2.0
 # After a drive sample, keep probing until we get park/charge (seal trip end).
@@ -147,7 +148,7 @@ def _is_dc_charging(snap: TeslaCarDataSnapshot | None) -> bool:
     fast_charger_type = (snap.fast_charger_type or "").strip().lower()
     if fast_charger_type and fast_charger_type not in {"", "none", "ac", "<invalid>"}:
         # e.g. Tesla, Combo, CHAdeMO
-        if fct not in {"ac_single", "ac_three"}:
+        if fast_charger_type not in {"ac_single", "ac_three"}:
             return True
     try:
         if snap.charger_power is not None and float(snap.charger_power) >= DC_POWER_KW_MIN:
@@ -227,6 +228,41 @@ def activity_kind(
     return "asleep"
 
 
+def _base_poll_interval_minutes(
+    kind: str,
+    *,
+    night: bool,
+) -> int:
+    """
+    Hand-tuned baseline (no habit model).
+
+    Always (day and night): driving → 2 min, DC/Supercharge → 2 min
+    (night road trips + V3 sessions do not get the idle night stretch).
+
+    Night (22h–6h local), other kinds: 30 min (incl. AC wall charge).
+
+    Day: AC 15, cabin 2, sentry/online idle/asleep 5.
+    """
+    # High-value live states: never stretch for night quiet hours.
+    if kind == "driving":
+        return INTERVAL_DRIVING_MIN
+    if kind == "dc_charge":
+        return INTERVAL_DC_CHARGE_MIN
+
+    if night:
+        return INTERVAL_NIGHT_DEFAULT_MIN
+
+    if kind == "ac_charge":
+        return INTERVAL_AC_CHARGE_MIN
+    if kind == "cabin":
+        return INTERVAL_CABIN_MIN
+    if kind == "sentry":
+        return INTERVAL_SENTRY_MIN
+    if kind == "asleep":
+        return INTERVAL_ASLEEP_DAY_MIN
+    return INTERVAL_ONLINE_IDLE_MIN
+
+
 def poll_interval_minutes(
     vehicle: TeslaVehicle,
     *,
@@ -236,34 +272,40 @@ def poll_interval_minutes(
     """
     How long to wait between Fleet polls for this vehicle.
 
-    Night (22h–6h local): 30 min, except driving → 2 min
-    (AC charge at night stays 30 min — long sessions).
-
-    Day: driving/DC/cabin 2, AC 5, sentry 5, online idle 5, asleep 5.
+    Reactive kinds (drive / charge / cabin / seal path) always use the baseline.
+    For idle/asleep only, a *recent* habit model may stretch to 15–30 min when
+    the current weekday+hour is historically quiet and no regime break is active.
     """
     now = now or timezone.now()
     kind = activity_kind(vehicle, snap, now=now)
     night = is_night(now)
+    base = _base_poll_interval_minutes(kind, night=night)
 
-    if night:
-        if kind == "driving":
-            return INTERVAL_DRIVING_MIN
-        return INTERVAL_NIGHT_DEFAULT_MIN
+    # Never slow down while something is happening (or might need seal soon).
+    if kind in {"driving", "dc_charge", "ac_charge", "cabin"}:
+        return base
 
-    if kind == "driving":
-        return INTERVAL_DRIVING_MIN
-    if kind == "dc_charge":
-        return INTERVAL_DC_CHARGE_MIN
-    if kind == "ac_charge":
-        return INTERVAL_AC_CHARGE_MIN
-    if kind == "cabin":
-        return INTERVAL_CABIN_MIN
-    if kind == "sentry":
-        return INTERVAL_SENTRY_MIN
-    if kind == "asleep":
-        return INTERVAL_ASLEEP_DAY_MIN
-    # online_idle or anything else online-ish
-    return INTERVAL_ONLINE_IDLE_MIN
+    vin = (getattr(vehicle, "vin", None) or "").strip()
+    if not vin:
+        return base
+
+    try:
+        from matesla.poll_habits import get_habit_model
+
+        # Evaluate habits in household local time (same TZ as night window).
+        local_now = now.astimezone(CAPTURE_TZ)
+        model = get_habit_model(vin, now=now)
+        habit_interval = model.suggested_idle_interval_minutes(local_now)
+        if habit_interval is None:
+            return base
+        # Habit replaces idle baseline (not max): busy nights can go 30→5 min,
+        # quiet days can go 5→15/30. Live drive/charge still use short base above.
+        return habit_interval
+
+    except Exception:
+        # Habits must never break capture.
+        traceback.print_exc()
+        return base
 
 
 def _snap_was_driving(snap: TeslaCarDataSnapshot | None) -> bool:
