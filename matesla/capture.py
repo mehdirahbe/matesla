@@ -378,43 +378,75 @@ def _log(messages: list[str], line: str) -> None:
 
 
 def fetch_vehicle_data(
-    access_token: str, vehicle_id: str
+    access_token: str,
+    vehicle_id: str,
+    *,
+    vin: str | None = None,
+    hashed_vin: str | None = None,
+    user_id: int | None = None,
+    source: str = "capture",
 ) -> tuple[dict | None, str | None]:
     """
     Returns (payload, None) on success.
     Raises TeslaFleetLimitException when the account is usage-disabled.
     Returns (None, reason_fr) on soft failure.
-    """
-    try:
-        resp = requests.get(
-            api_url(f"/api/1/vehicles/{vehicle_id}/vehicle_data"),
-            params={"endpoints": VEHICLE_DATA_ENDPOINTS},
-            headers={"Authorization": "Bearer " + access_token},
-            proxies=GetProxyToUse(),
-            verify=True,
-            timeout=60,
-        )
-    except requests.exceptions.Timeout:
-        return None, "vehicle_data: timeout réseau vers Fleet API"
-    except requests.exceptions.ConnectionError as exc:
-        return None, f"vehicle_data: erreur de connexion ({exc.__class__.__name__})"
-    except requests.exceptions.RequestException as exc:
-        return None, f"vehicle_data: erreur réseau ({exc})"
 
-    if resp is None:
-        return None, "vehicle_data: pas de réponse"
-    if is_fleet_limit_response(resp.status_code, resp.text):
-        raise TeslaFleetLimitException(
-            status_code=resp.status_code, body=resp.text[:500]
-        )
-    if resp.status_code != 200:
-        return None, fleet_http_error_reason(
-            resp.status_code, resp.text, what="vehicle_data"
-        )
+    Every HTTP attempt is logged to FleetApiCall for the cost graph
+    (list /vehicles is not logged here).
+    """
+    from matesla.models.FleetApiCall import record_vehicle_data_call
+
+    http_status: int | None = None
+    detail = ""
     try:
-        return json.loads(resp.text), None
-    except json.JSONDecodeError:
-        return None, "vehicle_data: JSON invalide"
+        try:
+            resp = requests.get(
+                api_url(f"/api/1/vehicles/{vehicle_id}/vehicle_data"),
+                params={"endpoints": VEHICLE_DATA_ENDPOINTS},
+                headers={"Authorization": "Bearer " + access_token},
+                proxies=GetProxyToUse(),
+                verify=True,
+                timeout=60,
+            )
+        except requests.exceptions.Timeout:
+            detail = "vehicle_data: timeout réseau vers Fleet API"
+            return None, detail
+        except requests.exceptions.ConnectionError as exc:
+            detail = f"vehicle_data: erreur de connexion ({exc.__class__.__name__})"
+            return None, detail
+        except requests.exceptions.RequestException as exc:
+            detail = f"vehicle_data: erreur réseau ({exc})"
+            return None, detail
+
+        if resp is None:
+            detail = "vehicle_data: pas de réponse"
+            return None, detail
+
+        http_status = resp.status_code
+        if is_fleet_limit_response(resp.status_code, resp.text):
+            detail = f"vehicle_data: limite Fleet HTTP {resp.status_code}"
+            raise TeslaFleetLimitException(
+                status_code=resp.status_code, body=resp.text[:500]
+            )
+        if resp.status_code != 200:
+            detail = fleet_http_error_reason(
+                resp.status_code, resp.text, what="vehicle_data"
+            )
+            return None, detail
+        try:
+            return json.loads(resp.text), None
+        except json.JSONDecodeError:
+            detail = "vehicle_data: JSON invalide"
+            return None, detail
+    finally:
+        record_vehicle_data_call(
+            http_status=http_status,
+            vin=vin,
+            hashed_vin=hashed_vin,
+            user_id=user_id,
+            source=source,
+            detail=detail,
+        )
 
 
 def capture_one_vehicle(
@@ -455,7 +487,13 @@ def capture_one_vehicle(
     elif state_norm and state_norm not in {"online", "offline"}:
         TeslaVehicle.objects.filter(pk=vehicle.pk).update(state=state or "")
 
-    payload, err = fetch_vehicle_data(access_token, vehicle.api_id)
+    payload, err = fetch_vehicle_data(
+        access_token,
+        vehicle.api_id,
+        vin=getattr(vehicle, "vin", None) or None,
+        user_id=getattr(vehicle, "user_id", None),
+        source="capture",
+    )
     if not payload:
         _mark_polled(vehicle)
         # 408 = vehicle not available (often asleep); record as offline-ish

@@ -6,6 +6,7 @@ from .models.TeslaOAuthPending import TeslaOAuthPending
 from .models.TeslaToken import TeslaToken, TeslaVehicle
 from .models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from .models.TeslaCarInfo import TeslaCarInfo
+from .models.FleetApiCall import FleetApiCall
 
 admin.site.register(TeslaToken)
 admin.site.register(TeslaVehicle)
@@ -14,3 +15,4 @@ admin.site.register(TeslaOAuthPending)
 admin.site.register(TeslaFirmwareHistory)
 admin.site.register(TeslaCarInfo)
 admin.site.register(TeslaCarDataSnapshot)
+admin.site.register(FleetApiCall)

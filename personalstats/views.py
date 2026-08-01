@@ -35,6 +35,7 @@ from matesla.graphstyle import (
     style_legend,
     style_suptitle,
 )
+from matesla.models.FleetApiCall import FleetApiCall, KIND_VEHICLE_DATA
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.VinHash import IsValidHash
@@ -323,21 +324,6 @@ def annotate_range_at_100(queryset):
         )
     ).filter(range_at_100__isnull=False, battery_range__isnull=False)
 
-def _matesla_capture_only(queryset):
-    """
-    Keep rows from live MaTesla Fleet capture, drop TeslaFi CSV history.
-
-    TeslaFi fills idle/sleep/drive/charge session counters; Fleet capture
-    leaves them null (see TeslaCarDataSnapshot.apply_vehicle_data_context).
-    """
-    return queryset.filter(
-        charge_number__isnull=True,
-        drive_number__isnull=True,
-        idle_number__isnull=True,
-        sleep_number__isnull=True,
-    )
-
-
 def _fleet_poll_window_days(desiredperiod) -> int:
     """Honor period selector but never exceed FLEET_POLL_MAX_DAYS (day-by-day)."""
     if desiredperiod is None or desiredperiod <= 0:
@@ -391,15 +377,17 @@ def _fmt_fleet_money(amount: float, symbol: str) -> str:
     return f"{symbol}{amount:.3f}"
 
 
-def _fleet_poll_buckets(queryset, *, days: int):
+def _fleet_poll_buckets(hashed_vin: str, *, days: int):
     """
-    Count billable-ish MaTesla polls per local civil day (Europe/Brussels).
+    Count billable vehicle_data HTTP calls per local civil day (Europe/Brussels).
 
-    One successful vehicle_data ≈ one saved sample. Samples in the same local
-    minute are collapsed (status page + cron can double-save within seconds).
+    Source of truth: FleetApiCall rows logged at request time (not snapshots).
+    Tesla bills status < 500; we store that as billable=True.
 
     Returns (labels, counts) for the last `days` local days including today.
     """
+    from collections import Counter
+
     days = max(1, min(int(days), FLEET_POLL_MAX_DAYS))
     now_local = timezone.now().astimezone(DAY_MAP_TZ)
     end = now_local.date()
@@ -407,14 +395,17 @@ def _fleet_poll_buckets(queryset, *, days: int):
     start_dt = datetime.combine(start, datetime.min.time(), tzinfo=DAY_MAP_TZ)
     end_dt = datetime.combine(end + timedelta(days=1), datetime.min.time(), tzinfo=DAY_MAP_TZ)
 
-    from collections import Counter
-
     day_counts: Counter = Counter()
-    seen_minute: set[tuple] = set()
     for raw in (
-        queryset.filter(Date__gte=start_dt, Date__lt=end_dt)
-        .order_by("Date")
-        .values_list("Date", flat=True)
+        FleetApiCall.objects.filter(
+            kind=KIND_VEHICLE_DATA,
+            billable=True,
+            hashedVin=hashed_vin,
+            at__gte=start_dt,
+            at__lt=end_dt,
+        )
+        .order_by("at")
+        .values_list("at", flat=True)
         .iterator()
     ):
         if raw is None:
@@ -423,10 +414,6 @@ def _fleet_poll_buckets(queryset, *, days: int):
         if timezone.is_naive(dt):
             dt = timezone.make_aware(dt, dt_timezone.utc)
         local = dt.astimezone(DAY_MAP_TZ)
-        minute_key = (local.date(), local.hour, local.minute)
-        if minute_key in seen_minute:
-            continue
-        seen_minute.add(minute_key)
         day_counts[local.date()] += 1
 
     language = get_language()
@@ -519,8 +506,8 @@ def GenerateFleetPollCostGraph(
         axes2.grid(False)
 
         foot = _(
-            "n=%(n)s polls · est. %(money)s Data (@ %(rate)s/req) · this car · "
-            "TeslaFi excluded · max %(days)s days · Tesla portal may lag"
+            "n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · "
+            "this car · from request log · max %(days)s days"
         ) % {
             "n": total_n,
             "money": _fmt_fleet_money(total_cost, currency_symbol),
@@ -545,7 +532,7 @@ def GenerateFleetPollCostGraph(
         axes.text(
             0.5,
             0.5,
-            _("No MaTesla samples in this period"),
+            _("No logged vehicle_data calls in this period"),
             ha="center",
             va="center",
             color=MUTED,
@@ -2286,10 +2273,23 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
 def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod, size):
     """Actual PNG generation (no cache). Called by StatsOnCarGraph."""
     title = GetTitleForField(desiredfield)
+    # Fleet cost uses request log — works even with zero snapshots for this VIN
+    if desiredfield == "fleet_poll_cost":
+        days = _fleet_poll_window_days(desiredperiod)
+        labels, counts = _fleet_poll_buckets(hashedVin, days=days)
+        cur_code, cur_symbol, price = _fleet_cost_currency()
+        return GenerateFleetPollCostGraph(
+            labels,
+            counts,
+            title,
+            size=size,
+            currency_code=cur_code,
+            currency_symbol=cur_symbol,
+            price_per_request=price,
+        )
+
     base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
     if not base.exists():
-        if desiredfield == "fleet_poll_cost":
-            return GenerateFleetPollCostGraph([], [], title, size=size)
         if desiredfield in ("efficiency_by_speed", "efficiency_by_temp"):
             return GenerateEfficiencyBinGraph(
                 None, None, None, title, "", size=size
@@ -2309,22 +2309,6 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
                 [], [], [], [], title, size=size
             )
         return GenerateDateGraph(None, None, None, None, title, size=size)
-
-    # Fleet Data cost: MaTesla capture only, day-by-day, max 30 days
-    if desiredfield == "fleet_poll_cost":
-        days = _fleet_poll_window_days(desiredperiod)
-        queryset = _matesla_capture_only(base)
-        labels, counts = _fleet_poll_buckets(queryset, days=days)
-        cur_code, cur_symbol, price = _fleet_cost_currency()
-        return GenerateFleetPollCostGraph(
-            labels,
-            counts,
-            title,
-            size=size,
-            currency_code=cur_code,
-            currency_symbol=cur_symbol,
-            price_per_request=price,
-        )
 
     # Trip efficiency histograms (not a raw time series field)
     if desiredfield in ("efficiency_by_speed", "efficiency_by_temp"):

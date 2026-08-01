@@ -400,33 +400,64 @@ def ParamsConnectedTesla(user, request=None):
             pass
         raise TeslaIsAsleepException
 
-    api_call_response = requests.get(
-        api_url(f"/api/1/vehicles/{teslaatoken.vehicle_id}/vehicle_data"),
-        params={"endpoints": VEHICLE_DATA_ENDPOINTS},
-        proxies=GetProxyToUse(),
-        headers=api_call_headers,
-        verify=True,
-        timeout=60,
+    from matesla.models.FleetApiCall import record_vehicle_data_call
+
+    vin_for_log = None
+    try:
+        if getattr(teslaatoken, "vehicle", None):
+            vin_for_log = teslaatoken.vehicle.vin
+        elif getattr(teslaatoken, "vin", None):
+            vin_for_log = teslaatoken.vin
+    except Exception:
+        vin_for_log = None
+    user_id_for_log = getattr(teslaatoken, "user_id_id", None) or getattr(
+        teslaatoken, "user_id", None
     )
-    body_text = api_call_response.text if api_call_response is not None else ""
-    if api_call_response is not None and is_fleet_limit_response(
-        api_call_response.status_code, body_text
-    ):
-        raise TeslaFleetLimitException(
-            status_code=api_call_response.status_code, body=body_text[:500]
+
+    http_status_for_log = None
+    detail_for_log = ""
+    try:
+        api_call_response = requests.get(
+            api_url(f"/api/1/vehicles/{teslaatoken.vehicle_id}/vehicle_data"),
+            params={"endpoints": VEHICLE_DATA_ENDPOINTS},
+            proxies=GetProxyToUse(),
+            headers=api_call_headers,
+            verify=True,
+            timeout=60,
         )
-    if api_call_response is not None and api_call_response.status_code == 408:
-        raise TeslaIsAsleepException
-    if api_call_response is not None and api_call_response.status_code == 401:
-        raise TeslaUnauthorisedException
-    if api_call_response is None or api_call_response.status_code != 200:
-        # Only map known vehicle-unavailable cases to the offline hub.
-        # list state None (list call failed) must not look like "asleep".
-        if state in ("offline", "asleep") and (
-            api_call_response is None or api_call_response.status_code >= 400
+        body_text = api_call_response.text if api_call_response is not None else ""
+        if api_call_response is not None:
+            http_status_for_log = api_call_response.status_code
+        if api_call_response is not None and is_fleet_limit_response(
+            api_call_response.status_code, body_text
         ):
+            detail_for_log = "limite Fleet"
+            raise TeslaFleetLimitException(
+                status_code=api_call_response.status_code, body=body_text[:500]
+            )
+        if api_call_response is not None and api_call_response.status_code == 408:
+            detail_for_log = "408 asleep"
             raise TeslaIsAsleepException
-        raise TeslaServerException()
+        if api_call_response is not None and api_call_response.status_code == 401:
+            detail_for_log = "401"
+            raise TeslaUnauthorisedException
+        if api_call_response is None or api_call_response.status_code != 200:
+            detail_for_log = f"HTTP {getattr(api_call_response, 'status_code', None)}"
+            # Only map known vehicle-unavailable cases to the offline hub.
+            # list state None (list call failed) must not look like "asleep".
+            if state in ("offline", "asleep") and (
+                api_call_response is None or api_call_response.status_code >= 400
+            ):
+                raise TeslaIsAsleepException
+            raise TeslaServerException()
+    finally:
+        record_vehicle_data_call(
+            http_status=http_status_for_log,
+            vin=vin_for_log,
+            user_id=user_id_for_log if isinstance(user_id_for_log, int) else None,
+            source="status_page",
+            detail=detail_for_log,
+        )
 
     payload = json.loads(api_call_response.text)
     ret.vehicle_state = payload
