@@ -3468,16 +3468,10 @@ def DayMap(request, hashedVin, day=None):
         if miles_driven_km is not None and drive_hours > 0.01
         else None
     )
-    day_soc_start = drives[0].get("soc_start") if drives else None
-    day_soc_end = drives[-1].get("soc_end") if drives else None
 
-    #Mehdi 2//2026: also check charges because it may be the last thing the car did during that day
-    if charges:
-        charge_soc_end = charges[-1].get("soc_end")
-        if day_soc_end is None:
-            day_soc_end = charge_soc_end
-        elif charge_soc_end is not None:
-            day_soc_end = max(day_soc_end, charge_soc_end)    
+    #Mehdi 2//2026: logic on getting soc begin/end from drives is bad, to have soc at begin and end of day, just use respectively first and last row of the day.
+    day_soc_start = _soc(raw_rows[0]) if raw_rows else None
+    day_soc_end = _soc(raw_rows[-1]) if raw_rows else None
 
     soc_used_vals = [
         drive["soc_used"] for drive in drives if drive.get("soc_used") is not None
