@@ -2699,10 +2699,9 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
     """
     Build lifetime-map JSON: drive GPS polylines + summary KPIs for a period.
 
-    Why stride: a multi-year car can have 100k+ drive GPS samples. Walking every
-    row in Python (with haversine) made period=10y feel broken (~5s for the map
-    alone). We process at most LIFETIME_MAP_MAX_SCAN evenly spaced samples, thin
-    the path by distance, and still estimate trips from odometer gaps.
+    Performance strategy:
+    - KPIs (km, energy, trips...) are computed on almost every sample → accurate.
+    - Map path uses stride + distance thinning → stays fast even with 500k+ rows.
     """
     base_queryset = TeslaCarDataSnapshot.objects.filter(hashedVin=hashed_vin)
     period_queryset = _period_filter(base_queryset, desired_period_weeks)
@@ -2722,136 +2721,123 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
             "vin",
         )
     )
+
     try:
         total_drive_gps_samples = drive_gps_queryset.count()
     except Exception:
         total_drive_gps_samples = 0
+
     sample_stride = (
-        max(
-            1,
-            (total_drive_gps_samples + LIFETIME_MAP_MAX_SCAN - 1)
-            // LIFETIME_MAP_MAX_SCAN,
-        )
-        if total_drive_gps_samples
-        else 1
+        max(1, (total_drive_gps_samples + LIFETIME_MAP_MAX_SCAN - 1) // LIFETIME_MAP_MAX_SCAN)
+        if total_drive_gps_samples else 1
     )
-    # When we already skip samples, require a larger move before keeping a point
     minimum_move_meters = LIFETIME_MAP_MIN_MOVE_M * (1.0 + 0.5 * (sample_stride - 1))
 
-    path_segments = []  # list of polylines: each is [[lat, lon], ...]
+    # ---------- Map path ----------
+    path_segments = []
     current_path = []
     last_kept_latitude = last_kept_longitude = None
-    last_sample_time = None
-    raw_gps_sample_count = 0
-    path_point_count = 0  # running count (avoid summing segment lengths each keep)
+    path_point_count = 0
+    progressive_point_cap = LIFETIME_MAP_MAX_POINTS * 2
 
-    # Trip KPI accumulators (gap-split; independent of map path thinning)
+    # ---------- KPI accumulators ----------
     drive_count = 0
     kilometers_driven = 0.0
     rated_miles_used = 0.0
     driving_hours_total = 0.0
     outside_temp_sum = 0.0
     outside_temp_sample_count = 0
+
     trip_start_time = trip_start_odometer = trip_start_rated_range = None
     trip_end_time = trip_end_odometer = trip_end_rated_range = None
+
+    last_sample_time = None
     vehicle_vin = None
+    raw_gps_sample_count = 0
     scan_row_index = 0
 
     def finalize_trip():
-        """Close the open trip if it moved far/long enough to count as a drive."""
         nonlocal drive_count, kilometers_driven, rated_miles_used, driving_hours_total
         nonlocal trip_start_time, trip_start_odometer, trip_start_rated_range
         nonlocal trip_end_time, trip_end_odometer, trip_end_rated_range
+
         if trip_start_time is None or trip_end_time is None:
             trip_start_time = trip_start_odometer = trip_start_rated_range = None
             trip_end_time = trip_end_odometer = trip_end_rated_range = None
             return
-        if (
-            trip_start_odometer is not None
-            and trip_end_odometer is not None
-            and trip_end_odometer >= trip_start_odometer
-        ):
+
+        if (trip_start_odometer is not None and trip_end_odometer is not None
+                and trip_end_odometer >= trip_start_odometer):
             miles_driven = float(trip_end_odometer) - float(trip_start_odometer)
             kilometers = miles_driven * 1.609344
         else:
             kilometers = 0.0
-        duration_seconds = max(
-            0.0, (trip_end_time - trip_start_time).total_seconds()
-        )
+
+        duration_seconds = max(0.0, (trip_end_time - trip_start_time).total_seconds())
+
         if kilometers >= LIFETIME_MAP_MIN_TRIP_KM and duration_seconds >= 60:
             drive_count += 1
             kilometers_driven += kilometers
             driving_hours_total += duration_seconds / 3600.0
-            if (
-                trip_start_rated_range is not None
-                and trip_end_rated_range is not None
-                and trip_start_rated_range > trip_end_rated_range
-            ):
-                rated_range_drop = (
-                    float(trip_start_rated_range) - float(trip_end_rated_range)
-                )
+
+            if (trip_start_rated_range is not None and trip_end_rated_range is not None
+                    and trip_start_rated_range > trip_end_rated_range):
+                rated_range_drop = float(trip_start_rated_range) - float(trip_end_rated_range)
                 if rated_range_drop > 0.25:
                     rated_miles_used += rated_range_drop
+
         trip_start_time = trip_start_odometer = trip_start_rated_range = None
         trip_end_time = trip_end_odometer = trip_end_rated_range = None
 
     def flush_current_path():
-        """Push the open polyline into path_segments (if it has any points)."""
         nonlocal current_path, last_kept_latitude, last_kept_longitude
-        if len(current_path) >= 2:
-            path_segments.append(current_path)
-        elif len(current_path) == 1:
+        if len(current_path) >= 1:
             path_segments.append(current_path)
         current_path = []
         last_kept_latitude = last_kept_longitude = None
 
-    progressive_point_cap = LIFETIME_MAP_MAX_POINTS * 2
-
-    for sample_row in drive_gps_queryset.iterator(chunk_size=4000):
+    # ---------- Main loop ----------
+    for sample_row in drive_gps_queryset.iterator(chunk_size=5000):
         scan_row_index += 1
-        if sample_stride > 1 and (scan_row_index % sample_stride) != 0:
-            continue
 
         sample_time = sample_row.get("Date")
         latitude_raw = sample_row.get("latitude")
         longitude_raw = sample_row.get("longitude")
+
         if sample_time is None or latitude_raw is None or longitude_raw is None:
             continue
+
         try:
             latitude = float(latitude_raw)
             longitude = float(longitude_raw)
         except (TypeError, ValueError):
             continue
+
         if not (-90.0 <= latitude <= 90.0 and -180.0 <= longitude <= 180.0):
             continue
         if abs(latitude) < 1e-5 and abs(longitude) < 1e-5:
-            continue  # null island / unset GPS
+            continue
 
         raw_gps_sample_count += 1
         if vehicle_vin is None and sample_row.get("vin"):
             vehicle_vin = sample_row["vin"]
 
-        # When striding, enlarge the trip-gap so we do not split every kept sample
-        trip_gap = (
-            LIFETIME_MAP_GAP
-            if sample_stride == 1
-            else LIFETIME_MAP_GAP * sample_stride
-        )
-        if last_sample_time is not None and (sample_time - last_sample_time) > trip_gap:
+        # ----- Trip detection (NO stride here → accurate energy) -----
+        if last_sample_time is not None and (sample_time - last_sample_time) > LIFETIME_MAP_GAP:
             finalize_trip()
             flush_current_path()
 
         odometer_raw = sample_row.get("odometer")
         try:
-            odometer_miles = (
-                float(odometer_raw) if odometer_raw is not None else None
-            )
+            odometer_miles = float(odometer_raw) if odometer_raw is not None else None
         except (TypeError, ValueError):
             odometer_miles = None
+
         rated_range_miles = _rated_range_miles(
             sample_row.get("battery_range"),
             sample_row.get("ideal_battery_range"),
         )
+
         outside_temp_raw = sample_row.get("outside_temp")
         if outside_temp_raw is not None:
             try:
@@ -2864,76 +2850,73 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
             trip_start_time = sample_time
             trip_start_odometer = odometer_miles
             trip_start_rated_range = rated_range_miles
+
         trip_end_time = sample_time
         if odometer_miles is not None:
             trip_end_odometer = odometer_miles
         if rated_range_miles is not None:
             trip_end_rated_range = rated_range_miles
 
-        # Keep path points only when the car moved enough (drops GPS jitter)
-        keep_path_point = False
-        if last_kept_latitude is None:
-            keep_path_point = True
-        else:
-            distance_meters = _haversine_m(
-                last_kept_latitude,
-                last_kept_longitude,
-                latitude,
-                longitude,
-            )
-            if distance_meters >= minimum_move_meters:
+        # ----- Path building (stride + distance thinning) -----
+        is_stride_sample = (sample_stride == 1) or (scan_row_index % sample_stride == 0)
+
+        if is_stride_sample:
+            keep_path_point = False
+            if last_kept_latitude is None:
                 keep_path_point = True
-        if keep_path_point:
-            current_path.append([round(latitude, 5), round(longitude, 5)])
-            last_kept_latitude = latitude
-            last_kept_longitude = longitude
-            path_point_count += 1
-            if path_point_count > progressive_point_cap:
-                if current_path:
-                    path_segments.append(current_path)
-                    current_path = []
-                    last_kept_latitude = last_kept_longitude = None
-                path_segments = _thin_segments_to_cap(
-                    path_segments, LIFETIME_MAP_MAX_POINTS
+            else:
+                distance_meters = _haversine_m(
+                    last_kept_latitude, last_kept_longitude, latitude, longitude
                 )
-                path_point_count = sum(len(segment) for segment in path_segments)
-                progressive_point_cap = LIFETIME_MAP_MAX_POINTS * 2
+                if distance_meters >= minimum_move_meters:
+                    keep_path_point = True
+
+            if keep_path_point:
+                current_path.append([round(latitude, 5), round(longitude, 5)])
+                last_kept_latitude = latitude
+                last_kept_longitude = longitude
+                path_point_count += 1
+
+                if path_point_count > progressive_point_cap:
+                    if current_path:
+                        path_segments.append(current_path)
+                        current_path = []
+                        last_kept_latitude = last_kept_longitude = None
+                    path_segments = _thin_segments_to_cap(path_segments, LIFETIME_MAP_MAX_POINTS)
+                    path_point_count = sum(len(s) for s in path_segments)
+                    progressive_point_cap = LIFETIME_MAP_MAX_POINTS * 2
 
         last_sample_time = sample_time
 
+    # Fin
     finalize_trip()
     flush_current_path()
     path_segments = _thin_segments_to_cap(path_segments, LIFETIME_MAP_MAX_POINTS)
-    # Prefer multi-point polylines; single-point stubs are only kept if nothing else
-    multi_point_segments = [
-        segment for segment in path_segments if len(segment) >= 2
-    ]
+
+    multi_point_segments = [s for s in path_segments if len(s) >= 2]
     if multi_point_segments:
         path_segments = multi_point_segments
 
-    path_points = sum(len(segment) for segment in path_segments)
-    rated_kilometers_used = (
-        rated_miles_used * 1.609344 if rated_miles_used > 0 else 0.0
-    )
+    # ---------- Final KPIs ----------
+    path_points = sum(len(s) for s in path_segments)
+    rated_kilometers_used = rated_miles_used * 1.609344 if rated_miles_used > 0 else 0.0
+
     efficiency_percent = None
     if rated_kilometers_used > 1.0 and kilometers_driven > 1.0:
         efficiency_percent = 100.0 * kilometers_driven / rated_kilometers_used
         if efficiency_percent < 10 or efficiency_percent > 200:
             efficiency_percent = None
-    # ~0.22 kWh/mi fleet average → energy and Wh/km from rated miles used
+
     energy_used_kwh = rated_miles_used * 0.22 if rated_miles_used > 0 else None
     watt_hours_per_km = None
     if energy_used_kwh is not None and kilometers_driven > 1.0:
         watt_hours_per_km = (energy_used_kwh * 1000.0) / kilometers_driven
+
     average_speed_kmh = (
-        (kilometers_driven / driving_hours_total)
-        if driving_hours_total > 0.05
-        else None
+        (kilometers_driven / driving_hours_total) if driving_hours_total > 0.05 else None
     )
     average_outside_temp_c = (
-        (outside_temp_sum / outside_temp_sample_count)
-        if outside_temp_sample_count
-        else None
+        (outside_temp_sum / outside_temp_sample_count) if outside_temp_sample_count else None
     )
 
     total_minutes = int(round(driving_hours_total * 60.0))
@@ -2950,26 +2933,12 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
         "raw_gps_samples": raw_gps_sample_count,
         "drives": drive_count,
         "km_driven": round(kilometers_driven, 1) if kilometers_driven > 0 else 0.0,
-        "rated_km_used": (
-            round(rated_kilometers_used, 1) if rated_kilometers_used > 0 else 0.0
-        ),
-        "wh_per_km": (
-            round(watt_hours_per_km) if watt_hours_per_km is not None else None
-        ),
-        "efficiency_pct": (
-            round(efficiency_percent, 2) if efficiency_percent is not None else None
-        ),
-        "kwh_used": (
-            round(energy_used_kwh, 1) if energy_used_kwh is not None else None
-        ),
-        "avg_kmh": (
-            round(average_speed_kmh, 1) if average_speed_kmh is not None else None
-        ),
-        "avg_temp_c": (
-            round(average_outside_temp_c, 1)
-            if average_outside_temp_c is not None
-            else None
-        ),
+        "rated_km_used": round(rated_kilometers_used, 1) if rated_kilometers_used > 0 else 0.0,
+        "wh_per_km": round(watt_hours_per_km) if watt_hours_per_km is not None else None,
+        "efficiency_pct": round(efficiency_percent, 2) if efficiency_percent is not None else None,
+        "kwh_used": round(energy_used_kwh, 1) if energy_used_kwh is not None else None,
+        "avg_kmh": round(average_speed_kmh, 1) if average_speed_kmh is not None else None,
+        "avg_temp_c": round(average_outside_temp_c, 1) if average_outside_temp_c is not None else None,
         "drive_time": {
             "days": drive_days,
             "hours": drive_hours,
@@ -2978,7 +2947,6 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
         },
         "has_track": path_points > 0,
     }
-
 
 def _point_kind(sample):
     """Classify a sample: charge | drive | park."""
