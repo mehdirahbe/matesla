@@ -246,21 +246,24 @@
     </p>
     {% endif %}
 
-    {# Day totals — same columns as the drives table #}
+    {# Day totals — drives aggregate + residual SoC (park / dog / sentry / …) #}
     <div class="table-responsive mb-2">
     <table class="table table-sm table-bordered mb-1">
         <thead>
         <tr>
+            <th>{% trans 'Duration' %}</th>
             <th>{% trans 'Distance' %}</th>
             <th>{% trans 'Avg speed' %}</th>
             <th>{% trans 'SoC start' %}</th>
             <th>{% trans 'SoC end' %}</th>
-            <th>{% trans 'SoC used' %}</th>
+            <th title="{% trans 'Sum of SoC used on drives only' %}">{% trans 'SoC used' %}</th>
+            <th title="{% trans 'SoC drop not explained by drives (park climate, dog/camp, sentry, preconditioning, vampire drain), after accounting for charges' %}">{% trans 'SoC outside driving' %}</th>
             <th>{% trans 'kWh/100 km' %}</th>
         </tr>
         </thead>
         <tbody>
         <tr>
+            <td>{% if day_duration_label %}{{ day_duration_label }}{% else %}—{% endif %}</td>
             <td>
                 {% if miles_driven_km is not None %}{{ miles_driven_km|floatformat:1 }} km{% else %}—{% endif %}
                 {% if miles_driven is not None %}<span class="text-muted small">({{ miles_driven|floatformat:1 }} mi)</span>{% endif %}
@@ -272,6 +275,7 @@
             <td>{% if day_soc_start is not None %}{{ day_soc_start|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if day_soc_end is not None %}{{ day_soc_end|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if day_soc_used is not None %}{{ day_soc_used|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td>{% if day_soc_non_drive is not None %}{{ day_soc_non_drive|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if day_kwh_per_100km is not None %}{{ day_kwh_per_100km|floatformat:1 }}{% else %}—{% endif %}</td>
         </tr>
         </tbody>
@@ -280,6 +284,7 @@
 
     <p class="text-muted small mb-0">
         {% blocktrans with kwh=pack_kwh_estimate|floatformat:0 %}kWh estimates use ~{{ kwh }} kWh pack (from EPA range).{% endblocktrans %}
+        {% trans 'SoC outside driving = (start − end) − drive SoC + charged.' %}
     </p>
 </div>
 

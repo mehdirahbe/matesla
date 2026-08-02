@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-01 21:24+0000\n"
+"POT-Creation-Date: 2026-08-02 09:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -902,6 +902,9 @@ msgstr "Départ"
 msgid "End"
 msgstr "Arrivée"
 
+msgid "Duration"
+msgstr "Durée"
+
 msgid "Distance"
 msgstr "Distance"
 
@@ -911,8 +914,21 @@ msgstr "SoC début"
 msgid "SoC end"
 msgstr "SoC fin"
 
+msgid "Sum of SoC used on drives only"
+msgstr "Somme du SoC utilisé en conduite"
+
 msgid "SoC used"
 msgstr "SoC consommé"
+
+msgid ""
+"SoC drop not explained by drives (park climate, dog/camp, sentry, "
+"preconditioning, vampire drain), after accounting for charges"
+msgstr "Baisse de SoC non expliquée par les trajets (climatisation à l'arrêt, "
+"dog/camp, sentry, préconditionnement, consommation fantôme), "
+"après prise en compte des recharges"
+
+msgid "SoC outside driving"
+msgstr "SoC hors conduite"
 
 msgid "kWh/100 km"
 msgstr "kWh/100 km"
@@ -923,14 +939,14 @@ msgstr ""
 "Estimations kWh basées sur un pack d’environ %(kwh)s kWh (d’après "
 "l’autonomie EPA)."
 
+msgid "SoC outside driving = (start − end) − drive SoC + charged."
+msgstr "SoC hors conduite = (début − fin) − SoC des trajets + rechargé"
+
 msgid "Departure"
 msgstr "Départ"
 
 msgid "Arrival"
 msgstr "Arrivée"
-
-msgid "Duration"
-msgstr "Durée"
 
 msgid "From → to"
 msgstr "De → à"
@@ -1186,6 +1202,12 @@ msgstr "Jours"
 
 msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
 msgstr "Date invalide. Utilisez JJ/MM/AAAA ou AAAA-MM-JJ."
+
+msgid "%(h)s h %(m)s min"
+msgstr "%(h)s h %(m)s min"
+
+msgid "%(m)s min"
+msgstr "%(m)s min"
 
 msgid "Skip to content"
 msgstr "Aller au contenu"

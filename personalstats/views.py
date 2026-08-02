@@ -3445,6 +3445,19 @@ def DayMap(request, hashedVin, day=None):
         max(0.0, (drive["end"] - drive["start"]).total_seconds()) / 3600.0
         for drive in drives
     )
+    day_drive_minutes = (
+        int(round(sum(drive.get("minutes") or 0 for drive in drives)))
+        if drives
+        else None
+    )
+    # Human label for the day summary (e.g. "1 h 24 min" / "6 min")
+    day_duration_label = None
+    if day_drive_minutes is not None:
+        hours, mins = divmod(max(0, day_drive_minutes), 60)
+        if hours:
+            day_duration_label = _("%(h)s h %(m)s min") % {"h": hours, "m": mins}
+        else:
+            day_duration_label = _("%(m)s min") % {"m": mins}
     day_avg_mph = (
         miles_driven / drive_hours
         if miles_driven is not None and drive_hours > 0.01
@@ -3457,10 +3470,39 @@ def DayMap(request, hashedVin, day=None):
     )
     day_soc_start = drives[0].get("soc_start") if drives else None
     day_soc_end = drives[-1].get("soc_end") if drives else None
+
+    #Mehdi 2//2026: also check charges because it may be the last thing the car did during that day
+    if charges:
+        charge_soc_end = charges[-1].get("soc_end")
+        if day_soc_end is None:
+            day_soc_end = charge_soc_end
+        elif charge_soc_end is not None:
+            day_soc_end = max(day_soc_end, charge_soc_end)    
+
     soc_used_vals = [
         drive["soc_used"] for drive in drives if drive.get("soc_used") is not None
     ]
     day_soc_used = sum(soc_used_vals) if soc_used_vals else None
+    # Residual SoC drop not explained by drives (park climate, sentry, dog/camp,
+    # preconditioning, vampire drain). Between first drive start and last drive
+    # end: (start − end) − drive_used + charged.
+    day_soc_charged = sum(
+        charge["soc_added"]
+        for charge in charges
+        if charge.get("soc_added") is not None
+    )
+    day_soc_non_drive = None
+    if (
+        day_soc_start is not None
+        and day_soc_end is not None
+        and day_soc_used is not None
+    ):
+        day_soc_non_drive = (
+            (day_soc_start - day_soc_end) - day_soc_used + day_soc_charged
+        )
+        # Measurement noise can go slightly negative; clamp for display
+        if day_soc_non_drive < 0:
+            day_soc_non_drive = 0.0
     kwh_used_vals = [
         drive["kwh_used"] for drive in drives if drive.get("kwh_used") is not None
     ]
@@ -3515,9 +3557,12 @@ def DayMap(request, hashedVin, day=None):
             "miles_driven_km": miles_driven_km,
             "day_avg_mph": day_avg_mph,
             "day_avg_kmh": day_avg_kmh,
+            "day_drive_minutes": day_drive_minutes,
+            "day_duration_label": day_duration_label,
             "day_soc_start": day_soc_start,
             "day_soc_end": day_soc_end,
             "day_soc_used": day_soc_used,
+            "day_soc_non_drive": day_soc_non_drive,
             "day_kwh_per_100km": day_kwh_per_100km,
             "pack_kwh_estimate": pack_kwh,
             "parse_error": parse_error,

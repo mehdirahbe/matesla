@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: matesla\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-01 21:24+0000\n"
+"POT-Creation-Date: 2026-08-02 09:15+0000\n"
 "PO-Revision-Date: 2026-07-27 22:00+0000\n"
 "Last-Translator: MaTesla\n"
 "Language-Team: Spanish\n"
@@ -896,6 +896,9 @@ msgstr "Inicio"
 msgid "End"
 msgstr "Fin"
 
+msgid "Duration"
+msgstr "Duración"
+
 msgid "Distance"
 msgstr "Distancia"
 
@@ -905,8 +908,21 @@ msgstr "SoC inicial"
 msgid "SoC end"
 msgstr "SoC final"
 
+msgid "Sum of SoC used on drives only"
+msgstr "Suma del SoC utilizado solo en conducción"
+
 msgid "SoC used"
 msgstr "SoC consumido"
+
+msgid ""
+"SoC drop not explained by drives (park climate, dog/camp, sentry, "
+"preconditioning, vampire drain), after accounting for charges"
+msgstr "Caída de SoC no explicada por los trayectos (clima en estacionamiento, "
+"dog/camp, sentry, preacondicionamiento, drenaje vampiro), "
+"después de tener en cuenta las cargas"
+
+msgid "SoC outside driving"
+msgstr "SoC fuera de conducción"
 
 msgid "kWh/100 km"
 msgstr "kWh/100 km"
@@ -916,14 +932,14 @@ msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range)."
 msgstr ""
 "Las estimaciones kWh usan un pack de ~%(kwh)s kWh (según autonomía EPA)."
 
+msgid "SoC outside driving = (start − end) − drive SoC + charged."
+msgstr "SoC fuera de conducción = (inicio − fin) − SoC de trayectos + cargado"
+
 msgid "Departure"
 msgstr "Salida"
 
 msgid "Arrival"
 msgstr "Llegada"
-
-msgid "Duration"
-msgstr "Duración"
 
 msgid "From → to"
 msgstr "De → a"
@@ -1179,6 +1195,12 @@ msgstr "Días"
 
 msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
 msgstr "Fecha no válida. Usa DD/MM/AAAA o AAAA-MM-DD."
+
+msgid "%(h)s h %(m)s min"
+msgstr "%(h)s h %(m)s min"
+
+msgid "%(m)s min"
+msgstr "%(m)s min"
 
 msgid "Skip to content"
 msgstr "Saltar al contenido"
