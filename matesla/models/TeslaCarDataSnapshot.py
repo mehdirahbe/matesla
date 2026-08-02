@@ -89,7 +89,12 @@ class TeslaCarDataSnapshot(models.Model):
     pack_voltage = models.FloatField(null=True, blank=True)
 
     # --- climate_state ---
+    #Mehdi 2/8/2026: tesla does not return a bool but a more detailed info.
+    #"climate_keeper_mode": "camp","climate_keeper_mode": "dog"
+    #"climate_keeper_mode": "off" which can be combined with "is_climate_on": true during preconditioning
     climate_keeper_mode = models.BooleanField(null=True, blank=True)
+    #so let's add a raw data field with real value
+    climate_keeper_modeRaw = models.TextField(null=True, blank=True)
     driver_temp_setting = models.FloatField(null=True, blank=True)
     inside_temp = models.FloatField(null=True, blank=True)
     is_climate_on = models.BooleanField(null=True, blank=True)
@@ -204,12 +209,12 @@ class TeslaCarDataSnapshot(models.Model):
         self.energy_remaining = parse_float(charge_state.get("energy_remaining"))
         self.pack_voltage = parse_float(charge_state.get("pack_voltage"))
 
-        climate_keeper_mode = climate_state.get("climate_keeper_mode")
-        if climate_keeper_mode is None:
+        self.climate_keeper_modeRaw = climate_state.get("climate_keeper_mode")
+        if self.climate_keeper_modeRaw is None:
             self.climate_keeper_mode = None
         else:
             self.climate_keeper_mode = (
-                bool(climate_keeper_mode) and climate_keeper_mode != "off"
+                bool(self.climate_keeper_modeRaw) and self.climate_keeper_modeRaw != "off"
             )
         self.driver_temp_setting = parse_float(climate_state.get("driver_temp_setting"))
         self.inside_temp = parse_float(climate_state.get("inside_temp"))

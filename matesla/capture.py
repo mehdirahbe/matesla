@@ -50,18 +50,21 @@ INTERVAL_DRIVING_MIN = 2
 INTERVAL_DC_CHARGE_MIN = 2  # Supercharge: always 2 min (day and night)
 INTERVAL_AC_CHARGE_MIN = 15  # wall AC lasts hours; day only (night → 30)
 INTERVAL_CABIN_MIN = 2  # user present, dog/camp/climate keeper
-INTERVAL_SENTRY_MIN = 5  # sentry only (no cabin activity)
+INTERVAL_DOGCAMP_MIN = 15  # Dog or user sleeping, so longer interval
+INTERVAL_SENTRY_MIN = 10  # sentry only (no cabin activity)
 INTERVAL_ONLINE_IDLE_MIN = 5  # online but no cabin / sentry signal
 INTERVAL_ASLEEP_DAY_MIN = 5
 INTERVAL_NIGHT_DEFAULT_MIN = 30  # idle/AC/etc. at night; not drive/DC
 
 # DC heuristic: Supercharger / fast pack, or power well above typical AC.
-DC_POWER_KW_MIN = 20.0
+#Mehdi 2/8/2026: was 20, but all tesla are limited in AC to 11 kW
+DC_POWER_KW_MIN = 12.0
 DRIVING_SPEED_MPH_MIN = 1.0
 # Last snapshot older than this is not trusted for drive/charge/cabin/sentry.
 # Otherwise a car that finished charging and went to sleep stays "ac_charge" forever.
 # Must exceed AC day interval (15) so mid-session polls still see a "fresh" charge flag.
-ACTIVITY_SNAP_MAX_AGE_MIN = 20.0
+#Mehdi 2/8/2026: ensure it is the case!
+ACTIVITY_SNAP_MAX_AGE_MIN = max(20.0,INTERVAL_AC_CHARGE_MIN+5.0)
 # Min gap when forcing a poll because telemetry is stale while list says online.
 STALE_ONLINE_FORCE_POLL_MIN = 2.0
 # After a drive sample, keep probing until we get park/charge (seal trip end).
@@ -96,6 +99,7 @@ def _latest_activity_snapshot(vehicle: TeslaVehicle) -> TeslaCarDataSnapshot | N
             "sentry_mode",
             "climate_keeper_mode",
             "is_climate_on",
+            "climate_keeper_modeRaw", #to have dog/camping modes
         )
         .first()
     )
@@ -157,6 +161,10 @@ def _is_dc_charging(snap: TeslaCarDataSnapshot | None) -> bool:
         pass
     return False
 
+def IsDogOrCampingModes(snap: TeslaCarDataSnapshot | None) -> bool:
+    #see possible values in definition of climate_keeper_modeRaw in model 
+    return (snap is not None and snap.climate_keeper_modeRaw is not None and
+    snap.climate_keeper_modeRaw in ("camp", "dog"))
 
 def _is_cabin_active(snap: TeslaCarDataSnapshot | None) -> bool:
     """Someone in the car, dog/camp, or climate deliberately kept on."""
@@ -215,6 +223,9 @@ def activity_kind(
         if _is_charging(snap):
             return "ac_charge"
         if _is_cabin_active(snap):
+            #refine for dog and camp modes, which are probably for an extended time
+            if IsDogOrCampingModes(snap):
+                return "dogcamp"
             return "cabin"
         if _is_sentry(snap):
             return "sentry"
@@ -256,6 +267,8 @@ def _base_poll_interval_minutes(
         return INTERVAL_AC_CHARGE_MIN
     if kind == "cabin":
         return INTERVAL_CABIN_MIN
+    if kind == "dogcamp":
+        return INTERVAL_DOGCAMP_MIN    
     if kind == "sentry":
         return INTERVAL_SENTRY_MIN
     if kind == "asleep":
@@ -282,7 +295,7 @@ def poll_interval_minutes(
     base = _base_poll_interval_minutes(kind, night=night)
 
     # Never slow down while something is happening (or might need seal soon).
-    if kind in {"driving", "dc_charge", "ac_charge", "cabin"}:
+    if kind in {"driving", "dc_charge", "ac_charge", "cabin", "dogcamp"}:
         return base
 
     vin = (getattr(vehicle, "vin", None) or "").strip()
