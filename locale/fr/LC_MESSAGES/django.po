@@ -1338,25 +1338,6 @@ msgstr "Envoyer le mail"
 #~ "n=%(n)s échantillons · est. $%(usd).2f Data (@ $%(rate).3f/req) · cette "
 #~ "voiture seule · pas le total portail Tesla"
 
-#~ msgid "Firmware and cars Stats"
-#~ msgstr "Stats du firmware Tesla et des voitures"
-
-#~ msgid "Fleet intelligence"
-#~ msgstr "Intelligence de flotte"
-
-#~ msgid ""
-#~ "An anonymised view of the fleet for battery health, equipment and "
-#~ "software versions."
-#~ msgstr ""
-#~ "Une vue anonymisée de la flotte pour situer batterie, équipement et "
-#~ "versions logicielles."
-
-#~ msgid "Back to my car"
-#~ msgstr "Retour à ma voiture"
-
-#~ msgid "Fleet charts"
-#~ msgstr "Graphiques de flotte"
-
 #~ msgid "01 · BATTERY HEALTH"
 #~ msgstr "01 · SANTÉ BATTERIE"
 
@@ -1435,154 +1416,44 @@ msgstr "Envoyer le mail"
 #~ msgid "False"
 #~ msgstr "Faux"
 
-#~ msgid "Desired Charge Level"
-#~ msgstr "Niveau de charge désiré"
-
-#~ msgid "Driver temperature"
-#~ msgstr "Température pour le conducteur (°C)"
-
-#~ msgid "Please enter your Tesla account password"
-#~ msgstr "Veuillez entrer le mot de passe du compte Tesla"
-
-#~ msgid "Command failed"
-#~ msgstr "Commande échouée"
-
-#~ msgid "Tesla server did return an error when executing a command"
-#~ msgstr ""
-#~ "Le serveur Tesla a renvoyé une erreur lors de l'exécution de la commande"
-
-#~ msgid "Remote control"
-#~ msgstr "Commandes à distance"
-
-#~| msgid "Other commands"
-#~ msgid "Quick commands"
-#~ msgstr "Commandes rapides"
-
-#~ msgid "The most useful commands, without detours."
-#~ msgstr "Les commandes les plus utiles, sans détour."
-
-#~| msgid "Other commands"
-#~ msgid "Remote commands"
-#~ msgstr "Autres commandes"
-
 #~ msgid "LOCK · ON"
 #~ msgstr "VERROU · ON"
-
-#~ msgid "Unlock car"
-#~ msgstr "Déverrouiller"
-
-#~| msgid "Is car locked"
-#~ msgid "Car is currently locked"
-#~ msgstr "Verrouillée?"
 
 #~ msgid "LOCK · OFF"
 #~ msgstr "VERROU · OFF"
 
-#~| msgid "Your car"
-#~ msgid "Lock car"
-#~ msgstr "Votre voiture"
-
-#~ msgid "Car is currently unlocked"
-#~ msgstr "La voiture est déverrouillée"
-
 #~ msgid "CLIMATE · ON"
 #~ msgstr "CLIMAT · ON"
-
-#~| msgid "Stop charge"
-#~ msgid "Stop climate"
-#~ msgstr "Arrêter la charge"
 
 #~ msgid "CLIMATE · OFF"
 #~ msgstr "CLIMAT · OFF"
 
-#~| msgid "Start charge"
-#~ msgid "Start climate"
-#~ msgstr "Démarrer la charge"
-
 #~ msgid "PORT · OPEN"
 #~ msgstr "PORT · OUVERT"
-
-#~| msgid "Charge port"
-#~ msgid "Close charge port"
-#~ msgstr "Port de charge"
 
 #~ msgid "PORT · CLOSED"
 #~ msgstr "PORT · FERMÉ"
 
-#~| msgid "Charge port"
-#~ msgid "Open charge port"
-#~ msgstr "Port de charge"
-
 #~ msgid "LIGHTS"
 #~ msgstr "PHARES"
-
-#~ msgid "Flash lights"
-#~ msgstr "Faire clignoter les phares"
-
-#~ msgid "Locate the car visually"
-#~ msgstr "Repérer la voiture visuellement"
-
-#~ msgid "Sound the horn now?"
-#~ msgstr "Klaxonner maintenant ?"
 
 #~ msgid "HORN"
 #~ msgstr "KLAXON"
 
-#~ msgid "Honk horn"
-#~ msgstr "Klaxonner"
-
-#~ msgid "Use with consideration"
-#~ msgstr "À utiliser avec précaution"
-
-#~ msgid "Continue to remote drive activation?"
-#~ msgstr "Continuer vers l’activation de la conduite à distance ?"
-
 #~ msgid "REMOTE DRIVE"
 #~ msgstr "CONDUITE DISTANTE"
-
-#~ msgid "Start without key"
-#~ msgstr "Démarrer sans clé"
-
-#~| msgid "Please enter your Tesla account password"
-#~ msgid "Requires account password"
-#~ msgstr "Veuillez entrer le mot de passe du compte Tesla"
-
-#~ msgid "Active, stop?"
-#~ msgstr "Actif, stop?"
-
-#~ msgid "Inactive, start?"
-#~ msgstr "Inactif, démarrer?"
 
 #~ msgid "Change"
 #~ msgstr "Modifier"
 
-#~| msgid "Charging stops"
 #~ msgid "Charging"
-#~ msgstr "Arrêts recharge"
+#~ msgstr "Charge"
 
 #~ msgid "Start charge"
 #~ msgstr "Démarrer la charge"
 
-#~| msgid "Stop charge"
-#~ msgid "Stop charging now?"
-#~ msgstr "Arrêter la charge"
-
-#~ msgid "Stop charge"
-#~ msgstr "Arrêter la charge"
-
-#~| msgid "Install "
 #~ msgid "Install"
 #~ msgstr "Installer"
-
-#~ msgid "Activate drive mode without phone/card"
-#~ msgstr "Activer le mode conduite sans téléphone ni carte"
-
-#~ msgid ""
-#~ "Once done you have 2 minutes to start driving the car. Also please unlock "
-#~ "car if not yet done"
-#~ msgstr ""
-#~ "Une fois fait, vous avez 2 minutes pour démarrer la voiture. Veuillez "
-#~ "aussi déverrouiller la voiture si nécessaire."
 
 #~ msgid "Activate"
 #~ msgstr "Activer"
@@ -1638,17 +1509,8 @@ msgstr "Envoyer le mail"
 #~ msgid "Active vehicle: %(label)s"
 #~ msgstr "Véhicule actif : %(label)s"
 
-#~ msgid "Honk horn (not night when people sleep)"
-#~ msgstr "Faire klaxoner (pas la nuit quand les gens dorment)"
-
 #~ msgid "Json current data"
 #~ msgstr "Données courantes en Json"
-
-#~ msgid "Yes, unlock?"
-#~ msgstr "Oui, déverrouiller?"
-
-#~ msgid "No, lock?"
-#~ msgstr "Non, verrouiller?"
 
 #~ msgid "New firmware version"
 #~ msgstr "La nouvelle version du firmware"
@@ -1673,20 +1535,8 @@ msgstr "Envoyer le mail"
 #~ msgid "Is Charge port open"
 #~ msgstr "Port de charge ouvert"
 
-#~ msgid "Yes, close?"
-#~ msgstr "Oui, fermer?"
-
-#~ msgid "No, open?"
-#~ msgstr "Non, ouvrir?"
-
 #~ msgid "Is climate on"
 #~ msgstr "Climatisation"
-
-#~ msgid "Yes, stop?"
-#~ msgstr "Oui, arrêter?"
-
-#~ msgid "No, start?"
-#~ msgstr "Non, démarrer?"
 
 #~ msgid "Date as text"
 #~ msgstr "Date en texte"
@@ -1694,128 +1544,14 @@ msgstr "Envoyer le mail"
 #~ msgid "Or type DD/MM/YYYY"
 #~ msgstr "Ou taper JJ/MM/AAAA"
 
-#~ msgid "Have fun and you are the most welcome if you want to contribute :-)"
-#~ msgstr "Amusez vous, vous êtes les bienvenus si vous voulez contribuer :-)"
-
-#~ msgid ""
-#~ "Evolution of battery degradation in function of time for my Tesla "
-#~ "(minimum, maximum, average)"
-#~ msgstr ""
-#~ "Evolution de la dégradation de la batterie en fonction du temps (minimum, "
-#~ "maximum, moyenne)"
-
-#~ msgid "Raw json data returned by your Tesla... if you are curious"
-#~ msgstr ""
-#~ "Données json brutes renvoyées par votre Tesla... si vous êtes curieux"
-
-#~ msgid "Battery degradation of the Tesla fleet according to number of cycles"
-#~ msgstr ""
-#~ "Dégradation des batteries sur la flotte de Tesla en fonction du nombre de "
-#~ "cycles"
-
-#~ msgid ""
-#~ "Charge information of your Tesla, including both real and usable battery "
-#~ "levels, and estimated battery degradation"
-#~ msgstr ""
-#~ "Information sur la charge de votre Tesla, incluant la charge réelle et "
-#~ "utilisable, et une estimation de la dégradation de la batterie"
-
-#~ msgid ""
-#~ "Tesla fleet recent firmware updates. Ideal to know when a new firmware "
-#~ "version is available."
-#~ msgstr ""
-#~ "Mises à jour du firmware sur la flotte. Idéal pour savoir quand une "
-#~ "nouvelle version du firmware est disponible."
-
-#~ msgid ""
-#~ "Tesla commands: honk, flash... and put the car in drive mode. Yes, a "
-#~ "trusted friend/family member can do that for you if you are locked out of "
-#~ "your Tesla"
-#~ msgstr ""
-#~ "Commendez votre Tesla: klaxon, phares...et mettez votre Tesla en mode "
-#~ "conduite. Oui, un ami ou une personne de confiance peut faire ça pour "
-#~ "vous si vous êtes bloqués hors de votre Tesla"
-
-#~ msgid "Your tesla odometer and estimated battery number of cycles"
-#~ msgstr ""
-#~ "L'odomètre de votre Tesla et le nombre estimé de cycles de la batterie."
-
-#~ msgid ""
-#~ "Your tesla firmware history. Want to know when a version was installed on "
-#~ "your Tesla?"
-#~ msgstr ""
-#~ "L'historique du firmware de votre Tesla. Voulez-vous savoir quand une "
-#~ "version particulière a été installée?"
-
 #~ msgid "You can now close this window"
 #~ msgstr "Vous pouvez maintenant fermer cette fenêtre."
 
 #~ msgid "Power"
 #~ msgstr "Puissance"
 
-#~ msgid ""
-#~ "https://datastudio.google.com/reporting/119103e1-6912-4b1c-890c-"
-#~ "f02a6083fc8c"
-#~ msgstr ""
-#~ "https://datastudio.google.com/reporting/3cc14dae-6ea2-4f4b-869a-"
-#~ "afc2c1e00489"
-
-#~ msgid "Please enter a tesla token"
-#~ msgstr "Veuillez entrer un jeton tesla (token)"
-
-#~ msgid "The token alone does not allow to put your car in drive mode."
-#~ msgstr "Le jeton seul ne permet pas de mettre la voiture en mode conduite."
-
-#~ msgid "Token is invalidated if you change your tesla password."
-#~ msgstr "Le jeton est invalidé quand vous changez votre mot de passe"
-
-#~ msgid "This form will be presented again at token expiration."
-#~ msgstr "Ce formulaire vous sera à nouveau présenté à l'expiration du jeton"
-
 #~ msgid "Tesla token"
 #~ msgstr "Jeton Tesla"
-
-#~ msgid "To obtain a token, you have different methods."
-#~ msgstr "Pour obtenir un jeton, vous disposez de plusieurs méthodes"
-
-#~ msgid "For Teslafi users, Teslafi can provide you a token for your car"
-#~ msgstr ""
-#~ "Pour les utilisateurs de Teslafi, Teslafi peut vous fournir un jeton pour "
-#~ "votre voiture"
-
-#~ msgid "I can recommend this free mobile app"
-#~ msgstr "Je peux recommander cette application mobile"
-
-#~ msgid "It is discussed here by the author Denouche"
-#~ msgstr "Il y a une discussion dessus présentée par son auteur Denouche"
-
-#~ msgid "You are on local computer, only used to test new developments."
-#~ msgstr ""
-#~ "Vous êtes sur l'ordinateur local, utilisé uniquement pour tester de "
-#~ "nouveaux développements.."
-
-#~ msgid ""
-#~ "Please go on official site instead <a href=\"https://matesla.herokuapp."
-#~ "com\" class=\"btn btn-danger btn-sm\">https://matesla.herokuapp.com</a></"
-#~ "h6>"
-#~ msgstr ""
-#~ "Veuillez aller à la place sur le site officiel <a href=\"https://matesla."
-#~ "herokuapp.com\" class=\"btn btn-danger btn-sm\">https://matesla.herokuapp."
-#~ "com</a></h6>"
-
-#~ msgid ""
-#~ "You are on afternoon-scrubland-61531.herokuapp.com, only used to test "
-#~ "deployment."
-#~ msgstr ""
-#~ "Vous êtes sur afternoon-scrubland-61531.herokuapp.com, utilisé uniquement "
-#~ "pour tester le déploiement."
-
-#~ msgid ""
-#~ "The token allow to connect to your Tesla car, it does expire after 45 "
-#~ "days."
-#~ msgstr ""
-#~ "Le jeton permet de se connecter à votre voiture Tesla, il expire après 45 "
-#~ "jours"
 
 #~ msgid "Name"
 #~ msgstr "Nom"

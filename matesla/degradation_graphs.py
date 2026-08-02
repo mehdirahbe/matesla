@@ -113,7 +113,7 @@ def aggregate_scatter_daily_median(x_values, y_values, sample_dates):
     """
     Collapse many same-day snapshots into one median (X, Y) point per civil day.
 
-    TeslaFi-style histories poll often; the vertical cloud is mostly same-day
+    Histories poll often; the vertical cloud is mostly same-day
     BMS jitter, not real degradation change. Daily median makes the trend readable.
     """
     if (

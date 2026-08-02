@@ -5,7 +5,7 @@ from matesla.capture import capture_all_online_vehicles
 
 class Command(BaseCommand):
     help = (
-        "TeslaFi-style capture: for every vehicle already online, pull full "
+        "Capture: for every vehicle already online, pull full "
         "vehicle_data and save snapshots for graphs. Never wakes cars. "
         "Safe to run every minute via cron."
     )

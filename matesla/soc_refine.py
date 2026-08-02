@@ -1,8 +1,7 @@
 """
 Refine coarse (integer) SoC from battery_range.
 
-Fleet REST vehicle_data exposes battery_level as a whole percent. TeslaFi and
-the car's trip graph use finer resolution. battery_range still moves in tenths
+Fleet REST vehicle_data exposes battery_level as a whole percent. The car's trip graph use finer resolution. battery_range still moves in tenths
 of a mile, so:
 
     soc ≈ 100 * battery_range / pack_rated_miles

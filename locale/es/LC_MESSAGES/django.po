@@ -1326,25 +1326,6 @@ msgstr "Enviar correo"
 #~ "n=%(n)s muestras · est. $%(usd).2f Data (@ $%(rate).3f/req) · solo este "
 #~ "coche · no el total del portal Tesla"
 
-#~ msgid "Firmware and cars Stats"
-#~ msgstr "Estadísticas de firmware y coches"
-
-#~ msgid "Fleet intelligence"
-#~ msgstr "Inteligencia de flota"
-
-#~ msgid ""
-#~ "An anonymised view of the fleet for battery health, equipment and "
-#~ "software versions."
-#~ msgstr ""
-#~ "Vista anonimizada de la flota para situar batería, equipamiento y "
-#~ "versiones de software."
-
-#~ msgid "Back to my car"
-#~ msgstr "Volver a mi coche"
-
-#~ msgid "Fleet charts"
-#~ msgstr "Gráficos de flota"
-
 #~ msgid "01 · BATTERY HEALTH"
 #~ msgstr "01 · SALUD BATERÍA"
 
@@ -1423,113 +1404,32 @@ msgstr "Enviar correo"
 #~ msgid "False"
 #~ msgstr "Falso"
 
-#~ msgid "Desired Charge Level"
-#~ msgstr "Nivel de carga deseado"
-
-#~ msgid "Driver temperature"
-#~ msgstr "Temperatura del conductor"
-
-#~ msgid "Please enter your Tesla account password"
-#~ msgstr "Introduce la contraseña de tu cuenta Tesla"
-
-#~ msgid "Command failed"
-#~ msgstr "Comando fallido"
-
-#~ msgid "Tesla server did return an error when executing a command"
-#~ msgstr "El servidor Tesla devolvió un error al ejecutar un comando"
-
-#~ msgid "Remote control"
-#~ msgstr "Control remoto"
-
-#~ msgid "Quick commands"
-#~ msgstr "Comandos rápidos"
-
-#~ msgid "The most useful commands, without detours."
-#~ msgstr "Los comandos más útiles, sin rodeos."
-
-#~ msgid "Remote commands"
-#~ msgstr "Comandos remotos"
-
 #~ msgid "LOCK · ON"
 #~ msgstr "CIERRE · ON"
-
-#~ msgid "Unlock car"
-#~ msgstr "Desbloquear"
-
-#~ msgid "Car is currently locked"
-#~ msgstr "El coche está bloqueado"
 
 #~ msgid "LOCK · OFF"
 #~ msgstr "CIERRE · OFF"
 
-#~ msgid "Lock car"
-#~ msgstr "Bloquear el coche"
-
-#~ msgid "Car is currently unlocked"
-#~ msgstr "El coche está desbloqueado"
-
 #~ msgid "CLIMATE · ON"
 #~ msgstr "CLIMA · ON"
-
-#~ msgid "Stop climate"
-#~ msgstr "Detener climatización"
 
 #~ msgid "CLIMATE · OFF"
 #~ msgstr "CLIMA · OFF"
 
-#~ msgid "Start climate"
-#~ msgstr "Iniciar climatización"
-
 #~ msgid "PORT · OPEN"
 #~ msgstr "PUERTO · ABIERTO"
-
-#~ msgid "Close charge port"
-#~ msgstr "Cerrar puerto de carga"
 
 #~ msgid "PORT · CLOSED"
 #~ msgstr "PUERTO · CERRADO"
 
-#~ msgid "Open charge port"
-#~ msgstr "Abrir puerto de carga"
-
 #~ msgid "LIGHTS"
 #~ msgstr "LUCES"
-
-#~ msgid "Flash lights"
-#~ msgstr "Parpadear luces"
-
-#~ msgid "Locate the car visually"
-#~ msgstr "Localizar el coche visualmente"
-
-#~ msgid "Sound the horn now?"
-#~ msgstr "¿Tocar el claxon ahora?"
 
 #~ msgid "HORN"
 #~ msgstr "CLAXON"
 
-#~ msgid "Honk horn"
-#~ msgstr "Tocar el claxon"
-
-#~ msgid "Use with consideration"
-#~ msgstr "Usar con precaución"
-
-#~ msgid "Continue to remote drive activation?"
-#~ msgstr "¿Continuar con la activación de conducción remota?"
-
 #~ msgid "REMOTE DRIVE"
 #~ msgstr "CONDUCCIÓN REMOTA"
-
-#~ msgid "Start without key"
-#~ msgstr "Arrancar sin llave"
-
-#~ msgid "Requires account password"
-#~ msgstr "Requiere la contraseña de la cuenta"
-
-#~ msgid "Active, stop?"
-#~ msgstr "Activo, ¿detener?"
-
-#~ msgid "Inactive, start?"
-#~ msgstr "Inactivo, ¿iniciar?"
 
 #~ msgid "Change"
 #~ msgstr "Cambiar"
@@ -1537,27 +1437,8 @@ msgstr "Enviar correo"
 #~ msgid "Charging"
 #~ msgstr "Carga"
 
-#~ msgid "Start charge"
-#~ msgstr "Iniciar carga"
-
-#~ msgid "Stop charging now?"
-#~ msgstr "¿Detener la carga ahora?"
-
-#~ msgid "Stop charge"
-#~ msgstr "Detener carga"
-
 #~ msgid "Install"
 #~ msgstr "Instalar"
-
-#~ msgid "Activate drive mode without phone/card"
-#~ msgstr "Activar el modo de conducción sin teléfono/tarjeta"
-
-#~ msgid ""
-#~ "Once done you have 2 minutes to start driving the car. Also please unlock "
-#~ "car if not yet done"
-#~ msgstr ""
-#~ "Hecho esto, tienes 2 minutos para empezar a conducir. Desbloquea el coche "
-#~ "si aún no lo has hecho"
 
 #~ msgid "Activate"
 #~ msgstr "Activar"

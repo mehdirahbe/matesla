@@ -1,5 +1,5 @@
 """
-TeslaFi-style capture: for known vehicles that are already online, pull
+capture: for known vehicles that are already online, pull
 vehicle_data and persist snapshots for graphs.
 
 Never wakes cars. Cron may tick every minute; this module spaces real Fleet
