@@ -39,11 +39,23 @@ class TeslaPartnerError(Exception):
         self.response = response
 
 
-def ensure_key_pair() -> tuple[Path, Path]:
-    """Generate prime256v1 EC key pair if missing. Returns (private, public) paths."""
+def key_pair_exists() -> bool:
+    return PRIVATE_KEY_PATH.exists() and PUBLIC_KEY_PATH.exists()
+
+
+def ensure_key_pair() -> tuple[Path, Path, bool]:
+    """
+    Ensure a prime256v1 EC key pair exists.
+
+    Never overwrites an existing pair (a new public key would invalidate
+    whatever is published on the partner domain HTTPS URL).
+
+    Returns (private_path, public_path, created) where created is True only
+    when files were just written.
+    """
     KEYS_DIR.mkdir(parents=True, exist_ok=True)
-    if PRIVATE_KEY_PATH.exists() and PUBLIC_KEY_PATH.exists():
-        return PRIVATE_KEY_PATH, PUBLIC_KEY_PATH
+    if key_pair_exists():
+        return PRIVATE_KEY_PATH, PUBLIC_KEY_PATH, False
 
     private_key = ec.generate_private_key(ec.SECP256R1())
     private_pem = private_key.private_bytes(
@@ -58,7 +70,7 @@ def ensure_key_pair() -> tuple[Path, Path]:
     PRIVATE_KEY_PATH.write_bytes(private_pem)
     PRIVATE_KEY_PATH.chmod(0o600)
     PUBLIC_KEY_PATH.write_bytes(public_pem)
-    return PRIVATE_KEY_PATH, PUBLIC_KEY_PATH
+    return PRIVATE_KEY_PATH, PUBLIC_KEY_PATH, True
 
 
 def public_key_pem_text() -> str:
@@ -66,9 +78,82 @@ def public_key_pem_text() -> str:
     return PUBLIC_KEY_PATH.read_text()
 
 
+# Tesla always fetches this exact path on the registered domain (hosting
+# backend is free: nginx, S3, Cloudflare, GitHub Pages, … — not the path).
+PUBLIC_KEY_URL_PATH = f"/.well-known/appspecific/{PUBLIC_KEY_WELLKNOWN_NAME}"
+
+
 def public_key_url(domain: str) -> str:
-    domain = domain.strip().lower().removeprefix("https://").removeprefix("http://").rstrip("/")
-    return f"https://{domain}/.well-known/appspecific/{PUBLIC_KEY_WELLKNOWN_NAME}"
+    domain = normalize_partner_domain(domain)
+    return f"https://{domain}{PUBLIC_KEY_URL_PATH}"
+
+
+def normalize_partner_domain(value: str) -> str:
+    """Bare hostname from domain, origin, or full public-key URL."""
+    raw = (value or "").strip().lower()
+    if not raw:
+        return ""
+    raw = raw.removeprefix("https://").removeprefix("http://")
+    return raw.split("/")[0].split("?")[0].split("#")[0]
+
+
+def parse_partner_public_key_input(value: str) -> tuple[str, str]:
+    """
+    Accept a partner domain, https origin, or full Tesla public-key URL.
+
+    Returns (domain, canonical_public_key_url).
+
+    The path is fixed by Tesla — if a full URL is given with another path,
+    raise ValueError (register would still look at the well-known location).
+    """
+    raw = (value or "").strip()
+    if not raw:
+        return "", ""
+
+    lowered = raw.lower()
+    if "://" in lowered or lowered.startswith("//"):
+        # Full URL or scheme-relative
+        from urllib.parse import urlparse
+
+        parsed = urlparse(raw if "://" in lowered else f"https:{raw}")
+        if parsed.scheme and parsed.scheme not in ("http", "https"):
+            raise ValueError(
+                _("Partner public key must be served over HTTPS (got %(scheme)s).")
+                % {"scheme": parsed.scheme}
+            )
+        host = (parsed.hostname or "").lower()
+        if not host:
+            raise ValueError(_("Could not read a host from that URL."))
+        path = parsed.path or ""
+        # Allow origin-only URLs (path empty or /) — we append Tesla's path.
+        if path in ("", "/"):
+            return host, public_key_url(host)
+        expected = PUBLIC_KEY_URL_PATH
+        # Tolerate trailing slash differences
+        if path.rstrip("/") != expected.rstrip("/"):
+            raise ValueError(
+                _(
+                    "Tesla always fetches the public key at "
+                    "https://%(host)s%(path)s — not at an arbitrary path. "
+                    "Host the PEM there (any HTTPS server is fine: nginx, "
+                    "S3, Cloudflare, GitHub Pages, …)."
+                )
+                % {"host": host, "path": expected}
+            )
+        return host, public_key_url(host)
+
+    # Bare domain (optionally with a path typed by mistake)
+    domain = normalize_partner_domain(raw)
+    if not domain:
+        return "", ""
+    if domain in ("localhost", "127.0.0.1"):
+        raise ValueError(
+            _(
+                "Tesla rejects localhost as a partner domain. "
+                "Use a public HTTPS domain."
+            )
+        )
+    return domain, public_key_url(domain)
 
 
 def check_public_key_reachable(domain: str) -> tuple[bool, str]:
@@ -137,13 +222,7 @@ def register_partner_account(domain: str, app: TeslaAppSettings | None = None) -
     if not app:
         raise TeslaPartnerError(_("Missing app settings."))
 
-    domain = (
-        domain.strip()
-        .lower()
-        .removeprefix("https://")
-        .removeprefix("http://")
-        .split("/")[0]
-    )
+    domain = normalize_partner_domain(domain)
     if not domain or domain in ("localhost", "127.0.0.1"):
         raise TeslaPartnerError(
             _(

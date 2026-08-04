@@ -26,12 +26,12 @@ from matesla.TeslaOAuth import (
 from matesla.TeslaPartner import (
     TeslaPartnerError,
     ensure_key_pair,
-    public_key_pem_text,
+    key_pair_exists,
     public_key_url,
     check_public_key_reachable,
     register_partner_account,
 )
-from .forms import TeslaAppSettingsForm
+from .forms import TeslaAppSettingsForm, TeslaPartnerDomainForm
 from .models.TeslaAppSettings import TeslaAppSettings
 from .models.TeslaOAuthPending import TeslaOAuthPending
 from .models.TeslaToken import TeslaToken, TeslaVehicle
@@ -443,26 +443,112 @@ def view_AddTeslaAccount(request):
     token = TeslaToken.objects.filter(user_id=user.id).first()
     vehicles = list_user_vehicles(user)
     active = resolve_active_vehicle(user, request)
+    app_form = None
+    partner_domain_form = None
+    action = request.POST.get("action") if request.method == "POST" else None
 
-    if request.method == "POST" and request.POST.get("action") == "save_app":
+    if action == "save_app":
         form = TeslaAppSettingsForm(request.POST, instance=app_settings)
         if form.is_valid():
-            form.save()
-            messages.success(
-                request,
-                _("Developer credentials saved."),
-            )
+            was_configured = TeslaAppSettings.is_configured()
+            before = None
+            if app_settings:
+                before = (
+                    app_settings.client_id,
+                    app_settings.client_secret,
+                    app_settings.redirect_uri,
+                    app_settings.api_base,
+                )
+            obj = form.save()
+            after = (obj.client_id, obj.client_secret, obj.redirect_uri, obj.api_base)
+            if was_configured and before == after:
+                messages.info(
+                    request,
+                    _("Application settings unchanged (safe to save again anytime)."),
+                )
+            elif was_configured:
+                messages.success(
+                    request,
+                    _(
+                        "Developer credentials updated. "
+                        "If you changed Client ID or secret, use Re-authorize."
+                    ),
+                )
+            else:
+                messages.success(request, _("Developer credentials saved."))
             return redirect("AddTeslaAccount")
         app_form = form
-    elif request.method == "POST" and request.POST.get("action") == "generate_keys":
-        priv, pub = ensure_key_pair()
-        messages.success(
-            request,
-            _("Keys generated: %(pub)s (to publish) and %(priv)s (secret, local).")
-            % {"pub": pub, "priv": priv},
-        )
+    elif action == "save_partner_domain":
+        # Only update partner_domain — never touch credentials on this action.
+        domain_form = TeslaPartnerDomainForm(request.POST)
+        if not app_settings:
+            messages.error(
+                request,
+                _("Save Client ID and secret in step 1 before setting a partner domain."),
+            )
+            return redirect("AddTeslaAccount")
+        if domain_form.is_valid():
+            domain = domain_form.cleaned_data["partner_domain"]
+            previous = (app_settings.partner_domain or "").strip().lower()
+            if domain == previous:
+                messages.info(
+                    request,
+                    _("Partner domain unchanged: %(domain)s") % {"domain": domain or "—"},
+                )
+                return redirect("AddTeslaAccount")
+            app_settings.partner_domain = domain
+            update_fields = ["partner_domain", "updated_at"]
+            # Registration is per domain — changing it invalidates the flag.
+            if app_settings.partner_registered and domain != previous:
+                app_settings.partner_registered = False
+                update_fields.append("partner_registered")
+                app_settings.save(update_fields=update_fields)
+                if domain:
+                    messages.warning(
+                        request,
+                        _(
+                            "Partner domain changed to %(domain)s. "
+                            "Previous registration no longer applies — "
+                            "verify the public key, then register again."
+                        )
+                        % {"domain": domain},
+                    )
+                else:
+                    messages.info(request, _("Partner domain cleared."))
+                return redirect("AddTeslaAccount")
+            app_settings.save(update_fields=update_fields)
+            if domain:
+                messages.success(
+                    request,
+                    _("Partner domain saved: %(domain)s") % {"domain": domain},
+                )
+            else:
+                messages.info(request, _("Partner domain cleared."))
+            return redirect("AddTeslaAccount")
+        partner_domain_form = domain_form
+    elif action == "generate_keys":
+        # Safe: never overwrites an existing pair (would break published HTTPS key).
+        priv, pub, created = ensure_key_pair()
+        if created:
+            messages.success(
+                request,
+                _(
+                    "EC key pair created. Publish the public key to your partner domain "
+                    "(file: %(pub)s). Private key stays local: %(priv)s."
+                )
+                % {"pub": pub, "priv": priv},
+            )
+        else:
+            messages.info(
+                request,
+                _(
+                    "EC key pair already exists — left unchanged. "
+                    "Regenerating would invalidate the public key on HTTPS; "
+                    "delete the files under tesla_keys/ only if you really mean to."
+                ),
+            )
         return redirect("AddTeslaAccount")
-    elif request.method == "POST" and request.POST.get("action") == "check_public_key":
+    elif action == "check_public_key":
         domain = (request.POST.get("partner_domain") or "").strip()
         if app_settings and not domain:
             domain = app_settings.partner_domain
@@ -472,27 +558,46 @@ def view_AddTeslaAccount(request):
             ok, msg = check_public_key_reachable(domain)
             (messages.success if ok else messages.error)(request, msg)
         return redirect("AddTeslaAccount")
-    elif request.method == "POST" and request.POST.get("action") == "register_partner":
+    elif action == "register_partner":
         domain = (request.POST.get("partner_domain") or "").strip()
         if app_settings and not domain:
             domain = app_settings.partner_domain
+        already = bool(
+            app_settings
+            and app_settings.partner_registered
+            and (app_settings.partner_domain or "").strip().lower()
+            == (domain or "").strip().lower()
+        )
         try:
             if app_settings and domain and domain != app_settings.partner_domain:
                 app_settings.partner_domain = domain
-                app_settings.save(update_fields=["partner_domain", "updated_at"])
-            result = register_partner_account(domain)
-            messages.success(
-                request,
-                _(
-                    "Partner register OK for « %(domain)s ». "
-                    "You can reconnect / resync vehicles now. Detail: %(result)s"
+                app_settings.partner_registered = False
+                app_settings.save(
+                    update_fields=["partner_domain", "partner_registered", "updated_at"]
                 )
-                % {"domain": domain, "result": result},
-            )
+            result = register_partner_account(domain)
+            if already:
+                messages.success(
+                    request,
+                    _(
+                        "Partner registration reconfirmed for « %(domain)s ». "
+                        "Safe to repeat. Detail: %(result)s"
+                    )
+                    % {"domain": domain, "result": result},
+                )
+            else:
+                messages.success(
+                    request,
+                    _(
+                        "Partner register OK for « %(domain)s ». "
+                        "You can authorize Tesla / resync vehicles now. Detail: %(result)s"
+                    )
+                    % {"domain": domain, "result": result},
+                )
         except TeslaPartnerError as exc:
             messages.error(request, str(exc))
         return redirect("AddTeslaAccount")
-    elif request.method == "POST" and request.POST.get("action") == "resync_vehicles":
+    elif action == "resync_vehicles":
         if not token:
             messages.error(request, _("No Tesla token — sign in first."))
             return redirect("AddTeslaAccount")
@@ -518,7 +623,7 @@ def view_AddTeslaAccount(request):
             traceback.print_exc()
             messages.error(request, _("Resync failed: %(err)s") % {"err": exc})
         return redirect("AddTeslaAccount")
-    elif request.method == "POST" and request.POST.get("action") == "disconnect":
+    elif action == "disconnect":
         TeslaToken.objects.filter(user_id=user.id).delete()
         TeslaVehicle.objects.filter(user=user).delete()
         request.session.pop(SESSION_ACTIVE_VEHICLE_KEY, None)
@@ -527,42 +632,58 @@ def view_AddTeslaAccount(request):
             _("Tesla account disconnected (tokens and vehicles removed)."),
         )
         return redirect("AddTeslaAccount")
-    elif request.method == "POST" and request.POST.get("action") == "select_vehicle":
-        api_id = request.POST.get("vehicle_api_id")
-        if set_active_vehicle(request, user, api_id):
-            messages.success(request, _("Active vehicle updated."))
-        else:
-            messages.error(request, _("Unknown vehicle."))
-        return redirect("AddTeslaAccount")
-    else:
-        app_form = TeslaAppSettingsForm(instance=app_settings) if app_settings else TeslaAppSettingsForm()
 
-    pub_pem = None
-    pub_path = None
+    if app_form is None:
+        app_form = (
+            TeslaAppSettingsForm(instance=app_settings)
+            if app_settings
+            else TeslaAppSettingsForm()
+        )
+    if partner_domain_form is None:
+        # Prefill with the canonical public-key URL when a domain is known,
+        # so the field is clearly editable as a full URL (not only a host).
+        initial_partner = ""
+        if app_settings and app_settings.partner_domain:
+            initial_partner = public_key_url(app_settings.partner_domain)
+        partner_domain_form = TeslaPartnerDomainForm(
+            initial={"partner_domain": initial_partner}
+        )
+
+    # Create key pair on first visit only if missing — never rotates existing keys.
     try:
         ensure_key_pair()
-        pub_pem = public_key_pem_text()
-        pub_path = str(
-            __import__("matesla.TeslaPartner", fromlist=["PUBLIC_KEY_PATH"]).PUBLIC_KEY_PATH
-        )
     except Exception:
         pass
 
     domain = (app_settings.partner_domain if app_settings else "") or ""
+    if partner_domain_form.is_bound and partner_domain_form.errors:
+        domain = partner_domain_form.data.get("partner_domain") or domain
+
+    redirect_uri = ""
+    if app_settings and app_settings.redirect_uri:
+        redirect_uri = app_settings.redirect_uri
+    else:
+        redirect_uri = (
+            app_form["redirect_uri"].value()
+            or app_form.fields["redirect_uri"].initial
+            or ""
+        )
+
     return render(
         request,
         "matesla/AddTeslaAccount.html",
         {
             "app_form": app_form,
+            "partner_domain_form": partner_domain_form,
             "app_configured": TeslaAppSettings.is_configured(),
             "tesla_token": token,
             "vehicles": vehicles,
             "active_vehicle": active,
             "partner_registered": bool(app_settings and app_settings.partner_registered),
             "partner_domain": domain,
-            "public_key_pem": pub_pem,
-            "public_key_path": pub_path,
+            "keys_ready": key_pair_exists(),
             "public_key_url": public_key_url(domain) if domain else None,
+            "redirect_uri": redirect_uri,
             "oauth_error": request.session.pop("tesla_oauth_error", None),
         },
     )
