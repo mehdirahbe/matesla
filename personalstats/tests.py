@@ -84,6 +84,7 @@ class PersonalStatsUrlTests(TestCase):
             f"/en/personalstats/Stats/{bad}",
             f"/en/personalstats/DayMap/{bad}",
             f"/en/personalstats/DayMap/{bad}/2024-01-15",
+            f"/en/personalstats/Drives/{bad}",
             f"/en/personalstats/LifetimeMapData/{bad}",
             f"/en/personalstats/FirmwareHistory/{bad}",
             f"/en/personalstats/FirmwareHistoryCSV/{bad}",
@@ -125,6 +126,36 @@ class PersonalStatsPageTests(TestCase):
         )
         # Empty day still renders the day map shell (200), not 500
         self.assertEqual(response.status_code, 200)
+
+    def test_drives_page_ok(self):
+        client = Client()
+        response = client.get(f"/en/personalstats/Drives/{FAKE_HASHED_VIN}")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "drives", status_code=200)
+
+    def test_drives_page_sort_criteria(self):
+        client = Client()
+        for sort in (
+            "longest",
+            "elev_up",
+            "elev_down",
+            "hot",
+            "cold",
+            "soc_end",
+        ):
+            response = client.get(
+                f"/en/personalstats/Drives/{FAKE_HASHED_VIN}"
+                f"?sort={sort}&period=520"
+            )
+            self.assertEqual(response.status_code, 200, sort)
+
+    def test_drives_leaderboard_has_long_trips(self):
+        from personalstats.views import _load_ranked_drives, DRIVES_MIN_KM
+
+        trips = _load_ranked_drives(FAKE_HASHED_VIN, 520, min_km=DRIVES_MIN_KM)
+        self.assertGreater(len(trips), 0)
+        for trip in trips:
+            self.assertGreaterEqual(trip["km"], DRIVES_MIN_KM)
 
     def test_firmware_history_page_ok(self):
         client = Client()

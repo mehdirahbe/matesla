@@ -150,17 +150,22 @@ def seed_fake_car_telemetry(
         day_start = start_time + timedelta(days=day_offset)
 
         # --- Morning trip: several samples ≤ 2 min apart ---
-        # Close spacing is required for lifetime-map / efficiency trip segmentation
+        # Close spacing is required for lifetime-map / efficiency trip segmentation.
+        # ~3.5 mi × 6 ≈ 21 mi (≥ 20 km) so Drives leaderboard has ranked trips.
         sample_time = day_start.replace(hour=8, minute=0, second=0, microsecond=0)
         trip_sample_count = 6
         for trip_index in range(trip_sample_count):
-            odometer_miles += 2.2  # ~13 mi trip total
-            state_of_charge_percent = max(20.0, state_of_charge_percent - 0.6)
+            odometer_miles += 3.5
+            state_of_charge_percent = max(20.0, state_of_charge_percent - 0.9)
             # Positive power for traction; last samples simulate regen braking
             if trip_index < trip_sample_count - 2:
                 power_kw = 20.0 + (trip_index * 5)
             else:
                 power_kw = -12.0
+            # Gentle climb then descent — feeds elev_up / elev_down rankings
+            elevation_m = 80.0 + 40.0 * math.sin(
+                math.pi * trip_index / max(1, trip_sample_count - 1)
+            )
             append_snapshot(
                 speed=30.0 + trip_index * 5,
                 power=power_kw,
@@ -171,6 +176,7 @@ def seed_fake_car_telemetry(
                 battery_level=state_of_charge_percent,
                 latitude=50.85 + 0.02 * math.sin((day_offset + trip_index) / 11.0),
                 longitude=4.35 + 0.02 * math.cos((day_offset + trip_index) / 13.0),
+                elevation=round(elevation_m, 1),
             )
             sample_time = sample_time + timedelta(seconds=90)
 

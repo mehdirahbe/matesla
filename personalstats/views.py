@@ -206,6 +206,30 @@ DRIVE_SENSOR_MAX_SCAN = 25000
 # (TeslaFi / adaptive capture can be 10–60 s between drive samples)
 DRIVE_POWER_ENERGY_MAX_GAP = timedelta(seconds=90)
 
+# --- Drives leaderboard (personalstats/Drives) ---
+# Skip short errands (Delhaize / school hop); TeslaFi-style "real trips" only.
+DRIVES_MIN_KM = 20.0
+# Max trips kept after scan (per period). Ranking is among these; display pages
+# slice further. Does not reduce scan cost — scan is the bottleneck.
+DRIVES_MAX_TRIPS = 100
+DRIVES_CACHE_SECONDS = 900
+DRIVES_PAGE_SIZES = frozenset({10, 25, 50})
+DRIVES_DEFAULT_PAGE_SIZE = 25
+# Gap between successive *drive* samples starts a new trip (park/charge omitted
+# from the scan for speed — same idea as efficiency charts).
+DRIVES_TRIP_GAP = timedelta(minutes=15)
+# sort_key → (trip dict field, reverse for "higher is more extreme")
+DRIVES_SORT_SPECS = {
+    "longest": ("km", True),
+    "elev_up": ("elev_gain_m", True),
+    "elev_down": ("elev_loss_m", True),
+    "hot": ("temp_max_c", True),
+    "cold": ("temp_min_c", False),  # lower temp = colder
+    # Lowest arrival SoC first — "arrived near empty"
+    "soc_end": ("soc_end", False),
+}
+DRIVES_SORT_DEFAULT = "longest"
+
 
 def GetTitleForFieldDico():
     dico = {
@@ -3058,6 +3082,389 @@ def _drive_soc_metrics(start_sample, end_sample):
     return soc_a, display_end, soc_used
 
 
+def _drive_trip_extras(points, geo_start, geo_end):
+    """
+    Extra metrics for leaderboard ranking (elevation, GPS extremes, outside temp).
+
+    Elevation gain/loss: cumulative sample-to-sample Δh on the drive path
+    (plus park anchors when present). Not net end−start.
+    Temperature: exterior only (outside_temp), never cabin.
+    """
+    elev_series = []
+    for sample in (geo_start, *points, geo_end):
+        if sample is None:
+            continue
+        elev = sample.get("elevation")
+        if elev is None:
+            continue
+        try:
+            elev_series.append(float(elev))
+        except (TypeError, ValueError):
+            pass
+
+    elev_gain_m = 0.0
+    elev_loss_m = 0.0
+    if len(elev_series) >= 2:
+        previous = elev_series[0]
+        for elev in elev_series[1:]:
+            delta = elev - previous
+            if delta > 0:
+                elev_gain_m += delta
+            elif delta < 0:
+                elev_loss_m += -delta
+            previous = elev
+
+    latitudes = []
+    longitudes = []
+    for sample in (geo_start, *points, geo_end):
+        if sample is None:
+            continue
+        lat, lon = sample.get("lat"), sample.get("lon")
+        if lat is None or lon is None:
+            continue
+        try:
+            latitudes.append(float(lat))
+            longitudes.append(float(lon))
+        except (TypeError, ValueError):
+            pass
+
+    temps = []
+    for sample in points:
+        outside = sample.get("outside_temp")
+        if outside is None:
+            continue
+        try:
+            temps.append(float(outside))
+        except (TypeError, ValueError):
+            pass
+
+    return {
+        "elev_gain_m": elev_gain_m if len(elev_series) >= 2 else None,
+        "elev_loss_m": elev_loss_m if len(elev_series) >= 2 else None,
+        "lat_max": max(latitudes) if latitudes else None,
+        "lat_min": min(latitudes) if latitudes else None,
+        "lon_max": max(longitudes) if longitudes else None,
+        "lon_min": min(longitudes) if longitudes else None,
+        "temp_max_c": max(temps) if temps else None,
+        "temp_min_c": min(temps) if temps else None,
+    }
+
+
+def _pack_kwh_for_hashed_vin(hashed_vin, vin_hint=None):
+    """EPA-based pack estimate for kWh/100 km on drive leaderboards."""
+    from matesla.models.TeslaCarInfo import TeslaCarInfo
+
+    info = None
+    if vin_hint:
+        info = TeslaCarInfo.objects.filter(vin=vin_hint).first()
+    if info is None:
+        info = TeslaCarInfo.objects.filter(hashedVin=hashed_vin).first()
+    epa = info.EPARange if info and info.EPARange else None
+    return _estimate_pack_kwh(epa)
+
+
+def _as_float_or_none(value):
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _finalize_drive_segment(start_pt, end_pt, acc, *, min_km, pack_kwh):
+    """
+    Build one leaderboard trip from first/last drive sample + running accumulators.
+    Returns None if under min_km / too short.
+    """
+    if start_pt is None or end_pt is None:
+        return None
+    start_t, end_t = start_pt.get("t"), end_pt.get("t")
+    if start_t is None or end_t is None:
+        return None
+    seconds = max(0.0, (end_t - start_t).total_seconds())
+    minutes = seconds / 60.0
+    hours = seconds / 3600.0
+    if minutes < 1.0 and acc["n"] < 3:
+        return None
+
+    odo_start = start_pt.get("odometer")
+    odo_end = end_pt.get("odometer")
+    miles = None
+    if odo_start is not None and odo_end is not None and odo_end >= odo_start:
+        miles = odo_end - odo_start
+    if miles is not None and miles < 0.05 and minutes < 3:
+        return None
+    km = miles * 1.609344 if miles is not None else None
+    if km is None or km < min_km:
+        return None
+
+    soc_start, soc_end, soc_used = _drive_soc_metrics(start_pt, end_pt)
+    kwh_used = None
+    if soc_used is not None and soc_used > 0:
+        kwh_used = soc_used / 100.0 * pack_kwh
+    kwh_per_100km = None
+    if kwh_used is not None and km > 0.2:
+        kwh_per_100km = kwh_used / km * 100.0
+
+    day_local = start_t.astimezone(DAY_MAP_TZ).date()
+    minutes_int = int(round(minutes))
+    hours_part, mins_part = divmod(max(0, minutes_int), 60)
+    if hours_part:
+        duration_label = _("%(h)s h %(m)s min") % {"h": hours_part, "m": mins_part}
+    else:
+        duration_label = _("%(m)s min") % {"m": mins_part}
+    return {
+        "start": start_t,
+        "end": end_t,
+        "start_local": start_t.astimezone(DAY_MAP_TZ).strftime("%H:%M"),
+        "end_local": end_t.astimezone(DAY_MAP_TZ).strftime("%H:%M"),
+        "day_iso": day_local.isoformat(),
+        "date_display": day_local.strftime("%d/%m/%Y"),
+        "minutes": minutes_int,
+        "duration_label": duration_label,
+        "miles": miles,
+        "km": km,
+        "avg_mph": (miles / hours) if miles is not None and hours > 0.01 else None,
+        "avg_kmh": (km / hours) if hours > 0.01 else None,
+        "soc_start": soc_start,
+        "soc_end": soc_end,
+        "soc_used": soc_used,
+        "kwh_used": kwh_used,
+        "kwh_per_100km": kwh_per_100km,
+        "lat": start_pt.get("lat"),
+        "lon": start_pt.get("lon"),
+        "end_lat": end_pt.get("lat"),
+        "end_lon": end_pt.get("lon"),
+        "elev_gain_m": acc["elev_gain"] if acc["elev_n"] >= 2 else None,
+        "elev_loss_m": acc["elev_loss"] if acc["elev_n"] >= 2 else None,
+        "lat_max": acc["lat_max"],
+        "lat_min": acc["lat_min"],
+        "lon_max": acc["lon_max"],
+        "lon_min": acc["lon_min"],
+        "temp_max_c": acc["temp_max"],
+        "temp_min_c": acc["temp_min"],
+        # Mean outside temp over drive samples (cabin is irrelevant for pack use)
+        "temp_avg_c": (
+            (acc["temp_sum"] / acc["temp_n"]) if acc["temp_n"] else None
+        ),
+    }
+
+
+def _new_drive_acc():
+    return {
+        "n": 0,
+        "elev_prev": None,
+        "elev_n": 0,
+        "elev_gain": 0.0,
+        "elev_loss": 0.0,
+        "lat_max": None,
+        "lat_min": None,
+        "lon_max": None,
+        "lon_min": None,
+        "temp_max": None,
+        "temp_min": None,
+        "temp_sum": 0.0,
+        "temp_n": 0,
+    }
+
+
+def _acc_add_sample(acc, sample):
+    """Update running elev / GPS extremes / outside temp for one drive sample."""
+    acc["n"] += 1
+    elev = sample.get("elevation")
+    if elev is not None:
+        if acc["elev_prev"] is not None:
+            delta = elev - acc["elev_prev"]
+            if delta > 0:
+                acc["elev_gain"] += delta
+            elif delta < 0:
+                acc["elev_loss"] += -delta
+        acc["elev_prev"] = elev
+        acc["elev_n"] += 1
+    lat, lon = sample.get("lat"), sample.get("lon")
+    if lat is not None and lon is not None:
+        acc["lat_max"] = lat if acc["lat_max"] is None else max(acc["lat_max"], lat)
+        acc["lat_min"] = lat if acc["lat_min"] is None else min(acc["lat_min"], lat)
+        acc["lon_max"] = lon if acc["lon_max"] is None else max(acc["lon_max"], lon)
+        acc["lon_min"] = lon if acc["lon_min"] is None else min(acc["lon_min"], lon)
+    temp = sample.get("outside_temp")
+    if temp is not None:
+        acc["temp_max"] = temp if acc["temp_max"] is None else max(acc["temp_max"], temp)
+        acc["temp_min"] = temp if acc["temp_min"] is None else min(acc["temp_min"], temp)
+        acc["temp_sum"] += temp
+        acc["temp_n"] += 1
+
+
+def _load_ranked_drives(hashed_vin, weeks, *, min_km=DRIVES_MIN_KM):
+    """
+    Segment drives ≥ min_km for the period (streaming, drive samples only).
+
+    Performance: SQL filter to motion rows only (~¼ of history), values() dicts,
+    O(1) memory per open trip (running accumulators, no point lists).
+    Period uses Date (not DateOnlyDay) so SQLite can use index (hashedVin, Date)
+    for both the range filter and ORDER BY — no temp B-tree sort.
+    Multi-day trips stay one segment while drive samples stay within DRIVES_TRIP_GAP.
+    Cached list is sort-agnostic; the view re-orders and caps to DRIVES_MAX_TRIPS.
+    """
+    cache_key = (
+        f"drives_list_v6:{hashed_vin}:{int(weeks) if weeks else 0}:{min_km}"
+    )
+    try:
+        cached = cache.get(cache_key)
+    except Exception:
+        cached = None
+    if cached is not None:
+        return cached
+
+    pack_kwh = _pack_kwh_for_hashed_vin(hashed_vin)
+    # Raw SQL (not ORM values()): SQLite only uses the partial drive index
+    # matesla_snapshot_drive_hv_date when the OR condition is *literals*.
+    # ORM binds speed > %s and then the planner falls back to the full
+    # (hashedVin, Date) index + filter — much more I/O.
+    from django.db import connection
+
+    sql = (
+        'SELECT "Date", latitude, longitude, odometer, '
+        "battery_level, usable_battery_level, battery_range, "
+        "elevation, outside_temp "
+        "FROM matesla_teslacardatasnapshot "
+        "WHERE hashedVin = %s "
+    )
+    params = [hashed_vin]
+    if weeks is not None and weeks > 0:
+        sql += 'AND "Date" >= %s '
+        params.append(timezone.now() - timedelta(weeks=weeks))
+    sql += (
+        "AND (shift_state IN ('D', 'R', 'N') OR speed > 1.0) "
+        'ORDER BY "Date" ASC'
+    )
+
+    result = []
+    start_pt = end_pt = None
+    acc = _new_drive_acc()
+    last_t = None
+
+    def flush():
+        nonlocal start_pt, end_pt, acc
+        trip = _finalize_drive_segment(
+            start_pt, end_pt, acc, min_km=min_km, pack_kwh=pack_kwh
+        )
+        if trip is not None:
+            result.append(trip)
+        start_pt = end_pt = None
+        acc = _new_drive_acc()
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, params)
+        while True:
+            batch = cursor.fetchmany(5000)
+            if not batch:
+                break
+            for sample in batch:
+                (
+                    sample_t,
+                    lat,
+                    lon,
+                    odometer,
+                    battery_level,
+                    usable_battery_level,
+                    battery_range,
+                    elevation,
+                    outside_temp,
+                ) = sample
+                if sample_t is None:
+                    continue
+                row = {
+                    "t": sample_t,
+                    "lat": _as_float_or_none(lat),
+                    "lon": _as_float_or_none(lon),
+                    "odometer": _as_float_or_none(odometer),
+                    "battery_level": _as_float_or_none(battery_level),
+                    "usable_battery_level": _as_float_or_none(usable_battery_level),
+                    "battery_range": _as_float_or_none(battery_range),
+                    "elevation": _as_float_or_none(elevation),
+                    "outside_temp": _as_float_or_none(outside_temp),
+                }
+                if last_t is not None and (sample_t - last_t) > DRIVES_TRIP_GAP:
+                    flush()
+                if start_pt is None:
+                    start_pt = row
+                end_pt = row
+                _acc_add_sample(acc, row)
+                last_t = sample_t
+    flush()
+
+    # Keep only the longest DRIVES_MAX_TRIPS so secondary rankings stay cheap
+    # to re-sort and the cache payload stays small. Extremes of elev/temp among
+    # short 20–40 km trips are dropped — acceptable product tradeoff for speed.
+    if len(result) > DRIVES_MAX_TRIPS:
+        result.sort(key=lambda trip: trip.get("km") or 0.0, reverse=True)
+        result = result[:DRIVES_MAX_TRIPS]
+
+    try:
+        cache.set(cache_key, result, DRIVES_CACHE_SECONDS)
+    except Exception:
+        pass
+    return result
+
+
+def _drives_sort_label(sort_key):
+    labels = {
+        "longest": _("Longest"),
+        "elev_up": _("Most elevation gain"),
+        "elev_down": _("Most elevation loss"),
+        "hot": _("Hottest"),
+        "cold": _("Coldest"),
+        "soc_end": _("Lowest end SoC"),
+    }
+    return labels.get(sort_key, labels[DRIVES_SORT_DEFAULT])
+
+
+def _drives_score_label(sort_key):
+    labels = {
+        "longest": _("Distance"),
+        "elev_up": _("Elevation gain"),
+        "elev_down": _("Elevation loss"),
+        "hot": _("Max outside temp"),
+        "cold": _("Min outside temp"),
+        "soc_end": _("SoC end"),
+    }
+    return labels.get(sort_key, labels[DRIVES_SORT_DEFAULT])
+
+
+def _format_drive_score(sort_key, trip):
+    """Human score for the active ranking criterion."""
+    field, _ = DRIVES_SORT_SPECS.get(sort_key, DRIVES_SORT_SPECS[DRIVES_SORT_DEFAULT])
+    value = trip.get(field)
+    if value is None:
+        return "—"
+    if sort_key == "longest":
+        return f"{value:.1f} km"
+    if sort_key in ("elev_up", "elev_down"):
+        return f"{value:.0f} m"
+    if sort_key in ("hot", "cold"):
+        return f"{value:.1f} °C"
+    if sort_key == "soc_end":
+        return f"{value:.1f} %"
+    return str(value)
+
+
+def _sort_ranked_drives(drives, sort_key):
+    field, reverse = DRIVES_SORT_SPECS.get(
+        sort_key, DRIVES_SORT_SPECS[DRIVES_SORT_DEFAULT]
+    )
+
+    def sort_key_fn(trip):
+        value = trip.get(field)
+        # Missing metric: always rank last
+        if value is None:
+            return (1, 0)
+        return (0, -value if reverse else value)
+
+    return sorted(drives, key=sort_key_fn)
+
+
 def _charge_soc_metrics(start_sample, end_sample):
     """SoC start/end/added for a charge segment (same coarse-SoC refinement)."""
     soc_a, soc_b = _soc(start_sample), _soc(end_sample)
@@ -3180,6 +3587,7 @@ def _segment_day(rows, pack_kwh):
                 (miles / hours) if (miles is not None and hours > 0.01) else None
             )
             avg_kmh = (km / hours) if (km is not None and hours > 0.01) else None
+            trip_extras = _drive_trip_extras(points, geo_start, geo_end)
             drives.append(
                 {
                     "kind": "drive",
@@ -3205,6 +3613,7 @@ def _segment_day(rows, pack_kwh):
                     "lon": geo_start.get("lon"),
                     "end_lat": geo_end.get("lat"),
                     "end_lon": geo_end.get("lon"),
+                    **trip_extras,
                 }
             )
         elif kind == "charge":
@@ -3533,6 +3942,93 @@ def DayMap(request, hashedVin, day=None):
         }
     )
     return render(request, "personalstats/daymap.html", context)
+
+
+@require_GET
+def Drives(request, hashedVin):
+    """
+    Multi-criteria drive leaderboard (≥ 20 km): longest, elevation, cardinals, temp.
+
+    Not charts (My data) and not a single-day replay (Day map) — ranked trip list.
+    """
+    if not IsValidHash(hashedVin):
+        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+
+    weeks = resolve_stats_period(request)
+    sort_key = (request.GET.get("sort") or DRIVES_SORT_DEFAULT).strip().lower()
+    if sort_key not in DRIVES_SORT_SPECS:
+        sort_key = DRIVES_SORT_DEFAULT
+
+    try:
+        page_size = int(request.GET.get("page_size") or DRIVES_DEFAULT_PAGE_SIZE)
+    except (TypeError, ValueError):
+        page_size = DRIVES_DEFAULT_PAGE_SIZE
+    if page_size not in DRIVES_PAGE_SIZES:
+        page_size = DRIVES_DEFAULT_PAGE_SIZE
+
+    try:
+        page = int(request.GET.get("page") or 1)
+    except (TypeError, ValueError):
+        page = 1
+    if page < 1:
+        page = 1
+
+    all_drives = _load_ranked_drives(hashedVin, weeks, min_km=DRIVES_MIN_KM)
+    ranked = _sort_ranked_drives(all_drives, sort_key)
+    total = len(ranked)
+    total_pages = max(1, (total + page_size - 1) // page_size) if total else 1
+    if page > total_pages:
+        page = total_pages
+    start_index = (page - 1) * page_size
+    page_drives = ranked[start_index : start_index + page_size]
+
+    from matesla.models.AddressFromLatLong import LookupCachedAddress
+
+    def addr_cached(lat, lon):
+        if lat is None or lon is None:
+            return None
+        try:
+            return LookupCachedAddress(round(float(lat), 4), round(float(lon), 4))
+        except Exception:
+            return None
+
+    for rank_offset, drive in enumerate(page_drives, start=start_index + 1):
+        drive["rank"] = rank_offset
+        drive["score_display"] = _format_drive_score(sort_key, drive)
+        drive["start_address"] = addr_cached(drive.get("lat"), drive.get("lon"))
+        drive["end_address"] = addr_cached(drive.get("end_lat"), drive.get("end_lon"))
+
+    sort_choices = [
+        {"key": key, "label": _drives_sort_label(key)} for key in DRIVES_SORT_SPECS
+    ]
+
+    context = _vehicle_chrome_context(request, hashedVin)
+    context.update(
+        {
+            "drives": page_drives,
+            "total_drives": total,
+            "min_km": DRIVES_MIN_KM,
+            "max_trips": DRIVES_MAX_TRIPS,
+            "sort_key": sort_key,
+            "sort_label": _drives_sort_label(sort_key),
+            # When ranking by distance or end SoC, that column *is* the score —
+            # hide the redundant score column.
+            "show_score_column": sort_key not in ("longest", "soc_end"),
+            "score_column_label": _drives_score_label(sort_key),
+            "sort_choices": sort_choices,
+            "stats_period": weeks,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+            "page_sizes": sorted(DRIVES_PAGE_SIZES),
+            "has_prev": page > 1,
+            "has_next": page < total_pages,
+            "prev_page": page - 1,
+            "next_page": page + 1,
+            "pack_kwh_estimate": _pack_kwh_for_hashed_vin(hashedVin),
+        }
+    )
+    return render(request, "personalstats/drives.html", context)
 
 
 @require_GET

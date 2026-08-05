@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans 'Drives' %} — {{ sort_label }}{% endblock %}
+
+{% block cssstyle %}
+    .drives-page .vehicle-chrome {
+        margin-bottom: 12px;
+    }
+    .drives-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--app-line, #2a3548);
+        background: var(--app-surface, #121a28);
+    }
+    .drives-toolbar form {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 0.65rem 0.85rem;
+        margin: 0;
+        width: 100%;
+    }
+    .drives-toolbar label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--app-muted, #8b9bb4);
+        margin-bottom: 4px;
+    }
+    .drives-toolbar .form-control,
+    .drives-toolbar select {
+        min-height: 36px;
+        width: auto;
+        max-width: 16rem;
+    }
+    .drives-toolbar .btn {
+        min-height: 36px;
+    }
+    .drives-meta {
+        margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+        color: var(--app-muted, #8b9bb4);
+    }
+    .drives-table-wrap {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 12px;
+        border: 1px solid var(--app-line, #2a3548);
+        background: var(--app-surface, #121a28);
+    }
+    .drives-table-wrap > .table {
+        width: max-content;
+        min-width: 100%;
+        margin-bottom: 0;
+        font-size: 0.88rem;
+    }
+    .drives-table-wrap th,
+    .drives-table-wrap td {
+        white-space: nowrap;
+        vertical-align: middle;
+        padding: 8px 10px;
+    }
+    .drives-table-wrap td.drives-route {
+        white-space: normal;
+        min-width: 16rem;
+        max-width: 28rem;
+        overflow-wrap: anywhere;
+    }
+    .drives-table-wrap a.day-link {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+    }
+    .drives-score {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: var(--app-accent, #5b9dff);
+    }
+    .drives-pager {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.85rem;
+    }
+    a.gmaps-pending {
+        font-variant-numeric: tabular-nums;
+        opacity: 0.85;
+        font-style: italic;
+    }
+{% endblock %}
+
+{% block body_class %}drives-page{% endblock %}
+
+{% block content %}
+{% include 'matesla/_vehicle_chrome.html' %}
+
+<div class="page-heading">
+    <div class="page-heading__copy">
+        <p class="eyebrow">{% trans 'Trip rankings' %}</p>
+        <h1 class="page-title">{% trans 'Drives' %}</h1>
+        <p class="page-subtitle text-muted small mb-0">
+            {{ sort_label }} ·
+            {% blocktrans with n=min_km|floatformat:0 %}Trips of at least {{ n }} km{% endblocktrans %}
+            ·
+            {% blocktrans with n=max_trips %}Top {{ n }} longest as ranking pool{% endblocktrans %}
+        </p>
+    </div>
+</div>
+
+<div class="drives-toolbar" role="toolbar" aria-label="{% trans 'Drives filters' %}">
+    <form method="get" action="{% url 'PersoDrives' hashedVin %}" id="drives-form">
+        <div>
+            <label for="drives-period">{% trans 'Period' %}</label>
+            <select name="period" id="drives-period" class="form-control form-control-sm">
+                <option value="1" {% if stats_period == 1 %}selected{% endif %}>{% trans '1 Week' %}</option>
+                <option value="2" {% if stats_period == 2 %}selected{% endif %}>{% trans '2 Weeks' %}</option>
+                <option value="4" {% if stats_period == 4 %}selected{% endif %}>{% trans '1 Month' %}</option>
+                <option value="13" {% if stats_period == 13 %}selected{% endif %}>{% trans '3 Months' %}</option>
+                <option value="26" {% if stats_period == 26 %}selected{% endif %}>{% trans '6 Months' %}</option>
+                <option value="52" {% if stats_period == 52 %}selected{% endif %}>{% trans '1 Year' %}</option>
+                <option value="104" {% if stats_period == 104 %}selected{% endif %}>{% trans '2 Years' %}</option>
+                <option value="260" {% if stats_period == 260 %}selected{% endif %}>{% trans '5 Years' %}</option>
+                <option value="520" {% if stats_period == 520 %}selected{% endif %}>{% trans '10 Years' %}</option>
+            </select>
+        </div>
+        <div>
+            <label for="drives-sort">{% trans 'Rank by' %}</label>
+            <select name="sort" id="drives-sort" class="form-control form-control-sm">
+                {% for choice in sort_choices %}
+                <option value="{{ choice.key }}" {% if sort_key == choice.key %}selected{% endif %}>{{ choice.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="drives-page-size">{% trans 'Show' %}</label>
+            <select name="page_size" id="drives-page-size" class="form-control form-control-sm">
+                {% for size in page_sizes %}
+                <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>{{ size }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="sr-only" for="drives-apply">{% trans 'Apply' %}</label>
+            <button type="submit" id="drives-apply" class="btn btn-primary btn-sm">{% trans 'Apply' %}</button>
+        </div>
+    </form>
+</div>
+
+<p class="drives-meta">
+    {% if total_drives %}
+    {% blocktrans count counter=total_drives %}{{ counter }} trip{% plural %}{{ counter }} trips{% endblocktrans %}
+    · {% trans 'Page' %} {{ page }} / {{ total_pages }}
+    {% else %}
+    {% trans 'No trips match this period and minimum distance.' %}
+    {% endif %}
+    <span class="d-block small mt-1">
+        {% blocktrans with kwh=pack_kwh_estimate|floatformat:0 %}kWh estimates use ~{{ kwh }} kWh pack (from EPA range). Outside temperature only (not cabin).{% endblocktrans %}
+    </span>
+</p>
+
+{% if drives %}
+<div class="drives-table-wrap">
+    <table class="table table-sm table-striped mb-0">
+        <thead>
+        <tr>
+            <th>#</th>
+            {% if show_score_column %}
+            <th>{{ score_column_label }}</th>
+            {% endif %}
+            <th>{% trans 'Distance' %}</th>
+            <th>{% trans 'Duration' %}</th>
+            <th title="{% trans 'Average speed over the trip' %}">{% trans 'Avg speed' %}</th>
+            <th title="{% trans 'Average outside temperature during the trip (not cabin)' %}">{% trans 'Outside temp' %}</th>
+            <th>{% trans 'SoC start' %}</th>
+            <th>{% trans 'SoC end' %}</th>
+            <th>{% trans 'SoC used' %}</th>
+            <th>{% trans 'kWh/100 km' %}</th>
+            <th>{% trans 'From → to' %}</th>
+            <th>{% trans 'Date' %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for d in drives %}
+        <tr>
+            <td>{{ d.rank }}</td>
+            {% if show_score_column %}
+            <td class="drives-score">{{ d.score_display }}</td>
+            {% endif %}
+            <td{% if sort_key == 'longest' %} class="drives-score"{% endif %}>
+                {% if d.km is not None %}{{ d.km|floatformat:1 }} km{% else %}—{% endif %}
+            </td>
+            <td>
+                {% if d.duration_label %}{{ d.duration_label }}
+                {% elif d.minutes is not None %}{{ d.minutes }} min
+                {% else %}—{% endif %}
+            </td>
+            <td>
+                {% if d.avg_kmh is not None %}{{ d.avg_kmh|floatformat:0 }} km/h{% else %}—{% endif %}
+            </td>
+            <td>
+                {% if d.temp_avg_c is not None %}
+                {{ d.temp_avg_c|floatformat:1 }} °C
+                {% if d.temp_min_c is not None and d.temp_max_c is not None and d.temp_min_c != d.temp_max_c %}
+                <span class="text-muted small">({{ d.temp_min_c|floatformat:0 }}…{{ d.temp_max_c|floatformat:0 }})</span>
+                {% endif %}
+                {% else %}—{% endif %}
+            </td>
+            <td>{% if d.soc_start is not None %}{{ d.soc_start|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td{% if sort_key == 'soc_end' %} class="drives-score"{% endif %}>{% if d.soc_end is not None %}{{ d.soc_end|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td>{% if d.soc_used is not None %}{{ d.soc_used|floatformat:1 }} %{% else %}—{% endif %}</td>
+            <td>{% if d.kwh_per_100km is not None %}{{ d.kwh_per_100km|floatformat:1 }}{% else %}—{% endif %}</td>
+            <td class="drives-route small">
+                {% include 'personalstats/_gmaps_link.html' with lat=d.lat lon=d.lon label=d.start_address %}
+                →
+                {% include 'personalstats/_gmaps_link.html' with lat=d.end_lat lon=d.end_lon label=d.end_address %}
+            </td>
+            <td>
+                <a class="day-link" href="{% url 'PersoDayMapDay' hashedVin d.day_iso %}" title="{% trans 'Open day map' %}">
+                    {{ d.date_display }}
+                </a>
+                <span class="text-muted small d-block">{{ d.start_local }}–{{ d.end_local }}</span>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<nav class="drives-pager" aria-label="{% trans 'Pagination' %}">
+    {% if has_prev %}
+    <a class="btn btn-outline-primary btn-sm"
+       href="?period={{ stats_period }}&sort={{ sort_key }}&page_size={{ page_size }}&page={{ prev_page }}">{% trans 'Previous' %}</a>
+    {% else %}
+    <span class="btn btn-outline-secondary btn-sm disabled">{% trans 'Previous' %}</span>
+    {% endif %}
+    <span class="text-muted small">{% trans 'Page' %} {{ page }} / {{ total_pages }}</span>
+    {% if has_next %}
+    <a class="btn btn-outline-primary btn-sm"
+       href="?period={{ stats_period }}&sort={{ sort_key }}&page_size={{ page_size }}&page={{ next_page }}">{% trans 'Next' %}</a>
+    {% else %}
+    <span class="btn btn-outline-secondary btn-sm disabled">{% trans 'Next' %}</span>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block javascript %}
+<script>
+(function () {
+    var resolveUrl = "{% url 'PersoResolveAddress' %}";
+    var pending = document.querySelectorAll('a.gmaps-link[data-geocode="1"]');
+    if (!pending.length) return;
+    var queue = [];
+    var seen = {};
+    pending.forEach(function (el) {
+        var key = el.getAttribute('data-lat') + ',' + el.getAttribute('data-lon');
+        if (!seen[key]) {
+            seen[key] = true;
+            queue.push({
+                lat: el.getAttribute('data-lat'),
+                lon: el.getAttribute('data-lon')
+            });
+        }
+    });
+    function applyAddress(lat, lon, address) {
+        document.querySelectorAll('a.gmaps-link[data-geocode="1"]').forEach(function (el) {
+            if (el.getAttribute('data-lat') === lat && el.getAttribute('data-lon') === lon) {
+                el.textContent = address;
+                el.removeAttribute('data-geocode');
+                el.classList.remove('gmaps-pending');
+            }
+        });
+    }
+    function next() {
+        if (!queue.length) return;
+        var item = queue.shift();
+        var url = resolveUrl + '?lat=' + encodeURIComponent(item.lat)
+            + '&lon=' + encodeURIComponent(item.lon);
+        fetch(url, { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data && data.ok && data.address) {
+                    applyAddress(item.lat, item.lon, data.address);
+                }
+            })
+            .catch(function () {})
+            .finally(function () { setTimeout(next, 50); });
+    }
+    next();
+})();
+</script>
+{% endblock %}

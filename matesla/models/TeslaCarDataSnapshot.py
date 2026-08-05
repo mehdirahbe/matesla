@@ -2,6 +2,7 @@ from datetime import timezone as dt_timezone
 from random import random
 
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 
 from matesla.BatteryDegradation import (
@@ -145,6 +146,13 @@ class TeslaCarDataSnapshot(models.Model):
             # Personal stats period graphs + efficiency drive filter
             models.Index(fields=["hashedVin", "Date"]),
             models.Index(fields=["hashedVin", "DateOnlyDay"]),
+            # Drive-only leaderboard / efficiency / lifetime map: ~¼ of rows.
+            # Writes are sparse (Fleet poll ≤ every 2 min) so index cost is fine.
+            models.Index(
+                fields=["hashedVin", "Date"],
+                name="matesla_snapshot_drive_hv_date",
+                condition=Q(shift_state__in=["D", "R", "N"]) | Q(speed__gt=1),
+            ),
         ]
         constraints = [
             models.UniqueConstraint(

@@ -834,7 +834,7 @@ def view_select_vehicle(request):
 
     next_kind = (request.POST.get("next") or "").strip().lower()
     # Whitelist only — never open-redirect on user-supplied URLs
-    if next_kind in ("daymap", "stats", "firmware") and vehicle.vin:
+    if next_kind in ("daymap", "stats", "firmware", "drives") and vehicle.vin:
         from matesla.models.VinHash import HashTheVin
 
         hashed = HashTheVin(vehicle.vin)
@@ -862,6 +862,27 @@ def view_select_vehicle(request):
                 request.session[STATS_PERIOD_SESSION_KEY] = period
                 url = reverse("PersoStats", kwargs={"hashedVin": hashed})
                 return redirect(f"{url}?period={period}")
+            if next_kind == "drives":
+                from personalstats.views import (
+                    STATS_PERIOD_SESSION_KEY,
+                    parse_stats_period,
+                    DRIVES_SORT_SPECS,
+                    DRIVES_SORT_DEFAULT,
+                )
+                from django.urls import reverse
+
+                period = parse_stats_period(
+                    request.POST.get("period"),
+                    default=parse_stats_period(
+                        request.session.get(STATS_PERIOD_SESSION_KEY)
+                    ),
+                )
+                request.session[STATS_PERIOD_SESSION_KEY] = period
+                sort = (request.POST.get("sort") or DRIVES_SORT_DEFAULT).strip().lower()
+                if sort not in DRIVES_SORT_SPECS:
+                    sort = DRIVES_SORT_DEFAULT
+                url = reverse("PersoDrives", kwargs={"hashedVin": hashed})
+                return redirect(f"{url}?period={period}&sort={sort}")
             if next_kind == "firmware":
                 return redirect("PersoStatsFirmwareHistory", hashedVin=hashed)
 

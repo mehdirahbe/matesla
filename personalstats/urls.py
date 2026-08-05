@@ -13,6 +13,8 @@ path('Stats/<str:hashedVin>', views.Stats, name='PersoStats'),
 # Day path / map: type a calendar day (or use prev/next arrows)
 path('DayMap/<str:hashedVin>', views.DayMap, name='PersoDayMap'),
 path('DayMap/<str:hashedVin>/<str:day>', views.DayMap, name='PersoDayMapDay'),
+# Multi-criteria trip leaderboard (≥ 20 km): longest, elevation, cardinals, temp
+path('Drives/<str:hashedVin>', views.Drives, name='PersoDrives'),
 # Lifetime map JSON (path + KPIs) for the personal stats card
 path('LifetimeMapData/<str:hashedVin>', views.LifetimeMapData, name='PersoLifetimeMapData'),
 # Async reverse-geocode (cache miss → Nominatim, rate-limited)

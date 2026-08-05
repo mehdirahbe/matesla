@@ -172,6 +172,7 @@ READONLY_ALLOWED_URL_NAMES = [
     "PersoStats",
     "PersoDayMap",
     "PersoDayMapDay",
+    "PersoDrives",
     "PersoLifetimeMapData",
     "PersoResolveAddress",
     "PersoStatsBatteryDegradationGraph",
