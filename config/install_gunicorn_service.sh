@@ -1,20 +1,37 @@
-#!/bin/bash
-# Install MaTesla as a systemd system service (same idea as PicturesDjango).
-# Starts at boot; Restart=no so a manual kill stays down for runserver dev.
+#!/usr/bin/env bash
+# Install MaTesla as a systemd system service.
+# Paths and User/Group are taken from the current clone + current user
+# (templates: matesla-gunicorn.service.in).
+#
+# Starts at boot; Restart=no so a manual stop/kill stays down for runserver dev.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SERVICE_NAME="matesla-gunicorn.service"
+# shellcheck source=config/_render_unit.sh
+source "${SCRIPT_DIR}/_render_unit.sh"
+matesla_resolve_paths
 
-sudo cp "$SCRIPT_DIR/matesla-gunicorn.service" "/etc/systemd/system/$SERVICE_NAME"
+SERVICE_NAME="matesla-gunicorn.service"
+UNIT_PATH="/etc/systemd/system/${SERVICE_NAME}"
+
+if [[ ! -x "${MATESLA_ROOT}/.venv/bin/gunicorn" ]]; then
+  echo "gunicorn not found in ${MATESLA_ROOT}/.venv" >&2
+  echo "Install dependencies first, e.g.: ./scripts/install-linux.sh" >&2
+  echo "  or: python3 -m venv .venv && .venv/bin/pip install -r requirements.txt" >&2
+  exit 1
+fi
+
+matesla_render_unit "${SCRIPT_DIR}/matesla-gunicorn.service.in" "$UNIT_PATH"
 sudo systemctl daemon-reload
 sudo systemctl enable "$SERVICE_NAME"
 sudo systemctl restart "$SERVICE_NAME"
 
-echo "Service installé et démarré : $SERVICE_NAME"
-echo "  statut : systemctl status $SERVICE_NAME"
-echo "  arrêt (avant runserver) : sudo systemctl stop $SERVICE_NAME"
-echo "  logs : journalctl -u $SERVICE_NAME -f"
-echo "  désactiver au boot : sudo systemctl disable $SERVICE_NAME"
+echo "Service installed and started: $SERVICE_NAME"
+echo "  user / path : ${MATESLA_USER} @ ${MATESLA_ROOT}"
+echo "  status      : systemctl status $SERVICE_NAME"
+echo "  stop (before runserver) : sudo systemctl stop $SERVICE_NAME"
+echo "  logs        : journalctl -u $SERVICE_NAME -f"
+echo "  disable at boot : sudo systemctl disable $SERVICE_NAME"
+echo "  uninstall   : ${SCRIPT_DIR}/uninstall_gunicorn_service.sh"
 echo
-echo "Port : http://127.0.0.1:8001 (Tailscale Serve :8443 si déjà configuré)"
+echo "Open: http://127.0.0.1:8001"

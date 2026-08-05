@@ -1,0 +1,19 @@
+[Unit]
+Description=MaTesla (Gunicorn)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@MATESLA_USER@
+Group=@MATESLA_GROUP@
+WorkingDirectory=@MATESLA_ROOT@
+EnvironmentFile=-@MATESLA_ROOT@/.env
+# One worker: SQLite + in-process capture (/matesla/internal/capture).
+# Bind localhost only — use Tailscale Serve (or similar) if you need remote access.
+ExecStart=@MATESLA_ROOT@/.venv/bin/gunicorn mysite.wsgi:application --bind 127.0.0.1:8001 --reload --timeout 200 --workers 1
+# Start at boot, but do NOT restart if killed (so you can free the port for runserver).
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

@@ -1,52 +1,118 @@
 # matesla
-Python/django website using tesla api to connect to your marvellous Tesla car
+
+Python/Django website using the Tesla API to connect to your marvellous Tesla car.
 
 Useful files:
-1) Procedures calling tesla api, if you need something not yet available, it there that you have to adapt code
-https://github.com/mehdirahbe/matesla/blob/master/matesla/TeslaConnect.py
 
-2) Views which return the HTML content displayed in browser.
-https://github.com/mehdirahbe/matesla/blob/master/matesla/views.py
-
-3) List all URL available. Contain the URL, the view to use and a short name used to reference it from HTML
-https://github.com/mehdirahbe/matesla/blob/master/matesla/urls.py
-
-4) The HTML with car status page
-https://github.com/mehdirahbe/matesla/blob/master/matesla/templates/matesla/carstatus.html
-
-5) The base of all HTML rendering, it contains the formatting in the form of CSS
-https://github.com/mehdirahbe/matesla/blob/master/templates/base.html
+1. Procedures calling the Tesla API (extend here if something is missing):  
+   `matesla/TeslaConnect.py`
+2. Views that return the HTML shown in the browser:  
+   `matesla/views.py`
+3. URL routes (path, view, and reverse name used from templates):  
+   `matesla/urls.py`
+4. Car status page template:  
+   `matesla/templates/matesla/carstatus.html`
+5. Base layout and shared CSS hooks:  
+   `templates/base.html`
 
 How to:
-1) To display extra live fields on the status page, adapt `_carstatus_body.html`
-   (and `PreparestatusDictionary` if the value is computed).
 
-2) Change look: adapt CSS under `static/` / templates.
+1. To display extra live fields on the status page, adapt `_carstatus_body.html`
+   (and `PreparestatusDictionary` if the value is computed).
+2. Change look: adapt CSS under `static/` / templates.
 
 Vehicle commands (lock, climate, charge start, …) were removed: modern cars
 require Tesla’s Vehicle Command Protocol; the official app covers remote
 control. matesla focuses on status, history, maps, and stats.
 
 Todo:
-1) Improve look of AddTeslaAccount form
-2) Allow to set EPA range
-3) Allow to change PW+add feature in case of lost PW
-4) Add more languages. If you are a native speaker, please don't hesitate
-to add a new language. No need to be a programmer to do that, just ask me to prepare
-and I will prepare a text file to just translate.
 
-For developers, how to run site locally (Python 3.12+, Django 5.2 LTS):
-1) python3 -m venv .venv && source .venv/bin/activate
-2) pip install -U pip && pip install -r requirements.txt
-3) Optional: copy Tesla Fleet credentials into a `.env` file (see settings.py)
-4) python manage.py migrate   # SQLite by default (db.sqlite3); set DATABASE_URL for Postgres
-5) python manage.py createsuperuser  # optional
-6) python manage.py test
-7) python manage.py collectstatic --noinput   # needed when DEBUG is off (default)
-8) python manage.py runserver 127.0.0.1:8001
+1. Improve look of AddTeslaAccount form
+2. Allow to set EPA range
+3. Allow to change password / recover features if password is lost
+4. Add more languages. If you are a native speaker, please don't hesitate
+   to add a new language. No need to be a programmer to do that — ask for a
+   prepared text file and translate it.
 
-`DEBUG` is **off by default** (no Django debug toolbar). To re-enable the toolbar
-and looser local tooling:
+Install on Linux (Ubuntu / Debian-like)
+---------------------------------------
+
+One script: venv, dependencies, database, static files, systemd service at boot,
+**capture cron** (history every minute), and a menu/desktop shortcut that opens
+the browser.
+
+**Prerequisites** (once per machine):
+
+```bash
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip curl
+# optional (weekly DB backups): sudo apt install -y zstd
+```
+
+**Install** (from the matesla folder — clone or unzip):
+
+```bash
+cd /path/to/matesla
+./scripts/install-linux.sh
+```
+
+Then open **http://127.0.0.1:8001** (or use the **MaTesla** menu / desktop icon).
+
+What the install enables for history:
+
+| Piece | Role |
+|-------|------|
+| systemd / gunicorn | App always listening on `127.0.0.1:8001` |
+| user crontab (every minute) | `curl` → `/matesla/internal/capture` (adaptive Fleet spacing inside the app) |
+| log | `/tmp/matesla-capture.log` |
+
+Without the capture cron, status works but **graphs stay empty**.
+
+Options:
+
+| Flag | Effect |
+|------|--------|
+| `--no-service` | Skip systemd (venv + migrate only; start manually) |
+| `--no-cron` | Skip history capture crontab (not recommended) |
+| `--with-backup` | Also install the weekly SQLite backup timer |
+| `--no-desktop` | Do not create menu / desktop launcher |
+
+Useful commands after install:
+
+```bash
+systemctl status matesla-gunicorn.service
+sudo systemctl stop matesla-gunicorn.service     # free port for runserver
+sudo systemctl start matesla-gunicorn.service
+journalctl -u matesla-gunicorn.service -f
+crontab -l
+tail -f /tmp/matesla-capture.log
+./scripts/install_capture_cron.sh                # re-add capture cron alone
+./scripts/uninstall_capture_cron.sh
+./config/uninstall_gunicorn_service.sh           # remove service completely
+```
+
+The systemd unit is **generated for your user and install path**. Re-run
+`./config/install_gunicorn_service.sh` after moving the project directory.
+
+Tesla Fleet credentials (`.env` or in-app setup) still require a Tesla Developer
+account — matesla cannot skip that step.
+
+For developers (manual run, no install script)
+----------------------------------------------
+
+Python 3.12+, Django 5.2 LTS:
+
+1. `python3 -m venv .venv && source .venv/bin/activate`
+2. `pip install -U pip && pip install -r requirements.txt`
+3. Optional: Tesla Fleet credentials in a `.env` file (see `settings.py`)
+4. `python manage.py migrate`   # SQLite by default (`db.sqlite3`)
+5. `python manage.py createsuperuser`  # optional
+6. `python manage.py test`
+7. `python manage.py collectstatic --noinput`   # needed when DEBUG is off
+8. `python manage.py runserver 127.0.0.1:8001`  
+   or systemd only: `./config/install_gunicorn_service.sh`
+
+`DEBUG` is **off by default** (no Django debug toolbar). To re-enable:
 
 ```bash
 export DJANGO_DEBUG=1
@@ -57,56 +123,49 @@ Access MaTesla on your phone via Tailscale (HTTPS)
 --------------------------------------------------
 
 Goal: phone and laptop on the same [Tailscale](https://tailscale.com) tailnet,
-with **photos** and **MaTesla** on different HTTPS ports.
+with MaTesla reachable over HTTPS without opening the home router.
 
-### Ports (this machine)
+Default ports used in the examples below:
 
 | HTTPS (Tailscale Serve) | Local backend | App |
 |-------------------------|---------------|-----|
-| **443** | `http://127.0.0.1:8000` | Photos (PicturesDjango) — do **not** reuse for MaTesla |
 | **8443** | `http://127.0.0.1:8001` | MaTesla |
+
+You can use port **443** instead if nothing else on the machine already uses
+Tailscale Serve on 443.
 
 ### 1. Run MaTesla locally
 
-**Option A — systemd (daemon, same pattern as PicturesDjango)**  
-Starts at boot on `127.0.0.1:8001`. **`Restart=no`**: if you `stop` or kill
-the service to free the port for `runserver`, it stays down until the next
-boot (or `systemctl start`).
+Prefer `./scripts/install-linux.sh` (systemd on `127.0.0.1:8001`).  
+**`Restart=no`**: if you `stop` or kill the service to free the port for
+`runserver`, it stays down until the next boot (or `systemctl start`).
 
 ```bash
-cd /path/to/matesla
-# once: install unit under /etc/systemd/system/
+# already installed via install-linux.sh, or:
 ./config/install_gunicorn_service.sh
-
 systemctl status matesla-gunicorn.service
-# before manual runserver:
-sudo systemctl stop matesla-gunicorn.service
-# remove completely:
-# ./config/uninstall_gunicorn_service.sh
 ```
 
-**Option B — manual (dev)**
+Manual dev server:
 
 ```bash
 cd /path/to/matesla
 source .venv/bin/activate
 python manage.py collectstatic --noinput
-# free the port if the daemon was running:
-# sudo systemctl stop matesla-gunicorn.service
+# sudo systemctl stop matesla-gunicorn.service   # if daemon holds the port
 python manage.py runserver 127.0.0.1:8001
-# or: gunicorn mysite.wsgi:application --bind 127.0.0.1:8001 --workers 1
 ```
 
 ### Database backups (full history, compressed)
 
 Minute-level history (TeslaFi + capture) is irreplaceable — backups are **full
 SQLite snapshots**, not thinned exports. Archives live **next to the live DB**
-in `db-backups/` (gitignored). **MaTesla never talks to Dropbox**; copy those
-files yourself to USB / cloud.
+in `db-backups/` (gitignored). **MaTesla never uploads backups**; copy those
+files yourself to USB / cloud storage.
 
 | | |
 |--|--|
-| Format | `sqlite3.backup` then **zstd -3** (~8× smaller, ~635 MiB → ~77 MiB) |
+| Format | `sqlite3.backup` then **zstd -3** (typically ~8× smaller) |
 | Cadence | weekly (timer) or manual; skip if last archive &lt; 6 days (unless `FORCE=1`) |
 | Retention | **4** newest `matesla-db-*.sqlite3.zst` only |
 
@@ -115,13 +174,13 @@ files yourself to USB / cloud.
 ./scripts/backup_db.sh
 FORCE=1 ./scripts/backup_db.sh   # ignore 6-day gap
 
-# automatic (recommended): user crontab — same style as capture curl
-# Sun 03:30 — see scripts/backup_db.sh header; log: /tmp/matesla-db-backup.log
-# 30 3 * * 0 /home/mehdi/PycharmProjects/matesla/scripts/backup_db.sh >> /tmp/matesla-db-backup.log 2>&1
+# automatic (recommended): user crontab — e.g. Sunday 03:30
+# 30 3 * * 0 /path/to/matesla/scripts/backup_db.sh >> /tmp/matesla-db-backup.log 2>&1
 crontab -l | grep backup_db
 
-# alternative: systemd timer (optional, needs sudo)
+# alternative: systemd timer (optional, needs sudo + zstd)
 # ./config/install_db_backup_timer.sh
+# or: ./scripts/install-linux.sh --with-backup
 ```
 
 Restore example:
@@ -143,7 +202,7 @@ Prefer making your user the Tailscale operator once:
 sudo tailscale set --operator=$USER
 ```
 
-Then either run the helper (restores photos on 443 and binds MaTesla on 8443):
+Then either run the helper:
 
 ```bash
 ./scripts/tailscale-serve-matesla.sh
@@ -152,10 +211,7 @@ Then either run the helper (restores photos on 443 and binds MaTesla on 8443):
 Or manually:
 
 ```bash
-# Photos — keep on 443
-tailscale serve --bg --yes --https=443 http://127.0.0.1:8000
-
-# MaTesla — 8443 only
+# MaTesla on HTTPS 8443 → local 8001
 tailscale serve --bg --yes --https=8443 http://127.0.0.1:8001
 
 tailscale serve status
@@ -164,19 +220,19 @@ tailscale serve status
 Open on the phone (Tailscale app connected, **Use Tailscale DNS** / MagicDNS on):
 
 ```text
-https://<your-machine>.<tailnet>.ts.net:8443/fr/
+https://<your-machine>.<tailnet>.ts.net:8443/
 ```
 
-Example: `https://mehdi-thinkbook-13s-g2-itl.taila97662.ts.net:8443/fr/`
+Use a language-prefixed path if you prefer (e.g. `/fr/`, `/en/`, …).
 
 ### Read-only on Tailscale (HTTPS remote Host)
 
-Same idea as PicturesDjango: **write is only allowed when the HTTP `Host`
-is local** (`127.0.0.1` / `localhost`). Access via the MagicDNS name
-(`*.ts.net`) is **read-only** and **does not require a MaTesla login**:
+**Write is only allowed when the HTTP `Host` is local** (`127.0.0.1` /
+`localhost`). Access via the MagicDNS name (`*.ts.net`) is **read-only** and
+**does not require a MaTesla login**:
 
 - Status, personal stats, day map, vehicle switcher: **yes**
-  (anonymous viewers use the single household owner that holds the Tesla token)
+  (anonymous viewers use the household owner that holds the Tesla token)
 - Tesla account / OAuth, signup, admin: **no** (UI hidden; direct URLs return **404**)
 - Vehicle remote commands are **not supported** (use the official Tesla app;
   Fleet Vehicle Command Protocol is out of scope for matesla)
@@ -194,7 +250,8 @@ export MATESLA_OWNER_USERNAME=you@example.com
 
 If the site works on the laptop via MagicDNS but **not** on the phone, check
 Tailscale **Access controls**. A rule that only allows port 443 (e.g.
-`"ip": ["443"]`) will block 8443 on other devices. Allow both ports, for example:
+`"ip": ["443"]`) will block 8443 on other devices. Allow both ports if you
+also use 443, for example:
 
 ```json
 {
@@ -211,9 +268,8 @@ HTTPS on 8443 will not.
 
 ### 4. Django hosts / CSRF
 
-`mysite/settings.py` already includes the local MagicDNS name and CSRF origins
-for Tailscale HTTPS. If you rename the machine or use another tailnet host,
-set:
+`mysite/settings.py` may need your MagicDNS host for HTTPS. If Django rejects
+the Host header or CSRF fails, set:
 
 ```bash
 export DJANGO_ALLOWED_HOSTS=your-host.tailnet.ts.net
@@ -223,10 +279,10 @@ export DJANGO_CSRF_TRUSTED_ORIGINS=https://your-host.tailnet.ts.net:8443
 ### 5. Reset / stop Serve
 
 ```bash
-# Remove only MaTesla HTTPS binding
+# Remove only MaTesla HTTPS binding on 8443
 tailscale serve --https=8443 off
 
-# Or wipe all Serve config on this node (also removes photos on 443)
+# Or wipe all Serve config on this node
 # tailscale serve reset
 ```
 
@@ -319,35 +375,29 @@ curl -fsS http://127.0.0.1:8001/matesla/internal/capture
 
 ### Schedule with cron (Linux “Task Scheduler”)
 
-Cron jobs created with `crontab -e` run as **your user**, whether or not you
-are logged into a graphical session, as long as the machine is on and the
-`cron` service is running.
+`./scripts/install-linux.sh` installs this automatically. To add or refresh
+only the capture line:
 
-1. Open your crontab:
+```bash
+./scripts/install_capture_cron.sh
+# remove: ./scripts/uninstall_capture_cron.sh
+```
 
-   ```bash
-   crontab -e
-   ```
+Cron jobs run as **your user**, whether or not you are logged into a graphical
+session, as long as the machine is on and the `cron` service is running.
 
-   (Often opens **nano**.)
+Manual equivalent (every minute + timestamped log):
 
-2. Add **one line** at the end (every minute + timestamped log):
+```cron
+* * * * * { date -Iseconds; curl -fsS http://127.0.0.1:8001/matesla/internal/capture; echo; } >> /tmp/matesla-capture.log 2>&1
+```
 
-   ```cron
-   * * * * * { date -Iseconds; curl -fsS http://127.0.0.1:8001/matesla/internal/capture; echo; } >> /tmp/matesla-capture.log 2>&1
-   ```
+Check:
 
-3. Save and quit nano:
-   - **Ctrl+O**, then **Enter** (confirm the temp path cron gives you — often under `/tmp/crontab.…`; that is normal)
-   - **Ctrl+X** to exit  
-   Cron then installs that file as your real crontab.
-
-4. Check:
-
-   ```bash
-   crontab -l
-   tail -f /tmp/matesla-capture.log
-   ```
+```bash
+crontab -l
+tail -f /tmp/matesla-capture.log
+```
 
 #### Cron field order
 
@@ -393,8 +443,8 @@ To remove the job later: `crontab -e` and delete the line.
 - Web app listening on `127.0.0.1:8001`
 - Tesla account linked (OAuth) and partner register done for the Fleet region
 
-Import historique TeslaFi (CSV mensuels)
-----------------------------------------
+TeslaFi history import (monthly CSV)
+------------------------------------
 
 To backfill graphs from [TeslaFi monthly exports](https://teslafi.com/export2.php):
 
@@ -405,4 +455,3 @@ To backfill graphs from [TeslaFi monthly exports](https://teslafi.com/export2.ph
 
 Full guide (auth, 2FA, long ranges, gaps, batch import):  
 **[docs/teslafi-import.md](docs/teslafi-import.md)**
-

@@ -1,105 +1,106 @@
-# Import historique TeslaFi → matesla
+# TeslaFi history import → matesla
 
-Deux outils complémentaires :
+Two complementary tools:
 
-| Étape | Outil | Rôle |
-|--------|--------|------|
-| 1. Export | `scripts/download_teslafi_exports.py` | Télécharge les CSV mensuels depuis [TeslaFi Export](https://teslafi.com/export2.php) |
-| 2. Import | `python manage.py ImportTeslaFiCSV` | Charge les CSV dans `TeslaCarDataSnapshot` |
+| Step | Tool | Role |
+|------|------|------|
+| 1. Export | `scripts/download_teslafi_exports.py` | Downloads monthly CSVs from [TeslaFi Export](https://teslafi.com/export2.php) |
+| 2. Import | `python manage.py ImportTeslaFiCSV` | Loads CSVs into `TeslaCarDataSnapshot` |
 
-Les dates TeslaFi sont en **heure locale du compte** (souvent Europe/Brussels) ; l’import les convertit en **UTC**.  
-Déduplication : **même VIN + même minute** → fusion / mise à jour de la ligne existante.
+TeslaFi timestamps are in the **account’s local time** (often Europe/Brussels);
+the import converts them to **UTC**.  
+Deduplication: **same VIN + same minute** → merge / update the existing row.
 
-> Ne jamais committer de cookie, mot de passe ou code 2FA.
-
----
-
-## Prérequis
-
-- Compte TeslaFi avec données pour **la bonne voiture** (multi-véhicules : sélectionner la voiture active avant l’export)
-- Environnement matesla (venv + `requirements.txt`)
-- Migrations à jour (`python manage.py migrate`)
+> Never commit a cookie, password, or 2FA code.
 
 ---
 
-## 1. Télécharger les CSV
+## Prerequisites
 
-Script autonome (stdlib Python uniquement) :
+- TeslaFi account with data for the **correct car** (multi-vehicle: select the active car before export)
+- matesla environment (venv + `requirements.txt`)
+- Migrations applied (`python manage.py migrate`)
+
+---
+
+## 1. Download the CSVs
+
+Standalone script (Python stdlib only):
 
 ```bash
-cd /chemin/vers/matesla
-source .venv/bin/activate   # optionnel pour le download seul
+cd /path/to/matesla
+source .venv/bin/activate   # optional for download alone
 python scripts/download_teslafi_exports.py --help
 ```
 
-### Authentification
+### Authentication
 
-#### A. Cookie Chrome (recommandé avec **2FA**)
+#### A. Chrome cookie (recommended with **2FA**)
 
-1. Se connecter sur https://teslafi.com (valider le 2FA dans le navigateur)
-2. Choisir le **bon véhicule** si le compte en a plusieurs
-3. Ouvrir https://teslafi.com/export2.php
-4. **F12 → Network → recharger (F5) → clic sur `export2.php`**
-5. **Headers → Request Headers → Cookie** : copier **toute** la ligne (pas seulement `PHPSESSID` dans l’onglet Application)
+1. Sign in at https://teslafi.com (complete 2FA in the browser)
+2. Select the **correct vehicle** if the account has several
+3. Open https://teslafi.com/export2.php
+4. **F12 → Network → reload (F5) → click `export2.php`**
+5. **Headers → Request Headers → Cookie**: copy the **entire** line (not only `PHPSESSID` from the Application tab)
 
 ```bash
-export TESLAFI_COOKIE='PHPSESSID=…; autres=…'
+export TESLAFI_COOKIE='PHPSESSID=…; other=…'
 
 python scripts/download_teslafi_exports.py --cookie-only \
   --from 2019-02 --to 2025-06 \
-  --out ~/Téléchargements/teslafi-corentin \
+  --out ~/Downloads/teslafi-car1 \
   --skip-existing \
   --sleep 1.5
 ```
 
-#### B. Login username / password (+ 2FA interactif)
+#### B. Username / password login (+ interactive 2FA)
 
 ```bash
 python scripts/download_teslafi_exports.py \
   --from 2025-05 --to 2026-07 \
-  --out ~/Téléchargements/teslafi-robotbleu \
+  --out ~/Downloads/teslafi-car2 \
   --skip-existing
 ```
 
-Le script demande email/username, mot de passe, puis le **code 2FA** si TeslaFi l’affiche.
+The script prompts for email/username, password, then the **2FA code** if TeslaFi asks for it.
 
-Variables d’environnement optionnelles : `TESLAFI_USER`, `TESLAFI_PASSWORD`, `TESLAFI_TOTP`, `TESLAFI_COOKIE`.
+Optional environment variables: `TESLAFI_USER`, `TESLAFI_PASSWORD`, `TESLAFI_TOTP`, `TESLAFI_COOKIE`.
 
-### Options utiles
+### Useful options
 
 | Option | Description |
 |--------|-------------|
-| `--from YYYY-MM` / `--to YYYY-MM` | Plage inclusive |
-| `--out DIR` | Dossier de sortie (fichiers `MYYYY.csv`, ex. `72026.csv` = juillet 2026) |
-| `--skip-existing` | Reprend après coupure de session sans re-télécharger |
-| `--exclude YYYY-MM` | Ignore un mois (répétable) |
-| `--sleep SEC` | Pause entre mois (défaut 1.5 s) |
-| `--cookie-only` | Pas de login ; uniquement le cookie |
-| `--debug` | Garde des HTML d’échec sous `DIR/debug/` |
+| `--from YYYY-MM` / `--to YYYY-MM` | Inclusive range |
+| `--out DIR` | Output directory (files `MYYYY.csv`, e.g. `72026.csv` = July 2026) |
+| `--skip-existing` | Resume after a session drop without re-downloading |
+| `--exclude YYYY-MM` | Skip a month (repeatable) |
+| `--sleep SEC` | Pause between months (default 1.5 s) |
+| `--cookie-only` | No login; cookie only |
+| `--debug` | Keep failure HTML under `DIR/debug/` |
 
-### Trous dans l’historique
+### Gaps in history
 
-Un mois sans données TeslaFi produit un CSV quasi vide (en-tête seulement). C’est normal ; l’import peut les ignorer (taille &lt; ~5 Ko).
+A month with no TeslaFi data produces a nearly empty CSV (header only). That is normal; import can skip tiny files (size &lt; ~5 KB).
 
-### Session perdue en cours de route
+### Session lost mid-run
 
-Sur une longue plage (plusieurs années), le cookie peut expirer :
+Over a long range (several years), the cookie may expire:
 
-1. Refaire le login / recopier le cookie
-2. Relancer **la même commande** avec `--skip-existing`
+1. Sign in again / re-copy the cookie
+2. Re-run **the same command** with `--skip-existing`
 
 ---
 
-## 2. Importer dans matesla
+## 2. Import into matesla
 
-Pour **chaque** fichier non vide :
+For **each** non-empty file:
 
 ```bash
-cd /chemin/vers/matesla
+cd /path/to/matesla
 source .venv/bin/activate
 
 python manage.py ImportTeslaFiCSV \
-  ~/Téléchargements/teslafi-corentin/52021.csv \
+  ~/Downloads/teslafi-car1/52021.csv \
   --tz Europe/Brussels
 ```
 
@@ -107,73 +108,73 @@ python manage.py ImportTeslaFiCSV \
 
 | Option | Description |
 |--------|-------------|
-| `csv_path` | Chemin du CSV mensuel TeslaFi |
-| `--tz` | Fuseau des colonnes `Date` TeslaFi (défaut `Europe/Brussels`) → stocké en UTC |
-| `--vin` | Force le VIN (sinon lu dans chaque ligne) |
-| `--dry-run` | Compte créations / merges sans écrire |
+| `csv_path` | Path to the TeslaFi monthly CSV |
+| `--tz` | Timezone of TeslaFi `Date` columns (default `Europe/Brussels`) → stored as UTC |
+| `--vin` | Force VIN (otherwise read from each row) |
+| `--dry-run` | Count creates / merges without writing |
 
-### Import en lot
+### Batch import
 
 ```bash
-for f in ~/Téléchargements/teslafi-corentin/*.csv; do
-  # ignorer les mois vides (en-tête seul ~2 Ko)
+for f in ~/Downloads/teslafi-car1/*.csv; do
+  # skip empty months (header only ~2 KB)
   [ "$(wc -c < "$f")" -lt 5000 ] && echo "skip tiny $f" && continue
   python manage.py ImportTeslaFiCSV "$f" --tz Europe/Brussels
 done
 ```
 
-Conseil : un dossier par voiture (`teslafi-robotbleu`, `teslafi-corentin`) pour éviter de mélanger les exports.
+Tip: one directory per car (`teslafi-car1`, `teslafi-car2`) so exports are not mixed.
 
-### Vérification rapide
+### Quick check
 
 ```bash
 python manage.py shell -c "
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from django.db.models import Min, Max, Count
-vin = '5YJ3E7EB1KF200150'  # Corentin
+vin = 'YOUR_VIN_HERE'
 qs = TeslaCarDataSnapshot.objects.filter(vin=vin)
 print(qs.count(), qs.aggregate(Min('Date'), Max('Date')))
 "
 ```
 
-Dans l’UI : sélectionner le véhicule, période **1 an** / **2 ans** / **5 ans** (le défaut « 1 mois » ne montre que le passé récent).
+In the UI: select the vehicle, period **1 year** / **2 years** / **5 years** (default **1 month** only shows recent history).
 
 ---
 
-## Comportement des données
+## Data behaviour
 
-- **`battery_level`** et la plupart des métriques sont en **float** (précision TeslaFi conservée)
-- Champs TeslaFi absents de l’ancienne collecte live ont été ajoutés au modèle **et** à `SaveSnapshot` (Fleet)
-- Fusion minute : si une capture live et une ligne TeslaFi tombent dans la même minute, TeslaFi complète / met à jour la ligne
-- Champ **`est_battery_range`** parfois figé côté TeslaFi (ex. valeur constante pendant des mois) alors que `battery_level` / `battery_range` varient — préférer `battery_range` dans les graphes si besoin
+- **`battery_level`** and most metrics are **float** (TeslaFi precision kept)
+- TeslaFi fields missing from older live capture were added to the model **and** to `SaveSnapshot` (Fleet)
+- Per-minute merge: if a live capture and a TeslaFi row fall in the same minute, TeslaFi fills / updates the row
+- **`est_battery_range`** is sometimes stuck on TeslaFi’s side (e.g. constant for months) while `battery_level` / `battery_range` move — prefer `battery_range` in charts if needed
 
 ---
 
-## Exemples déjà utilisés
+## Example ranges
 
-**RobotBleu** (un mois de test puis historique récent) :
+**Recent history only** (one car):
 
 ```bash
 python scripts/download_teslafi_exports.py --cookie-only \
   --from 2025-05 --to 2026-06 \
-  --out ~/Téléchargements/teslafi \
+  --out ~/Downloads/teslafi \
   --skip-existing
 ```
 
-**Corentin** (longue plage + 2FA + trous) :
+**Long range** (2FA + possible gaps):
 
 ```bash
 python scripts/download_teslafi_exports.py --cookie-only \
   --from 2019-02 --to 2025-06 \
-  --out ~/Téléchargements/teslafi-corentin \
+  --out ~/Downloads/teslafi-car1 \
   --skip-existing --sleep 1.5
 ```
 
 ---
 
-## Fichiers concernés
+## Related files
 
-- `scripts/download_teslafi_exports.py` — export HTTP TeslaFi
-- `matesla/management/commands/ImportTeslaFiCSV.py` — import Django
-- `matesla/models/TeslaCarDataSnapshot.py` — schéma + apply/merge
-- `matesla/migrations/0037_teslafi_fields_and_floats.py` — migration float + champs
+- `scripts/download_teslafi_exports.py` — TeslaFi HTTP export
+- `matesla/management/commands/ImportTeslaFiCSV.py` — Django import
+- `matesla/models/TeslaCarDataSnapshot.py` — schema + apply/merge
+- `matesla/migrations/0037_teslafi_fields_and_floats.py` — float + fields migration

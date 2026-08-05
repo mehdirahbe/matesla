@@ -9,12 +9,12 @@ Preferred auth: login once with username/password, then:
 Examples:
 
   python scripts/download_teslafi_exports.py --from 2025-05 --to 2026-07 \\
-    --out ~/Téléchargements/teslafi --skip-existing --exclude 2026-07
+    --out ~/Downloads/teslafi --skip-existing --exclude 2026-07
 
   # Cookie from Chrome Network tab (full Cookie header while on export2.php)
   export TESLAFI_COOKIE='PHPSESSID=…; teslafi_rememberMe=…'
   python scripts/download_teslafi_exports.py --cookie-only --from 2025-05 --to 2026-07 \\
-    --out ~/Téléchargements/teslafi --skip-existing --exclude 2026-07
+    --out ~/Downloads/teslafi --skip-existing --exclude 2026-07
 """
 
 from __future__ import annotations
@@ -430,7 +430,7 @@ def main() -> int:
     ap.add_argument(
         "--out",
         type=Path,
-        default=Path.home() / "Téléchargements" / "teslafi",
+        default=Path.home() / "Downloads" / "teslafi",
     )
     ap.add_argument("--skip-existing", action="store_true")
     ap.add_argument("--force", action="store_true")

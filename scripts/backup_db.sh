@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Full SQLite history backup next to the live DB (not Dropbox — you copy elsewhere).
+# Full SQLite history backup next to the live DB (copy archives elsewhere yourself).
 #
 # Why full DB: TeslaFi history is minute-level and irreplaceable once gone from
 # TeslaFi; lightweight exports would drop that fidelity.
 #
 # Policy:
 #   - safe online snapshot (sqlite3 backup API — gunicorn can keep running)
-#   - zstd -3 compression (~8× smaller on current ~635 MiB DB)
+#   - zstd -3 compression (typically ~8× smaller)
 #   - keep the 4 newest archives only (~1 month if run weekly)
 #   - skip if a backup younger than 6 days exists (unless FORCE=1)
 #

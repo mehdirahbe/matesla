@@ -5,9 +5,9 @@ After=matesla-gunicorn.service
 
 [Service]
 Type=oneshot
-User=mehdi
-Group=mehdi
-WorkingDirectory=/home/mehdi/PycharmProjects/matesla
-ExecStart=/home/mehdi/PycharmProjects/matesla/scripts/backup_db.sh
+User=@MATESLA_USER@
+Group=@MATESLA_GROUP@
+WorkingDirectory=@MATESLA_ROOT@
+ExecStart=@MATESLA_ROOT@/scripts/backup_db.sh
 # One-shot: never restart (same philosophy as gunicorn Restart=no).
 Restart=no
