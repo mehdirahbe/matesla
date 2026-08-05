@@ -19,10 +19,10 @@ from matesla.translation_check import (
 
 class TranslationCoverageTests(SimpleTestCase):
     def test_non_english_languages_are_configured(self):
-        # Sanity: we expect at least fr + es today
+        # Sanity: fr/es + DE/NL/NB (top Tesla EU markets beyond EN)
         codes = target_language_codes()
-        self.assertIn("fr", codes)
-        self.assertIn("es", codes)
+        for code in ("fr", "es", "de", "nl", "nb"):
+            self.assertIn(code, codes)
 
     def test_po_files_exist_without_empty_or_fuzzy(self):
         """

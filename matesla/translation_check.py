@@ -56,6 +56,9 @@ ALLOW_SAME_AS_SOURCE = frozenset(
         "Français",
         "Espanol",
         "English",
+        "Deutsch",
+        "Nederlands",
+        "Norsk",
         "Redirect URI",
         "%(url)s → HTTP %(code)s",  # technical status line
         "02 · SOFTWARE",  # section index; ES may keep loanword

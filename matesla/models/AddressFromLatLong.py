@@ -193,6 +193,8 @@ def _prefer_language_code():
         return "de,fr,en"
     if lang == "es":
         return "es,fr,en"
+    if lang in ("nb", "nn", "no"):
+        return "nb,no,en"
     return f"{lang},fr,en"
 
 

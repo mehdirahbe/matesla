@@ -1,8 +1,8 @@
 """
 Shared helpers for Django tests.
 
-Keep language loops in sync with settings.LANGUAGES so adding Spanish
-(or any locale) does not require hunting hardcoded {"fr", "en"} sets.
+Keep language loops in sync with settings.LANGUAGES so adding a locale
+(e.g. de/nl/nb) does not require hunting hardcoded language sets.
 """
 
 from django.conf import settings

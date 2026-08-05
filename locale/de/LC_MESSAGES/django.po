@@ -1,43 +1,50 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-05 18:59+0000\n"
+"POT-Creation-Date: 2026-08-05 18:53+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
-"Language-Team: Français <LL@li.org>\n"
-"Language: fr\n"
+"Last-Translator: MaTesla i18n <noreply@matesla.local>\n"
+"Language-Team: Deutsch <LL@li.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: accounts/forms.py:7
 msgid "Required to be able to reset password if you forget it"
-msgstr "Requis pour pouvoir réinitialiser le mot de passe si vous l'oubliez"
+msgstr ""
+"Erforderlich, um das Passwort zurücksetzen zu können, falls Sie es vergessen"
 
 #: accounts/templates/signup.html:4 accounts/templates/signup.html:11
 #: accounts/templates/signup.html:27
 msgid "Sign up"
-msgstr "Créer un compte"
+msgstr "Registrieren"
 
 #: accounts/templates/signup.html:31 templates/base.html:41
 #: templates/base.html:56 templates/base.html:72
 #: templates/registration/login.html:5 templates/registration/login.html:25
 #: templates/registration/login.html:45
 msgid "Login"
-msgstr "Se connecter"
+msgstr "Anmelden"
 
 #: matesla/TeslaPartner.py:121
 #, python-format
 msgid "Partner public key must be served over HTTPS (got %(scheme)s)."
 msgstr ""
-"La clé publique partenaire doit être servie en HTTPS (schéma reçu : "
-"%(scheme)s)."
+"Der öffentliche Partnerschlüssel muss über HTTPS bereitgestellt werden "
+"(erhalten: %(scheme)s)."
 
 #: matesla/TeslaPartner.py:126
 msgid "Could not read a host from that URL."
-msgstr "Impossible de lire un hôte dans cette URL."
+msgstr "Aus dieser URL konnte kein Host gelesen werden."
 
 #: matesla/TeslaPartner.py:136
 #, python-format
@@ -46,21 +53,21 @@ msgid ""
 "arbitrary path. Host the PEM there (any HTTPS server is fine: nginx, S3, "
 "Cloudflare, GitHub Pages, …)."
 msgstr ""
-"Tesla récupère toujours la clé publique à https://%(host)s%(path)s — pas à "
-"un chemin arbitraire. Hébergez le PEM à cette adresse (tout serveur HTTPS "
-"convient : nginx, S3, Cloudflare, GitHub Pages, …)."
+"Tesla holt den öffentlichen Schlüssel immer unter https://%(host)s%(path)s "
+"ab — nicht unter einem beliebigen Pfad. Stellen Sie die PEM dort bereit "
+"(jeder HTTPS-Server eignet sich: nginx, S3, Cloudflare, GitHub Pages, …)."
 
 #: matesla/TeslaPartner.py:152
 msgid ""
 "Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
 msgstr ""
-"Tesla refuse localhost comme domaine partenaire. Utilisez un domaine HTTPS "
-"public."
+"Tesla lehnt localhost als Partnerdomäne ab. Verwenden Sie eine öffentliche "
+"HTTPS-Domäne."
 
 #: matesla/TeslaPartner.py:165
 #, python-format
 msgid "Cannot reach %(url)s: %(err)s"
-msgstr "Impossible d’atteindre %(url)s : %(err)s"
+msgstr "%(url)s nicht erreichbar: %(err)s"
 
 #: matesla/TeslaPartner.py:167
 #, python-format
@@ -70,7 +77,7 @@ msgstr "%(url)s → HTTP %(code)s"
 #: matesla/TeslaPartner.py:173
 #, python-format
 msgid "%(url)s does not contain a valid public key PEM"
-msgstr "%(url)s ne contient pas un PEM de clé publique valide"
+msgstr "%(url)s enthält kein gültiges PEM für einen öffentlichen Schlüssel"
 
 #: matesla/TeslaPartner.py:181
 #, python-format
@@ -78,44 +85,46 @@ msgid ""
 "%(url)s is reachable but does not match the local key (%(path)s). Re-upload "
 "the file."
 msgstr ""
-"%(url)s est accessible mais le contenu ne correspond pas à la clé locale "
-"(%(path)s). Réuploadez le fichier."
+"%(url)s ist erreichbar, stimmt aber nicht mit dem lokalen Schlüssel "
+"(%(path)s) überein. Laden Sie die Datei erneut hoch."
 
 #: matesla/TeslaPartner.py:186
 #, python-format
 msgid "Public key OK: %(url)s"
-msgstr "Clé publique OK : %(url)s"
+msgstr "Öffentlicher Schlüssel OK: %(url)s"
 
 #: matesla/TeslaPartner.py:192
 msgid "Missing Client ID / Secret."
-msgstr "Client ID / Secret manquants."
+msgstr "Client ID / Secret fehlen."
 
 #: matesla/TeslaPartner.py:209
 #, python-format
 msgid "Partner token failed (%(code)s): %(body)s"
-msgstr "Partner token échoué (%(code)s) : %(body)s"
+msgstr "Partner-Token fehlgeschlagen (%(code)s): %(body)s"
 
 #: matesla/TeslaPartner.py:223
 msgid "Missing app settings."
-msgstr "Paramètres d’application manquants."
+msgstr "App-Einstellungen fehlen."
 
 #: matesla/TeslaPartner.py:229
 msgid ""
 "Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g."
 " robotcar.example.com)."
 msgstr ""
-"Tesla refuse localhost comme domaine partenaire. Utilisez un domaine HTTPS "
-"public (ex. robotcar.example.com)."
+"Tesla lehnt localhost als Partnerdomäne ab. Verwenden Sie eine öffentliche "
+"HTTPS-Domäne (z. B. robotcar.example.com)."
 
 #: matesla/TeslaPartner.py:237
 #, python-format
 msgid "Public key not reachable by Tesla before register: %(msg)s"
-msgstr "Clé publique non accessible par Tesla avant register : %(msg)s"
+msgstr ""
+"Öffentlicher Schlüssel vor der Registrierung für Tesla nicht erreichbar: "
+"%(msg)s"
 
 #: matesla/TeslaPartner.py:255
 #, python-format
 msgid "Partner register failed (%(code)s): %(body)s"
-msgstr "Register partner échoué (%(code)s) : %(body)s"
+msgstr "Partner-Registrierung fehlgeschlagen (%(code)s): %(body)s"
 
 #: matesla/forms.py:22
 msgid "Client ID"
@@ -127,35 +136,35 @@ msgstr "Client secret"
 
 #: matesla/forms.py:24
 msgid "OAuth redirect URI"
-msgstr "URI de redirection OAuth"
+msgstr "OAuth-Redirect-URI"
 
 #: matesla/forms.py:25
 msgid "Fleet API region"
-msgstr "Région API Fleet"
+msgstr "Fleet-API-Region"
 
 #: matesla/forms.py:29
 msgid ""
 "Must match the redirect URI on developer.tesla.com exactly (often "
 "http://localhost:8001/oauth/callback for a local install)."
 msgstr ""
-"Doit correspondre exactement à l’URI de redirection sur developer.tesla.com "
-"(souvent http://localhost:8001/oauth/callback en install locale)."
+"Muss exakt mit der Redirect-URI auf developer.tesla.com übereinstimmen (oft "
+"http://localhost:8001/oauth/callback bei lokaler Installation)."
 
 #: matesla/forms.py:42
 msgid "Europe / Middle East / Africa (recommended for Belgium)"
-msgstr "Europe / Moyen-Orient / Afrique (recommandé pour la Belgique)"
+msgstr "Europa / Naher Osten / Afrika (empfohlen für Belgien)"
 
 #: matesla/forms.py:43
 msgid "North America / Asia-Pacific (excl. China)"
-msgstr "Amérique du Nord / Asie-Pacifique (hors Chine)"
+msgstr "Nordamerika / Asien-Pazifik (ohne China)"
 
 #: matesla/forms.py:44
 msgid "China"
-msgstr "Chine"
+msgstr "China"
 
 #: matesla/forms.py:61
 msgid "Partner domain or public key URL"
-msgstr "Domaine partenaire ou URL de la clé publique"
+msgstr "Partnerdomäne oder URL des öffentlichen Schlüssels"
 
 #: matesla/forms.py:65
 msgid ""
@@ -165,25 +174,25 @@ msgid ""
 "key.pem on that host. Add the same host with https:// as Allowed Origin on "
 "developer.tesla.com. Not localhost."
 msgstr ""
-"Collez un domaine (example.com), une origine (https://example.com) ou l’URL "
-"complète de la clé publique. L’hébergement est libre (nginx, S3, Cloudflare,"
-" GitHub Pages, …) mais Tesla récupère toujours /.well-"
-"known/appspecific/com.tesla.3p.public-key.pem sur cet hôte. Ajoutez le même "
-"hôte avec https:// en Allowed Origin sur developer.tesla.com. Pas localhost."
+"Fügen Sie eine Domäne (example.com), einen Origin (https://example.com) oder"
+" die vollständige URL des öffentlichen Schlüssels ein. Das Hosting ist frei "
+"wählbar (nginx, S3, Cloudflare, GitHub Pages, …), aber Tesla holt immer "
+"/.well-known/appspecific/com.tesla.3p.public-key.pem auf diesem Host ab. "
+"Fügen Sie denselben Host mit https:// als Allowed Origin auf "
+"developer.tesla.com hinzu. Nicht localhost."
 
-# AddTeslaAccount / partner i18n
 #: matesla/templates/matesla/AddTeslaAccount.html:4
 msgid "Tesla connection"
-msgstr "Connexion Tesla"
+msgstr "Tesla-Verbindung"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:12
 #: matesla/templates/matesla/TeslaServerError.html:8
 msgid "Tesla Fleet API"
-msgstr "API Tesla Fleet"
+msgstr "Tesla Fleet API"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:13
 msgid "Connect your car."
-msgstr "Relier votre voiture."
+msgstr "Verbinden Sie Ihr Auto."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:14
 msgid ""
@@ -191,28 +200,28 @@ msgid ""
 " secrets stay stored locally. You can re-open this page anytime — safe "
 "actions will not break a working setup."
 msgstr ""
-"Configurez l’application, enregistrez le domaine partenaire, puis autorisez "
-"MaTesla. Vos secrets restent stockés localement. Vous pouvez rouvrir cette "
-"page à tout moment — les actions sans danger ne casseront pas une "
-"configuration qui fonctionne."
+"Konfigurieren Sie die App, registrieren Sie die Partnerdomäne und "
+"autorisieren Sie dann MaTesla. Ihre Geheimnisse bleiben lokal gespeichert. "
+"Sie können diese Seite jederzeit erneut öffnen — unbedenkliche Aktionen "
+"stören eine funktionierende Einrichtung nicht."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:18
 #: matesla/templates/matesla/AddTeslaAccount.html:95
 msgid "Developer application"
-msgstr "Application développeur"
+msgstr "Entwickleranwendung"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:19
 msgid "Tesla Client ID and secret"
-msgstr "Client ID et secret Tesla"
+msgstr "Tesla Client ID und Secret"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:22
 #: matesla/templates/matesla/AddTeslaAccount.html:127
 msgid "Partner domain"
-msgstr "Domaine partenaire"
+msgstr "Partnerdomäne"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:23
 msgid "Public key and region"
-msgstr "Clé publique et région"
+msgstr "Öffentlicher Schlüssel und Region"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:26
 #: matesla/templates/matesla/ConnectionError.html:14
@@ -221,72 +230,72 @@ msgstr "Clé publique et région"
 #: matesla/templates/matesla/_vehicle_chrome.html:61 templates/base.html:38
 #: templates/base.html:64
 msgid "Tesla account"
-msgstr "Compte Tesla"
+msgstr "Tesla-Konto"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:27
 msgid "OAuth authorization"
-msgstr "Autorisation OAuth"
+msgstr "OAuth-Autorisierung"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:44
 msgid "Account connected"
-msgstr "Compte connecté"
+msgstr "Konto verbunden"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:47
 #, python-format
 msgid "OAuth authorization is active until %(date)s."
-msgstr "L’autorisation OAuth est active jusqu’au %(date)s."
+msgstr "OAuth-Autorisierung ist aktiv bis %(date)s."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:49
 msgid "OAuth authorization is active."
-msgstr "L’autorisation OAuth est active."
+msgstr "OAuth-Autorisierung ist aktiv."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:51
 msgid "Tokens refresh automatically; re-authorize only if access fails."
 msgstr ""
-"Les jetons se renouvellent automatiquement ; ne réautorisez que si l’accès "
-"échoue."
+"Tokens werden automatisch erneuert; nur bei Zugriffsproblemen erneut "
+"autorisieren."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:57
 msgid ""
 "Disconnect this Tesla account? Tokens and vehicle list will be removed from "
 "MaTesla."
 msgstr ""
-"Déconnecter ce compte Tesla ? Les jetons et la liste des véhicules seront "
-"retirés de MaTesla."
+"Dieses Tesla-Konto trennen? Tokens und Fahrzeugliste werden aus MaTesla "
+"entfernt."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:57
 msgid "Disconnect"
-msgstr "Déconnecter"
+msgstr "Trennen"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:68
 msgid "default vehicle"
-msgstr "véhicule par défaut"
+msgstr "Standardfahrzeug"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:71
 msgid "Unknown state"
-msgstr "État inconnu"
+msgstr "Unbekannter Zustand"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:77
 msgid "No vehicles synchronized. Finish partner registration, then resync."
 msgstr ""
-"Aucun véhicule synchronisé. Terminez l’enregistrement partenaire, puis "
-"resynchronisez."
+"Keine Fahrzeuge synchronisiert. Partner-Registrierung abschließen, dann "
+"erneut synchronisieren."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:84
 msgid "Resync vehicles"
-msgstr "Resynchroniser les véhicules"
+msgstr "Fahrzeuge neu synchronisieren"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:86
 msgid ""
 "Re-authorize with Tesla? Your current tokens will be replaced after you "
 "confirm on Tesla site."
 msgstr ""
-"Réautoriser avec Tesla ? Vos jetons actuels seront remplacés après "
-"confirmation sur le site Tesla."
+"Bei Tesla erneut autorisieren? Ihre aktuellen Tokens werden ersetzt, sobald "
+"Sie auf der Tesla-Website bestätigen."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:86
 msgid "Re-authorize"
-msgstr "Réautoriser"
+msgstr "Erneut autorisieren"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:97
 msgid ""
@@ -295,71 +304,71 @@ msgid ""
 "rel=\"noopener\">developer.tesla.com ↗</a>. Saving again only updates what "
 "you change."
 msgstr ""
-"Copiez les identifiants depuis <a class=\"text-link\" "
+"Kopieren Sie die Zugangsdaten von <a class=\"text-link\" "
 "href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Enregistrer à nouveau ne met à "
-"jour que ce que vous modifiez."
+"rel=\"noopener\">developer.tesla.com ↗</a>. Erneutes Speichern aktualisiert "
+"nur, was Sie ändern."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:103
 msgid "Credentials are stored. Save again only if you need to edit them."
 msgstr ""
-"Les identifiants sont enregistrés. Enregistrez à nouveau seulement si vous "
-"devez les modifier."
+"Zugangsdaten sind gespeichert. Speichern Sie erneut nur, wenn Sie sie "
+"bearbeiten müssen."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:118
 msgid "Update application"
-msgstr "Mettre à jour l’application"
+msgstr "Anwendung aktualisieren"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:118
 msgid "Save application"
-msgstr "Enregistrer l’application"
+msgstr "Anwendung speichern"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:129
 msgid ""
 "Tesla fetches an EC public key over HTTPS on a domain you control before "
 "granting vehicle access. Localhost is not allowed."
 msgstr ""
-"Tesla récupère une clé publique EC en HTTPS sur un domaine que vous "
-"contrôlez avant d’accorder l’accès au véhicule. Localhost n’est pas "
-"autorisé."
+"Tesla holt einen öffentlichen EC-Schlüssel über HTTPS von einer Domäne ab, "
+"die Sie kontrollieren, bevor Fahrzeugzugriff gewährt wird. Localhost ist "
+"nicht erlaubt."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:146
 msgid "Any HTTPS host works — GitHub Pages is only one option among many."
 msgstr ""
-"Tout hôte HTTPS convient — GitHub Pages n’est qu’une option parmi d’autres."
+"Jeder HTTPS-Host funktioniert — GitHub Pages ist nur eine von vielen "
+"Optionen."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:147
 msgid "Tesla always requests this exact URL (path fixed by Tesla):"
-msgstr ""
-"Tesla demande toujours exactement cette URL (chemin imposé par Tesla) :"
+msgstr "Tesla fordert immer genau diese URL an (Pfad von Tesla festgelegt):"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:154
 msgid ""
 "Add https://&lt;your-domain&gt; to Allowed Origins on the Tesla developer "
 "dashboard."
 msgstr ""
-"Ajoutez https://&lt;votre-domaine&gt; aux Allowed Origins du tableau de bord"
-" développeur Tesla."
+"Fügen Sie https://&lt;your-domain&gt; zu Allowed Origins im Tesla-"
+"Entwickler-Dashboard hinzu."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:155
 msgid ""
 "Changing the domain later clears partner registration — verify and register "
 "again."
 msgstr ""
-"Changer le domaine plus tard efface l’enregistrement partenaire — vérifiez "
-"et enregistrez à nouveau."
+"Eine spätere Änderung der Domäne löscht die Partner-Registrierung — erneut "
+"prüfen und registrieren."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:159
 msgid "Canonical public key URL used for verify &amp; register"
-msgstr "URL canonique de la clé publique (vérification et enregistrement)"
+msgstr "Kanonische URL des öffentlichen Schlüssels für Verify &amp; Register"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:164
 msgid "Update partner URL"
-msgstr "Mettre à jour l’URL partenaire"
+msgstr "Partner-URL aktualisieren"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:164
 msgid "Save partner URL"
-msgstr "Enregistrer l’URL partenaire"
+msgstr "Partner-URL speichern"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:170
 #, python-format
@@ -367,96 +376,96 @@ msgid ""
 "Domain %(domain)s is registered as partner for this region. Re-register is "
 "safe if you need to refresh."
 msgstr ""
-"Le domaine %(domain)s est enregistré comme partenaire pour cette région. "
-"Réenregistrer est sans danger si vous devez rafraîchir."
+"Domäne %(domain)s ist als Partner für diese Region registriert. Erneute "
+"Registrierung ist unbedenklich, wenn Sie aktualisieren müssen."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:174
 #, python-format
 msgid ""
 "Domain saved: %(domain)s. Verify the public key, then register the partner."
 msgstr ""
-"Domaine enregistré : %(domain)s. Vérifiez la clé publique, puis enregistrez "
-"le partenaire."
+"Domäne gespeichert: %(domain)s. Prüfen Sie den öffentlichen Schlüssel und "
+"registrieren Sie dann den Partner."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:177
 msgid "Set and save a partner domain first."
-msgstr "Définissez et enregistrez d’abord un domaine partenaire."
+msgstr "Legen Sie zuerst eine Partnerdomäne fest und speichern Sie sie."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:182
 msgid ""
 "Local EC key pair is ready. It will not be overwritten if you click generate"
 " again."
 msgstr ""
-"La paire de clés EC locale est prête. Elle ne sera pas écrasée si vous "
-"recliquez sur générer."
+"Lokales EC-Schlüsselpaar ist bereit. Es wird nicht überschrieben, wenn Sie "
+"erneut auf Generieren klicken."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:191
 msgid "Generate EC key"
-msgstr "Générer la clé EC"
+msgstr "EC-Schlüssel erzeugen"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:197
 msgid "Safe: existing keys are never replaced"
-msgstr "Sans danger : les clés existantes ne sont jamais remplacées"
+msgstr "Sicher: vorhandene Schlüssel werden nie ersetzt"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:197
 msgid "Check local key"
-msgstr "Vérifier la clé locale"
+msgstr "Lokalen Schlüssel prüfen"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:204
 msgid "Verify key online"
-msgstr "Vérifier la clé en ligne"
+msgstr "Schlüssel online prüfen"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:211
 msgid "Re-register · EU"
-msgstr "Réenregistrer · EU"
+msgstr "Erneut registrieren · EU"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:211
 msgid "Register · EU"
-msgstr "Enregistrer · EU"
+msgstr "Registrieren · EU"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:222
 msgid "Tesla account authorization"
-msgstr "Autorisation du compte Tesla"
+msgstr "Autorisierung des Tesla-Kontos"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:223
 msgid ""
 "Tesla will ask you to confirm access. MaTesla never receives your password."
 msgstr ""
-"Tesla vous demandera de confirmer l’accès. MaTesla ne reçoit jamais votre "
-"mot de passe."
+"Tesla bittet Sie, den Zugriff zu bestätigen. MaTesla erhält nie Ihr "
+"Passwort."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:229
 msgid ""
 "Already authorized. Use Resync or Re-authorize in the “Account connected” "
 "section above if needed."
 msgstr ""
-"Déjà autorisé. Utilisez Resynchroniser ou Réautoriser dans la section « "
-"Compte connecté » ci-dessus si besoin."
+"Bereits autorisiert. Nutzen Sie bei Bedarf Resync oder Erneut autorisieren "
+"im Abschnitt „Konto verbunden“ oben."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:233
 msgid "Redirect URI (must match the Tesla dashboard)"
-msgstr "URI de redirection (doit correspondre au tableau de bord Tesla)"
+msgstr "Redirect-URI (muss dem Tesla-Dashboard entsprechen)"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:236
 msgid "Sign in with Tesla"
-msgstr "Se connecter avec Tesla"
+msgstr "Mit Tesla anmelden"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:239
 msgid "Save the Client ID and secret in step 1 first."
-msgstr "Enregistrez d’abord le Client ID et le secret à l’étape 1."
+msgstr "Speichern Sie zuerst Client ID und Secret in Schritt 1."
 
 #: matesla/templates/matesla/ConnectionError.html:4
 #: matesla/templates/matesla/ConnectionError.html:9
 msgid "Connection error"
-msgstr "Erreur de connexion"
+msgstr "Verbindungsfehler"
 
 #: matesla/templates/matesla/ConnectionError.html:8
 msgid "Network"
-msgstr "Réseau"
+msgstr "Netzwerk"
 
 #: matesla/templates/matesla/ConnectionError.html:10
 msgid "Connection error. Please check your internet connection."
-msgstr "Erreur de connection. Veuillez vérifier votre connection internet."
+msgstr "Verbindungsfehler. Bitte prüfen Sie Ihre Internetverbindung."
 
 #: matesla/templates/matesla/ConnectionError.html:12
 #: matesla/templates/matesla/NoTeslaVehicules.html:15
@@ -465,69 +474,69 @@ msgstr "Erreur de connection. Veuillez vérifier votre connection internet."
 #: matesla/templates/matesla/vehicle_hub.html:41
 #: matesla/templates/matesla/vehicle_hub.html:52
 msgid "Retry?"
-msgstr "Réessayer?"
+msgstr "Erneut versuchen?"
 
 #: matesla/templates/matesla/NoTeslaVehicules.html:4
 #: matesla/templates/matesla/NoTeslaVehicules.html:9
 msgid "No vehicles"
-msgstr "Aucun véhicule"
+msgstr "Keine Fahrzeuge"
 
 #: matesla/templates/matesla/NoTeslaVehicules.html:8
 msgid "Empty garage"
-msgstr "Garage vide"
+msgstr "Leere Garage"
 
 #: matesla/templates/matesla/NoTeslaVehicules.html:10
 msgid ""
 "No vehicles are associated to your account. Please retry when your car will "
 "be there."
 msgstr ""
-"Aucune voiture n'est associée à votre compte. Veuillez réessayer quand elle "
-"sera là."
+"Ihrem Konto sind keine Fahrzeuge zugeordnet. Bitte versuchen Sie es erneut, "
+"wenn Ihr Auto verfügbar ist."
 
 #: matesla/templates/matesla/TeslaServerError.html:4
 #: matesla/templates/matesla/TeslaServerError.html:9
 msgid "Tesla server error"
-msgstr "Le serveur Tesla a renvoyé une erreur"
+msgstr "Tesla-Serverfehler"
 
 #: matesla/templates/matesla/TeslaServerError.html:10
 msgid "Tesla server did return an error"
-msgstr "Le serveur Tesla a renvoyé une erreur"
+msgstr "Der Tesla-Server hat einen Fehler zurückgegeben"
 
 #: matesla/templates/matesla/_carstatus_body.html:9
 msgid "Live"
-msgstr "En direct"
+msgstr "Live"
 
 #: matesla/templates/matesla/_carstatus_body.html:10
 msgid "Your car"
-msgstr "Votre voiture"
+msgstr "Ihr Auto"
 
 #: matesla/templates/matesla/_carstatus_body.html:18
 #: matesla/templates/matesla/_carstatus_body.html:22
 #: matesla/templates/matesla/_carstatus_body.html:96
 #: matesla/templates/matesla/_vehicle_chrome.html:27
 msgid "online"
-msgstr "en ligne"
+msgstr "online"
 
 #: matesla/templates/matesla/_carstatus_body.html:19
 #: matesla/templates/matesla/_carstatus_body.html:97
 #: matesla/templates/matesla/_vehicle_chrome.html:28
 msgid "asleep"
-msgstr "endormie"
+msgstr "schlafend"
 
 #: matesla/templates/matesla/_carstatus_body.html:20
 #: matesla/templates/matesla/_carstatus_body.html:98
 #: matesla/templates/matesla/_vehicle_chrome.html:29
 msgid "offline"
-msgstr "hors ligne"
+msgstr "offline"
 
 #: matesla/templates/matesla/_carstatus_body.html:28
 #, python-format
 msgid "%(name)s vehicle"
-msgstr "Véhicule %(name)s"
+msgstr "Fahrzeug %(name)s"
 
 #: matesla/templates/matesla/_carstatus_body.html:35
 msgid "Battery summary"
-msgstr "Batterie en charge"
+msgstr "Batterieübersicht"
 
 #: matesla/templates/matesla/_carstatus_body.html:40
 msgid "Battery"
@@ -535,65 +544,65 @@ msgstr "Batterie"
 
 #: matesla/templates/matesla/_carstatus_body.html:48
 msgid "Range"
-msgstr "Autonomie"
+msgstr "Reichweite"
 
 #: matesla/templates/matesla/_carstatus_body.html:52
 msgid "Outside"
-msgstr "Extérieur"
+msgstr "Außen"
 
 #: matesla/templates/matesla/_carstatus_body.html:56
 #: matesla/templates/matesla/_carstatus_body.html:160
 msgid "Odometer"
-msgstr "Odomètre"
+msgstr "Kilometerstand"
 
 #: matesla/templates/matesla/_carstatus_body.html:60
 msgid "Firmware"
-msgstr "Version firmware"
+msgstr "Firmware"
 
 #: matesla/templates/matesla/_carstatus_body.html:66
 #: matesla/templates/matesla/_carstatus_body.html:121
 msgid "Charge status"
-msgstr "État de charge"
+msgstr "Ladestatus"
 
 #: matesla/templates/matesla/_carstatus_body.html:77
 msgid "Telemetry"
-msgstr "Télémétrie"
+msgstr "Telemetrie"
 
 #: matesla/templates/matesla/_carstatus_body.html:78
 msgid "Vehicle details"
-msgstr "Détails du véhicule"
+msgstr "Fahrzeugdetails"
 
 #: matesla/templates/matesla/_carstatus_body.html:79
 msgid "Everything that matters, organised by use."
-msgstr "Tout ce qui compte, organisé par usage."
+msgstr "Alles Wichtige, nach Nutzung geordnet."
 
 #: matesla/templates/matesla/_carstatus_body.html:81
 msgid "Raw JSON"
-msgstr "JSON brut"
+msgstr "Rohes JSON"
 
 #: matesla/templates/matesla/_carstatus_body.html:87
 msgid "General information"
-msgstr "Informations générales"
+msgstr "Allgemeine Informationen"
 
 #: matesla/templates/matesla/_carstatus_body.html:88
 msgid "Identity"
-msgstr "Identité"
+msgstr "Identität"
 
 #: matesla/templates/matesla/_carstatus_body.html:95
 msgid "State"
-msgstr "Etat"
+msgstr "Status"
 
 #: matesla/templates/matesla/_carstatus_body.html:101
 msgid "Car type"
-msgstr "Type de voiture"
+msgstr "Fahrzeugtyp"
 
 #: matesla/templates/matesla/_carstatus_body.html:102
 msgid "Exterior color"
-msgstr "Couleur extérieure"
+msgstr "Außenfarbe"
 
 #: matesla/templates/matesla/_carstatus_body.html:103
 msgid "Wheel"
-msgstr "Roues"
+msgstr "Rad"
 
 #: matesla/templates/matesla/_carstatus_body.html:105
 msgid "Sentry"
@@ -602,152 +611,152 @@ msgstr "Sentry"
 #: matesla/templates/matesla/_carstatus_body.html:107
 #: matesla/templates/matesla/_carstatus_body.html:113
 msgid "Active"
-msgstr "Actif"
+msgstr "Aktiv"
 
 #: matesla/templates/matesla/_carstatus_body.html:107
 #: matesla/templates/matesla/_carstatus_body.html:113
 msgid "Inactive"
-msgstr "Inactif"
+msgstr "Inaktiv"
 
 #: matesla/templates/matesla/_carstatus_body.html:111
 msgid "Valet mode"
-msgstr "Mode valet"
+msgstr "Valet-Modus"
 
 #: matesla/templates/matesla/_carstatus_body.html:126
 msgid "Battery level"
-msgstr "Niveau batterie (%)"
+msgstr "Batteriestand"
 
 #: matesla/templates/matesla/_carstatus_body.html:127
 #, python-format
 msgid "Usable battery level (%%)"
-msgstr "Niveau utilisable batterie (%%)"
+msgstr "Nutzbarer Batteriestand (%%)"
 
 #: matesla/templates/matesla/_carstatus_body.html:128
 msgid "Battery range km"
-msgstr "Range de la batterie km"
+msgstr "Batteriereichweite km"
 
 #: matesla/templates/matesla/_carstatus_body.html:130
 #, python-format
 msgid "Battery degradation (%%)"
-msgstr "Dégradation de la batterie (%%)"
+msgstr "Batteriedegradation (%%)"
 
 #: matesla/templates/matesla/_carstatus_body.html:133
 #, python-format
 msgid "Battery charge limit (%%)"
-msgstr "Limite de charge de la batterie (%%)"
+msgstr "Batterieladegrenze (%%)"
 
 #: matesla/templates/matesla/_carstatus_body.html:138
 msgid "Charge port"
-msgstr "Port de charge"
+msgstr "Ladeanschluss"
 
 #: matesla/templates/matesla/_carstatus_body.html:140
 msgid "Voltage in V"
-msgstr "Voltage en V"
+msgstr "Spannung in V"
 
 #: matesla/templates/matesla/_carstatus_body.html:141
 msgid "Current in A"
-msgstr "Courant en A"
+msgstr "Strom in A"
 
 #: matesla/templates/matesla/_carstatus_body.html:142
 msgid "Power in kW"
-msgstr "Puissance en kW"
+msgstr "Leistung in kW"
 
 #: matesla/templates/matesla/_carstatus_body.html:143
 msgid "Number of phases"
-msgstr "Nombre de phases"
+msgstr "Anzahl der Phasen"
 
 #: matesla/templates/matesla/_carstatus_body.html:144
 msgid "Time left in minutes"
-msgstr "Temps restant en minutes"
+msgstr "Verbleibende Zeit in Minuten"
 
 #: matesla/templates/matesla/_carstatus_body.html:146
 msgid "Vehicle is unplugged"
-msgstr "Véhicule débranché"
+msgstr "Fahrzeug ist nicht angeschlossen"
 
 #: matesla/templates/matesla/_carstatus_body.html:154
 msgid "Drive and location"
-msgstr "Conduite et emplacement"
+msgstr "Fahrt und Standort"
 
 #: matesla/templates/matesla/_carstatus_body.html:155
 msgid "Mobility"
-msgstr "Mobilité"
+msgstr "Mobilität"
 
 #: matesla/templates/matesla/_carstatus_body.html:158
 msgid "Speed"
-msgstr "Vitesse"
+msgstr "Geschwindigkeit"
 
 #: matesla/templates/matesla/_carstatus_body.html:159
 msgid "Location"
-msgstr "Addresse"
+msgstr "Standort"
 
 #: matesla/templates/matesla/_carstatus_body.html:159
 msgid "Map"
-msgstr "Carte"
+msgstr "Karte"
 
 #: matesla/templates/matesla/_carstatus_body.html:161
 msgid "Estim. number of battery cycles"
-msgstr "Nombre de cycles estimé de la batterie"
+msgstr "Geschätzte Batteriezyklen"
 
 #: matesla/templates/matesla/_carstatus_body.html:162
 msgid "EPA Range (miles)"
-msgstr "Range EPA (miles)"
+msgstr "EPA-Reichweite (Meilen)"
 
 #: matesla/templates/matesla/_carstatus_body.html:168
 msgid "Climate information"
-msgstr "Climatisation"
+msgstr "Klimainformationen"
 
 #: matesla/templates/matesla/_carstatus_body.html:169
 msgid "On"
-msgstr "Activé"
+msgstr "Ein"
 
 #: matesla/templates/matesla/_carstatus_body.html:169
 msgid "Off"
-msgstr "Arrêté"
+msgstr "Aus"
 
 #: matesla/templates/matesla/_carstatus_body.html:172
 msgid "Inside temperature"
-msgstr "Température intérieure"
+msgstr "Innentemperatur"
 
 #: matesla/templates/matesla/_carstatus_body.html:173
 msgid "Outside temperature"
-msgstr "Température extérieure"
+msgstr "Außentemperatur"
 
 #: matesla/templates/matesla/_carstatus_body.html:175
 msgid "Driver Temperature setting"
-msgstr "Température pour le conducteur"
+msgstr "Fahrer-Temperatureinstellung"
 
 #: matesla/templates/matesla/_carstatus_body.html:183
 msgid "Software"
-msgstr "Logiciel"
+msgstr "Software"
 
 #: matesla/templates/matesla/_carstatus_body.html:187
 msgid "Firmware version"
-msgstr "Version firmware"
+msgstr "Firmware-Version"
 
 #: matesla/templates/matesla/_carstatus_body.html:189
 msgid "Update ready"
-msgstr "Mise à jour prête"
+msgstr "Update bereit"
 
 #: matesla/templates/matesla/_carstatus_body.html:192
 msgid "Scheduled update"
-msgstr "Mise à jour planifiée"
+msgstr "Geplante Update"
 
 #: matesla/templates/matesla/_carstatus_body.html:195
 msgid "Installing"
-msgstr "Installer"
+msgstr "Installation"
 
 #: matesla/templates/matesla/_carstatus_body.html:198
 msgid "History"
-msgstr "Historique"
+msgstr "Verlauf"
 
 #: matesla/templates/matesla/_carstatus_body.html:198
 msgid "View history"
-msgstr "Historique firmware"
+msgstr "Verlauf anzeigen"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:22
 #: matesla/templates/matesla/_vehicle_chrome.html:41
 msgid "Vehicle"
-msgstr "Véhicule"
+msgstr "Fahrzeug"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:35
 msgid "OK"
@@ -755,21 +764,21 @@ msgstr "OK"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:52
 msgid "Vehicle shortcuts"
-msgstr "Raccourcis véhicule"
+msgstr "Fahrzeug-Shortcuts"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:53
 msgid "Status"
-msgstr "Statut"
+msgstr "Status"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:55
 msgid "My data"
-msgstr "Mes données"
+msgstr "Meine Daten"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:56
 #: personalstats/templates/personalstats/daymap.html:5
 #: personalstats/templates/personalstats/daymap.html:201
 msgid "Day map"
-msgstr "Carte du jour"
+msgstr "Tageskarte"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:57
 #: personalstats/templates/personalstats/_carstats_body.html:212
@@ -778,14 +787,14 @@ msgstr "Carte du jour"
 #: personalstats/templates/personalstats/drives.html:5
 #: personalstats/templates/personalstats/drives.html:111
 msgid "Drives"
-msgstr "Trajets"
+msgstr "Fahrten"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:58
 #: personalstats/templates/personalstats/FirmwareHistory.html:5
 #: personalstats/templates/personalstats/FirmwareHistory.html:12
 #: templates/registration/login.html:82 templates/registration/login.html:85
 msgid "Firmware history"
-msgstr "Historique firmware"
+msgstr "Firmware-Verlauf"
 
 #: matesla/templates/matesla/asleep.html:4
 #: matesla/templates/matesla/asleep.html:10
@@ -793,40 +802,38 @@ msgstr "Historique firmware"
 #: matesla/templates/matesla/vehicle_hub.html:20
 #: matesla/templates/matesla/vehicle_hub.html:47
 msgid "Your tesla is asleep"
-msgstr "Votre tesla est endormie"
+msgstr "Ihr Tesla schläft"
 
 #: matesla/templates/matesla/asleep.html:9
 msgid "Sleep mode"
-msgstr "Mode veille"
+msgstr "Schlafmodus"
 
 #: matesla/templates/matesla/vehicle_hub.html:5
 #: matesla/templates/matesla/vehicle_hub.html:20
 #: matesla/templates/matesla/vehicle_hub.html:36
 msgid "Fleet API limit reached"
-msgstr "Limite API Fleet atteinte"
+msgstr "Fleet-API-Limit erreicht"
 
 #: matesla/templates/matesla/vehicle_hub.html:17
 msgid "Live data unavailable"
-msgstr "Données live indisponibles"
+msgstr "Livedaten nicht verfügbar"
 
 #: matesla/templates/matesla/vehicle_hub.html:17
 msgid "History mode"
-msgstr "Mode historique"
+msgstr "Verlaufsmodus"
 
 #: matesla/templates/matesla/vehicle_hub.html:24
 msgid ""
 "MaTesla still shows history. Live status will return when the Tesla Fleet "
 "free credit resets or a payment method is added."
 msgstr ""
-"MaTesla affiche toujours l’historique. Le statut live reviendra quand le "
-"crédit gratuit Fleet Tesla se réinitialisera ou qu’un moyen de paiement sera"
-" ajouté."
+"MaTesla zeigt weiterhin den Verlauf. Der Live-Status kehrt zurück, wenn das "
+"kostenlose Tesla-Fleet-Kontingent zurückgesetzt wird oder eine "
+"Zahlungsmethode hinterlegt ist."
 
 #: matesla/templates/matesla/vehicle_hub.html:26
 msgid "The car is resting. MaTesla shows its history without ever waking it."
-msgstr ""
-"La voiture se repose. MaTesla affiche son historique sans jamais la "
-"réveiller."
+msgstr "Das Auto ruht. MaTesla zeigt den Verlauf, ohne es zu wecken."
 
 #: matesla/templates/matesla/vehicle_hub.html:38
 msgid ""
@@ -835,56 +842,54 @@ msgid ""
 "online from the last successful check. Capture is paused until the limit "
 "clears. History graphs below remain available."
 msgstr ""
-"Tesla a désactivé ce compte pour dépassement de quota (crédit mensuel "
-"gratuit épuisé). Ce n’est pas la voiture qui dort — le sélecteur peut encore"
-" afficher « en ligne » d’après le dernier contrôle réussi. La capture est "
-"suspendue jusqu’au rétablissement. Les graphiques d’historique restent "
-"disponibles ci-dessous."
+"Tesla hat dieses Konto wegen Nutzungslimits deaktiviert (kostenloses "
+"Monatskontingent aufgebraucht). Das Auto schläft nicht — die Auswahl kann "
+"noch „online“ vom letzten erfolgreichen Check anzeigen. Die Erfassung ist "
+"pausiert, bis das Limit aufgehoben ist. Verlaufsdiagramme unten bleiben "
+"verfügbar."
 
 #: matesla/templates/matesla/vehicle_hub.html:49
 msgid ""
 "No live data right now. Wake the car from the Tesla app if needed, then "
 "refresh its status here."
 msgstr ""
-"Pas de données en direct pour le moment. Réveillez la voiture depuis l’app "
-"Tesla si nécessaire, puis actualisez son statut ici."
+"Derzeit keine Livedaten. Wecken Sie das Auto bei Bedarf in der Tesla-App und"
+" aktualisieren Sie dann den Status hier."
 
 #: matesla/templates/matesla/vehicle_hub.html:60
 msgid "No history yet"
-msgstr "Pas encore d’historique"
+msgstr "Noch kein Verlauf"
 
 #: matesla/templates/matesla/vehicle_hub.html:61
 msgid "The VIN for this vehicle is not known to MaTesla yet."
-msgstr "Le VIN de ce véhicule n’est pas encore connu de MaTesla."
+msgstr "Die VIN dieses Fahrzeugs ist MaTesla noch nicht bekannt."
 
 #: matesla/views.py:467
 msgid "Application settings unchanged (safe to save again anytime)."
-msgstr ""
-"Paramètres d’application inchangés (vous pouvez enregistrer à nouveau sans "
-"risque)."
+msgstr "Anwendungseinstellungen unverändert (jederzeit erneut speicherbar)."
 
 #: matesla/views.py:473
 msgid ""
 "Developer credentials updated. If you changed Client ID or secret, use Re-"
 "authorize."
 msgstr ""
-"Identifiants développeur mis à jour. Si vous avez changé le Client ID ou le "
-"secret, utilisez Réautoriser."
+"Entwicklerzugangsdaten aktualisiert. Bei Änderung von Client ID oder Secret:"
+" Erneut autorisieren."
 
 #: matesla/views.py:478
 msgid "Developer credentials saved."
-msgstr "Identifiants développeur enregistrés."
+msgstr "Entwicklerzugangsdaten gespeichert."
 
 #: matesla/views.py:487
 msgid "Save Client ID and secret in step 1 before setting a partner domain."
 msgstr ""
-"Enregistrez le Client ID et le secret à l’étape 1 avant de définir un "
-"domaine partenaire."
+"Speichern Sie Client ID und Secret in Schritt 1, bevor Sie eine "
+"Partnerdomäne festlegen."
 
 #: matesla/views.py:496
 #, python-format
 msgid "Partner domain unchanged: %(domain)s"
-msgstr "Domaine partenaire inchangé : %(domain)s"
+msgstr "Partnerdomäne unverändert: %(domain)s"
 
 #: matesla/views.py:510
 #, python-format
@@ -892,17 +897,17 @@ msgid ""
 "Partner domain changed to %(domain)s. Previous registration no longer "
 "applies — verify the public key, then register again."
 msgstr ""
-"Domaine partenaire changé en %(domain)s. L’enregistrement précédent ne "
-"s’applique plus — vérifiez la clé publique, puis enregistrez à nouveau."
+"Partnerdomäne geändert zu %(domain)s. Die vorherige Registrierung gilt nicht"
+" mehr — öffentlichen Schlüssel prüfen, dann erneut registrieren."
 
 #: matesla/views.py:517 matesla/views.py:526
 msgid "Partner domain cleared."
-msgstr "Domaine partenaire effacé."
+msgstr "Partnerdomäne gelöscht."
 
 #: matesla/views.py:523
 #, python-format
 msgid "Partner domain saved: %(domain)s"
-msgstr "Domaine partenaire enregistré : %(domain)s"
+msgstr "Partnerdomäne gespeichert: %(domain)s"
 
 #: matesla/views.py:536
 #, python-format
@@ -910,8 +915,9 @@ msgid ""
 "EC key pair created. Publish the public key to your partner domain (file: "
 "%(pub)s). Private key stays local: %(priv)s."
 msgstr ""
-"Paire de clés EC créée. Publiez la clé publique sur votre domaine partenaire"
-" (fichier : %(pub)s). La clé privée reste locale : %(priv)s."
+"EC-Schlüsselpaar erzeugt. Veröffentlichen Sie den öffentlichen Schlüssel auf"
+" Ihrer Partnerdomäne (Datei: %(pub)s). Privater Schlüssel bleibt lokal: "
+"%(priv)s."
 
 #: matesla/views.py:545
 msgid ""
@@ -919,13 +925,13 @@ msgid ""
 "the public key on HTTPS; delete the files under tesla_keys/ only if you "
 "really mean to."
 msgstr ""
-"La paire de clés EC existe déjà — laissée inchangée. La régénérer "
-"invaliderait la clé publique en HTTPS ; ne supprimez les fichiers sous "
-"tesla_keys/ que si c’est vraiment voulu."
+"EC-Schlüsselpaar existiert bereits — unverändert gelassen. Neu erzeugen "
+"würde den öffentlichen Schlüssel auf HTTPS ungültig machen; Dateien unter "
+"tesla_keys/ nur löschen, wenn Sie es wirklich wollen."
 
 #: matesla/views.py:556
 msgid "Set a partner domain first."
-msgstr "Indiquez un domaine partenaire d’abord."
+msgstr "Legen Sie zuerst eine Partnerdomäne fest."
 
 #: matesla/views.py:583
 #, python-format
@@ -933,8 +939,8 @@ msgid ""
 "Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail:"
 " %(result)s"
 msgstr ""
-"Enregistrement partenaire reconfirmé pour « %(domain)s ». Sans danger de "
-"répéter. Détail : %(result)s"
+"Partner-Registrierung für « %(domain)s » erneut bestätigt. Wiederholung ist "
+"unbedenklich. Detail: %(result)s"
 
 #: matesla/views.py:592
 #, python-format
@@ -942,78 +948,78 @@ msgid ""
 "Partner register OK for « %(domain)s ». You can authorize Tesla / resync "
 "vehicles now. Detail: %(result)s"
 msgstr ""
-"Enregistrement partenaire OK pour « %(domain)s ». Vous pouvez autoriser "
-"Tesla / resynchroniser les véhicules. Détail : %(result)s"
+"Partner-Registrierung OK für « %(domain)s ». Sie können Tesla autorisieren /"
+" Fahrzeuge neu synchronisieren. Detail: %(result)s"
 
 #: matesla/views.py:602
 msgid "No Tesla token — sign in first."
-msgstr "Pas de token Tesla — connectez-vous d’abord."
+msgstr "Kein Tesla-Token — zuerst anmelden."
 
 #: matesla/views.py:615
 #, python-format
 msgid "%(count)s vehicle(s) synchronized. Active: %(label)s."
-msgstr "%(count)s véhicule(s) synchronisé(s). Actif : %(label)s."
+msgstr "%(count)s Fahrzeug(e) synchronisiert. Aktiv: %(label)s."
 
 #: matesla/views.py:619
 msgid "No vehicles on the Tesla account."
-msgstr "Aucun véhicule sur le compte Tesla."
+msgstr "Keine Fahrzeuge auf dem Tesla-Konto."
 
 #: matesla/views.py:624
 #, python-format
 msgid "Resync failed: %(err)s"
-msgstr "Resynchronisation échouée : %(err)s"
+msgstr "Neusynchronisierung fehlgeschlagen: %(err)s"
 
 #: matesla/views.py:632
 msgid "Tesla account disconnected (tokens and vehicles removed)."
-msgstr "Compte Tesla déconnecté (tokens et véhicules supprimés)."
+msgstr "Tesla-Konto getrennt (Tokens und Fahrzeuge entfernt)."
 
 #: matesla/views.py:699
 msgid "Configure the Client ID and Client Secret first."
-msgstr "Configurez d’abord le Client ID et le Client Secret."
+msgstr "Konfigurieren Sie zuerst Client ID und Client Secret."
 
 #: matesla/views.py:730
 #, python-format
 msgid "Tesla denied authorization: %(error)s (%(desc)s)"
-msgstr "Tesla a refusé l’autorisation : %(error)s (%(desc)s)"
+msgstr "Tesla hat die Autorisierung abgelehnt: %(error)s (%(desc)s)"
 
 #: matesla/views.py:741
 msgid "Invalid OAuth callback (missing code or state). Please try again."
-msgstr "Callback OAuth invalide (code ou state manquant). Réessayez."
+msgstr ""
+"Ungültiger OAuth-Callback (code oder state fehlt). Bitte erneut versuchen."
 
 #: matesla/views.py:756
 msgid ""
 "Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again,"
 " then use “Sign in with Tesla”."
 msgstr ""
-"Callback OAuth invalide (state inconnu ou expiré). Reconnectez-vous à "
-"MaTesla puis relancez « Se connecter avec Tesla »."
+"Ungültiger OAuth-Callback (unbekannter oder abgelaufener state). Melden Sie "
+"sich erneut bei MaTesla an und nutzen Sie „Mit Tesla anmelden“."
 
 #: matesla/views.py:769
 msgid "OAuth user not found."
-msgstr "Utilisateur OAuth introuvable."
+msgstr "OAuth-Benutzer nicht gefunden."
 
 #: matesla/views.py:788
 msgid "Connected to Tesla, but no vehicles found on the account."
-msgstr "Connecté à Tesla, mais aucun véhicule trouvé sur le compte."
+msgstr "Mit Tesla verbunden, aber keine Fahrzeuge auf dem Konto gefunden."
 
 #: matesla/views.py:796
 #, python-format
 msgid "Tesla connected — %(count)s vehicle(s): %(names)s. Active: %(label)s."
-msgstr ""
-"Tesla connecté — %(count)s véhicule(s) : %(names)s. Actif : %(label)s."
+msgstr "Tesla verbunden — %(count)s Fahrzeug(e): %(names)s. Aktiv: %(label)s."
 
 #: matesla/views.py:809
 #, python-format
 msgid "Unexpected error: %(err)s"
-msgstr "Erreur inattendue : %(err)s"
+msgstr "Unerwarteter Fehler: %(err)s"
 
 #: matesla/views.py:832
 msgid "Unknown vehicle."
-msgstr "Véhicule inconnu."
+msgstr "Unbekanntes Fahrzeug."
 
 #: mysite/settings.py:262
 msgid "English"
-msgstr "Anglais"
+msgstr "English"
 
 #: mysite/settings.py:263
 msgid "Français"
@@ -1021,7 +1027,7 @@ msgstr "Français"
 
 #: mysite/settings.py:264
 msgid "Espanol"
-msgstr "Espagnol"
+msgstr "Espanol"
 
 #: mysite/settings.py:265
 msgid "Deutsch"
@@ -1037,105 +1043,102 @@ msgstr "Norsk"
 
 #: mysite/writable_access.py:104
 msgid "Write operations are only allowed from the local server."
-msgstr ""
-"Les opérations d’écriture ne sont autorisées que depuis le serveur local."
+msgstr "Schreibvorgänge sind nur vom lokalen Server erlaubt."
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:11
 #: personalstats/templates/personalstats/FirmwareHistory.html:19
 msgid "Software timeline"
-msgstr "Chronologie logicielle"
+msgstr "Software-Zeitachse"
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:13
 msgid ""
 "All firmware versions detected on your vehicle, in chronological order."
-msgstr ""
-"Toutes les versions de firmware détectées sur votre véhicule, par ordre "
-"chronologique."
+msgstr "Alle auf Ihrem Fahrzeug erkannten Firmware-Versionen, chronologisch."
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:15
 #: personalstats/templates/personalstats/_carstats_body.html:8
 msgid "Download my Data"
-msgstr "Télécharger mes données"
+msgstr "Meine Daten herunterladen"
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:21
 msgid "Version timeline"
-msgstr "Chronologie des versions"
+msgstr "Versions-Zeitachse"
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:23
 #, python-format
 msgid "%(n)s version detected"
 msgid_plural "%(n)s versions detected"
-msgstr[0] "%(n)s version détectée"
-msgstr[1] "%(n)s versions détectées"
+msgstr[0] "%(n)s Version erkannt"
+msgstr[1] "%(n)s Versionen erkannt"
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:24
 msgid "newest on the left"
-msgstr "les plus récentes à gauche"
+msgstr "neueste links"
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:39
 #, python-format
 msgid "%(n)s day"
 msgid_plural "%(n)s days"
-msgstr[0] "%(n)s jour"
-msgstr[1] "%(n)s jours"
+msgstr[0] "%(n)s Tag"
+msgstr[1] "%(n)s Tage"
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:43
 msgid "Current"
-msgstr "Actuelle"
+msgstr "Aktuell"
 
 #: personalstats/templates/personalstats/_carstats_body.html:11
 #: personalstats/templates/personalstats/drives.html:124
 msgid "Period"
-msgstr "Période"
+msgstr "Zeitraum"
 
 #: personalstats/templates/personalstats/_carstats_body.html:13
 #: personalstats/templates/personalstats/drives.html:126
 msgid "1 Week"
-msgstr "1 semaine"
+msgstr "1 Woche"
 
 #: personalstats/templates/personalstats/_carstats_body.html:14
 #: personalstats/templates/personalstats/drives.html:127
 msgid "2 Weeks"
-msgstr "2 semaines"
+msgstr "2 Wochen"
 
 #: personalstats/templates/personalstats/_carstats_body.html:15
 #: personalstats/templates/personalstats/drives.html:128
 msgid "1 Month"
-msgstr "1 mois"
+msgstr "1 Monat"
 
 #: personalstats/templates/personalstats/_carstats_body.html:16
 #: personalstats/templates/personalstats/drives.html:129
 msgid "3 Months"
-msgstr "3 mois"
+msgstr "3 Monate"
 
 #: personalstats/templates/personalstats/_carstats_body.html:17
 #: personalstats/templates/personalstats/drives.html:130
 msgid "6 Months"
-msgstr "6 mois"
+msgstr "6 Monate"
 
 #: personalstats/templates/personalstats/_carstats_body.html:18
 #: personalstats/templates/personalstats/drives.html:131
 msgid "1 Year"
-msgstr "1 an"
+msgstr "1 Jahr"
 
 #: personalstats/templates/personalstats/_carstats_body.html:19
 #: personalstats/templates/personalstats/drives.html:132
 msgid "2 Years"
-msgstr "2 ans"
+msgstr "2 Jahre"
 
 #: personalstats/templates/personalstats/_carstats_body.html:20
 #: personalstats/templates/personalstats/drives.html:133
 msgid "5 Years"
-msgstr "5 ans"
+msgstr "5 Jahre"
 
 #: personalstats/templates/personalstats/_carstats_body.html:21
 #: personalstats/templates/personalstats/drives.html:134
 msgid "10 Years"
-msgstr "10 ans"
+msgstr "10 Jahre"
 
 #: personalstats/templates/personalstats/_carstats_body.html:26
 msgid "Personal charts"
-msgstr "Graphiques personnels"
+msgstr "Persönliche Diagramme"
 
 #: personalstats/templates/personalstats/_carstats_body.html:30
 msgid "01 · BATTERY"
@@ -1145,7 +1148,7 @@ msgstr "01 · BATTERIE"
 #: personalstats/templates/personalstats/_carstats_body.html:50
 #: templates/registration/login.html:66 templates/registration/login.html:69
 msgid "Battery degradation graphs"
-msgstr "Graphiques de dégradation batterie"
+msgstr "Diagramme zur Batteriedegradation"
 
 #: personalstats/templates/personalstats/_carstats_body.html:34
 #: personalstats/templates/personalstats/_carstats_body.html:62
@@ -1154,7 +1157,7 @@ msgstr "Graphiques de dégradation batterie"
 #: personalstats/templates/personalstats/_carstats_body.html:143
 #: personalstats/templates/personalstats/_carstats_body.html:170
 msgid "Expand"
-msgstr "Agrandir"
+msgstr "Erweitern"
 
 #: personalstats/templates/personalstats/_carstats_body.html:34
 #: personalstats/templates/personalstats/_carstats_body.html:62
@@ -1163,120 +1166,120 @@ msgstr "Agrandir"
 #: personalstats/templates/personalstats/_carstats_body.html:143
 #: personalstats/templates/personalstats/_carstats_body.html:170
 msgid "Expand chart"
-msgstr "Agrandir le graphique"
+msgstr "Diagramm erweitern"
 
 #: personalstats/templates/personalstats/_carstats_body.html:41
 msgid "Battery graph"
-msgstr "Graphique batterie"
+msgstr "Batteriediagramm"
 
 #: personalstats/templates/personalstats/_carstats_body.html:43
 msgid "Degradation vs odometer"
-msgstr "Dégradation vs odomètre"
+msgstr "Degradation vs. Kilometerstand"
 
 #: personalstats/templates/personalstats/_carstats_body.html:44
 msgid "Degradation over time"
-msgstr "Dégradation dans le temps"
+msgstr "Degradation über die Zeit"
 
 #: personalstats/templates/personalstats/_carstats_body.html:45
 msgid "Range at full charge vs odometer"
-msgstr "Autonomie pleine charge vs odomètre"
+msgstr "Reichweite bei voller Ladung vs. Kilometerstand"
 
 #: personalstats/templates/personalstats/_carstats_body.html:46
 msgid "Range at full charge over time"
-msgstr "Autonomie pleine charge dans le temps"
+msgstr "Reichweite bei voller Ladung über die Zeit"
 
 #: personalstats/templates/personalstats/_carstats_body.html:58
 msgid "02 · CHARGE"
-msgstr "02 · RECHARGE"
+msgstr "02 · LADEN"
 
 #: personalstats/templates/personalstats/_carstats_body.html:59
 #: personalstats/templates/personalstats/_carstats_body.html:79
 msgid "Charge related graphs"
-msgstr "Graphiques liés à la charge"
+msgstr "Ladebezogene Diagramme"
 
 #: personalstats/templates/personalstats/_carstats_body.html:69
 msgid "Charge graph"
-msgstr "Graphique charge"
+msgstr "Ladediagramm"
 
 #: personalstats/templates/personalstats/_carstats_body.html:87
 msgid "03 · USAGE"
-msgstr "03 · UTILISATION"
+msgstr "03 · NUTZUNG"
 
 #: personalstats/templates/personalstats/_carstats_body.html:88
 #: personalstats/templates/personalstats/_carstats_body.html:105
 msgid "Trip efficiency graphs"
-msgstr "Graphiques d’efficacité des trajets"
+msgstr "Diagramme zur Fahrt-Effizienz"
 
 #: personalstats/templates/personalstats/_carstats_body.html:98
 msgid "Usage graph"
-msgstr "Graphique d’usage"
+msgstr "Nutzungsdiagramm"
 
 #: personalstats/templates/personalstats/_carstats_body.html:113
 msgid "04 · CLIMATE"
-msgstr "04 · CLIMAT"
+msgstr "04 · KLIMA"
 
 #: personalstats/templates/personalstats/_carstats_body.html:114
 #: personalstats/templates/personalstats/_carstats_body.html:131
 msgid "Temperature related graphs"
-msgstr "Graphiques de température"
+msgstr "Temperaturbezogene Diagramme"
 
 #: personalstats/templates/personalstats/_carstats_body.html:124
 msgid "Temperature graph"
-msgstr "Graphique température"
+msgstr "Temperaturdiagramm"
 
 #: personalstats/templates/personalstats/_carstats_body.html:139
 msgid "05 · DRIVE"
-msgstr "05 · CONDUITE"
+msgstr "05 · FAHRT"
 
 #: personalstats/templates/personalstats/_carstats_body.html:140
 #: personalstats/templates/personalstats/_carstats_body.html:158
 msgid "Drive related graphs"
-msgstr "Graphiques de conduite"
+msgstr "Fahrtbezogene Diagramme"
 
 #: personalstats/templates/personalstats/_carstats_body.html:150
 msgid "Drive graph"
-msgstr "Graphique conduite"
+msgstr "Fahrtdiagramm"
 
 #: personalstats/templates/personalstats/_carstats_body.html:166
 msgid "06 · FLEET"
-msgstr "06 · FLOTTE"
+msgstr "06 · FLEET"
 
 #: personalstats/templates/personalstats/_carstats_body.html:167
 #: personalstats/templates/personalstats/_carstats_body.html:182
 msgid "Fleet poll cost"
-msgstr "Coût du polling Fleet"
+msgstr "Fleet-Abfragekosten"
 
 #: personalstats/templates/personalstats/_carstats_body.html:178
 msgid "Vehicle_data HTTP calls, day by day, max 30 days."
-msgstr "Vrais appels HTTP vehicle_data, jour par jour, max 30 jours."
+msgstr "Vehicle_data-HTTP-Aufrufe, Tag für Tag, max. 30 Tage."
 
 #: personalstats/templates/personalstats/_carstats_body.html:189
 #: personalstats/templates/personalstats/_carstats_body.html:198
 msgid "Lifetime map"
-msgstr "Carte lifetime"
+msgstr "Lebenszeit-Karte"
 
 #: personalstats/templates/personalstats/_carstats_body.html:197
 msgid "07 · MAP"
-msgstr "07 · CARTE"
+msgstr "07 · KARTE"
 
 #: personalstats/templates/personalstats/_carstats_body.html:199
 msgid "GPS tracks and trip totals for the selected period."
-msgstr "Traces GPS et totaux de trajets pour la période sélectionnée."
+msgstr "GPS-Spuren und Fahrt-Summen für den gewählten Zeitraum."
 
 #: personalstats/templates/personalstats/_carstats_body.html:202
 #: personalstats/templates/personalstats/_carstats_body.html:203
 #: personalstats/templates/personalstats/_carstats_js.html:470
 #: personalstats/templates/personalstats/daymap.html:478
 msgid "Fullscreen map"
-msgstr "Carte en plein écran"
+msgstr "Vollbildkarte"
 
 #: personalstats/templates/personalstats/_carstats_body.html:216
 msgid "Kilometers driven"
-msgstr "Kilomètres parcourus"
+msgstr "Gefahrene Kilometer"
 
 #: personalstats/templates/personalstats/_carstats_body.html:220
 msgid "Rated km used"
-msgstr "Km d’autonomie utilisés"
+msgstr "Verbrauchte Nenn-km"
 
 #: personalstats/templates/personalstats/_carstats_body.html:224
 msgid "Wh/km"
@@ -1285,55 +1288,55 @@ msgstr "Wh/km"
 #: personalstats/templates/personalstats/_carstats_body.html:228
 #: personalstats/views.py:2182
 msgid "Efficiency"
-msgstr "Efficacité"
+msgstr "Effizienz"
 
 #: personalstats/templates/personalstats/_carstats_body.html:232
 msgid "kWh used"
-msgstr "kWh utilisés"
+msgstr "Verbrauchte kWh"
 
 #: personalstats/templates/personalstats/_carstats_body.html:236
 #: personalstats/templates/personalstats/daymap.html:256
 #: personalstats/templates/personalstats/daymap.html:302
 #: personalstats/templates/personalstats/drives.html:183
 msgid "Avg speed"
-msgstr "Vitesse moyenne"
+msgstr "Ø-Geschwindigkeit"
 
 #: personalstats/templates/personalstats/_carstats_body.html:240
 msgid "Avg temp"
-msgstr "Temp. moy."
+msgstr "Ø-Temp."
 
 #: personalstats/templates/personalstats/_carstats_body.html:244
 msgid "Time driving"
-msgstr "Temps de conduite"
+msgstr "Fahrzeit"
 
 #: personalstats/templates/personalstats/_carstats_body.html:251
 msgid "Lifetime GPS map"
-msgstr "Carte GPS lifetime"
+msgstr "Lebenszeit-GPS-Karte"
 
 #: personalstats/templates/personalstats/_carstats_body.html:254
 #: personalstats/templates/personalstats/_carstats_js.html:332
 msgid "Loading map…"
-msgstr "Chargement de la carte…"
+msgstr "Karte wird geladen…"
 
 #: personalstats/templates/personalstats/_carstats_body.html:269
 msgid "Close"
-msgstr "Fermer"
+msgstr "Schließen"
 
 #: personalstats/templates/personalstats/_carstats_body.html:274
 msgid "Press Esc or click outside to close."
-msgstr "Appuyez sur Échap ou cliquez à l’extérieur pour fermer."
+msgstr "Esc drücken oder außerhalb klicken zum Schließen."
 
 #: personalstats/templates/personalstats/_carstats_js.html:333
 msgid "No GPS track for this period."
-msgstr "Aucune trace GPS pour cette période."
+msgstr "Keine GPS-Spur für diesen Zeitraum."
 
 #: personalstats/templates/personalstats/_carstats_js.html:334
 msgid "Could not load the map."
-msgstr "Impossible de charger la carte."
+msgstr "Karte konnte nicht geladen werden."
 
 #: personalstats/templates/personalstats/_carstats_js.html:335
 msgid "d"
-msgstr "j"
+msgstr "T"
 
 #: personalstats/templates/personalstats/_carstats_js.html:336
 msgid "h"
@@ -1346,40 +1349,40 @@ msgstr "min"
 #: personalstats/templates/personalstats/_carstats_js.html:471
 #: personalstats/templates/personalstats/daymap.html:479
 msgid "Exit fullscreen"
-msgstr "Quitter le plein écran"
+msgstr "Vollbild beenden"
 
 #: personalstats/templates/personalstats/carstats.html:4
 #: personalstats/templates/personalstats/carstats.html:11
 msgid "Personal stats"
-msgstr "Stats personnelles"
+msgstr "Persönliche Statistiken"
 
 #: personalstats/templates/personalstats/carstats.html:10
 msgid "Telemetry archive"
-msgstr "Archives de télémétrie"
+msgstr "Telemetrie-Archiv"
 
 #: personalstats/templates/personalstats/carstats.html:12
 msgid ""
 "Understand how your car evolves through battery, charge, climate and drive "
 "history."
 msgstr ""
-"Comprenez l’évolution de votre voiture à travers la batterie, la charge, le "
-"climat et la conduite."
+"Verstehen Sie, wie sich Ihr Auto über Batterie-, Lade-, Klima- und "
+"Fahrtverlauf entwickelt."
 
 #: personalstats/templates/personalstats/daymap.html:195
 msgid "Journey replay"
-msgstr "Rejeu du trajet"
+msgstr "Fahrtwiedergabe"
 
 #: personalstats/templates/personalstats/daymap.html:196
 msgid "Where was the car"
-msgstr "Où était la voiture"
+msgstr "Wo war das Auto"
 
 #: personalstats/templates/personalstats/daymap.html:197
 msgid "drives, charges and GPS points"
-msgstr "trajets, recharges et points GPS"
+msgstr "Fahrten, Ladungen und GPS-Punkte"
 
 #: personalstats/templates/personalstats/daymap.html:204
 msgid "Previous day"
-msgstr "Jour précédent"
+msgstr "Vorheriger Tag"
 
 #: personalstats/templates/personalstats/daymap.html:205
 #: personalstats/templates/personalstats/drives.html:190
@@ -1388,55 +1391,55 @@ msgstr "Date"
 
 #: personalstats/templates/personalstats/daymap.html:208
 msgid "Pick a date"
-msgstr "Choisir une date"
+msgstr "Datum wählen"
 
 #: personalstats/templates/personalstats/daymap.html:209
 msgid "Go"
-msgstr "Aller"
+msgstr "Los"
 
 #: personalstats/templates/personalstats/daymap.html:210
 msgid "Next day"
-msgstr "Jour suivant"
+msgstr "Nächster Tag"
 
 #: personalstats/templates/personalstats/daymap.html:224
 msgid "No GPS points for this day (telemetry only)."
-msgstr "Pas de points GPS pour ce jour (télémétrie seule)."
+msgstr "Keine GPS-Punkte für diesen Tag (nur Telemetrie)."
 
 #: personalstats/templates/personalstats/daymap.html:228
 msgid "GPS points"
-msgstr "Points GPS"
+msgstr "GPS-Punkte"
 
 #: personalstats/templates/personalstats/daymap.html:230
 #, python-format
 msgid "%(n)s drawn on map"
-msgstr "%(n)s affichés sur la carte"
+msgstr "%(n)s auf der Karte"
 
 #: personalstats/templates/personalstats/daymap.html:233
 msgid "Track"
-msgstr "Trajet"
+msgstr "Spur"
 
 #: personalstats/templates/personalstats/daymap.html:236
 msgid "Charges"
-msgstr "Recharges"
+msgstr "Ladungen"
 
 #: personalstats/templates/personalstats/daymap.html:239
 #: personalstats/templates/personalstats/daymap.html:348
 #: personalstats/templates/personalstats/daymap.html:469
 msgid "Start"
-msgstr "Départ"
+msgstr "Start"
 
 #: personalstats/templates/personalstats/daymap.html:244
 #: personalstats/templates/personalstats/daymap.html:349
 #: personalstats/templates/personalstats/daymap.html:471
 msgid "End"
-msgstr "Arrivée"
+msgstr "Ende"
 
 #: personalstats/templates/personalstats/daymap.html:254
 #: personalstats/templates/personalstats/daymap.html:300
 #: personalstats/templates/personalstats/daymap.html:350
 #: personalstats/templates/personalstats/drives.html:182
 msgid "Duration"
-msgstr "Durée"
+msgstr "Dauer"
 
 #: personalstats/templates/personalstats/daymap.html:255
 #: personalstats/templates/personalstats/daymap.html:301
@@ -1450,7 +1453,7 @@ msgstr "Distance"
 #: personalstats/templates/personalstats/daymap.html:351
 #: personalstats/templates/personalstats/drives.html:185
 msgid "SoC start"
-msgstr "SoC début"
+msgstr "SoC Start"
 
 #: personalstats/templates/personalstats/daymap.html:258
 #: personalstats/templates/personalstats/daymap.html:304
@@ -1458,30 +1461,29 @@ msgstr "SoC début"
 #: personalstats/templates/personalstats/drives.html:186
 #: personalstats/views.py:3434
 msgid "SoC end"
-msgstr "SoC fin"
+msgstr "SoC Ende"
 
 #: personalstats/templates/personalstats/daymap.html:259
 msgid "Sum of SoC used on drives only"
-msgstr "Somme du SoC utilisé en conduite"
+msgstr "Summe des nur auf Fahrten verbrauchten SoC"
 
 #: personalstats/templates/personalstats/daymap.html:259
 #: personalstats/templates/personalstats/daymap.html:305
 #: personalstats/templates/personalstats/drives.html:187
 msgid "SoC used"
-msgstr "SoC consommé"
+msgstr "SoC verbraucht"
 
 #: personalstats/templates/personalstats/daymap.html:260
 msgid ""
 "SoC drop not explained by drives (park climate, dog/camp, sentry, "
 "preconditioning, vampire drain), after accounting for charges"
 msgstr ""
-"Baisse de SoC non expliquée par les trajets (climatisation à l'arrêt, "
-"dog/camp, sentry, préconditionnement, consommation fantôme), après prise en "
-"compte des recharges"
+"SoC-Abfall, der nicht durch Fahrten erklärt wird (Parkklima, Dog/Camp, "
+"Sentry, Vorkonditionierung, Vampire Drain), nach Abzug der Ladungen"
 
 #: personalstats/templates/personalstats/daymap.html:260
 msgid "SoC outside driving"
-msgstr "SoC hors conduite"
+msgstr "SoC außerhalb der Fahrt"
 
 #: personalstats/templates/personalstats/daymap.html:261
 #: personalstats/templates/personalstats/daymap.html:306
@@ -1492,42 +1494,40 @@ msgstr "kWh/100 km"
 #: personalstats/templates/personalstats/daymap.html:286
 #, python-format
 msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range)."
-msgstr ""
-"Les estimations kWh utilisent un pack d’environ %(kwh)s kWh (d’après "
-"l’autonomie EPA)."
+msgstr "kWh-Schätzungen basieren auf ~%(kwh)s kWh Pack (aus EPA-Reichweite)."
 
 #: personalstats/templates/personalstats/daymap.html:287
 msgid "SoC outside driving = (start − end) − drive SoC + charged."
-msgstr "SoC hors conduite = (début − fin) − SoC des trajets + rechargé"
+msgstr "SoC außerhalb der Fahrt = (Start − Ende) − Fahrt-SoC + geladen."
 
 #: personalstats/templates/personalstats/daymap.html:298
 msgid "Departure"
-msgstr "Départ"
+msgstr "Abfahrt"
 
 #: personalstats/templates/personalstats/daymap.html:299
 msgid "Arrival"
-msgstr "Arrivée"
+msgstr "Ankunft"
 
 #: personalstats/templates/personalstats/daymap.html:307
 #: personalstats/templates/personalstats/drives.html:189
 msgid "From → to"
-msgstr "De → à"
+msgstr "Von → nach"
 
 #: personalstats/templates/personalstats/daymap.html:343
 msgid "Charging stops"
-msgstr "Arrêts recharge"
+msgstr "Ladestopps"
 
 #: personalstats/templates/personalstats/daymap.html:353
 msgid "SoC added"
-msgstr "SoC ajouté"
+msgstr "SoC hinzugefügt"
 
 #: personalstats/templates/personalstats/daymap.html:354
 msgid "kWh added"
-msgstr "kWh ajoutés"
+msgstr "kWh hinzugefügt"
 
 #: personalstats/templates/personalstats/daymap.html:355
 msgid "Max power"
-msgstr "Puissance max"
+msgstr "Max. Leistung"
 
 #: personalstats/templates/personalstats/daymap.html:356
 msgid "Address"
@@ -1535,63 +1535,62 @@ msgstr "Adresse"
 
 #: personalstats/templates/personalstats/daymap.html:381
 msgid "No drive or charge segments detected for this day."
-msgstr "Aucun trajet ni recharge détecté pour ce jour."
+msgstr "Keine Fahrt- oder Ladesegmente für diesen Tag erkannt."
 
 #: personalstats/templates/personalstats/daymap.html:387
 msgid "No data for this day."
-msgstr "Aucune donnée pour ce jour."
+msgstr "Keine Daten für diesen Tag."
 
 #: personalstats/templates/personalstats/daymap.html:388
 msgid "Try another date with the arrows or the date picker."
-msgstr "Essayez une autre date avec les flèches ou en tapant JJ/MM/AAAA."
+msgstr "Wählen Sie mit den Pfeilen oder dem Datumsfeld ein anderes Datum."
 
 #: personalstats/templates/personalstats/drives.html:110
 msgid "Trip rankings"
-msgstr "Classements de trajets"
+msgstr "Fahrt-Rankings"
 
 #: personalstats/templates/personalstats/drives.html:114
 #, python-format
 msgid "Trips of at least %(n)s km"
-msgstr "Trajets d’au moins %(n)s km"
+msgstr "Fahrten von mindestens %(n)s km"
 
 #: personalstats/templates/personalstats/drives.html:116
 #, python-format
 msgid "Top %(n)s longest as ranking pool"
-msgstr "Parmi les %(n)s plus longs trajets"
+msgstr "Top %(n)s längste als Ranking-Pool"
 
 #: personalstats/templates/personalstats/drives.html:121
 msgid "Drives filters"
-msgstr "Filtres des trajets"
+msgstr "Fahrtfilter"
 
 #: personalstats/templates/personalstats/drives.html:138
 msgid "Rank by"
-msgstr "Classer par"
+msgstr "Sortieren nach"
 
 #: personalstats/templates/personalstats/drives.html:146
 msgid "Show"
-msgstr "Afficher"
+msgstr "Anzeigen"
 
 #: personalstats/templates/personalstats/drives.html:154
 #: personalstats/templates/personalstats/drives.html:155
 msgid "Apply"
-msgstr "Appliquer"
+msgstr "Anwenden"
 
 #: personalstats/templates/personalstats/drives.html:162
 #, python-format
 msgid "%(counter)s trip"
 msgid_plural "%(counter)s trips"
-msgstr[0] "%(counter)s trajet"
-msgstr[1] "%(counter)s trajets"
+msgstr[0] "%(counter)s Fahrt"
+msgstr[1] "%(counter)s Fahrten"
 
 #: personalstats/templates/personalstats/drives.html:163
 #: personalstats/templates/personalstats/drives.html:247
 msgid "Page"
-msgstr "Page"
+msgstr "Seite"
 
 #: personalstats/templates/personalstats/drives.html:165
 msgid "No trips match this period and minimum distance."
-msgstr ""
-"Aucun trajet ne correspond à cette période et à cette distance minimale."
+msgstr "Keine Fahrten entsprechen diesem Zeitraum und der Mindestdistanz."
 
 #: personalstats/templates/personalstats/drives.html:168
 #, python-format
@@ -1599,62 +1598,62 @@ msgid ""
 "kWh estimates use ~%(kwh)s kWh pack (from EPA range). Outside temperature "
 "only (not cabin)."
 msgstr ""
-"Les estimations kWh utilisent un pack d’environ %(kwh)s kWh (d’après "
-"l’autonomie EPA). Température extérieure uniquement (pas l’habitacle)."
+"kWh-Schätzungen basieren auf ~%(kwh)s kWh Pack (aus EPA-Reichweite). Nur "
+"Außentemperatur (nicht Kabine)."
 
 #: personalstats/templates/personalstats/drives.html:183
 msgid "Average speed over the trip"
-msgstr "Vitesse moyenne sur le trajet"
+msgstr "Durchschnittsgeschwindigkeit der Fahrt"
 
 #: personalstats/templates/personalstats/drives.html:184
 msgid "Average outside temperature during the trip (not cabin)"
-msgstr "Température extérieure moyenne pendant le trajet (pas l’habitacle)"
+msgstr "Durchschnittliche Außentemperatur während der Fahrt (nicht Kabine)"
 
 #: personalstats/templates/personalstats/drives.html:184
 msgid "Outside temp"
-msgstr "Temp. ext."
+msgstr "Außentemp."
 
 #: personalstats/templates/personalstats/drives.html:229
 msgid "Open day map"
-msgstr "Ouvrir la carte du jour"
+msgstr "Tageskarte öffnen"
 
 #: personalstats/templates/personalstats/drives.html:240
 msgid "Pagination"
-msgstr "Pagination"
+msgstr "Seitennummerierung"
 
 #: personalstats/templates/personalstats/drives.html:243
 #: personalstats/templates/personalstats/drives.html:245
 msgid "Previous"
-msgstr "Précédent"
+msgstr "Zurück"
 
 #: personalstats/templates/personalstats/drives.html:250
 #: personalstats/templates/personalstats/drives.html:252
 msgid "Next"
-msgstr "Suivant"
+msgstr "Weiter"
 
 #: personalstats/views.py:236 personalstats/views.py:1314
 msgid "Outside temperature (°C)"
-msgstr "Température extérieure (°C)"
+msgstr "Außentemperatur (°C)"
 
 #: personalstats/views.py:237
 msgid "Driver temperature (°C)"
-msgstr "Température pour le conducteur (°C)"
+msgstr "Fahrertemperatur (°C)"
 
 #: personalstats/views.py:238
 msgid "Inside temperature (°C)"
-msgstr "Température intérieure (°C)"
+msgstr "Innentemperatur (°C)"
 
 #: personalstats/views.py:239
 msgid "Passenger temperature (°C)"
-msgstr "Température du passager (°C)"
+msgstr "Beifahrertemperatur (°C)"
 
 #: personalstats/views.py:240
 msgid "Odometer (miles)"
-msgstr "Odomètre (miles)"
+msgstr "Kilometerstand (Meilen)"
 
 #: personalstats/views.py:242
 msgid "Speed distribution"
-msgstr "Distribution des vitesses"
+msgstr "Geschwindigkeitsverteilung"
 
 #: personalstats/views.py:243
 msgid "Latitude"
@@ -1666,87 +1665,87 @@ msgstr "Longitude"
 
 #: personalstats/views.py:246
 msgid "Power distribution"
-msgstr "Distribution de la puissance"
+msgstr "Leistungsverteilung"
 
 #: personalstats/views.py:248
 msgid "SoC at end of charge"
-msgstr "SoC en fin de charge"
+msgstr "SoC am Ladeende"
 
 #: personalstats/views.py:250 personalstats/views.py:2471
 msgid "Daily minimum SoC"
-msgstr "SoC minimum journalier"
+msgstr "Tägliches Minimum-SoC"
 
 #: personalstats/views.py:252
 msgid "Charge limit distribution"
-msgstr "Répartition des limites de charge"
+msgstr "Verteilung der Ladegrenze"
 
 #: personalstats/views.py:254
 msgid "Charge rate distribution"
-msgstr "Répartition de la vitesse de charge"
+msgstr "Verteilung der Laderate"
 
 #: personalstats/views.py:255
 msgid "Charger actual current (A)"
-msgstr "Courant actuel de charge (A)"
+msgstr "Tatsächlicher Ladestrom (A)"
 
 #: personalstats/views.py:256
 msgid "Charger phases"
-msgstr "Nombre de phases"
+msgstr "Ladephasen"
 
 #: personalstats/views.py:257
 msgid "Charger power distribution"
-msgstr "Répartition de la puissance de charge"
+msgstr "Verteilung der Ladeleistung"
 
 #: personalstats/views.py:258
 msgid "Charger voltage (V)"
-msgstr "Voltage de charge (V)"
+msgstr "Ladespannung (V)"
 
 #: personalstats/views.py:259
 msgid "Estimated battery range (miles)"
-msgstr "Range estimé de la batterie (miles)"
+msgstr "Geschätzte Batteriereichweite (Meilen)"
 
 #: personalstats/views.py:260
 msgid "Usable battery level (%)"
-msgstr "Niveau utilisable batterie (%)"
+msgstr "Nutzbarer Batteriestand (%)"
 
 #: personalstats/views.py:261
 msgid "Battery degradation (%)"
-msgstr "Dégradation de la batterie (%)"
+msgstr "Batteriedegradation (%)"
 
 #: personalstats/views.py:264
 msgid "Range at full charge (miles)"
-msgstr "Autonomie à charge pleine (miles)"
+msgstr "Reichweite bei voller Ladung (Meilen)"
 
 #: personalstats/views.py:265
 msgid "Range at full charge vs odometer (miles)"
-msgstr "Autonomie à charge pleine vs odomètre (miles)"
+msgstr "Reichweite bei voller Ladung vs. Kilometerstand (Meilen)"
 
 #: personalstats/views.py:267
 msgid "Efficiency vs average speed"
-msgstr "Efficacité selon la vitesse moyenne"
+msgstr "Effizienz vs. Durchschnittsgeschwindigkeit"
 
 #: personalstats/views.py:268
 msgid "Efficiency vs outside temperature"
-msgstr "Efficacité selon la température extérieure"
+msgstr "Effizienz vs. Außentemperatur"
 
 #: personalstats/views.py:270
 msgid "Fleet poll cost (estimate)"
-msgstr "Coût du polling Fleet (estimation)"
+msgstr "Fleet-Abfragekosten (Schätzung)"
 
 #: personalstats/views.py:515
 msgid "Estimated cost (EUR)"
-msgstr "Coût estimé (EUR)"
+msgstr "Geschätzte Kosten (EUR)"
 
 #: personalstats/views.py:517
 msgid "Estimated cost (USD)"
-msgstr "Coût estimé (USD)"
+msgstr "Geschätzte Kosten (USD)"
 
 #: personalstats/views.py:518
 msgid "Day"
-msgstr "Jour"
+msgstr "Tag"
 
 #: personalstats/views.py:526
 msgid "Data requests"
-msgstr "Requêtes Data"
+msgstr "Datenanfragen"
 
 #: personalstats/views.py:535
 #, python-format
@@ -1754,12 +1753,12 @@ msgid ""
 "n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car ·"
 " from request log · max %(days)s days"
 msgstr ""
-"n=%(n)s vehicle_data facturables · est. %(money)s (@ %(rate)s/req) · cette "
-"voiture · journal des requêtes · max %(days)s jours"
+"n=%(n)s abrechenbare vehicle_data · ca. %(money)s (@ %(rate)s/Anfr.) · "
+"dieses Auto · aus Anfrageprotokoll · max. %(days)s Tage"
 
 #: personalstats/views.py:561
 msgid "No logged vehicle_data calls in this period"
-msgstr "Aucun vehicle_data journalisé sur cette période"
+msgstr "Keine protokollierten vehicle_data-Aufrufe in diesem Zeitraum"
 
 #: personalstats/views.py:593
 msgid "Minimum"
@@ -1767,7 +1766,7 @@ msgstr "Minimum"
 
 #: personalstats/views.py:602
 msgid "Average"
-msgstr "Moyenne"
+msgstr "Durchschnitt"
 
 #: personalstats/views.py:611
 msgid "Maximum"
@@ -1775,60 +1774,61 @@ msgstr "Maximum"
 
 #: personalstats/views.py:847
 msgid "Monthly range (min–max)"
-msgstr "Plage mensuelle (min–max)"
+msgstr "Monatsspanne (min–max)"
 
 #: personalstats/views.py:848
 msgid "Monthly minimum"
-msgstr "Minimum mensuel"
+msgstr "Monatsminimum"
 
 #: personalstats/views.py:849
 msgid "Monthly average"
-msgstr "Moyenne mensuelle"
+msgstr "Monatsdurchschnitt"
 
 #: personalstats/views.py:850
 msgid "Monthly maximum"
-msgstr "Maximum mensuel"
+msgstr "Monatsmaximum"
 
 #: personalstats/views.py:971
 #, python-format
 msgid "Record min %(t).1f °C · %(when)s"
-msgstr "Record de froid %(t).1f °C · %(when)s"
+msgstr "Rekord min. %(t).1f °C · %(when)s"
 
 #: personalstats/views.py:975
 #, python-format
 msgid "Record max %(t).1f °C · %(when)s"
-msgstr "Record de chaleur %(t).1f °C · %(when)s"
+msgstr "Rekord max. %(t).1f °C · %(when)s"
 
 #: personalstats/views.py:1078
 msgid ""
 "One min / avg / max per calendar month · band = monthly range · gaps = no "
 "data"
 msgstr ""
-"Un min / moy / max par mois civil · bande = plage mensuelle · trous = pas de"
-" données"
+"Ein Min. / Ø / Max. pro Kalendermonat · Band = Monatsspanne · Lücken = keine"
+" Daten"
 
 #: personalstats/views.py:1306
 msgid "Average speed (km/h)"
-msgstr "Vitesse moyenne (km/h)"
+msgstr "Durchschnittsgeschwindigkeit (km/h)"
 
 #: personalstats/views.py:2016
 msgid "Charge limit"
-msgstr "Limite de charge"
+msgstr "Ladegrenze"
 
 #: personalstats/views.py:2100
 msgid "Charge sessions"
-msgstr "Sessions de charge"
+msgstr "Ladesitzungen"
 
 #: personalstats/views.py:2108
 #, python-format
 msgid "n=%(n)s sessions (≥%(min)s min) · bars = peak kW · kWh added"
-msgstr "n=%(n)s sessions (≥%(min)s min) · barres = pic kW · kWh ajoutés"
+msgstr "n=%(n)s Sitzungen (≥%(min)s min) · Balken = Peak-kW · kWh hinzugefügt"
 
 #: personalstats/views.py:2115
 #, python-format
 msgid "n=%(n)s sessions (≥%(min)s min) · bars = peak · mi = range added"
 msgstr ""
-"n=%(n)s sessions (≥%(min)s min) · barres = pic · mi = autonomie ajoutée"
+"n=%(n)s Sitzungen (≥%(min)s min) · Balken = Peak · mi = Reichweite "
+"hinzugefügt"
 
 #: personalstats/views.py:2121
 #, python-format
@@ -1838,15 +1838,15 @@ msgstr "n=%(n)s"
 #: personalstats/views.py:2123
 #, python-format
 msgid "n=%(n)s sessions (≥%(min)s min)"
-msgstr "%(n)s sessions (≥%(min)s min)"
+msgstr "n=%(n)s Sitzungen (≥%(min)s min)"
 
 #: personalstats/views.py:2168
 msgid "Distance recorded (km)"
-msgstr "Distance enregistrée (km)"
+msgstr "Erfasste Distanz (km)"
 
 #: personalstats/views.py:2199
 msgid "Efficiency (%)"
-msgstr "Efficacité (%)"
+msgstr "Effizienz (%)"
 
 #: personalstats/views.py:2200
 msgid "Distance (km)"
@@ -1854,21 +1854,20 @@ msgstr "Distance (km)"
 
 #: personalstats/views.py:2230
 msgid "Trips ≥ 10 km · 100% = matched rated range use"
-msgstr "Trajets ≥ 10 km · 100 % = conso égale à l’autonomie nominale"
+msgstr "Fahrten ≥ 10 km · 100 % = übereinstimmender Nennreichweitenverbrauch"
 
 #: personalstats/views.py:2332 personalstats/views.py:2363
 #: personalstats/views.py:2411
 msgid "Samples"
-msgstr "Échantillons"
+msgstr "Stichproben"
 
 #: personalstats/views.py:2360
 msgid "Speed (km/h)"
-msgstr "Vitesse (km/h)"
+msgstr "Geschwindigkeit (km/h)"
 
 #: personalstats/views.py:2364
 msgid "drive samples only · Tesla speed converted mph→km/h"
-msgstr ""
-"échantillons en conduite seulement · vitesse Tesla convertie mi/h→km/h"
+msgstr "nur Fahrt-Samples · Tesla-Geschwindigkeit mph→km/h umgerechnet"
 
 #: personalstats/views.py:2379
 #, python-format
@@ -1876,8 +1875,8 @@ msgid ""
 "n=%(n)s · regen %(regen).1f kWh / traction %(trac).1f kWh = %(pct).1f%% "
 "recovered"
 msgstr ""
-"n=%(n)s · régén. %(regen).1f kWh / traction %(trac).1f kWh = %(pct).1f%% "
-"récupérés"
+"n=%(n)s · Rekuperation %(regen).1f kWh / Traktion %(trac).1f kWh = "
+"%(pct).1f%% zurückgewonnen"
 
 #: personalstats/views.py:2390
 #, python-format
@@ -1885,45 +1884,45 @@ msgid ""
 "n=%(n)s · regen vs traction = %(pct).1f%% (sample power ratio · green = "
 "regen)"
 msgstr ""
-"n=%(n)s · régén. vs traction = %(pct).1f%% (ratio d’échantillons · vert = "
-"régén.)"
+"n=%(n)s · Rekuperation vs. Traktion = %(pct).1f%% (Leistungsverhältnis · "
+"grün = Rekuperation)"
 
 #: personalstats/views.py:2398
 #, python-format
 msgid "n=%(n)s drive samples · green = regen · blue/red = traction"
-msgstr "n=%(n)s échantillons · vert = régén. · bleu/rouge = traction"
+msgstr "n=%(n)s Fahrt-Samples · grün = Rekuperation · blau/rot = Traktion"
 
 #: personalstats/views.py:2401
 msgid "No drive power samples in this period"
-msgstr "Aucun échantillon de puissance pour cette période"
+msgstr "Keine Leistungs-Samples aus Fahrten in diesem Zeitraum"
 
 #: personalstats/views.py:2408
 msgid "Power (kW) · negative = regen"
-msgstr "Puissance (kW) · négatif = régénération"
+msgstr "Leistung (kW) · negativ = Rekuperation"
 
 #: personalstats/views.py:2430
 msgid "Peak charger power"
-msgstr "Puissance max. atteinte"
+msgstr "Maximale Ladeleistung"
 
 #: personalstats/views.py:2432
 msgid "Peak charge rate"
-msgstr "Vitesse de charge max. atteinte"
+msgstr "Maximale Laderate"
 
 #: personalstats/views.py:2455
 msgid "Peak SoC during charge"
-msgstr "SoC max pendant la charge"
+msgstr "Max. SoC während des Ladens"
 
 #: personalstats/views.py:2458
 msgid "sessions classified by max SoC while charging"
-msgstr "sessions classées par SoC max en charge"
+msgstr "Sitzungen nach max. SoC beim Laden klassifiziert"
 
 #: personalstats/views.py:2474
 msgid "one value per calendar day"
-msgstr "une valeur par jour civil"
+msgstr "ein Wert pro Kalendertag"
 
 #: personalstats/views.py:2475
 msgid "Days"
-msgstr "Jours"
+msgstr "Tage"
 
 #: personalstats/views.py:3217 personalstats/views.py:3838
 #, python-format
@@ -1937,75 +1936,75 @@ msgstr "%(m)s min"
 
 #: personalstats/views.py:3417
 msgid "Longest"
-msgstr "Plus longs"
+msgstr "Längste"
 
 #: personalstats/views.py:3418
 msgid "Most elevation gain"
-msgstr "Plus de dénivelé positif"
+msgstr "Meiste positive Höhenmeter"
 
 #: personalstats/views.py:3419
 msgid "Most elevation loss"
-msgstr "Plus de dénivelé négatif"
+msgstr "Meiste negative Höhenmeter"
 
 #: personalstats/views.py:3420
 msgid "Hottest"
-msgstr "Plus chaud"
+msgstr "Heißeste"
 
 #: personalstats/views.py:3421
 msgid "Coldest"
-msgstr "Plus froid"
+msgstr "Kälteste"
 
 #: personalstats/views.py:3422
 msgid "Lowest end SoC"
-msgstr "SoC de fin le plus bas"
+msgstr "Niedrigstes End-SoC"
 
 #: personalstats/views.py:3430
 msgid "Elevation gain"
-msgstr "Dénivelé positif"
+msgstr "Höhengewinn"
 
 #: personalstats/views.py:3431
 msgid "Elevation loss"
-msgstr "Dénivelé négatif"
+msgstr "Höhenverlust"
 
 #: personalstats/views.py:3432
 msgid "Max outside temp"
-msgstr "Temp. ext. max"
+msgstr "Max. Außentemp."
 
 #: personalstats/views.py:3433
 msgid "Min outside temp"
-msgstr "Temp. ext. min"
+msgstr "Min. Außentemp."
 
 #: personalstats/views.py:3690
 msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
-msgstr "Date invalide. Utilisez JJ/MM/AAAA ou AAAA-MM-JJ."
+msgstr "Ungültiges Datum. Verwenden Sie TT/MM/JJJJ oder JJJJ-MM-TT."
 
 #: templates/base.html:24
 msgid "Skip to content"
-msgstr "Aller au contenu"
+msgstr "Zum Inhalt springen"
 
 #: templates/base.html:32
 msgid "Open vehicle companion"
-msgstr "Compagnon de véhicule open source"
+msgstr "Open-Source-Fahrzeugbegleiter"
 
 #: templates/base.html:36
 msgid "Main navigation"
-msgstr "Navigation principale"
+msgstr "Hauptnavigation"
 
 #: templates/base.html:53 templates/base.html:69
 msgid "logout"
-msgstr "Se déconnecter"
+msgstr "Abmelden"
 
 #: templates/base.html:61
 msgid "Open navigation"
-msgstr "Ouvrir la navigation"
+msgstr "Navigation öffnen"
 
 #: templates/base.html:62
 msgid "Mobile navigation"
-msgstr "Navigation mobile"
+msgstr "Mobile Navigation"
 
 #: templates/base.html:98
 msgid "Private by design · Open source"
-msgstr "Privé par conception · Open source"
+msgstr "Privat by Design · Open Source"
 
 #: templates/base.html:99
 msgid "Source"
@@ -2018,450 +2017,108 @@ msgid ""
 "location and remote control charge, temperature,... Statistics on firmware "
 "updates are also available."
 msgstr ""
-"MaTesla est un site web Python/django libre utilisant l'API de Tesla pour se"
-" connecter à votre merveilleuse voiture Tesla, obtenir des informations sur "
-"son état, sa position, et contrôller à distance sa charge, sa "
-"température,... Des statistiques sur les mises à jour du firmware sont "
-"également disponibles."
+"MaTesla ist eine freie Open-Source-Website in Python/Django, die die Tesla-"
+"API nutzt, um sich mit Ihrem wunderbaren Tesla zu verbinden, Informationen "
+"zu Zustand und Standort zu liefern und Laden, Temperatur usw. fernzusteuern."
+" Statistiken zu Firmware-Updates sind ebenfalls verfügbar."
 
 #: templates/registration/login.html:24
 msgid "Private space"
-msgstr "Espace privé"
+msgstr "Privater Bereich"
 
 #: templates/registration/login.html:49
 msgid "Forgotten password?"
-msgstr "Mot de passe oublié?"
+msgstr "Passwort vergessen?"
 
 #: templates/registration/login.html:50
 msgid "Signup"
-msgstr "Créer un compte"
+msgstr "Registrieren"
 
 #: templates/registration/login.html:77
 msgid "Your tesla odometer graph in function of time. Who drives the most?"
 msgstr ""
-"Graphique d’odomètre Tesla en fonction du temps. Qui conduit le plus ?"
+"Ihr Tesla-Kilometerstandsdiagramm über die Zeit. Wer fährt am meisten?"
 
 #: templates/registration/password_reset_complete.html:4
 #: templates/registration/password_reset_complete.html:10
 msgid "Password updated"
-msgstr "Réinitialisation du mot de passe"
+msgstr "Passwort aktualisiert"
 
 #: templates/registration/password_reset_complete.html:11
 msgid "Your password has been set. You may go ahead and sign in."
-msgstr "Votre mot de passe a été changé. Vous pouvez poursuivre et "
+msgstr "Ihr Passwort wurde gesetzt. Sie können sich jetzt anmelden."
 
 #: templates/registration/password_reset_complete.html:12
 msgid "sign in"
-msgstr "vous logger"
+msgstr "anmelden"
 
 #: templates/registration/password_reset_confirm.html:4
 #: templates/registration/password_reset_confirm.html:11
 #: templates/registration/password_reset_confirm.html:23
 msgid "Change password"
-msgstr "Changez le mot de passe"
+msgstr "Passwort ändern"
 
 #: templates/registration/password_reset_confirm.html:28
 msgid ""
 "The password reset link was invalid, possibly because it has already been "
 "used. Please request a new password reset."
 msgstr ""
-"Le lien de réinitialisation du mot de passe était invalide, peut-être parce "
-"qu'il a déjà été utilisé. Veuillez en demander un nouveau."
+"Der Link zum Zurücksetzen des Passworts war ungültig, möglicherweise weil er"
+" bereits verwendet wurde. Bitte fordern Sie ein neues Zurücksetzen an."
 
 #: templates/registration/password_reset_confirm.html:29
 #: templates/registration/password_reset_form.html:4
 #: templates/registration/password_reset_form.html:11
 msgid "Password reset"
-msgstr "Réinitialisation du mot de passe"
+msgstr "Passwort zurücksetzen"
 
 #: templates/registration/password_reset_done.html:4
 #: templates/registration/password_reset_done.html:10
 msgid "Password reset mail sent"
-msgstr "Le mail de changement de mot de passe a été envoyé."
+msgstr "E-Mail zum Zurücksetzen des Passworts gesendet"
 
 #: templates/registration/password_reset_done.html:11
 msgid ""
 "We&#39;ve emailed you instructions for setting your password, if an account "
 "exists with the email you entered. You should receive them shortly."
 msgstr ""
-"Nous vous avons envoyé un e-mail avec les instructions pour changer votre "
-"mot de passe, pour autant qu'un compte avec le mail entré existe. Vous "
-"devriez le recevoir rapidement."
+"Wir haben Ihnen Anweisungen zum Festlegen des Passworts per E-Mail gesendet,"
+" sofern ein Konto mit der eingegebenen Adresse existiert. Sie sollten sie in"
+" Kürze erhalten."
 
 #: templates/registration/password_reset_done.html:12
 msgid ""
 "If you don&#39;t receive an email, please make sure you&#39;ve entered the "
 "address you registered with, and check your spam folder."
 msgstr ""
-"Si vous ne recevez pas de mail, veuillez vérifier que vous avez entré "
-"l’adresse avec laquelle vous vous êtes enregistré, et vérifiez votre dossier"
-" spam"
+"Wenn Sie keine E-Mail erhalten, prüfen Sie bitte, ob Sie die registrierte "
+"Adresse eingegeben haben, und schauen Sie in den Spam-Ordner."
 
 #: templates/registration/password_reset_done.html:13
 #: templates/registration/password_reset_form.html:28
 msgid "Back to login"
-msgstr "Retour à la connexion"
+msgstr "Zurück zur Anmeldung"
 
 #: templates/registration/password_reset_email.html:3
 msgid "To initiate the password reset process for your"
-msgstr "Pour lancer la réinitialisation du mot de passe de votre"
+msgstr "Um den Passwort-Reset für Ihr"
 
 #: templates/registration/password_reset_email.html:3
 msgid "MaTesla Account, click the link below:"
-msgstr "MaTesla, veuillez cliquer sur le lien ci-dessous:"
+msgstr "MaTesla-Konto zu starten, klicken Sie auf den Link unten:"
 
 #: templates/registration/password_reset_email.html:7
 msgid ""
 "If clicking the link above doesn't work, please copy and paste the URL in a "
 "new browser window instead."
 msgstr ""
-"Si cliquer sur le lien ne fonctionne pas, veuillez copier et coller l'URL "
-"dans une nouvelle fenêtre de votre navigateur"
+"Wenn der Link oben nicht funktioniert, kopieren Sie die URL und fügen Sie "
+"sie in ein neues Browserfenster ein."
 
 #: templates/registration/password_reset_email.html:9
 msgid "Sincerely, The MaTesla Team"
-msgstr "L'équipe MaTesla"
+msgstr "Mit freundlichen Grüßen, das MaTesla-Team"
 
 #: templates/registration/password_reset_form.html:25
 msgid "Send e-mail"
-msgstr "Envoyer le mail"
-
-#~ msgid "Furthest north"
-#~ msgstr "Plus au nord"
-
-#~ msgid "Furthest south"
-#~ msgstr "Plus au sud"
-
-#~ msgid "Furthest east"
-#~ msgstr "Plus à l’est"
-
-#~ msgid "Furthest west"
-#~ msgstr "Plus à l’ouest"
-
-#~ msgid "Max latitude"
-#~ msgstr "Latitude max"
-
-#~ msgid "Min latitude"
-#~ msgstr "Latitude min"
-
-#~ msgid "Max longitude"
-#~ msgstr "Longitude max"
-
-#~ msgid "Min longitude"
-#~ msgstr "Longitude min"
-
-#~ msgid ""
-#~ "E.g. robotcar.example.com — not localhost. Must also be an Allowed Origin on"
-#~ " developer.tesla.com"
-#~ msgstr ""
-#~ "Ex. robotcar.example.com — pas localhost. Doit aussi être en Allowed Origin "
-#~ "sur developer.tesla.com"
-
-#~ msgid "active"
-#~ msgstr "actif"
-
-#~ msgid "Active vehicle"
-#~ msgstr "Véhicule actif"
-
-#~ msgid "Use this vehicle"
-#~ msgstr "Utiliser ce véhicule"
-
-#~ msgid "Resync"
-#~ msgstr "Resynchroniser"
-
-#~ msgid "Renew OAuth"
-#~ msgstr "Renouveler OAuth"
-
-#~ msgid "Disconnect this Tesla account?"
-#~ msgstr "Déconnecter ce compte Tesla ?"
-
-#~ msgid ""
-#~ "Expected domain: <code>mehdirahbe.github.io</code> · Allowed Origin: "
-#~ "<code>https://mehdirahbe.github.io</code>"
-#~ msgstr ""
-#~ "Domaine attendu : <code>mehdirahbe.github.io</code> · Allowed Origin : "
-#~ "<code>https://mehdirahbe.github.io</code>"
-
-#~ msgid ""
-#~ "Use <code>mehdirahbe.github.io</code> as the partner domain, without a "
-#~ "protocol."
-#~ msgstr ""
-#~ "Utilisez <code>mehdirahbe.github.io</code> comme domaine partenaire, sans "
-#~ "protocole."
-
-#~ msgid ""
-#~ "Keep <code>https://mehdirahbe.github.io</code> in the allowed origins of the"
-#~ " Tesla dashboard."
-#~ msgstr ""
-#~ "Conservez <code>https://mehdirahbe.github.io</code> dans les origines "
-#~ "autorisées du dashboard Tesla."
-
-#~ msgid ""
-#~ "Verify the published key, register the EU region, then resync vehicles."
-#~ msgstr ""
-#~ "Vérifiez la clé publiée, enregistrez la région EU, puis resynchronisez les "
-#~ "véhicules."
-
-#~ msgid "Public URL"
-#~ msgstr "URL publique"
-
-#~ msgid "Local file"
-#~ msgstr "Fichier local"
-
-#~ msgid "Show public key"
-#~ msgstr "Afficher la clé publique"
-
-#~ msgid "Redirect URI"
-#~ msgstr "Redirect URI"
-
-#, python-format
-#~ msgid "Keys generated: %(pub)s (to publish) and %(priv)s (secret, local)."
-#~ msgstr "Clés générées : %(pub)s (à publier) et %(priv)s (secret, local)."
-
-#~ msgid "Active vehicle updated."
-#~ msgstr "Véhicule actif mis à jour."
-
-#~ msgid ""
-#~ "Estimated Data cost from saved samples for this car only (not the Tesla "
-#~ "portal total)."
-#~ msgstr ""
-#~ "Coût Data estimé à partir des échantillons enregistrés pour cette voiture "
-#~ "uniquement (pas le total du portail Tesla)."
-
-#~ msgid "Week (Monday)"
-#~ msgstr "Semaine (lundi)"
-
-#, python-format
-#~ msgid ""
-#~ "n=%(n)s saved samples · est. $%(usd).2f Data (@ $%(rate).3f/req) · this car "
-#~ "only · not Tesla portal total"
-#~ msgstr ""
-#~ "n=%(n)s échantillons · est. $%(usd).2f Data (@ $%(rate).3f/req) · cette "
-#~ "voiture seule · pas le total portail Tesla"
-
-#~ msgid "01 · BATTERY HEALTH"
-#~ msgstr "01 · SANTÉ BATTERIE"
-
-#~ msgid "02 · SOFTWARE"
-#~ msgstr "02 · LOGICIEL"
-
-#~ msgid "Firmware graph"
-#~ msgstr "Graphique firmware"
-
-#~ msgid "Most recent Firmware updates"
-#~ msgstr "Mises à jour du firmware les plus récentes"
-
-#~ msgid "Download Firmware Stats"
-#~ msgstr "Télécharger les stats du Firmware"
-
-#~ msgid "Cars statistics"
-#~ msgstr "Statistiques des voitures"
-
-#~ msgid "Car criterion"
-#~ msgstr "Critère voiture"
-
-#~ msgid "Car model"
-#~ msgstr "Modèle de voiture"
-
-#~ msgid "All models"
-#~ msgstr "Tous les modèles"
-
-#~ msgid "Car addition Date"
-#~ msgstr "Date d'addition de la voiture"
-
-#~ msgid "Has air suspension"
-#~ msgstr "Suspension à air"
-
-#~ msgid "Has ludicrous mode"
-#~ msgstr "Mode ludicrous"
-
-#~ msgid "Is charge port motorized"
-#~ msgstr "Port de charge motorisé"
-
-#~ msgid "Has rear seat heaters"
-#~ msgstr "Sièges arrières chauffants"
-
-#~ msgid "Right hand drive"
-#~ msgstr "Conduite à droite"
-
-#~ msgid "Roof color"
-#~ msgstr "Couleur du toit"
-
-#~ msgid "Is sentry mode available"
-#~ msgstr "Mode sentry disponible"
-
-#~ msgid "Is FSD enabled"
-#~ msgstr "Option Conduite autonome (FSD) active"
-
-#~ msgid "European union car"
-#~ msgstr "Voiture européenne"
-
-#~ msgid "Is Dual Motor"
-#~ msgstr "Double motorisation"
-
-#~ msgid "Car year"
-#~ msgstr "Année de la voiture"
-
-#~ msgid "Battery level (%)"
-#~ msgstr "Niveau batterie (%)"
-
-#~ msgid "Battery charge limit (%)"
-#~ msgstr "Limite de charge de la batterie (%)"
-
-#~ msgid "No Value"
-#~ msgstr "Aucune valeur"
-
-#~ msgid "True"
-#~ msgstr "Vrai"
-
-#~ msgid "False"
-#~ msgstr "Faux"
-
-#~ msgid "LOCK · ON"
-#~ msgstr "VERROU · ON"
-
-#~ msgid "LOCK · OFF"
-#~ msgstr "VERROU · OFF"
-
-#~ msgid "CLIMATE · ON"
-#~ msgstr "CLIMAT · ON"
-
-#~ msgid "CLIMATE · OFF"
-#~ msgstr "CLIMAT · OFF"
-
-#~ msgid "PORT · OPEN"
-#~ msgstr "PORT · OUVERT"
-
-#~ msgid "PORT · CLOSED"
-#~ msgstr "PORT · FERMÉ"
-
-#~ msgid "LIGHTS"
-#~ msgstr "PHARES"
-
-#~ msgid "HORN"
-#~ msgstr "KLAXON"
-
-#~ msgid "REMOTE DRIVE"
-#~ msgstr "CONDUITE DISTANTE"
-
-#~ msgid "Change"
-#~ msgstr "Modifier"
-
-#~ msgid "Charging"
-#~ msgstr "Charge"
-
-#~ msgid "Start charge"
-#~ msgstr "Démarrer la charge"
-
-#~ msgid "Install"
-#~ msgstr "Installer"
-
-#~ msgid "Activate"
-#~ msgstr "Activer"
-
-#~ msgid "Cancel"
-#~ msgstr "Annuler"
-
-#~ msgid "Save"
-#~ msgstr "Sauver"
-
-#~ msgid "Speed (mi/h)"
-#~ msgstr "Vitesse (mi/h)"
-
-#~ msgid "Power (kW)"
-#~ msgstr "Puissance (kW)"
-
-#~ msgid "Sessions ≥ %(min)s min · n=%(n)s · peak per session"
-#~ msgstr "Sessions ≥ %(min)s min · n=%(n)s · pic par session"
-
-#~ msgid "mi = rated range added"
-#~ msgstr "mi = autonomie nominale ajoutée"
-
-#~ msgid "Sessions ≥ %(min)s min · n=%(n)s"
-#~ msgstr "Sessions d’au moins %(min)s min · n=%(n)s"
-
-#~ msgid "Battery range (miles)"
-#~ msgstr "Range de la batterie (miles)"
-
-#~ msgid "Charge rate (mi/h)"
-#~ msgstr "Vitesse de charge (mi/h)"
-
-#~ msgid "Charger power (kW)"
-#~ msgstr "Puissance de charge (kW)"
-
-#~ msgid "03 · CLIMATE"
-#~ msgstr "03 · CLIMAT"
-
-#~ msgid "04 · DRIVE"
-#~ msgstr "04 · CONDUITE"
-
-#~ msgid "Command interrupted"
-#~ msgstr "Commande interrompue"
-
-#~ msgid "Charge settings"
-#~ msgstr "Réglages de charge"
-
-#~ msgid "Climate settings"
-#~ msgstr "Réglages clim"
-
-#~ msgid "Sensitive command"
-#~ msgstr "Commande sensible"
-
-#~ msgid "Active vehicle: %(label)s"
-#~ msgstr "Véhicule actif : %(label)s"
-
-#~ msgid "Json current data"
-#~ msgstr "Données courantes en Json"
-
-#~ msgid "New firmware version"
-#~ msgstr "La nouvelle version du firmware"
-
-#~ msgid "is scheduled in "
-#~ msgstr "est prévue dans "
-
-#~ msgid "seconds"
-#~ msgstr "secondes"
-
-#~ msgid "is installing, "
-#~ msgstr "s'installe, "
-
-#, python-format
-#~ msgid "%% already done"
-#~ msgstr "%% déjà effectué"
-
-#, python-format
-#~ msgid "Battery level (%%)"
-#~ msgstr "Niveau batterie (%%)"
-
-#~ msgid "Is Charge port open"
-#~ msgstr "Port de charge ouvert"
-
-#~ msgid "Is climate on"
-#~ msgstr "Climatisation"
-
-#~ msgid "Date as text"
-#~ msgstr "Date en texte"
-
-#~ msgid "Or type DD/MM/YYYY"
-#~ msgstr "Ou taper JJ/MM/AAAA"
-
-#~ msgid "You can now close this window"
-#~ msgstr "Vous pouvez maintenant fermer cette fenêtre."
-
-#~ msgid "Power"
-#~ msgstr "Puissance"
-
-#~ msgid "Tesla token"
-#~ msgstr "Jeton Tesla"
-
-#~ msgid "Name"
-#~ msgstr "Nom"
-
-#~ msgid "Stops"
-#~ msgstr "Arrêts"
-
-#~ msgid "From"
-#~ msgstr "De"
-
-#~ msgid "To"
-#~ msgstr "À"
+msgstr "E-Mail senden"

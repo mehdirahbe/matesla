@@ -262,6 +262,9 @@ LANGUAGES = (
     ("en", _("English")),
     ("fr", _("Français")),
     ("es", _("Espanol")),
+    ("de", _("Deutsch")),
+    ("nl", _("Nederlands")),
+    ("nb", _("Norsk")),
 )
 
 LANGUAGE_CODE = "en-us"

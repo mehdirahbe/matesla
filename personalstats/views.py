@@ -440,12 +440,14 @@ def _fleet_poll_buckets(hashed_vin: str, *, days: int):
         local = dt.astimezone(DAY_MAP_TZ)
         day_counts[local.date()] += 1
 
-    language = get_language()
+    language = get_language() or "en"
     labels = []
     counts = []
     cursor = start
+    # US-style mm/dd only for English; European locales use day-first.
+    day_first = not language.startswith("en")
     while cursor <= end:
-        if language == "fr":
+        if day_first:
             labels.append(cursor.strftime("%d/%m"))
         else:
             labels.append(cursor.strftime("%m/%d"))
@@ -572,11 +574,11 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
     # matplotlib 3.9+ removed Axes.plot_date — use plot() with date objects
     figure, style_config = make_figure(size)
 
-    language = django.utils.translation.get_language()
-    if language is not None and language == 'fr':
-        formatter = DateFormatter('%d/%m/%y')
+    language = django.utils.translation.get_language() or "en"
+    if language.startswith("en"):
+        formatter = DateFormatter("%m/%d/%y")
     else:
-        formatter = DateFormatter('%m/%d/%y')
+        formatter = DateFormatter("%d/%m/%y")
 
     axes = figure.subplots()
     if datesList is not None and minvalues is not None and len(datesList) > 0:
@@ -742,7 +744,8 @@ def _format_month_label(month_date, language):
     """Short month label for record annotations on climate charts."""
     if month_date is None:
         return ""
-    if language and language.startswith("fr"):
+    # Numeric mm/YYYY for non-English (locale-independent, matches FR charts).
+    if language and not language.startswith("en"):
         return month_date.strftime("%m/%Y")
     return month_date.strftime("%b %Y")
 
@@ -813,7 +816,7 @@ def GenerateMonthlyTempRibbonGraph(
             return ""
         if tick_date.month != 1:
             return ""
-        if language is not None and language.startswith("fr"):
+        if language is not None and not language.startswith("en"):
             return tick_date.strftime("%m/%Y")
         return tick_date.strftime("%b %Y")
 
