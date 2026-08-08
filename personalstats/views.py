@@ -2632,11 +2632,32 @@ def _downsample_indices(count, max_points):
 
 
 def _haversine_m(lat1, lon1, lat2, lon2):
-    """Great-circle distance in metres between two WGS84 points."""
+    """
+    Great-circle distance in metres between two WGS84 points (as-the-crow-flies).
+
+    GPS lat/lon are angles, not planar metres: 1° of longitude shrinks toward the
+    poles. Haversine maps the angular separation of two points on a sphere to the
+    shortest surface arc (the great-circle path).
+
+    With φ, λ in radians, Δφ = φ2−φ1, Δλ = λ2−λ1, and R ≈ 6_371_000 m:
+
+        a = sin²(Δφ/2) + cos(φ1)·cos(φ2)·sin²(Δλ/2)
+        d = 2·R·arcsin(√a)
+
+    Here `a` is the haversine (half-versed sine) of the central angle; arcsin(√a)
+    is half that angle, so 2·R·… is the arc length in metres.
+
+    Notes:
+      - Road distance / elevation are not modelled (odometer can be larger).
+      - Sphere vs WGS84 ellipsoid error is negligible under a few km.
+      - min(1, √a) guards floating-point drift so arcsin stays defined.
+    """
     earth_radius_m = 6371000.0
+    # Trig functions need radians; keep degrees only at the API boundary.
     phi1, phi2 = radians(lat1), radians(lat2)
     dphi = radians(lat2 - lat1)
     dlambda = radians(lon2 - lon1)
+    # `a` ∈ [0, 1]: haversine of the central angle between the two points.
     haversine = (
         sin(dphi / 2.0) ** 2
         + cos(phi1) * cos(phi2) * sin(dlambda / 2.0) ** 2
