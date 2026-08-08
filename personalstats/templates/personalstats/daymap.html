@@ -322,6 +322,11 @@
         {% include 'personalstats/_gmaps_link.html' with lat=end_lat lon=end_lon label=end_addr %}
     </p>
     {% endif %}
+    {% if unmonitored_tail %}
+    <div class="alert alert-info py-2 px-3 mb-2" role="status" style="max-width: 1100px;">
+        {{ unmonitored_tail.message }}
+    </div>
+    {% endif %}
 
     {# Day totals — drives aggregate + residual SoC (park / dog / sentry / …) #}
     <div class="table-responsive mb-2">

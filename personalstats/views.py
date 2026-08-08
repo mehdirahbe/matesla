@@ -85,6 +85,9 @@ DAY_MAP_MAX_POINTS = 800
 DAY_MAP_STOP_MIN_MINUTES = 8
 # Speed at or below this (mi/h) counts as stopped
 DAY_MAP_STOP_SPEED = 1.0
+# Day-end GPS vs last drive arrival: flag a missing tail trip (sparse capture)
+DAYMAP_TAIL_GAP_MIN_M = 150.0  # ignore GPS noise / same parking bay
+DAYMAP_TAIL_GAP_SHORT_MAX_M = 2500.0  # ≤ this → likely too short for poll interval
 # Efficiency charts (inspired by TeslaFi; drives ≥ 10 km)
 EFFICIENCY_MIN_KM = 10.0
 EFFICIENCY_MIN_PCT = 25.0
@@ -2641,6 +2644,64 @@ def _haversine_m(lat1, lon1, lat2, lon2):
     return 2.0 * earth_radius_m * asin(min(1.0, sqrt(haversine)))
 
 
+def _format_gap_distance_m(gap_m):
+    """Human label for a gap: metres under 1 km, else kilometres."""
+    if gap_m is None or gap_m < 0:
+        return ""
+    if gap_m < 1000.0:
+        return _("%(n)s m") % {"n": int(round(gap_m))}
+    return _("%(n)s km") % {"n": f"{gap_m / 1000.0:.1f}"}
+
+
+def _daymap_unmonitored_tail(drives, end_lat, end_lon):
+    """
+    Detect when the day's final GPS is far from the last recorded drive arrival.
+
+    Sparse capture (cost-driven poll interval) often misses short final trips:
+    the last drive ends at the shop, then the car is home with no drive samples
+    in between. Returns a context dict for the template, or None.
+    """
+    if not drives or end_lat is None or end_lon is None:
+        return None
+    last = drives[-1]
+    drive_end_lat = last.get("end_lat")
+    drive_end_lon = last.get("end_lon")
+    if drive_end_lat is None or drive_end_lon is None:
+        return None
+    try:
+        gap_m = _haversine_m(
+            float(drive_end_lat),
+            float(drive_end_lon),
+            float(end_lat),
+            float(end_lon),
+        )
+    except (TypeError, ValueError):
+        return None
+    if gap_m < DAYMAP_TAIL_GAP_MIN_M:
+        return None
+    dist_label = _format_gap_distance_m(gap_m)
+    if gap_m <= DAYMAP_TAIL_GAP_SHORT_MAX_M:
+        kind = "short"
+        message = _(
+            "The last trip was not recorded — it was likely too short for the "
+            "capture interval (about %(dist)s between the last logged arrival "
+            "and the car's final position)."
+        ) % {"dist": dist_label}
+    else:
+        kind = "long"
+        message = _(
+            "The last trip was not recorded — missing telemetry between the "
+            "last logged arrival and the car's final position (about %(dist)s). "
+            "This can happen after a capture gap or a technical issue."
+        ) % {"dist": dist_label}
+    return {
+        "kind": kind,
+        "gap_m": gap_m,
+        "gap_label": dist_label,
+        "message": message,
+    }
+
+
 def _thin_segments_to_cap(segments, max_points):
     """
     Proportionally downsample polyline segments so total points ≤ max_points.
@@ -3855,6 +3916,8 @@ def DayMap(request, hashedVin, day=None):
         drive["end_address"] = addr_cached(drive.get("end_lat"), drive.get("end_lon"))
     for charge in charges:
         charge["address"] = addr_cached(charge.get("lat"), charge.get("lon"))
+    # Sparse poll: last drive may end elsewhere than the car's final GPS
+    unmonitored_tail = _daymap_unmonitored_tail(drives, end_lat, end_lon)
 
     # Day totals from drives (same metrics as the drives table)
     miles_driven = sum(drive["miles"] or 0 for drive in drives) or None
@@ -3959,6 +4022,7 @@ def DayMap(request, hashedVin, day=None):
             "start_lon": start_lon,
             "end_lat": end_lat,
             "end_lon": end_lon,
+            "unmonitored_tail": unmonitored_tail,
             "start_time": (
                 gps_rows[0]["t"].astimezone(DAY_MAP_TZ).strftime("%H:%M:%S")
                 if gps_rows

@@ -506,3 +506,49 @@ class PersonalStatsGraphPerfTests(TestCase):
             self.CACHE_HIT_BUDGET_S,
             f"cache hit too slow: {dt_hit:.3f}s",
         )
+
+
+class DayMapUnmonitoredTailTests(TestCase):
+    """Sparse capture: day-end GPS far from last drive arrival."""
+
+    def test_no_gap_when_same_place(self):
+        from personalstats.views import _daymap_unmonitored_tail
+
+        drives = [{"end_lat": 50.7959, "end_lon": 4.3352}]
+        self.assertIsNone(_daymap_unmonitored_tail(drives, 50.79587, 4.33523))
+
+    def test_short_gap_message(self):
+        from personalstats.views import _daymap_unmonitored_tail
+
+        # ~475 m — Delhaize-style short hop home
+        drives = [{"end_lat": 50.799972, "end_lon": 4.337122}]
+        result = _daymap_unmonitored_tail(drives, 50.795871, 4.335234)
+        self.assertIsNotNone(result)
+        self.assertEqual(result["kind"], "short")
+        self.assertGreater(result["gap_m"], 150)
+        self.assertLess(result["gap_m"], 2500)
+        self.assertIn("too short", result["message"].lower())
+
+    def test_long_gap_message(self):
+        from personalstats.views import _daymap_unmonitored_tail
+
+        # ~5 km straight line → technical / capture gap wording
+        drives = [{"end_lat": 50.80, "end_lon": 4.34}]
+        result = _daymap_unmonitored_tail(drives, 50.76, 4.30)
+        self.assertIsNotNone(result)
+        self.assertEqual(result["kind"], "long")
+        self.assertGreater(result["gap_m"], 2500)
+        self.assertIn("missing telemetry", result["message"].lower())
+
+    def test_no_drives_or_missing_coords(self):
+        from personalstats.views import _daymap_unmonitored_tail
+
+        self.assertIsNone(_daymap_unmonitored_tail([], 50.8, 4.3))
+        self.assertIsNone(
+            _daymap_unmonitored_tail([{"end_lat": None, "end_lon": 4.3}], 50.8, 4.3)
+        )
+        self.assertIsNone(
+            _daymap_unmonitored_tail(
+                [{"end_lat": 50.8, "end_lon": 4.3}], None, 4.3
+            )
+        )

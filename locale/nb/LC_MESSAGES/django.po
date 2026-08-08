@@ -1563,6 +1563,27 @@ msgid "Curve"
 msgstr "Kurve"
 
 #: personalstats/templates/personalstats/daymap.html:479
+
+#: personalstats/views.py
+#, python-format
+msgid "%(n)s m"
+msgstr "%(n)s m"
+
+#: personalstats/views.py
+#, python-format
+msgid "%(n)s km"
+msgstr "%(n)s km"
+
+#: personalstats/views.py
+#, python-format
+msgid "The last trip was not recorded — it was likely too short for the capture interval (about %(dist)s between the last logged arrival and the car's final position)."
+msgstr "Den siste turen ble ikke registrert — sannsynligvis for kort for fangstintervallet (ca. %(dist)s mellom siste loggførte ankomst og bilens sluttposisjon)."
+
+#: personalstats/views.py
+#, python-format
+msgid "The last trip was not recorded — missing telemetry between the last logged arrival and the car's final position (about %(dist)s). This can happen after a capture gap or a technical issue."
+msgstr "Den siste turen ble ikke registrert — manglende telemetri mellom siste loggførte ankomst og bilens sluttposisjon (ca. %(dist)s). Dette kan skje etter et fangsthull eller et teknisk problem."
+
 msgid "No drive or charge segments detected for this day."
 msgstr "Ingen kjøre- eller ladesegmenter funnet for denne dagen."
 
