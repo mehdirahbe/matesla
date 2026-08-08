@@ -250,3 +250,23 @@ class DcChargeLogicTests(SimpleTestCase):
         # SoC should generally rise over time
         soc = curves[20]["soc_median"]
         self.assertGreater(soc[-1], soc[0])
+
+    def test_soc_vs_time_stops_when_too_few_sessions_remain(self):
+        """
+        Long-tail sessions alone must not extend the median curve: with most
+        stops ending early, a single slow charge would make median SoC drop.
+        """
+        # 5 typical ~25 min stops + 1 long 80 min stop in the same start bucket
+        sessions = [
+            _session(peak=180, start_soc=20, duration_min=25) for _ in range(5)
+        ]
+        sessions.append(_session(peak=100, start_soc=20, duration_min=80))
+        curves = soc_vs_time_curves(sessions, min_sessions=3)
+        self.assertIn(20, curves)
+        # Half of 6 → need ≥3 active; after ~25 min only the long one remains
+        self.assertLessEqual(max(curves[20]["times"]), 30)
+        # Must not reach the long-tail minute where only 1 session is left
+        self.assertNotIn(60, curves[20]["times"])
+        # Median SoC must keep rising on the truncated curve
+        soc = curves[20]["soc_median"]
+        self.assertGreater(soc[-1], soc[0])

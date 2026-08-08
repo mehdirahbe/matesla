@@ -52,7 +52,10 @@ START_SOC_BUCKETS = (10, 20, 30, 40, 50)
 START_SOC_TOLERANCE = 5.0  # bucket 20 → start in [15, 25)
 SOC_VS_TIME_MAX_MINUTES = 90
 SOC_VS_TIME_STEP_MIN = 1
-SOC_VS_TIME_MIN_SESSIONS = 2
+# Absolute floor for a usable median SoC at each minute (was 2: too noisy /
+# can drop when only a slow long-tail session remains). Also see the
+# half-bucket attrition cut in soc_vs_time_curves.
+SOC_VS_TIME_MIN_SESSIONS = 3
 
 OUTLIER_MODES = frozenset({"robust", "all"})
 ENVELOPE_MODES = frozenset({"p10_p90", "min_max"})
@@ -591,6 +594,10 @@ def soc_vs_time_curves(
     """
     For each start-SoC bucket, median SoC trajectory vs minutes since plug-in.
 
+    The curve stops once too few sessions are still charging: a median of 1–2
+    points is noisy, and the long-tail subset is biased (often slower charges),
+    which can make median SoC *drop* at high t.
+
     Returns {bucket: {"times": [...], "soc_median": [...], "n_sessions": N}}.
     """
     grid = list(range(0, max_minutes + 1, step_min))
@@ -642,8 +649,12 @@ def soc_vs_time_curves(
 
     result: dict[int, dict] = {}
     for bucket, series_list in by_bucket.items():
-        if len(series_list) < min_sessions:
+        n_bucket = len(series_list)
+        if n_bucket < min_sessions:
             continue
+        # Absolute floor + attrition: once more than half the bucket has ended,
+        # remaining charges are a biased long tail (median SoC can fall).
+        min_active = max(min_sessions, (n_bucket + 1) // 2)
         med_soc: list[float] = []
         times_out: list[int] = []
         for col, minute in enumerate(grid):
@@ -652,8 +663,7 @@ def soc_vs_time_curves(
                 for series in series_list
                 if series[col] is not None
             ]
-            # Need enough sessions still charging at this minute
-            if len(col_vals) < min_sessions:
+            if len(col_vals) < min_active:
                 break
             times_out.append(minute)
             med_soc.append(median(col_vals))
@@ -662,7 +672,7 @@ def soc_vs_time_curves(
         result[bucket] = {
             "times": times_out,
             "soc_median": med_soc,
-            "n_sessions": len(series_list),
+            "n_sessions": n_bucket,
         }
     return result
 

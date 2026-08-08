@@ -4832,7 +4832,7 @@ def DCChargeGraph(request, hashedVin, chart, desiredperiod):
 
     cache_key = _graph_png_cache_key(
         hashedVin,
-        f"dc_v4_{chart_key}_{outlier_mode}_{envelope_mode}",
+        f"dc_v5_{chart_key}_{outlier_mode}_{envelope_mode}",
         weeks,
         size,
         kind="dc_charge",
