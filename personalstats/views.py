@@ -3634,12 +3634,29 @@ def _segment_day(rows, pack_kwh):
                 kwh_added = energy_end - energy_start
             elif soc_added is not None and soc_added > 0:
                 kwh_added = soc_added / 100.0 * pack_kwh
-            powers = [
-                point["charger_power"]
-                for point in points
-                if point.get("charger_power") is not None
-            ]
-            max_power = max(powers) if powers else None
+            # Effective kW: charger_power when set, else V×I×phases (AC wall
+            # often has charger_power=0 in TeslaFi while current is filled).
+            # Min skips Supercharger ramp on DC only; AC uses plain min/max.
+            from personalstats.dc_charge import (
+                charge_power_min_max_excluding_ramp,
+                effective_charger_power_kw,
+            )
+
+            timed_powers = []
+            for point in points:
+                if point.get("t") is None:
+                    continue
+                power_kw = effective_charger_power_kw(point)
+                if power_kw is not None:
+                    timed_powers.append((point["t"], power_kw))
+            min_power, max_power = charge_power_min_max_excluding_ramp(timed_powers)
+            # Energy / duration fallback when Tesla reports neither power nor current
+            if (max_power is None or max_power < 0.3) and kwh_added and minutes >= 2:
+                avg_kw = float(kwh_added) / (minutes / 60.0)
+                if avg_kw >= 0.3:
+                    max_power = avg_kw
+                    if min_power is None or min_power < 0.3:
+                        min_power = avg_kw
             # mid GPS for address
             gps_points = [
                 point
@@ -3647,6 +3664,12 @@ def _segment_day(rows, pack_kwh):
                 if point.get("lat") is not None and point.get("lon") is not None
             ]
             mid = gps_points[len(gps_points) // 2] if gps_points else start_pt
+            # Flag DC-ish stops for async Supercharger map matching (not AC wall).
+            from personalstats.dc_charge import DC_SESSION_PEAK_KW_MIN
+
+            is_dc_candidate = (
+                max_power is not None and float(max_power) >= DC_SESSION_PEAK_KW_MIN
+            )
             charges.append(
                 {
                     "kind": "charge",
@@ -3663,7 +3686,9 @@ def _segment_day(rows, pack_kwh):
                     "soc_end": soc_end,
                     "soc_added": soc_added,
                     "kwh_added": kwh_added,
+                    "min_power_kw": min_power,
                     "max_power_kw": max_power,
+                    "is_dc_candidate": is_dc_candidate,
                     "lat": mid.get("lat"),
                     "lon": mid.get("lon"),
                 }
@@ -3722,6 +3747,9 @@ def DayMap(request, hashedVin, day=None):
             "usable_battery_level",
             "charging_state",
             "charger_power",
+            "charger_actual_current",
+            "charger_voltage",
+            "charger_phases",
             "charge_energy_added",
             "battery_range",
         )
@@ -3752,6 +3780,15 @@ def DayMap(request, hashedVin, day=None):
                 "charging_state": sample.charging_state,
                 "charger_power": float(sample.charger_power)
                 if sample.charger_power is not None
+                else None,
+                "charger_actual_current": float(sample.charger_actual_current)
+                if sample.charger_actual_current is not None
+                else None,
+                "charger_voltage": float(sample.charger_voltage)
+                if sample.charger_voltage is not None
+                else None,
+                "charger_phases": float(sample.charger_phases)
+                if sample.charger_phases is not None
                 else None,
                 "charge_energy_added": float(sample.charge_energy_added)
                 if sample.charge_energy_added is not None
@@ -4139,6 +4176,40 @@ def ResolveAddress(request):
     )
 
 
+@require_GET
+def MatchSupercharger(request):
+    """
+    Async: nearest Tesla Supercharger within ~400 m of lat/lon (if any).
+
+    Day map calls this after paint for DC charge stops only — never blocks
+    the initial HTML. Directory is cached 12 h (supercharge.info).
+
+    Query: ?lat=&lon=
+    JSON: {ok, match: null | {name, power_kw, stalls, distance_m, url, ...}}
+    """
+    try:
+        lat = float(request.GET.get("lat", ""))
+        lon = float(request.GET.get("lon", ""))
+    except (TypeError, ValueError):
+        return JsonResponse(
+            {"ok": False, "error": "invalid_coords"}, status=400
+        )
+    if not (-90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0):
+        return JsonResponse({"ok": False, "error": "out_of_range"}, status=400)
+
+    from matesla.superchargers import nearest_supercharger
+
+    match = nearest_supercharger(lat, lon)
+    return JsonResponse(
+        {
+            "ok": True,
+            "lat": round(lat, 5),
+            "lon": round(lon, 5),
+            "match": match,
+        }
+    )
+
+
 # returns data stored in db for the user is CSV-->the only info from the car
 # we need is the vin to filter results
 def view_AllMyDataAsCSV(request, hashedVin):
@@ -4305,3 +4376,260 @@ def FirmwareHistoryCSV(request, hashedVin):
         f"where \"hashedVin\"='{hashedVin}' order by 2 desc;"
     )
     return PrepareCSVFromQuery(query)
+
+# ---------------------------------------------------------------------------
+# DC fast-charge analytics (power vs SoC, SoC vs time by start SoC)
+# ---------------------------------------------------------------------------
+
+from personalstats.dc_charge import (
+    ENVELOPE_MODES,
+    OUTLIER_MODES,
+    envelope_mode_label,
+    filter_outlier_sessions,
+    load_dc_sessions,
+    outlier_mode_label,
+    power_curve_extreme_rows,
+    power_vs_soc_curve,
+    soc_vs_time_curves,
+    summarize_sessions,
+)
+from matesla.graphstyle import CYAN, render_png
+
+
+def _parse_dc_outlier_mode(raw) -> str:
+    mode = (raw or "robust").strip().lower()
+    return mode if mode in OUTLIER_MODES else "robust"
+
+
+def _parse_dc_envelope_mode(raw) -> str:
+    mode = (raw or "p10_p90").strip().lower()
+    return mode if mode in ENVELOPE_MODES else "p10_p90"
+
+
+def _dc_charge_period_queryset(hashed_vin, weeks: int):
+    base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashed_vin)
+    return _period_filter(base, weeks)
+
+
+def _load_dc_analysis(hashed_vin, weeks: int, outlier_mode: str):
+    """Load DC sessions, filter outliers, build curve payloads + summary."""
+    cache_key = (
+        f"dc_charge_v4:{hashed_vin}:{weeks}:{outlier_mode}:{get_language() or 'en'}"
+    )
+    try:
+        hit = cache.get(cache_key)
+        if hit is not None:
+            return hit
+    except Exception:
+        pass
+
+    queryset = _dc_charge_period_queryset(hashed_vin, weeks)
+    all_sessions = load_dc_sessions(queryset)
+    kept, rejected = filter_outlier_sessions(all_sessions, mode=outlier_mode)
+    power_curve = power_vs_soc_curve(kept)
+    time_curves = soc_vs_time_curves(kept)
+    summary = summarize_sessions(kept, rejected)
+    payload = {
+        "power_curve": power_curve,
+        "time_curves": time_curves,
+        "power_extremes": power_curve_extreme_rows(power_curve),
+        "summary": summary,
+    }
+    try:
+        cache.set(cache_key, payload, GRAPH_PNG_CACHE_SECONDS)
+    except Exception:
+        pass
+    return payload
+
+
+def GenerateDcPowerVsSocGraph(power_curve, title, *, envelope_mode, size="full"):
+    """Median charger power vs SoC with P10–P90 or min/max band."""
+    figure, style_config = make_figure(size)
+    axes = figure.add_subplot(111)
+    if not power_curve:
+        axes.text(
+            0.5,
+            0.5,
+            _("No DC charge samples in this period"),
+            ha="center",
+            va="center",
+            color=MUTED,
+            fontsize=style_config["label_size"],
+            transform=axes.transAxes,
+        )
+        finish_figure(figure, axes, title, style_config)
+        return render_png(figure, size)
+
+    soc = [row["soc"] for row in power_curve]
+    med = [row["median"] for row in power_curve]
+    if envelope_mode == "min_max":
+        lo = [row["min"] for row in power_curve]
+        hi = [row["max"] for row in power_curve]
+        band_label = _("Min–max")
+    else:
+        lo = [row["p10"] for row in power_curve]
+        hi = [row["p90"] for row in power_curve]
+        band_label = _("P10–P90")
+
+    axes.fill_between(soc, lo, hi, color=ACCENT, alpha=0.22, linewidth=0, label=band_label)
+    axes.plot(
+        soc,
+        med,
+        color=ACCENT,
+        linewidth=style_config["linewidth"],
+        marker="o",
+        markersize=style_config["markersize"],
+        label=_("Median kW"),
+    )
+    axes.set_xlabel(_("Battery SoC (%)"))
+    axes.set_ylabel(_("Charger power (kW)"))
+    axes.set_xlim(0, 100)
+    axes.set_ylim(bottom=0)
+    style_legend(axes, style_config)
+    finish_figure(figure, axes, title, style_config)
+    return render_png(figure, size)
+
+
+def GenerateDcSocVsTimeGraph(time_curves, title, size="full"):
+    """Median SoC vs minutes since plug-in; one curve per start-SoC bucket."""
+    figure, style_config = make_figure(size)
+    axes = figure.add_subplot(111)
+    if not time_curves:
+        axes.text(
+            0.5,
+            0.5,
+            _("Not enough DC sessions for start-SoC curves"),
+            ha="center",
+            va="center",
+            color=MUTED,
+            fontsize=style_config["label_size"],
+            transform=axes.transAxes,
+        )
+        finish_figure(figure, axes, title, style_config)
+        return render_png(figure, size)
+
+    # Distinct colors for up to 5 start buckets
+    palette = (ACCENT, WARM, ENERGY, CYAN, DANGER)
+    for index, bucket in enumerate(sorted(time_curves.keys())):
+        series = time_curves[bucket]
+        color = palette[index % len(palette)]
+        label = _("%(start)s%% start · n=%(n)s") % {
+            "start": bucket,
+            "n": series["n_sessions"],
+        }
+        axes.plot(
+            series["times"],
+            series["soc_median"],
+            color=color,
+            linewidth=style_config["linewidth"],
+            label=label,
+        )
+    axes.set_xlabel(_("Minutes since charge start"))
+    axes.set_ylabel(_("Battery SoC (%)"))
+    axes.set_ylim(0, 100)
+    axes.set_xlim(left=0)
+    style_legend(axes, style_config)
+    finish_figure(figure, axes, title, style_config)
+    return render_png(figure, size)
+
+
+@require_GET
+def DCCharge(request, hashedVin):
+    """
+    DC fast-charge profiles: power vs SoC (with envelope) and SoC vs time
+    by arrival SoC. Outlier filter targets V2 sharing and cold crawls.
+    """
+    if not IsValidHash(hashedVin):
+        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+
+    weeks = resolve_stats_period(request)
+    outlier_mode = _parse_dc_outlier_mode(request.GET.get("filter"))
+    envelope_mode = _parse_dc_envelope_mode(request.GET.get("envelope"))
+
+    analysis = _load_dc_analysis(hashedVin, weeks, outlier_mode)
+    summary = analysis["summary"]
+    # Day-map drill-down only useful when the envelope is the actual min/max
+    # (P10–P90 is a statistical band, not a single sample day).
+    power_extremes = (
+        analysis.get("power_extremes") or []
+        if envelope_mode == "min_max"
+        else []
+    )
+
+    context = _vehicle_chrome_context(request, hashedVin)
+    context.update(
+        {
+            "stats_period": weeks,
+            "outlier_mode": outlier_mode,
+            "envelope_mode": envelope_mode,
+            "outlier_mode_label": outlier_mode_label(outlier_mode),
+            "envelope_mode_label": envelope_mode_label(envelope_mode),
+            "summary": summary,
+            "has_power_curve": bool(analysis["power_curve"]),
+            "has_time_curves": bool(analysis["time_curves"]),
+            "power_extremes": power_extremes,
+            "show_power_extremes": bool(power_extremes),
+            "filter_choices": [
+                {"key": "robust", "label": outlier_mode_label("robust")},
+                {"key": "all", "label": outlier_mode_label("all")},
+            ],
+            "envelope_choices": [
+                {"key": "p10_p90", "label": envelope_mode_label("p10_p90")},
+                {"key": "min_max", "label": envelope_mode_label("min_max")},
+            ],
+        }
+    )
+    return render(request, "personalstats/dc_charge.html", context)
+
+
+@require_GET
+def DCChargeGraph(request, hashedVin, chart, desiredperiod):
+    """PNG for DC charge charts: power_vs_soc | soc_vs_time."""
+    if not IsValidHash(hashedVin):
+        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    chart_key = (chart or "").strip().lower()
+    if chart_key not in ("power_vs_soc", "soc_vs_time"):
+        return HttpResponseNotFound("Unknown DC chart " + (chart or ""))
+
+    try:
+        weeks = int(desiredperiod)
+    except (TypeError, ValueError):
+        weeks = 520
+    if weeks < 0:
+        weeks = 0
+
+    outlier_mode = _parse_dc_outlier_mode(request.GET.get("filter"))
+    envelope_mode = _parse_dc_envelope_mode(request.GET.get("envelope"))
+    size = graph_size_from_request(request)
+
+    cache_key = _graph_png_cache_key(
+        hashedVin,
+        f"dc_v4_{chart_key}_{outlier_mode}_{envelope_mode}",
+        weeks,
+        size,
+        kind="dc_charge",
+    )
+    try:
+        hit = cache.get(cache_key)
+    except Exception:
+        hit = None
+    if hit is not None:
+        return _png_response_from_bytes(hit, size, cache_status="HIT")
+
+    analysis = _load_dc_analysis(hashedVin, weeks, outlier_mode)
+    if chart_key == "power_vs_soc":
+        title = _("DC charge power vs battery SoC")
+        response = GenerateDcPowerVsSocGraph(
+            analysis["power_curve"],
+            title,
+            envelope_mode=envelope_mode,
+            size=size,
+        )
+    else:
+        title = _("DC charge: SoC vs time by start SoC")
+        response = GenerateDcSocVsTimeGraph(
+            analysis["time_curves"],
+            title,
+            size=size,
+        )
+    return _cache_graph_png(cache_key, response, size)

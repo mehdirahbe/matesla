@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load l10n %}
 {% load static %}
 
 {% block title %}{% trans 'Day map' %} — {{ day_display }}{% endblock %}
@@ -25,6 +26,23 @@
     }
     .daymap-page .page-title--compact {
         font-size: clamp(1.25rem, 2.4vw, 1.65rem);
+    }
+    .daymap-charge-place .daymap-sc-link {
+        display: inline-block;
+        margin-top: 4px;
+        margin-right: 0.5rem;
+        padding: 1px 8px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #8ec8ff;
+        background: rgba(77, 180, 255, 0.12);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .daymap-charge-place .daymap-sc-link:hover {
+        text-decoration: underline;
+        color: #b8deff;
     }
     .daymap-page .page-subtitle {
         margin-top: 4px;
@@ -352,6 +370,7 @@
             <th>{% trans 'SoC end' %}</th>
             <th>{% trans 'SoC added' %}</th>
             <th>{% trans 'kWh added' %}</th>
+            <th>{% trans 'Min power' %}</th>
             <th>{% trans 'Max power' %}</th>
             <th>{% trans 'Address' %}</th>
         </tr>
@@ -366,8 +385,17 @@
             <td>{% if c.soc_end is not None %}{{ c.soc_end|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if c.soc_added is not None %}+{{ c.soc_added|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if c.kwh_added is not None %}{{ c.kwh_added|floatformat:2 }} kWh{% else %}—{% endif %}</td>
+            <td>{% if c.min_power_kw is not None %}{{ c.min_power_kw|floatformat:1 }} kW{% else %}—{% endif %}</td>
             <td>{% if c.max_power_kw is not None %}{{ c.max_power_kw|floatformat:1 }} kW{% else %}—{% endif %}</td>
-            <td class="small">{% include 'personalstats/_gmaps_link.html' with lat=c.lat lon=c.lon label=c.address %}</td>
+            <td class="small daymap-charge-place">
+                {% include 'personalstats/_gmaps_link.html' with lat=c.lat lon=c.lon label=c.address %}
+                {% if c.is_dc_candidate and c.lat is not None and c.lon is not None %}
+                <span class="daymap-sc-slot"
+                      data-sc-match="1"
+                      data-lat="{% localize off %}{{ c.lat }}{% endlocalize %}"
+                      data-lon="{% localize off %}{{ c.lon }}{% endlocalize %}"></span>
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
         </tbody>
@@ -443,6 +471,67 @@
                 });
         }
         next();
+    }
+
+    // --- Async Supercharger match (DC stops only; never blocks first paint) ---
+    var scMatchUrl = "{% url 'PersoMatchSupercharger' %}";
+    var scLabelSupercharger = "{% filter escapejs %}{% trans 'Supercharger' %}{% endfilter %}";
+    var scSlots = document.querySelectorAll('[data-sc-match="1"]');
+    if (scSlots.length) {
+        var scQueue = [];
+        var scSeen = {};
+        scSlots.forEach(function (el) {
+            var key = el.getAttribute('data-lat') + ',' + el.getAttribute('data-lon');
+            if (!scSeen[key]) {
+                scSeen[key] = true;
+                scQueue.push({
+                    lat: el.getAttribute('data-lat'),
+                    lon: el.getAttribute('data-lon')
+                });
+            }
+        });
+        function applySupercharger(lat, lon, match) {
+            if (!match || !match.url) return;
+            document.querySelectorAll('[data-sc-match="1"]').forEach(function (el) {
+                if (el.getAttribute('data-lat') !== lat || el.getAttribute('data-lon') !== lon) {
+                    return;
+                }
+                if (el.getAttribute('data-sc-done') === '1') return;
+                el.setAttribute('data-sc-done', '1');
+                var label = scLabelSupercharger;
+                if (match.power_kw) {
+                    label += ' · ' + match.power_kw + ' kW';
+                }
+                if (match.name) {
+                    label += ' — ' + match.name;
+                }
+                var a = document.createElement('a');
+                a.className = 'daymap-sc-link';
+                a.href = match.url;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                a.title = match.name || scLabelSupercharger;
+                a.textContent = label;
+                el.appendChild(a);
+            });
+        }
+        function scNext() {
+            if (!scQueue.length) return;
+            var item = scQueue.shift();
+            var url = scMatchUrl
+                + '?lat=' + encodeURIComponent(item.lat)
+                + '&lon=' + encodeURIComponent(item.lon);
+            fetch(url, { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data && data.ok && data.match) {
+                        applySupercharger(item.lat, item.lon, data.match);
+                    }
+                })
+                .catch(function () { /* no badge */ })
+                .finally(function () { setTimeout(scNext, 30); });
+        }
+        scNext();
     }
 
     {% if has_gps %}

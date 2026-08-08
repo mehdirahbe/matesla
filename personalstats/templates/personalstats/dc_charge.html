@@ -1,0 +1,478 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans 'DC charge' %}{% endblock %}
+
+{% block cssstyle %}
+    .dc-page .vehicle-chrome { margin-bottom: 12px; }
+    .dc-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--app-line, #2a3548);
+        background: var(--app-surface, #121a28);
+    }
+    .dc-toolbar form {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 0.65rem 0.85rem;
+        margin: 0;
+        width: 100%;
+    }
+    .dc-toolbar label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--app-muted, #8b9bb4);
+        margin-bottom: 4px;
+    }
+    .dc-toolbar .form-control,
+    .dc-toolbar select {
+        min-height: 36px;
+        width: auto;
+        max-width: 18rem;
+    }
+    .dc-toolbar .btn { min-height: 36px; }
+    .dc-meta {
+        margin-bottom: 0.85rem;
+        font-size: 0.9rem;
+        color: var(--app-muted, #8b9bb4);
+    }
+    .dc-kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+        gap: 0.65rem;
+        margin-bottom: 1.1rem;
+    }
+    .dc-kpi {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--app-line, #2a3548);
+        background: var(--app-surface, #121a28);
+    }
+    .dc-kpi__label {
+        display: block;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--app-muted, #8b9bb4);
+        margin-bottom: 4px;
+    }
+    .dc-kpi__value {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--app-text, #eef4ff);
+    }
+    .dc-charts {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    @media (min-width: 960px) {
+        .dc-charts {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    .dc-page .graph-card {
+        margin: 0;
+    }
+    .dc-page .graph-card__blurb {
+        margin: 0 0 0.65rem;
+        padding: 0 2px;
+        font-size: 0.85rem;
+        color: var(--app-muted, #8b9bb4);
+        line-height: 1.35;
+    }
+    .dc-note {
+        font-size: 0.85rem;
+        color: var(--app-muted, #8b9bb4);
+        margin-top: 0.5rem;
+    }
+    .dc-extremes {
+        margin: 0 0 1.25rem;
+        padding: 12px 14px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--app-line, #2a3548);
+        background: var(--app-surface, #121a28);
+    }
+    .dc-extremes h2 {
+        margin: 0 0 0.35rem;
+        font-size: 1.05rem;
+        color: var(--app-text, #eef4ff);
+    }
+    .dc-extremes > p {
+        margin: 0 0 0.75rem;
+        font-size: 0.88rem;
+        color: var(--app-muted, #8b9bb4);
+    }
+    .dc-extremes-wrap {
+        max-height: 22rem;
+        overflow: auto;
+        border-radius: 8px;
+        border: 1px solid var(--app-line, #2a3548);
+    }
+    .dc-extremes-table {
+        width: 100%;
+        margin: 0;
+        font-size: 0.86rem;
+        border-collapse: collapse;
+    }
+    .dc-extremes-table th,
+    .dc-extremes-table td {
+        padding: 7px 10px;
+        text-align: left;
+        white-space: nowrap;
+        border-bottom: 1px solid var(--app-line, #2a3548);
+    }
+    .dc-extremes-table th {
+        position: sticky;
+        top: 0;
+        background: #162338;
+        color: var(--app-muted, #8b9bb4);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        z-index: 1;
+    }
+    .dc-extremes-table tr:hover td {
+        background: rgba(77, 180, 255, 0.06);
+    }
+    .dc-extremes-table a {
+        color: var(--app-accent, #4db4ff);
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .dc-extremes-table a:hover {
+        text-decoration: underline;
+    }
+    .dc-kind {
+        display: inline-block;
+        min-width: 2.4rem;
+        padding: 1px 6px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+    .dc-kind--min {
+        color: #8ec8ff;
+        background: rgba(77, 180, 255, 0.12);
+    }
+    .dc-kind--max {
+        color: #ffc48a;
+        background: rgba(240, 180, 41, 0.14);
+    }
+{% endblock %}
+
+{% block content %}
+<div class="dc-page">
+{% include 'matesla/_vehicle_chrome.html' %}
+
+<div class="dc-toolbar">
+    <form method="get" action="{% url 'PersoDCCharge' hashedVin %}" id="dc-form">
+        <div>
+            <label for="dc-period">{% trans 'Period' %}</label>
+            <select name="period" id="dc-period" class="form-control" onchange="this.form.submit()">
+                <option value="1" {% if stats_period == 1 %}selected{% endif %}>{% trans '1 Week' %}</option>
+                <option value="2" {% if stats_period == 2 %}selected{% endif %}>{% trans '2 Weeks' %}</option>
+                <option value="4" {% if stats_period == 4 %}selected{% endif %}>{% trans '1 Month' %}</option>
+                <option value="13" {% if stats_period == 13 %}selected{% endif %}>{% trans '3 Months' %}</option>
+                <option value="26" {% if stats_period == 26 %}selected{% endif %}>{% trans '6 Months' %}</option>
+                <option value="52" {% if stats_period == 52 %}selected{% endif %}>{% trans '1 Year' %}</option>
+                <option value="104" {% if stats_period == 104 %}selected{% endif %}>{% trans '2 Years' %}</option>
+                <option value="260" {% if stats_period == 260 %}selected{% endif %}>{% trans '5 Years' %}</option>
+                <option value="520" {% if stats_period == 520 %}selected{% endif %}>{% trans '10 Years' %}</option>
+            </select>
+        </div>
+        <div>
+            <label for="dc-filter">{% trans 'Sessions' %}</label>
+            <select name="filter" id="dc-filter" class="form-control" onchange="this.form.submit()">
+                {% for choice in filter_choices %}
+                <option value="{{ choice.key }}" {% if outlier_mode == choice.key %}selected{% endif %}>{{ choice.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="dc-envelope">{% trans 'Envelope' %}</label>
+            <select name="envelope" id="dc-envelope" class="form-control" onchange="this.form.submit()">
+                {% for choice in envelope_choices %}
+                <option value="{{ choice.key }}" {% if envelope_mode == choice.key %}selected{% endif %}>{{ choice.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <noscript><button type="submit" class="btn btn-secondary">{% trans 'Apply' %}</button></noscript>
+    </form>
+</div>
+
+<div class="dc-meta">
+    {% blocktrans with filter=outlier_mode_label envelope=envelope_mode_label %}
+    DC Supercharging profiles for this vehicle. Filter: {{ filter }}. Envelope: {{ envelope }}.
+    {% endblocktrans %}
+</div>
+
+<div class="dc-kpis">
+    <div class="dc-kpi">
+        <span class="dc-kpi__label">{% trans 'DC sessions kept' %}</span>
+        <span class="dc-kpi__value">{{ summary.n_kept }}</span>
+    </div>
+    <div class="dc-kpi">
+        <span class="dc-kpi__label">{% trans 'Filtered out' %}</span>
+        <span class="dc-kpi__value">{{ summary.n_rejected }}</span>
+    </div>
+    <div class="dc-kpi">
+        <span class="dc-kpi__label">{% trans 'Median peak' %}</span>
+        <span class="dc-kpi__value">{% if summary.peak_median_kw %}{{ summary.peak_median_kw|floatformat:0 }} kW{% else %}—{% endif %}</span>
+    </div>
+    <div class="dc-kpi">
+        <span class="dc-kpi__label">{% trans 'Max peak' %}</span>
+        <span class="dc-kpi__value">{% if summary.peak_max_kw %}{{ summary.peak_max_kw|floatformat:0 }} kW{% else %}—{% endif %}</span>
+    </div>
+</div>
+
+<div class="dc-charts">
+    <article class="graph-card" data-graph-card="power_vs_soc">
+        <header class="graph-card__header">
+            <div>
+                <span class="graph-card__index">{% trans '01 · POWER' %}</span>
+                <h2>{% trans 'Power vs battery SoC' %}</h2>
+            </div>
+            <button type="button" class="graph-card__expand" data-graph-expand
+                    title="{% trans 'Expand' %}" aria-label="{% trans 'Expand chart' %}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"/>
+                </svg>
+            </button>
+        </header>
+        <p class="graph-card__blurb">{% trans 'Median charger power at each state of charge. Band shows typical spread (or min/max).' %}</p>
+        <div class="graph-card__media" data-graph-media>
+            <img
+                src="{% url 'PersoDCChargeGraph' hashedVin 'power_vs_soc' stats_period %}?filter={{ outlier_mode }}&envelope={{ envelope_mode }}&size=thumb"
+                alt="{% trans 'DC charge power versus battery SoC' %}"
+                loading="lazy"
+                width="700"
+                height="305">
+        </div>
+    </article>
+
+    <article class="graph-card" data-graph-card="soc_vs_time">
+        <header class="graph-card__header">
+            <div>
+                <span class="graph-card__index">{% trans '02 · TIME' %}</span>
+                <h2>{% trans 'SoC vs time by start SoC' %}</h2>
+            </div>
+            <button type="button" class="graph-card__expand" data-graph-expand
+                    title="{% trans 'Expand' %}" aria-label="{% trans 'Expand chart' %}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"/>
+                </svg>
+            </button>
+        </header>
+        <p class="graph-card__blurb">{% trans 'How fast the pack climbs when a DC session starts near 10%, 20%, … One median curve per arrival bucket.' %}</p>
+        <div class="graph-card__media" data-graph-media>
+            <img
+                src="{% url 'PersoDCChargeGraph' hashedVin 'soc_vs_time' stats_period %}?filter={{ outlier_mode }}&envelope={{ envelope_mode }}&size=thumb"
+                alt="{% trans 'DC charge SoC versus time by start SoC' %}"
+                loading="lazy"
+                width="700"
+                height="305">
+        </div>
+    </article>
+</div>
+
+{% if show_power_extremes %}
+<section class="dc-extremes" aria-labelledby="dc-extremes-title">
+    <h2 id="dc-extremes-title">{% trans 'Min / max samples → day map' %}</h2>
+    <p>
+        {% blocktrans %}
+        Each edge of the min–max envelope is one real sample. Open the day map for that day
+        to see the full charge (and what else the car was doing).
+        {% endblocktrans %}
+    </p>
+    <div class="dc-extremes-wrap">
+        <table class="dc-extremes-table">
+            <thead>
+                <tr>
+                    <th>{% trans 'Edge' %}</th>
+                    <th>{% trans 'SoC bin' %}</th>
+                    <th>{% trans 'SoC' %}</th>
+                    <th>{% trans 'Power' %}</th>
+                    <th>{% trans 'Day map' %}</th>
+                    <th>{% trans 'n in bin' %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in power_extremes %}
+                <tr>
+                    <td>
+                        {% if row.kind == 'min' %}
+                        <span class="dc-kind dc-kind--min">{% trans 'Min' %}</span>
+                        {% else %}
+                        <span class="dc-kind dc-kind--max">{% trans 'Max' %}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ row.soc_bin|floatformat:0 }}%</td>
+                    <td>{{ row.soc|floatformat:1 }}%</td>
+                    <td>{{ row.power_kw|floatformat:0 }} kW</td>
+                    <td>
+                        <a href="{% url 'PersoDayMapDay' hashedVin row.day_iso %}"
+                           title="{% trans 'Open day map for this charge day' %}">
+                            {{ row.day_iso }}
+                        </a>
+                    </td>
+                    <td>{{ row.n }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% elif envelope_mode == 'p10_p90' %}
+<p class="dc-note">
+    {% trans 'Tip: switch Envelope to Min / max to get day-map links for the samples that form the band edges.' %}
+</p>
+{% endif %}
+
+<p class="dc-note">
+    {% blocktrans %}
+    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast charger) are used —
+    home AC and destination charging are excluded. The first ~2 minutes of each session (and any
+    early sample still far below that session’s peak) are dropped so Supercharger power-ramp
+    samples do not pull the curve down. Robust filter further drops sessions with unusually low
+    peak power (typical of V2 stall sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls
+    are not separated: the car caps at its max power either way.
+    {% endblocktrans %}
+</p>
+</div>
+
+{# Same expand overlay as My data (full-size PNG) #}
+<div class="graph-lightbox" id="graph-lightbox" hidden>
+    <div class="graph-lightbox__backdrop" data-graph-close tabindex="-1"></div>
+    <div class="graph-lightbox__dialog" role="dialog" aria-modal="true" aria-labelledby="graph-lightbox-title">
+        <header class="graph-lightbox__header">
+            <div>
+                <p class="graph-lightbox__eyebrow" id="graph-lightbox-index"></p>
+                <h2 class="graph-lightbox__title" id="graph-lightbox-title"></h2>
+            </div>
+            <button type="button" class="graph-lightbox__close" data-graph-close
+                    title="{% trans 'Close' %}" aria-label="{% trans 'Close' %}">×</button>
+        </header>
+        <div class="graph-lightbox__media">
+            <img id="graph-lightbox-img" alt="">
+        </div>
+        <p class="graph-lightbox__hint text-muted">{% trans 'Press Esc or click outside to close.' %}</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+function withGraphSize(url, size) {
+    if (!url) return url;
+    try {
+        var u = new URL(url, window.location.origin);
+        u.searchParams.set("size", size);
+        return u.pathname + u.search + u.hash;
+    } catch (e) {
+        var hash = "";
+        var base = url;
+        var hi = url.indexOf("#");
+        if (hi >= 0) {
+            hash = url.slice(hi);
+            base = url.slice(0, hi);
+        }
+        if (/([?&])size=/.test(base)) {
+            base = base.replace(/([?&])size=[^&]*/, "$1size=" + size);
+        } else {
+            base += (base.indexOf("?") >= 0 ? "&" : "?") + "size=" + size;
+        }
+        return base + hash;
+    }
+}
+
+function graphImageUrl(img) {
+    if (!img) return "";
+    return img.currentSrc || img.src || img.getAttribute("data-src") || "";
+}
+
+function ensureLightboxOnBody(lightbox) {
+    if (lightbox && lightbox.parentNode !== document.body) {
+        document.body.appendChild(lightbox);
+    }
+}
+
+function openGraphLightbox(card) {
+    var lightbox = document.getElementById("graph-lightbox");
+    var lightImg = document.getElementById("graph-lightbox-img");
+    if (!lightbox || !lightImg || !card) return;
+
+    var titleEl = card.querySelector(".graph-card__header h2");
+    var indexEl = card.querySelector(".graph-card__index");
+    var img = card.querySelector(".graph-card__media img");
+    var url = graphImageUrl(img);
+    if (!url) return;
+
+    ensureLightboxOnBody(lightbox);
+    document.getElementById("graph-lightbox-title").textContent =
+        titleEl ? titleEl.textContent.trim() : "";
+    document.getElementById("graph-lightbox-index").textContent =
+        indexEl ? indexEl.textContent.trim() : "";
+    lightImg.alt = img ? (img.alt || "") : "";
+    lightImg.src = withGraphSize(url, "full");
+
+    lightbox.hidden = false;
+    document.body.classList.add("graph-lightbox-open");
+
+    var dialog = lightbox.querySelector(".graph-lightbox__dialog");
+    if (dialog) {
+        var media = lightbox.querySelector(".graph-lightbox__media");
+        if (media) media.scrollTop = 0;
+        dialog.scrollIntoView({ block: "center", inline: "nearest", behavior: "auto" });
+    }
+    var closeBtn = lightbox.querySelector(".graph-lightbox__close");
+    if (closeBtn) closeBtn.focus();
+}
+
+function closeGraphLightbox() {
+    var lightbox = document.getElementById("graph-lightbox");
+    if (!lightbox || lightbox.hidden) return;
+    lightbox.hidden = true;
+    document.body.classList.remove("graph-lightbox-open");
+    var lightImg = document.getElementById("graph-lightbox-img");
+    if (lightImg) lightImg.removeAttribute("src");
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    ensureLightboxOnBody(document.getElementById("graph-lightbox"));
+    document.querySelectorAll("[data-graph-expand]").forEach(function (btn) {
+        btn.addEventListener("click", function (ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            openGraphLightbox(btn.closest("[data-graph-card]"));
+        });
+    });
+    document.querySelectorAll("[data-graph-media]").forEach(function (media) {
+        media.addEventListener("click", function () {
+            openGraphLightbox(media.closest("[data-graph-card]"));
+        });
+    });
+    document.querySelectorAll("[data-graph-close]").forEach(function (el) {
+        el.addEventListener("click", function (ev) {
+            ev.preventDefault();
+            closeGraphLightbox();
+        });
+    });
+    document.addEventListener("keydown", function (ev) {
+        if (ev.key === "Escape") closeGraphLightbox();
+    });
+});
+</script>
+{% endblock %}

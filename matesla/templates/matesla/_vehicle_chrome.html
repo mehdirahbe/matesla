@@ -11,6 +11,11 @@
         <input type="hidden" name="next" value="drives">
         <input type="hidden" name="period" value="{{ stats_period|default:520 }}">
         <input type="hidden" name="sort" value="{{ sort_key|default:'longest' }}">
+        {% elif request.resolver_match.url_name == 'PersoDCCharge' %}
+        <input type="hidden" name="next" value="dccharge">
+        <input type="hidden" name="period" value="{{ stats_period|default:520 }}">
+        <input type="hidden" name="filter" value="{{ outlier_mode|default:'robust' }}">
+        <input type="hidden" name="envelope" value="{{ envelope_mode|default:'p10_p90' }}">
         {% elif request.resolver_match.url_name == 'PersoStats' %}
         <input type="hidden" name="next" value="stats">
         <input type="hidden" name="period" id="vehicle_switch_period" value="{{ stats_period|default:520 }}">
@@ -55,6 +60,7 @@
         <a href="{% url 'PersoStats' hashedVin %}" {% if request.resolver_match.url_name == 'PersoStats' %}aria-current="page"{% endif %}>{% trans 'My data' %}</a>
         <a href="{% url 'PersoDayMap' hashedVin %}" {% if request.resolver_match.url_name == 'PersoDayMap' or request.resolver_match.url_name == 'PersoDayMapDay' %}aria-current="page"{% endif %}>{% trans 'Day map' %}</a>
         <a href="{% url 'PersoDrives' hashedVin %}" {% if request.resolver_match.url_name == 'PersoDrives' %}aria-current="page"{% endif %}>{% trans 'Drives' %}</a>
+        <a href="{% url 'PersoDCCharge' hashedVin %}" {% if request.resolver_match.url_name == 'PersoDCCharge' %}aria-current="page"{% endif %}>{% trans 'DC charge' %}</a>
         <a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}" {% if request.resolver_match.url_name == 'PersoStatsFirmwareHistory' %}aria-current="page"{% endif %}>{% trans 'Firmware history' %}</a>
         {% endif %}
         {% if allow_writes %}

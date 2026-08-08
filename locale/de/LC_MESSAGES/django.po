@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-05 18:53+0000\n"
+"POT-Creation-Date: 2026-08-08 14:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: MaTesla i18n <noreply@matesla.local>\n"
 "Language-Team: Deutsch <LL@li.org>\n"
@@ -227,7 +227,7 @@ msgstr "Öffentlicher Schlüssel und Region"
 #: matesla/templates/matesla/ConnectionError.html:14
 #: matesla/templates/matesla/NoTeslaVehicules.html:13
 #: matesla/templates/matesla/TeslaServerError.html:14
-#: matesla/templates/matesla/_vehicle_chrome.html:61 templates/base.html:38
+#: matesla/templates/matesla/_vehicle_chrome.html:67 templates/base.html:38
 #: templates/base.html:64
 msgid "Tesla account"
 msgstr "Tesla-Konto"
@@ -513,19 +513,19 @@ msgstr "Ihr Auto"
 #: matesla/templates/matesla/_carstatus_body.html:18
 #: matesla/templates/matesla/_carstatus_body.html:22
 #: matesla/templates/matesla/_carstatus_body.html:96
-#: matesla/templates/matesla/_vehicle_chrome.html:27
+#: matesla/templates/matesla/_vehicle_chrome.html:32
 msgid "online"
 msgstr "online"
 
 #: matesla/templates/matesla/_carstatus_body.html:19
 #: matesla/templates/matesla/_carstatus_body.html:97
-#: matesla/templates/matesla/_vehicle_chrome.html:28
+#: matesla/templates/matesla/_vehicle_chrome.html:33
 msgid "asleep"
 msgstr "schlafend"
 
 #: matesla/templates/matesla/_carstatus_body.html:20
 #: matesla/templates/matesla/_carstatus_body.html:98
-#: matesla/templates/matesla/_vehicle_chrome.html:29
+#: matesla/templates/matesla/_vehicle_chrome.html:34
 msgid "offline"
 msgstr "offline"
 
@@ -753,43 +753,49 @@ msgstr "Verlauf"
 msgid "View history"
 msgstr "Verlauf anzeigen"
 
-#: matesla/templates/matesla/_vehicle_chrome.html:22
-#: matesla/templates/matesla/_vehicle_chrome.html:41
+#: matesla/templates/matesla/_vehicle_chrome.html:27
+#: matesla/templates/matesla/_vehicle_chrome.html:46
 msgid "Vehicle"
 msgstr "Fahrzeug"
 
-#: matesla/templates/matesla/_vehicle_chrome.html:35
+#: matesla/templates/matesla/_vehicle_chrome.html:40
 msgid "OK"
 msgstr "OK"
 
-#: matesla/templates/matesla/_vehicle_chrome.html:52
+#: matesla/templates/matesla/_vehicle_chrome.html:57
 msgid "Vehicle shortcuts"
 msgstr "Fahrzeug-Shortcuts"
 
-#: matesla/templates/matesla/_vehicle_chrome.html:53
+#: matesla/templates/matesla/_vehicle_chrome.html:58
 msgid "Status"
 msgstr "Status"
 
-#: matesla/templates/matesla/_vehicle_chrome.html:55
+#: matesla/templates/matesla/_vehicle_chrome.html:60
 msgid "My data"
 msgstr "Meine Daten"
 
-#: matesla/templates/matesla/_vehicle_chrome.html:56
-#: personalstats/templates/personalstats/daymap.html:5
-#: personalstats/templates/personalstats/daymap.html:201
+#: matesla/templates/matesla/_vehicle_chrome.html:61
+#: personalstats/templates/personalstats/daymap.html:6
+#: personalstats/templates/personalstats/daymap.html:219
+#: personalstats/templates/personalstats/dc_charge.html:308
 msgid "Day map"
 msgstr "Tageskarte"
 
-#: matesla/templates/matesla/_vehicle_chrome.html:57
+#: matesla/templates/matesla/_vehicle_chrome.html:62
 #: personalstats/templates/personalstats/_carstats_body.html:212
-#: personalstats/templates/personalstats/daymap.html:235
-#: personalstats/templates/personalstats/daymap.html:293
+#: personalstats/templates/personalstats/daymap.html:253
+#: personalstats/templates/personalstats/daymap.html:311
 #: personalstats/templates/personalstats/drives.html:5
 #: personalstats/templates/personalstats/drives.html:111
 msgid "Drives"
 msgstr "Fahrten"
 
-#: matesla/templates/matesla/_vehicle_chrome.html:58
+#: matesla/templates/matesla/_vehicle_chrome.html:63
+#: personalstats/templates/personalstats/dc_charge.html:5
+msgid "DC charge"
+msgstr "DC-Laden"
+
+#: matesla/templates/matesla/_vehicle_chrome.html:64
 #: personalstats/templates/personalstats/FirmwareHistory.html:5
 #: personalstats/templates/personalstats/FirmwareHistory.html:12
 #: templates/registration/login.html:82 templates/registration/login.html:85
@@ -1017,33 +1023,49 @@ msgstr "Unerwarteter Fehler: %(err)s"
 msgid "Unknown vehicle."
 msgstr "Unbekanntes Fahrzeug."
 
-#: mysite/settings.py:262
+#: mysite/settings.py:265
 msgid "English"
 msgstr "English"
 
-#: mysite/settings.py:263
+#: mysite/settings.py:266
 msgid "Français"
 msgstr "Français"
 
-#: mysite/settings.py:264
+#: mysite/settings.py:267
 msgid "Espanol"
 msgstr "Espanol"
 
-#: mysite/settings.py:265
+#: mysite/settings.py:268
 msgid "Deutsch"
 msgstr "Deutsch"
 
-#: mysite/settings.py:266
+#: mysite/settings.py:269
 msgid "Nederlands"
 msgstr "Nederlands"
 
-#: mysite/settings.py:267
+#: mysite/settings.py:270
 msgid "Norsk"
 msgstr "Norsk"
 
 #: mysite/writable_access.py:104
 msgid "Write operations are only allowed from the local server."
 msgstr "Schreibvorgänge sind nur vom lokalen Server erlaubt."
+
+#: personalstats/dc_charge.py:687
+msgid "All DC sessions"
+msgstr "Alle DC-Sitzungen"
+
+#: personalstats/dc_charge.py:688
+msgid "Robust (drop V2 share / cold crawl)"
+msgstr "Robust (ohne V2-Teilen / Kaltstart)"
+
+#: personalstats/dc_charge.py:693
+msgid "Min / max"
+msgstr "Min / Max"
+
+#: personalstats/dc_charge.py:694
+msgid "P10–P90 band"
+msgstr "P10–P90-Band"
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:11
 #: personalstats/templates/personalstats/FirmwareHistory.html:19
@@ -1087,51 +1109,61 @@ msgid "Current"
 msgstr "Aktuell"
 
 #: personalstats/templates/personalstats/_carstats_body.html:11
+#: personalstats/templates/personalstats/dc_charge.html:183
 #: personalstats/templates/personalstats/drives.html:124
 msgid "Period"
 msgstr "Zeitraum"
 
 #: personalstats/templates/personalstats/_carstats_body.html:13
+#: personalstats/templates/personalstats/dc_charge.html:185
 #: personalstats/templates/personalstats/drives.html:126
 msgid "1 Week"
 msgstr "1 Woche"
 
 #: personalstats/templates/personalstats/_carstats_body.html:14
+#: personalstats/templates/personalstats/dc_charge.html:186
 #: personalstats/templates/personalstats/drives.html:127
 msgid "2 Weeks"
 msgstr "2 Wochen"
 
 #: personalstats/templates/personalstats/_carstats_body.html:15
+#: personalstats/templates/personalstats/dc_charge.html:187
 #: personalstats/templates/personalstats/drives.html:128
 msgid "1 Month"
 msgstr "1 Monat"
 
 #: personalstats/templates/personalstats/_carstats_body.html:16
+#: personalstats/templates/personalstats/dc_charge.html:188
 #: personalstats/templates/personalstats/drives.html:129
 msgid "3 Months"
 msgstr "3 Monate"
 
 #: personalstats/templates/personalstats/_carstats_body.html:17
+#: personalstats/templates/personalstats/dc_charge.html:189
 #: personalstats/templates/personalstats/drives.html:130
 msgid "6 Months"
 msgstr "6 Monate"
 
 #: personalstats/templates/personalstats/_carstats_body.html:18
+#: personalstats/templates/personalstats/dc_charge.html:190
 #: personalstats/templates/personalstats/drives.html:131
 msgid "1 Year"
 msgstr "1 Jahr"
 
 #: personalstats/templates/personalstats/_carstats_body.html:19
+#: personalstats/templates/personalstats/dc_charge.html:191
 #: personalstats/templates/personalstats/drives.html:132
 msgid "2 Years"
 msgstr "2 Jahre"
 
 #: personalstats/templates/personalstats/_carstats_body.html:20
+#: personalstats/templates/personalstats/dc_charge.html:192
 #: personalstats/templates/personalstats/drives.html:133
 msgid "5 Years"
 msgstr "5 Jahre"
 
 #: personalstats/templates/personalstats/_carstats_body.html:21
+#: personalstats/templates/personalstats/dc_charge.html:193
 #: personalstats/templates/personalstats/drives.html:134
 msgid "10 Years"
 msgstr "10 Jahre"
@@ -1156,6 +1188,8 @@ msgstr "Diagramme zur Batteriedegradation"
 #: personalstats/templates/personalstats/_carstats_body.html:117
 #: personalstats/templates/personalstats/_carstats_body.html:143
 #: personalstats/templates/personalstats/_carstats_body.html:170
+#: personalstats/templates/personalstats/dc_charge.html:249
+#: personalstats/templates/personalstats/dc_charge.html:273
 msgid "Expand"
 msgstr "Erweitern"
 
@@ -1165,6 +1199,8 @@ msgstr "Erweitern"
 #: personalstats/templates/personalstats/_carstats_body.html:117
 #: personalstats/templates/personalstats/_carstats_body.html:143
 #: personalstats/templates/personalstats/_carstats_body.html:170
+#: personalstats/templates/personalstats/dc_charge.html:249
+#: personalstats/templates/personalstats/dc_charge.html:273
 msgid "Expand chart"
 msgstr "Diagramm erweitern"
 
@@ -1269,7 +1305,7 @@ msgstr "GPS-Spuren und Fahrt-Summen für den gewählten Zeitraum."
 #: personalstats/templates/personalstats/_carstats_body.html:202
 #: personalstats/templates/personalstats/_carstats_body.html:203
 #: personalstats/templates/personalstats/_carstats_js.html:470
-#: personalstats/templates/personalstats/daymap.html:478
+#: personalstats/templates/personalstats/daymap.html:567
 msgid "Fullscreen map"
 msgstr "Vollbildkarte"
 
@@ -1295,8 +1331,8 @@ msgid "kWh used"
 msgstr "Verbrauchte kWh"
 
 #: personalstats/templates/personalstats/_carstats_body.html:236
-#: personalstats/templates/personalstats/daymap.html:256
-#: personalstats/templates/personalstats/daymap.html:302
+#: personalstats/templates/personalstats/daymap.html:274
+#: personalstats/templates/personalstats/daymap.html:320
 #: personalstats/templates/personalstats/drives.html:183
 msgid "Avg speed"
 msgstr "Ø-Geschwindigkeit"
@@ -1319,10 +1355,12 @@ msgid "Loading map…"
 msgstr "Karte wird geladen…"
 
 #: personalstats/templates/personalstats/_carstats_body.html:269
+#: personalstats/templates/personalstats/dc_charge.html:366
 msgid "Close"
 msgstr "Schließen"
 
 #: personalstats/templates/personalstats/_carstats_body.html:274
+#: personalstats/templates/personalstats/dc_charge.html:371
 msgid "Press Esc or click outside to close."
 msgstr "Esc drücken oder außerhalb klicken zum Schließen."
 
@@ -1347,7 +1385,7 @@ msgid "min"
 msgstr "min"
 
 #: personalstats/templates/personalstats/_carstats_js.html:471
-#: personalstats/templates/personalstats/daymap.html:479
+#: personalstats/templates/personalstats/daymap.html:568
 msgid "Exit fullscreen"
 msgstr "Vollbild beenden"
 
@@ -1368,112 +1406,112 @@ msgstr ""
 "Verstehen Sie, wie sich Ihr Auto über Batterie-, Lade-, Klima- und "
 "Fahrtverlauf entwickelt."
 
-#: personalstats/templates/personalstats/daymap.html:195
+#: personalstats/templates/personalstats/daymap.html:213
 msgid "Journey replay"
 msgstr "Fahrtwiedergabe"
 
-#: personalstats/templates/personalstats/daymap.html:196
+#: personalstats/templates/personalstats/daymap.html:214
 msgid "Where was the car"
 msgstr "Wo war das Auto"
 
-#: personalstats/templates/personalstats/daymap.html:197
+#: personalstats/templates/personalstats/daymap.html:215
 msgid "drives, charges and GPS points"
 msgstr "Fahrten, Ladungen und GPS-Punkte"
 
-#: personalstats/templates/personalstats/daymap.html:204
+#: personalstats/templates/personalstats/daymap.html:222
 msgid "Previous day"
 msgstr "Vorheriger Tag"
 
-#: personalstats/templates/personalstats/daymap.html:205
+#: personalstats/templates/personalstats/daymap.html:223
 #: personalstats/templates/personalstats/drives.html:190
 msgid "Date"
 msgstr "Date"
 
-#: personalstats/templates/personalstats/daymap.html:208
+#: personalstats/templates/personalstats/daymap.html:226
 msgid "Pick a date"
 msgstr "Datum wählen"
 
-#: personalstats/templates/personalstats/daymap.html:209
+#: personalstats/templates/personalstats/daymap.html:227
 msgid "Go"
 msgstr "Los"
 
-#: personalstats/templates/personalstats/daymap.html:210
+#: personalstats/templates/personalstats/daymap.html:228
 msgid "Next day"
 msgstr "Nächster Tag"
 
-#: personalstats/templates/personalstats/daymap.html:224
+#: personalstats/templates/personalstats/daymap.html:242
 msgid "No GPS points for this day (telemetry only)."
 msgstr "Keine GPS-Punkte für diesen Tag (nur Telemetrie)."
 
-#: personalstats/templates/personalstats/daymap.html:228
+#: personalstats/templates/personalstats/daymap.html:246
 msgid "GPS points"
 msgstr "GPS-Punkte"
 
-#: personalstats/templates/personalstats/daymap.html:230
+#: personalstats/templates/personalstats/daymap.html:248
 #, python-format
 msgid "%(n)s drawn on map"
 msgstr "%(n)s auf der Karte"
 
-#: personalstats/templates/personalstats/daymap.html:233
+#: personalstats/templates/personalstats/daymap.html:251
 msgid "Track"
 msgstr "Spur"
 
-#: personalstats/templates/personalstats/daymap.html:236
+#: personalstats/templates/personalstats/daymap.html:254
 msgid "Charges"
 msgstr "Ladungen"
 
-#: personalstats/templates/personalstats/daymap.html:239
-#: personalstats/templates/personalstats/daymap.html:348
-#: personalstats/templates/personalstats/daymap.html:469
+#: personalstats/templates/personalstats/daymap.html:257
+#: personalstats/templates/personalstats/daymap.html:366
+#: personalstats/templates/personalstats/daymap.html:558
 msgid "Start"
 msgstr "Start"
 
-#: personalstats/templates/personalstats/daymap.html:244
-#: personalstats/templates/personalstats/daymap.html:349
-#: personalstats/templates/personalstats/daymap.html:471
+#: personalstats/templates/personalstats/daymap.html:262
+#: personalstats/templates/personalstats/daymap.html:367
+#: personalstats/templates/personalstats/daymap.html:560
 msgid "End"
 msgstr "Ende"
 
-#: personalstats/templates/personalstats/daymap.html:254
-#: personalstats/templates/personalstats/daymap.html:300
-#: personalstats/templates/personalstats/daymap.html:350
+#: personalstats/templates/personalstats/daymap.html:272
+#: personalstats/templates/personalstats/daymap.html:318
+#: personalstats/templates/personalstats/daymap.html:368
 #: personalstats/templates/personalstats/drives.html:182
 msgid "Duration"
 msgstr "Dauer"
 
-#: personalstats/templates/personalstats/daymap.html:255
-#: personalstats/templates/personalstats/daymap.html:301
+#: personalstats/templates/personalstats/daymap.html:273
+#: personalstats/templates/personalstats/daymap.html:319
 #: personalstats/templates/personalstats/drives.html:181
 #: personalstats/views.py:3429
 msgid "Distance"
 msgstr "Distance"
 
-#: personalstats/templates/personalstats/daymap.html:257
-#: personalstats/templates/personalstats/daymap.html:303
-#: personalstats/templates/personalstats/daymap.html:351
+#: personalstats/templates/personalstats/daymap.html:275
+#: personalstats/templates/personalstats/daymap.html:321
+#: personalstats/templates/personalstats/daymap.html:369
 #: personalstats/templates/personalstats/drives.html:185
 msgid "SoC start"
 msgstr "SoC Start"
 
-#: personalstats/templates/personalstats/daymap.html:258
-#: personalstats/templates/personalstats/daymap.html:304
-#: personalstats/templates/personalstats/daymap.html:352
+#: personalstats/templates/personalstats/daymap.html:276
+#: personalstats/templates/personalstats/daymap.html:322
+#: personalstats/templates/personalstats/daymap.html:370
 #: personalstats/templates/personalstats/drives.html:186
 #: personalstats/views.py:3434
 msgid "SoC end"
 msgstr "SoC Ende"
 
-#: personalstats/templates/personalstats/daymap.html:259
+#: personalstats/templates/personalstats/daymap.html:277
 msgid "Sum of SoC used on drives only"
 msgstr "Summe des nur auf Fahrten verbrauchten SoC"
 
-#: personalstats/templates/personalstats/daymap.html:259
-#: personalstats/templates/personalstats/daymap.html:305
+#: personalstats/templates/personalstats/daymap.html:277
+#: personalstats/templates/personalstats/daymap.html:323
 #: personalstats/templates/personalstats/drives.html:187
 msgid "SoC used"
 msgstr "SoC verbraucht"
 
-#: personalstats/templates/personalstats/daymap.html:260
+#: personalstats/templates/personalstats/daymap.html:278
 msgid ""
 "SoC drop not explained by drives (park climate, dog/camp, sentry, "
 "preconditioning, vampire drain), after accounting for charges"
@@ -1481,69 +1519,234 @@ msgstr ""
 "SoC-Abfall, der nicht durch Fahrten erklärt wird (Parkklima, Dog/Camp, "
 "Sentry, Vorkonditionierung, Vampire Drain), nach Abzug der Ladungen"
 
-#: personalstats/templates/personalstats/daymap.html:260
+#: personalstats/templates/personalstats/daymap.html:278
 msgid "SoC outside driving"
 msgstr "SoC außerhalb der Fahrt"
 
-#: personalstats/templates/personalstats/daymap.html:261
-#: personalstats/templates/personalstats/daymap.html:306
+#: personalstats/templates/personalstats/daymap.html:279
+#: personalstats/templates/personalstats/daymap.html:324
 #: personalstats/templates/personalstats/drives.html:188
 msgid "kWh/100 km"
 msgstr "kWh/100 km"
 
-#: personalstats/templates/personalstats/daymap.html:286
+#: personalstats/templates/personalstats/daymap.html:304
 #, python-format
 msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range)."
 msgstr "kWh-Schätzungen basieren auf ~%(kwh)s kWh Pack (aus EPA-Reichweite)."
 
-#: personalstats/templates/personalstats/daymap.html:287
+#: personalstats/templates/personalstats/daymap.html:305
 msgid "SoC outside driving = (start − end) − drive SoC + charged."
 msgstr "SoC außerhalb der Fahrt = (Start − Ende) − Fahrt-SoC + geladen."
 
-#: personalstats/templates/personalstats/daymap.html:298
+#: personalstats/templates/personalstats/daymap.html:316
 msgid "Departure"
 msgstr "Abfahrt"
 
-#: personalstats/templates/personalstats/daymap.html:299
+#: personalstats/templates/personalstats/daymap.html:317
 msgid "Arrival"
 msgstr "Ankunft"
 
-#: personalstats/templates/personalstats/daymap.html:307
+#: personalstats/templates/personalstats/daymap.html:325
 #: personalstats/templates/personalstats/drives.html:189
 msgid "From → to"
 msgstr "Von → nach"
 
-#: personalstats/templates/personalstats/daymap.html:343
+#: personalstats/templates/personalstats/daymap.html:361
 msgid "Charging stops"
 msgstr "Ladestopps"
 
-#: personalstats/templates/personalstats/daymap.html:353
+#: personalstats/templates/personalstats/daymap.html:371
 msgid "SoC added"
 msgstr "SoC hinzugefügt"
 
-#: personalstats/templates/personalstats/daymap.html:354
+#: personalstats/templates/personalstats/daymap.html:372
 msgid "kWh added"
 msgstr "kWh hinzugefügt"
 
-#: personalstats/templates/personalstats/daymap.html:355
+#: personalstats/templates/personalstats/daymap.html:373
+msgid "Min power"
+msgstr "Min. Leistung"
+
+#: personalstats/templates/personalstats/daymap.html:374
 msgid "Max power"
 msgstr "Max. Leistung"
 
-#: personalstats/templates/personalstats/daymap.html:356
+#: personalstats/templates/personalstats/daymap.html:375
 msgid "Address"
 msgstr "Adresse"
 
-#: personalstats/templates/personalstats/daymap.html:381
+#: personalstats/templates/personalstats/daymap.html:409
 msgid "No drive or charge segments detected for this day."
 msgstr "Keine Fahrt- oder Ladesegmente für diesen Tag erkannt."
 
-#: personalstats/templates/personalstats/daymap.html:387
+#: personalstats/templates/personalstats/daymap.html:415
 msgid "No data for this day."
 msgstr "Keine Daten für diesen Tag."
 
-#: personalstats/templates/personalstats/daymap.html:388
+#: personalstats/templates/personalstats/daymap.html:416
 msgid "Try another date with the arrows or the date picker."
 msgstr "Wählen Sie mit den Pfeilen oder dem Datumsfeld ein anderes Datum."
+
+#: personalstats/templates/personalstats/daymap.html:478
+msgid "Supercharger"
+msgstr "Supercharger"
+
+#: personalstats/templates/personalstats/dc_charge.html:197
+msgid "Sessions"
+msgstr "Sitzungen"
+
+#: personalstats/templates/personalstats/dc_charge.html:205
+msgid "Envelope"
+msgstr "Hüllkurve"
+
+#: personalstats/templates/personalstats/dc_charge.html:212
+#: personalstats/templates/personalstats/drives.html:154
+#: personalstats/templates/personalstats/drives.html:155
+msgid "Apply"
+msgstr "Anwenden"
+
+#: personalstats/templates/personalstats/dc_charge.html:217
+#, python-format
+msgid ""
+"\n"
+"    DC Supercharging profiles for this vehicle. Filter: %(filter)s. Envelope: %(envelope)s.\n"
+"    "
+msgstr ""
+"\n"
+"    DC-Supercharging-Profile für dieses Fahrzeug. Filter: %(filter)s. Hüllkurve: %(envelope)s.\n"
+"    "
+
+#: personalstats/templates/personalstats/dc_charge.html:224
+msgid "DC sessions kept"
+msgstr "Behaltene DC-Sitzungen"
+
+#: personalstats/templates/personalstats/dc_charge.html:228
+msgid "Filtered out"
+msgstr "Ausgefiltert"
+
+#: personalstats/templates/personalstats/dc_charge.html:232
+msgid "Median peak"
+msgstr "Median-Spitze"
+
+#: personalstats/templates/personalstats/dc_charge.html:236
+msgid "Max peak"
+msgstr "Max. Spitze"
+
+#: personalstats/templates/personalstats/dc_charge.html:245
+msgid "01 · POWER"
+msgstr "01 · LEISTUNG"
+
+#: personalstats/templates/personalstats/dc_charge.html:246
+msgid "Power vs battery SoC"
+msgstr "Leistung vs. Batterie-SoC"
+
+#: personalstats/templates/personalstats/dc_charge.html:255
+msgid ""
+"Median charger power at each state of charge. Band shows typical spread (or "
+"min/max)."
+msgstr ""
+"Median-Ladeleistung je Batteriestand. Das Band zeigt die typische Streuung "
+"(oder Min/Max)."
+
+#: personalstats/templates/personalstats/dc_charge.html:259
+msgid "DC charge power versus battery SoC"
+msgstr "DC-Ladeleistung gegenüber Batterie-SoC"
+
+#: personalstats/templates/personalstats/dc_charge.html:269
+msgid "02 · TIME"
+msgstr "02 · ZEIT"
+
+#: personalstats/templates/personalstats/dc_charge.html:270
+msgid "SoC vs time by start SoC"
+msgstr "SoC vs. Zeit nach Start-SoC"
+
+#: personalstats/templates/personalstats/dc_charge.html:279
+#, python-format
+msgid ""
+"How fast the pack climbs when a DC session starts near 10%%, 20%%, … One "
+"median curve per arrival bucket."
+msgstr ""
+"Wie schnell der Akku steigt, wenn eine DC-Sitzung bei ca. 10%%, 20%%, … "
+"startet. Eine Mediankurve pro Ankunfts-Bucket."
+
+#: personalstats/templates/personalstats/dc_charge.html:283
+msgid "DC charge SoC versus time by start SoC"
+msgstr "DC-Lade-SoC gegenüber Zeit nach Start-SoC"
+
+#: personalstats/templates/personalstats/dc_charge.html:293
+msgid "Min / max samples → day map"
+msgstr "Min-/Max-Proben → Tageskarte"
+
+#: personalstats/templates/personalstats/dc_charge.html:295
+msgid ""
+"\n"
+"        Each edge of the min–max envelope is one real sample. Open the day map for that day\n"
+"        to see the full charge (and what else the car was doing).\n"
+"        "
+msgstr ""
+"\n"
+"        Jede Kante der Min–Max-Hüllkurve ist eine echte Probe. Tageskarte öffnen,\n"
+"        um die ganze Ladung (und den restlichen Tag) zu sehen.\n"
+"        "
+
+#: personalstats/templates/personalstats/dc_charge.html:304
+msgid "Edge"
+msgstr "Kante"
+
+#: personalstats/templates/personalstats/dc_charge.html:305
+msgid "SoC bin"
+msgstr "SoC-Bin"
+
+#: personalstats/templates/personalstats/dc_charge.html:306
+msgid "SoC"
+msgstr "SoC"
+
+#: personalstats/templates/personalstats/dc_charge.html:307
+msgid "Power"
+msgstr "Leistung"
+
+#: personalstats/templates/personalstats/dc_charge.html:309
+msgid "n in bin"
+msgstr "n im Bin"
+
+#: personalstats/templates/personalstats/dc_charge.html:317
+msgid "Min"
+msgstr "Min"
+
+#: personalstats/templates/personalstats/dc_charge.html:319
+msgid "Max"
+msgstr "Max"
+
+#: personalstats/templates/personalstats/dc_charge.html:327
+msgid "Open day map for this charge day"
+msgstr "Tageskarte für diesen Ladetag öffnen"
+
+#: personalstats/templates/personalstats/dc_charge.html:340
+msgid ""
+"Tip: switch Envelope to Min / max to get day-map links for the samples that "
+"form the band edges."
+msgstr ""
+"Tipp: Hüllkurve auf Min / Max stellen, um Tageskarten-Links für die "
+"Bandkanten zu erhalten."
+
+#: personalstats/templates/personalstats/dc_charge.html:345
+msgid ""
+"\n"
+"    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast charger) are used —\n"
+"    home AC and destination charging are excluded. The first ~2 minutes of each session (and any\n"
+"    early sample still far below that session’s peak) are dropped so Supercharger power-ramp\n"
+"    samples do not pull the curve down. Robust filter further drops sessions with unusually low\n"
+"    peak power (typical of V2 stall sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls\n"
+"    are not separated: the car caps at its max power either way.\n"
+"    "
+msgstr ""
+"\n"
+"    Nur Supercharge-/CCS-Sitzungen (Spitze ≥ ~40 kW oder markierter Fast Charger) —\n"
+"    Heim-AC und Destination entfallen. Die ersten ~2 Minuten jeder Sitzung (und frühe Proben\n"
+"    noch weit unter der Session-Spitze) werden weggelassen, damit der Supercharger-Hochlauf\n"
+"    die Kurve nicht nach unten zieht. Der robuste Filter entfernt zusätzlich niedrige Spitzen\n"
+"    (V2-Sharing) und Kaltstarts. V3/V4 werden nicht getrennt.\n"
+"    "
 
 #: personalstats/templates/personalstats/drives.html:110
 msgid "Trip rankings"
@@ -1570,11 +1773,6 @@ msgstr "Sortieren nach"
 #: personalstats/templates/personalstats/drives.html:146
 msgid "Show"
 msgstr "Anzeigen"
-
-#: personalstats/templates/personalstats/drives.html:154
-#: personalstats/templates/personalstats/drives.html:155
-msgid "Apply"
-msgstr "Anwenden"
 
 #: personalstats/templates/personalstats/drives.html:162
 #, python-format
@@ -1924,12 +2122,12 @@ msgstr "ein Wert pro Kalendertag"
 msgid "Days"
 msgstr "Tage"
 
-#: personalstats/views.py:3217 personalstats/views.py:3838
+#: personalstats/views.py:3217 personalstats/views.py:3875
 #, python-format
 msgid "%(h)s h %(m)s min"
 msgstr "%(h)s h %(m)s min"
 
-#: personalstats/views.py:3219 personalstats/views.py:3840
+#: personalstats/views.py:3219 personalstats/views.py:3877
 #, python-format
 msgid "%(m)s min"
 msgstr "%(m)s min"
@@ -1974,9 +2172,54 @@ msgstr "Max. Außentemp."
 msgid "Min outside temp"
 msgstr "Min. Außentemp."
 
-#: personalstats/views.py:3690
+#: personalstats/views.py:3715
 msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
 msgstr "Ungültiges Datum. Verwenden Sie TT/MM/JJJJ oder JJJJ-MM-TT."
+
+#: personalstats/views.py:4453
+msgid "No DC charge samples in this period"
+msgstr "Keine DC-Ladeproben in diesem Zeitraum"
+
+#: personalstats/views.py:4468
+msgid "Min–max"
+msgstr "Min–Max"
+
+#: personalstats/views.py:4472
+msgid "P10–P90"
+msgstr "P10–P90"
+
+#: personalstats/views.py:4482
+msgid "Median kW"
+msgstr "Median kW"
+
+#: personalstats/views.py:4484 personalstats/views.py:4528
+msgid "Battery SoC (%)"
+msgstr "Batterie-SoC (%)"
+
+#: personalstats/views.py:4485
+msgid "Charger power (kW)"
+msgstr "Ladeleistung (kW)"
+
+#: personalstats/views.py:4501
+msgid "Not enough DC sessions for start-SoC curves"
+msgstr "Nicht genug DC-Sitzungen für Start-SoC-Kurven"
+
+#: personalstats/views.py:4516
+#, python-format
+msgid "%(start)s%% start · n=%(n)s"
+msgstr "%(start)s%% Start · n=%(n)s"
+
+#: personalstats/views.py:4527
+msgid "Minutes since charge start"
+msgstr "Minuten seit Ladebeginn"
+
+#: personalstats/views.py:4621
+msgid "DC charge power vs battery SoC"
+msgstr "DC-Ladeleistung vs. Batterie-SoC"
+
+#: personalstats/views.py:4629
+msgid "DC charge: SoC vs time by start SoC"
+msgstr "DC-Laden: SoC vs. Zeit nach Start-SoC"
 
 #: templates/base.html:24
 msgid "Skip to content"

@@ -85,6 +85,8 @@ class PersonalStatsUrlTests(TestCase):
             f"/en/personalstats/DayMap/{bad}",
             f"/en/personalstats/DayMap/{bad}/2024-01-15",
             f"/en/personalstats/Drives/{bad}",
+            f"/en/personalstats/DCCharge/{bad}",
+            f"/en/personalstats/DCChargeGraph/{bad}/power_vs_soc/52",
             f"/en/personalstats/LifetimeMapData/{bad}",
             f"/en/personalstats/FirmwareHistory/{bad}",
             f"/en/personalstats/FirmwareHistoryCSV/{bad}",
@@ -132,6 +134,25 @@ class PersonalStatsPageTests(TestCase):
         response = client.get(f"/en/personalstats/Drives/{FAKE_HASHED_VIN}")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "drives", status_code=200)
+
+    def test_dc_charge_page_ok(self):
+        client = Client()
+        response = client.get(f"/en/personalstats/DCCharge/{FAKE_HASHED_VIN}")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "DC charge", status_code=200)
+
+    def test_dc_charge_graphs_png(self):
+        client = Client()
+        for chart in ("power_vs_soc", "soc_vs_time"):
+            response = client.get(
+                f"/en/personalstats/DCChargeGraph/{FAKE_HASHED_VIN}/"
+                f"{chart}/520?filter=robust&envelope=p10_p90&size=full"
+            )
+            self.assertEqual(response.status_code, 200, chart)
+            self.assertTrue(
+                response.content.startswith(PNG_MAGIC),
+                f"{chart} should return PNG",
+            )
 
     def test_drives_page_sort_criteria(self):
         client = Client()
@@ -197,6 +218,15 @@ class PersonalStatsPageTests(TestCase):
         self.assertIn(okish.status_code, (200,))
         payload = okish.json()
         self.assertIn("ok", payload)
+
+    def test_match_supercharger_validates_coords(self):
+        client = Client()
+        bad = client.get("/en/personalstats/MatchSupercharger")
+        self.assertEqual(bad.status_code, 400)
+        out = client.get(
+            "/en/personalstats/MatchSupercharger?lat=999&lon=0"
+        )
+        self.assertEqual(out.status_code, 400)
 
 
 class PersonalStatsGraphTests(TestCase):

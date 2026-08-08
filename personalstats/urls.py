@@ -15,10 +15,19 @@ path('DayMap/<str:hashedVin>', views.DayMap, name='PersoDayMap'),
 path('DayMap/<str:hashedVin>/<str:day>', views.DayMap, name='PersoDayMapDay'),
 # Multi-criteria trip leaderboard (≥ 20 km): longest, elevation, cardinals, temp
 path('Drives/<str:hashedVin>', views.Drives, name='PersoDrives'),
+# DC fast-charge profiles (power vs SoC, SoC vs time)
+path('DCCharge/<str:hashedVin>', views.DCCharge, name='PersoDCCharge'),
+path(
+    'DCChargeGraph/<str:hashedVin>/<str:chart>/<int:desiredperiod>',
+    views.DCChargeGraph,
+    name='PersoDCChargeGraph',
+),
 # Lifetime map JSON (path + KPIs) for the personal stats card
 path('LifetimeMapData/<str:hashedVin>', views.LifetimeMapData, name='PersoLifetimeMapData'),
 # Async reverse-geocode (cache miss → Nominatim, rate-limited)
 path('ResolveAddress', views.ResolveAddress, name='PersoResolveAddress'),
+# Async Supercharger match for day-map DC stops (cached directory)
+path('MatchSupercharger', views.MatchSupercharger, name='PersoMatchSupercharger'),
 # desiredperiod is weeks (0 = all history); keep in sync with #DesiredPeriod in the UI
 path(
     'BatteryDegradationGraph/<str:hashedVin>/<str:desiredfield>/<int:desiredperiod>',
