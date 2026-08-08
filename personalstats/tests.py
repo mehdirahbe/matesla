@@ -84,6 +84,7 @@ class PersonalStatsUrlTests(TestCase):
             f"/en/personalstats/Stats/{bad}",
             f"/en/personalstats/DayMap/{bad}",
             f"/en/personalstats/DayMap/{bad}/2024-01-15",
+            f"/en/personalstats/DayChargeSessionGraph/{bad}/2024-01-15/1700000000/power_vs_time",
             f"/en/personalstats/Drives/{bad}",
             f"/en/personalstats/DCCharge/{bad}",
             f"/en/personalstats/DCChargeGraph/{bad}/power_vs_soc/52",
@@ -153,6 +154,49 @@ class PersonalStatsPageTests(TestCase):
                 response.content.startswith(PNG_MAGIC),
                 f"{chart} should return PNG",
             )
+
+    def test_day_charge_session_graph_png(self):
+        """DC stop → separate power_vs_time and power_vs_soc PNGs."""
+        from zoneinfo import ZoneInfo
+
+        client = Client()
+        # Seed puts DC (150 kW) on day_offset % 5 == 0; charge samples at 18:00
+        sample = (
+            TeslaCarDataSnapshot.objects.filter(
+                hashedVin=FAKE_HASHED_VIN,
+                charging_state="Charging",
+                charger_power__gte=40,
+            )
+            .order_by("Date")
+            .first()
+        )
+        self.assertIsNotNone(sample)
+        day_tz = ZoneInfo("Europe/Brussels")
+        day_iso = sample.Date.astimezone(day_tz).date().isoformat()
+        start_ts = int(sample.Date.timestamp())
+        for chart in ("power_vs_time", "power_vs_soc"):
+            response = client.get(
+                f"/en/personalstats/DayChargeSessionGraph/{FAKE_HASHED_VIN}/"
+                f"{day_iso}/{start_ts}/{chart}?size=full"
+            )
+            self.assertEqual(response.status_code, 200, chart)
+            self.assertTrue(
+                response.content.startswith(PNG_MAGIC),
+                f"{chart} should return PNG",
+            )
+        # Unknown start still returns a PNG (empty-state figure)
+        response_empty = client.get(
+            f"/en/personalstats/DayChargeSessionGraph/{FAKE_HASHED_VIN}/"
+            f"{day_iso}/1/power_vs_time?size=thumb"
+        )
+        self.assertEqual(response_empty.status_code, 200)
+        self.assertTrue(response_empty.content.startswith(PNG_MAGIC))
+        # Unknown chart key
+        response_bad = client.get(
+            f"/en/personalstats/DayChargeSessionGraph/{FAKE_HASHED_VIN}/"
+            f"{day_iso}/{start_ts}/not_a_chart"
+        )
+        self.assertEqual(response_bad.status_code, 404)
 
     def test_drives_page_sort_criteria(self):
         client = Client()

@@ -27,7 +27,8 @@
     .daymap-page .page-title--compact {
         font-size: clamp(1.25rem, 2.4vw, 1.65rem);
     }
-    .daymap-charge-place .daymap-sc-link {
+    .daymap-charge-place .daymap-sc-link,
+    .daymap-charge-curve {
         display: inline-block;
         margin-top: 4px;
         margin-right: 0.5rem;
@@ -39,10 +40,68 @@
         background: rgba(77, 180, 255, 0.12);
         text-decoration: none;
         white-space: nowrap;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        line-height: inherit;
     }
-    .daymap-charge-place .daymap-sc-link:hover {
+    .daymap-charge-place .daymap-sc-link:hover,
+    .daymap-charge-curve:hover {
         text-decoration: underline;
         color: #b8deff;
+    }
+    .daymap-charge-curve {
+        color: #7ee0c3;
+        background: rgba(47, 212, 161, 0.12);
+    }
+    .daymap-charge-curve:hover {
+        color: #b6f0dd;
+    }
+    /* Two stacked session PNGs in the charge-curve lightbox */
+    .daymap-curve-dialog {
+        max-width: min(960px, 96vw);
+        max-height: min(94vh, 1200px);
+    }
+    .daymap-curve-panels {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        overflow-y: auto;
+        max-height: min(78vh, 980px);
+        padding: 0 4px 4px;
+    }
+    .daymap-curve-panel {
+        margin: 0;
+    }
+    .daymap-curve-caption {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin: 0 0 0.35rem;
+        padding: 0 2px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #c5d6ef;
+    }
+    .daymap-curve-open-png {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #8ec8ff;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .daymap-curve-open-png:hover {
+        text-decoration: underline;
+        color: #b8deff;
+    }
+    .daymap-curve-media {
+        min-height: 0;
+    }
+    .daymap-curve-media img {
+        width: 100%;
+        height: auto;
+        max-height: none;
     }
     .daymap-page .page-subtitle {
         margin-top: 4px;
@@ -389,6 +448,17 @@
             <td>{% if c.max_power_kw is not None %}{{ c.max_power_kw|floatformat:1 }} kW{% else %}—{% endif %}</td>
             <td class="small daymap-charge-place">
                 {% include 'personalstats/_gmaps_link.html' with lat=c.lat lon=c.lon label=c.address %}
+                {% if c.is_dc_candidate and c.start_ts %}
+                <button type="button"
+                        class="daymap-charge-curve"
+                        data-session-curve="1"
+                        data-graph-url-time="{% url 'PersoDayChargeSessionGraph' hashedVin day_iso c.start_ts 'power_vs_time' %}?size=full"
+                        data-graph-url-soc="{% url 'PersoDayChargeSessionGraph' hashedVin day_iso c.start_ts 'power_vs_soc' %}?size=full"
+                        data-curve-title="{% blocktrans with start=c.start_local end=c.end_local %}{{ start }}–{{ end }} · charge curve{% endblocktrans %}"
+                        title="{% trans 'Open charge speed curves (power vs time, power vs SoC)' %}">
+                    {% trans 'Curve' %}
+                </button>
+                {% endif %}
                 {% if c.is_dc_candidate and c.lat is not None and c.lon is not None %}
                 <span class="daymap-sc-slot"
                       data-sc-match="1"
@@ -416,6 +486,44 @@
     <p class="text-muted small mb-0">{% trans 'Try another date with the arrows or the date picker.' %}</p>
 </div>
 {% endif %}
+
+{# Lightbox: two separate PNGs (time / SoC) so each can be saved or printed #}
+<div class="graph-lightbox" id="daymap-curve-lightbox" hidden>
+    <div class="graph-lightbox__backdrop" data-curve-close tabindex="-1"></div>
+    <div class="graph-lightbox__dialog daymap-curve-dialog" role="dialog" aria-modal="true" aria-labelledby="daymap-curve-title">
+        <header class="graph-lightbox__header">
+            <div>
+                <p class="graph-lightbox__eyebrow">{% trans 'Fast charge' %}</p>
+                <h2 class="graph-lightbox__title" id="daymap-curve-title"></h2>
+            </div>
+            <button type="button" class="graph-lightbox__close" data-curve-close
+                    title="{% trans 'Close' %}" aria-label="{% trans 'Close' %}">×</button>
+        </header>
+        <div class="daymap-curve-panels">
+            <figure class="daymap-curve-panel">
+                <figcaption class="daymap-curve-caption">
+                    <span>{% trans 'Power vs time' %}</span>
+                    <a id="daymap-curve-link-time" href="#" target="_blank" rel="noopener"
+                       class="daymap-curve-open-png">{% trans 'Open PNG' %}</a>
+                </figcaption>
+                <div class="graph-lightbox__media daymap-curve-media">
+                    <img id="daymap-curve-img-time" alt="{% trans 'Charge power versus elapsed time' %}">
+                </div>
+            </figure>
+            <figure class="daymap-curve-panel">
+                <figcaption class="daymap-curve-caption">
+                    <span>{% trans 'Power vs SoC' %}</span>
+                    <a id="daymap-curve-link-soc" href="#" target="_blank" rel="noopener"
+                       class="daymap-curve-open-png">{% trans 'Open PNG' %}</a>
+                </figcaption>
+                <div class="graph-lightbox__media daymap-curve-media">
+                    <img id="daymap-curve-img-soc" alt="{% trans 'Charge power versus battery SoC' %}">
+                </div>
+            </figure>
+        </div>
+        <p class="graph-lightbox__hint text-muted">{% trans 'Two separate images — open PNG to save or print one curve. Press Esc or click outside to close.' %}</p>
+    </div>
+</div>
 
 {% endblock %}
 
@@ -533,6 +641,70 @@
         }
         scNext();
     }
+
+    // --- DC charge session curves: two PNGs (time + SoC) for save/print ---
+    var curveLightbox = document.getElementById('daymap-curve-lightbox');
+    var curveImgTime = document.getElementById('daymap-curve-img-time');
+    var curveImgSoc = document.getElementById('daymap-curve-img-soc');
+    var curveLinkTime = document.getElementById('daymap-curve-link-time');
+    var curveLinkSoc = document.getElementById('daymap-curve-link-soc');
+    var curveTitle = document.getElementById('daymap-curve-title');
+    function ensureCurveLightboxOnBody() {
+        if (curveLightbox && curveLightbox.parentNode !== document.body) {
+            document.body.appendChild(curveLightbox);
+        }
+    }
+    function withCacheBust(url) {
+        if (!url) return url;
+        return url + (url.indexOf('?') >= 0 ? '&' : '?') + '_=' + Date.now();
+    }
+    function openCurveLightbox(btn) {
+        if (!curveLightbox || !btn) return;
+        var urlTime = btn.getAttribute('data-graph-url-time');
+        var urlSoc = btn.getAttribute('data-graph-url-soc');
+        if (!urlTime && !urlSoc) return;
+        ensureCurveLightboxOnBody();
+        if (curveTitle) {
+            curveTitle.textContent = btn.getAttribute('data-curve-title') || btn.textContent || '';
+        }
+        if (curveImgTime && urlTime) {
+            curveImgTime.src = withCacheBust(urlTime);
+            if (curveLinkTime) curveLinkTime.href = urlTime;
+        }
+        if (curveImgSoc && urlSoc) {
+            curveImgSoc.src = withCacheBust(urlSoc);
+            if (curveLinkSoc) curveLinkSoc.href = urlSoc;
+        }
+        curveLightbox.hidden = false;
+        document.body.classList.add('graph-lightbox-open');
+        var closeBtn = curveLightbox.querySelector('.graph-lightbox__close');
+        if (closeBtn) closeBtn.focus();
+    }
+    function closeCurveLightbox() {
+        if (!curveLightbox || curveLightbox.hidden) return;
+        curveLightbox.hidden = true;
+        document.body.classList.remove('graph-lightbox-open');
+        if (curveImgTime) curveImgTime.removeAttribute('src');
+        if (curveImgSoc) curveImgSoc.removeAttribute('src');
+    }
+    ensureCurveLightboxOnBody();
+    document.querySelectorAll('[data-session-curve="1"]').forEach(function (btn) {
+        btn.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            openCurveLightbox(btn);
+        });
+    });
+    if (curveLightbox) {
+        curveLightbox.querySelectorAll('[data-curve-close]').forEach(function (el) {
+            el.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                closeCurveLightbox();
+            });
+        });
+    }
+    document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape') closeCurveLightbox();
+    });
 
     {% if has_gps %}
     var path = {{ path_json|safe }};

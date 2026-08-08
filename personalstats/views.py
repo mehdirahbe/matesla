@@ -3670,11 +3670,16 @@ def _segment_day(rows, pack_kwh):
             is_dc_candidate = (
                 max_power is not None and float(max_power) >= DC_SESSION_PEAK_KW_MIN
             )
+            try:
+                start_ts = int(start_pt["t"].timestamp())
+            except Exception:
+                start_ts = None
             charges.append(
                 {
                     "kind": "charge",
                     "start": start_pt["t"],
                     "end": end_pt["t"],
+                    "start_ts": start_ts,
                     "start_local": start_pt["t"]
                     .astimezone(DAY_MAP_TZ)
                     .strftime("%H:%M"),
@@ -4384,6 +4389,7 @@ def FirmwareHistoryCSV(request, hashedVin):
 from personalstats.dc_charge import (
     ENVELOPE_MODES,
     OUTLIER_MODES,
+    charge_session_curve_series,
     envelope_mode_label,
     filter_outlier_sessions,
     load_dc_sessions,
@@ -4531,6 +4537,228 @@ def GenerateDcSocVsTimeGraph(time_curves, title, size="full"):
     style_legend(axes, style_config)
     finish_figure(figure, axes, title, style_config)
     return render_png(figure, size)
+
+
+def _day_map_raw_rows(hashed_vin, chosen_day):
+    """Load one civil day of snapshot rows (same shape as DayMap)."""
+    day_start = datetime(
+        chosen_day.year, chosen_day.month, chosen_day.day, 0, 0, 0, tzinfo=DAY_MAP_TZ
+    )
+    day_end = day_start + timedelta(days=1)
+    queryset = (
+        TeslaCarDataSnapshot.objects.filter(
+            hashedVin=hashed_vin,
+            Date__gte=day_start,
+            Date__lt=day_end,
+        )
+        .order_by("Date")
+        .only(
+            "Date",
+            "battery_level",
+            "usable_battery_level",
+            "charging_state",
+            "charger_power",
+            "charger_actual_current",
+            "charger_voltage",
+            "charger_phases",
+            "shift_state",
+            "speed",
+        )
+    )
+    raw_rows = []
+    for sample in queryset.iterator(chunk_size=2000):
+        raw_rows.append(
+            {
+                "t": sample.Date,
+                "battery_level": float(sample.battery_level)
+                if sample.battery_level is not None
+                else None,
+                "usable_battery_level": float(sample.usable_battery_level)
+                if sample.usable_battery_level is not None
+                else None,
+                "charging_state": sample.charging_state,
+                "charger_power": float(sample.charger_power)
+                if sample.charger_power is not None
+                else None,
+                "charger_actual_current": float(sample.charger_actual_current)
+                if sample.charger_actual_current is not None
+                else None,
+                "charger_voltage": float(sample.charger_voltage)
+                if sample.charger_voltage is not None
+                else None,
+                "charger_phases": float(sample.charger_phases)
+                if sample.charger_phases is not None
+                else None,
+                "shift_state": sample.shift_state,
+                "speed": float(sample.speed) if sample.speed is not None else None,
+            }
+        )
+    return raw_rows
+
+
+def _find_charge_session_points(raw_rows, start_ts: int, *, tol_s: int = 180):
+    """
+    Return samples for the day-map charge group whose start is near start_ts.
+
+    Matching uses the same kind-grouping as _segment_day so the curve opens
+    on the same stop the table row describes.
+    """
+    if not raw_rows or start_ts is None:
+        return None
+    try:
+        target = int(start_ts)
+    except (TypeError, ValueError):
+        return None
+
+    groups = []
+    current_kind = _point_kind(raw_rows[0])
+    current_points = [raw_rows[0]]
+    for sample in raw_rows[1:]:
+        kind = _point_kind(sample)
+        if kind == current_kind:
+            current_points.append(sample)
+        else:
+            groups.append((current_kind, current_points))
+            current_kind = kind
+            current_points = [sample]
+    groups.append((current_kind, current_points))
+
+    best = None
+    best_delta = None
+    for kind, points in groups:
+        if kind != "charge" or not points:
+            continue
+        start_t = points[0].get("t")
+        if start_t is None:
+            continue
+        try:
+            delta = abs(int(start_t.timestamp()) - target)
+        except Exception:
+            continue
+        if delta > tol_s:
+            continue
+        if best_delta is None or delta < best_delta:
+            best = points
+            best_delta = delta
+    return best
+
+
+DAY_CHARGE_SESSION_CHARTS = frozenset({"power_vs_time", "power_vs_soc"})
+
+
+def GenerateDayChargeSessionGraph(series, title, *, chart: str, size="full"):
+    """
+    One PNG for a single fast-charge stop.
+
+    chart:
+      - power_vs_time → kW vs minutes since start
+      - power_vs_soc  → kW vs battery SoC
+    Separate files so each curve can be saved or printed alone.
+    """
+    figure, style_config = make_figure(size)
+    axes = figure.add_subplot(111)
+    empty_msg = _("No charge samples for this stop")
+
+    if not series:
+        axes.text(
+            0.5,
+            0.5,
+            empty_msg,
+            ha="center",
+            va="center",
+            color=MUTED,
+            fontsize=style_config["label_size"],
+            transform=axes.transAxes,
+        )
+        finish_figure(figure, axes, title, style_config)
+        return render_png(figure, size)
+
+    powers = [row["power_kw"] for row in series]
+    if chart == "power_vs_soc":
+        by_soc = sorted(
+            ((row["soc"], row["power_kw"]) for row in series),
+            key=lambda pair: pair[0],
+        )
+        axes.plot(
+            [pair[0] for pair in by_soc],
+            [pair[1] for pair in by_soc],
+            color=ENERGY,
+            linewidth=style_config["linewidth"],
+            marker="o",
+            markersize=style_config["markersize"],
+        )
+        axes.set_xlabel(_("Battery SoC (%)"))
+        axes.set_xlim(0, 100)
+    else:
+        times = [row["elapsed_min"] for row in series]
+        axes.plot(
+            times,
+            powers,
+            color=ACCENT,
+            linewidth=style_config["linewidth"],
+            marker="o",
+            markersize=style_config["markersize"],
+        )
+        axes.set_xlabel(_("Minutes since charge start"))
+        axes.set_xlim(left=0)
+
+    axes.set_ylabel(_("Charger power (kW)"))
+    axes.set_ylim(bottom=0)
+    finish_figure(figure, axes, title, style_config)
+    return render_png(figure, size)
+
+
+@require_GET
+def DayChargeSessionGraph(request, hashedVin, day, start_ts, chart):
+    """
+    PNG for one axis of a fast-charge stop: power_vs_time | power_vs_soc.
+
+    Linked from the day map for DC-ish charging stops (peak ≥ ~40 kW).
+    Two separate PNGs so each can be saved or printed alone.
+    """
+    if not IsValidHash(hashedVin):
+        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+
+    chart_key = (chart or "").strip().lower()
+    if chart_key not in DAY_CHARGE_SESSION_CHARTS:
+        return HttpResponseNotFound("Unknown charge session chart " + (chart or ""))
+
+    chosen = _parse_day_string(day)
+    if chosen is None:
+        return HttpResponseNotFound("Invalid day")
+
+    try:
+        start_ts_int = int(start_ts)
+    except (TypeError, ValueError):
+        return HttpResponseNotFound("Invalid start time")
+
+    size = graph_size_from_request(request)
+    cache_key = _graph_png_cache_key(
+        hashedVin,
+        f"day_charge_session_v2_{chart_key}_{chosen.isoformat()}_{start_ts_int}",
+        0,
+        size,
+        kind="day_charge_session",
+    )
+    try:
+        hit = cache.get(cache_key)
+    except Exception:
+        hit = None
+    if hit is not None:
+        return _png_response_from_bytes(hit, size, cache_status="HIT")
+
+    raw_rows = _day_map_raw_rows(hashedVin, chosen)
+    points = _find_charge_session_points(raw_rows, start_ts_int)
+    series = charge_session_curve_series(points or [])
+    day_label = chosen.strftime("%d/%m/%Y")
+    if chart_key == "power_vs_soc":
+        title = _("Charge power vs SoC — %(day)s") % {"day": day_label}
+    else:
+        title = _("Charge power vs time — %(day)s") % {"day": day_label}
+    response = GenerateDayChargeSessionGraph(
+        series, title, chart=chart_key, size=size
+    )
+    return _cache_graph_png(cache_key, response, size)
 
 
 @require_GET

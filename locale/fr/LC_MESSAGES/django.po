@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-08 14:10+0000\n"
+"POT-Creation-Date: 2026-08-08 14:31+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Mehdi Rahman <mehdirahbvd@gmail.com>\n"
 "Language-Team: Français <LL@li.org>\n"
@@ -51,8 +51,7 @@ msgstr ""
 "convient : nginx, S3, Cloudflare, GitHub Pages, …)."
 
 #: matesla/TeslaPartner.py:152
-msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
+msgid "Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
 msgstr ""
 "Tesla refuse localhost comme domaine partenaire. Utilisez un domaine HTTPS "
 "public."
@@ -101,8 +100,8 @@ msgstr "Paramètres d’application manquants."
 
 #: matesla/TeslaPartner.py:229
 msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g."
-" robotcar.example.com)."
+"Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g. "
+"robotcar.example.com)."
 msgstr ""
 "Tesla refuse localhost comme domaine partenaire. Utilisez un domaine HTTPS "
 "public (ex. robotcar.example.com)."
@@ -135,8 +134,8 @@ msgstr "Région API Fleet"
 
 #: matesla/forms.py:29
 msgid ""
-"Must match the redirect URI on developer.tesla.com exactly (often "
-"http://localhost:8001/oauth/callback for a local install)."
+"Must match the redirect URI on developer.tesla.com exactly (often http://"
+"localhost:8001/oauth/callback for a local install)."
 msgstr ""
 "Doit correspondre exactement à l’URI de redirection sur developer.tesla.com "
 "(souvent http://localhost:8001/oauth/callback en install locale)."
@@ -160,16 +159,16 @@ msgstr "Domaine partenaire ou URL de la clé publique"
 #: matesla/forms.py:65
 msgid ""
 "Paste a domain (example.com), an origin (https://example.com), or the full "
-"public-key URL. Hosting is free choice (nginx, S3, Cloudflare, GitHub Pages,"
-" …) but Tesla always fetches /.well-known/appspecific/com.tesla.3p.public-"
-"key.pem on that host. Add the same host with https:// as Allowed Origin on "
+"public-key URL. Hosting is free choice (nginx, S3, Cloudflare, GitHub Pages, "
+"…) but Tesla always fetches /.well-known/appspecific/com.tesla.3p.public-key."
+"pem on that host. Add the same host with https:// as Allowed Origin on "
 "developer.tesla.com. Not localhost."
 msgstr ""
 "Collez un domaine (example.com), une origine (https://example.com) ou l’URL "
-"complète de la clé publique. L’hébergement est libre (nginx, S3, Cloudflare,"
-" GitHub Pages, …) mais Tesla récupère toujours /.well-"
-"known/appspecific/com.tesla.3p.public-key.pem sur cet hôte. Ajoutez le même "
-"hôte avec https:// en Allowed Origin sur developer.tesla.com. Pas localhost."
+"complète de la clé publique. L’hébergement est libre (nginx, S3, Cloudflare, "
+"GitHub Pages, …) mais Tesla récupère toujours /.well-known/appspecific/com."
+"tesla.3p.public-key.pem sur cet hôte. Ajoutez le même hôte avec https:// en "
+"Allowed Origin sur developer.tesla.com. Pas localhost."
 
 # AddTeslaAccount / partner i18n
 #: matesla/templates/matesla/AddTeslaAccount.html:4
@@ -187,8 +186,8 @@ msgstr "Relier votre voiture."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:14
 msgid ""
-"Configure the app, register the partner domain, then authorize MaTesla. Your"
-" secrets stay stored locally. You can re-open this page anytime — safe "
+"Configure the app, register the partner domain, then authorize MaTesla. Your "
+"secrets stay stored locally. You can re-open this page anytime — safe "
 "actions will not break a working setup."
 msgstr ""
 "Configurez l’application, enregistrez le domaine partenaire, puis autorisez "
@@ -290,15 +289,14 @@ msgstr "Réautoriser"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:97
 msgid ""
-"Copy credentials from <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Saving again only updates what "
-"you change."
+"Copy credentials from <a class=\"text-link\" href=\"https://developer.tesla."
+"com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com ↗</"
+"a>. Saving again only updates what you change."
 msgstr ""
-"Copiez les identifiants depuis <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Enregistrer à nouveau ne met à "
-"jour que ce que vous modifiez."
+"Copiez les identifiants depuis <a class=\"text-link\" href=\"https://"
+"developer.tesla.com/dashboard\" target=\"_blank\" rel=\"noopener\">developer."
+"tesla.com ↗</a>. Enregistrer à nouveau ne met à jour que ce que vous "
+"modifiez."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:103
 msgid "Credentials are stored. Save again only if you need to edit them."
@@ -320,8 +318,7 @@ msgid ""
 "granting vehicle access. Localhost is not allowed."
 msgstr ""
 "Tesla récupère une clé publique EC en HTTPS sur un domaine que vous "
-"contrôlez avant d’accorder l’accès au véhicule. Localhost n’est pas "
-"autorisé."
+"contrôlez avant d’accorder l’accès au véhicule. Localhost n’est pas autorisé."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:146
 msgid "Any HTTPS host works — GitHub Pages is only one option among many."
@@ -338,8 +335,8 @@ msgid ""
 "Add https://&lt;your-domain&gt; to Allowed Origins on the Tesla developer "
 "dashboard."
 msgstr ""
-"Ajoutez https://&lt;votre-domaine&gt; aux Allowed Origins du tableau de bord"
-" développeur Tesla."
+"Ajoutez https://&lt;votre-domaine&gt; aux Allowed Origins du tableau de bord "
+"développeur Tesla."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:155
 msgid ""
@@ -384,8 +381,8 @@ msgstr "Définissez et enregistrez d’abord un domaine partenaire."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:182
 msgid ""
-"Local EC key pair is ready. It will not be overwritten if you click generate"
-" again."
+"Local EC key pair is ready. It will not be overwritten if you click generate "
+"again."
 msgstr ""
 "La paire de clés EC locale est prête. Elle ne sera pas écrasée si vous "
 "recliquez sur générer."
@@ -767,15 +764,15 @@ msgstr "Mes données"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:61
 #: personalstats/templates/personalstats/daymap.html:6
-#: personalstats/templates/personalstats/daymap.html:219
+#: personalstats/templates/personalstats/daymap.html:278
 #: personalstats/templates/personalstats/dc_charge.html:308
 msgid "Day map"
 msgstr "Carte du jour"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:62
 #: personalstats/templates/personalstats/_carstats_body.html:212
-#: personalstats/templates/personalstats/daymap.html:253
-#: personalstats/templates/personalstats/daymap.html:311
+#: personalstats/templates/personalstats/daymap.html:312
+#: personalstats/templates/personalstats/daymap.html:370
 #: personalstats/templates/personalstats/drives.html:5
 #: personalstats/templates/personalstats/drives.html:111
 msgid "Drives"
@@ -825,8 +822,8 @@ msgid ""
 "free credit resets or a payment method is added."
 msgstr ""
 "MaTesla affiche toujours l’historique. Le statut live reviendra quand le "
-"crédit gratuit Fleet Tesla se réinitialisera ou qu’un moyen de paiement sera"
-" ajouté."
+"crédit gratuit Fleet Tesla se réinitialisera ou qu’un moyen de paiement sera "
+"ajouté."
 
 #: matesla/templates/matesla/vehicle_hub.html:26
 msgid "The car is resting. MaTesla shows its history without ever waking it."
@@ -842,8 +839,8 @@ msgid ""
 "clears. History graphs below remain available."
 msgstr ""
 "Tesla a désactivé ce compte pour dépassement de quota (crédit mensuel "
-"gratuit épuisé). Ce n’est pas la voiture qui dort — le sélecteur peut encore"
-" afficher « en ligne » d’après le dernier contrôle réussi. La capture est "
+"gratuit épuisé). Ce n’est pas la voiture qui dort — le sélecteur peut encore "
+"afficher « en ligne » d’après le dernier contrôle réussi. La capture est "
 "suspendue jusqu’au rétablissement. Les graphiques d’historique restent "
 "disponibles ci-dessous."
 
@@ -916,8 +913,8 @@ msgid ""
 "EC key pair created. Publish the public key to your partner domain (file: "
 "%(pub)s). Private key stays local: %(priv)s."
 msgstr ""
-"Paire de clés EC créée. Publiez la clé publique sur votre domaine partenaire"
-" (fichier : %(pub)s). La clé privée reste locale : %(priv)s."
+"Paire de clés EC créée. Publiez la clé publique sur votre domaine partenaire "
+"(fichier : %(pub)s). La clé privée reste locale : %(priv)s."
 
 #: matesla/views.py:545
 msgid ""
@@ -936,8 +933,8 @@ msgstr "Indiquez un domaine partenaire d’abord."
 #: matesla/views.py:583
 #, python-format
 msgid ""
-"Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail:"
-" %(result)s"
+"Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail: "
+"%(result)s"
 msgstr ""
 "Enregistrement partenaire reconfirmé pour « %(domain)s ». Sans danger de "
 "répéter. Détail : %(result)s"
@@ -988,8 +985,8 @@ msgstr "Callback OAuth invalide (code ou state manquant). Réessayez."
 
 #: matesla/views.py:756
 msgid ""
-"Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again,"
-" then use “Sign in with Tesla”."
+"Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again, "
+"then use “Sign in with Tesla”."
 msgstr ""
 "Callback OAuth invalide (state inconnu ou expiré). Reconnectez-vous à "
 "MaTesla puis relancez « Se connecter avec Tesla »."
@@ -1005,8 +1002,7 @@ msgstr "Connecté à Tesla, mais aucun véhicule trouvé sur le compte."
 #: matesla/views.py:796
 #, python-format
 msgid "Tesla connected — %(count)s vehicle(s): %(names)s. Active: %(label)s."
-msgstr ""
-"Tesla connecté — %(count)s véhicule(s) : %(names)s. Actif : %(label)s."
+msgstr "Tesla connecté — %(count)s véhicule(s) : %(names)s. Actif : %(label)s."
 
 #: matesla/views.py:809
 #, python-format
@@ -1017,27 +1013,27 @@ msgstr "Erreur inattendue : %(err)s"
 msgid "Unknown vehicle."
 msgstr "Véhicule inconnu."
 
-#: mysite/settings.py:265
+#: mysite/settings.py:266
 msgid "English"
 msgstr "Anglais"
 
-#: mysite/settings.py:266
+#: mysite/settings.py:267
 msgid "Français"
 msgstr "Français"
 
-#: mysite/settings.py:267
+#: mysite/settings.py:268
 msgid "Espanol"
 msgstr "Espagnol"
 
-#: mysite/settings.py:268
+#: mysite/settings.py:269
 msgid "Deutsch"
 msgstr "Deutsch"
 
-#: mysite/settings.py:269
+#: mysite/settings.py:270
 msgid "Nederlands"
 msgstr "Nederlands"
 
-#: mysite/settings.py:270
+#: mysite/settings.py:271
 msgid "Norsk"
 msgstr "Norsk"
 
@@ -1068,8 +1064,7 @@ msgid "Software timeline"
 msgstr "Chronologie logicielle"
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:13
-msgid ""
-"All firmware versions detected on your vehicle, in chronological order."
+msgid "All firmware versions detected on your vehicle, in chronological order."
 msgstr ""
 "Toutes les versions de firmware détectées sur votre véhicule, par ordre "
 "chronologique."
@@ -1302,7 +1297,7 @@ msgstr "Traces GPS et totaux de trajets pour la période sélectionnée."
 #: personalstats/templates/personalstats/_carstats_body.html:202
 #: personalstats/templates/personalstats/_carstats_body.html:203
 #: personalstats/templates/personalstats/_carstats_js.html:470
-#: personalstats/templates/personalstats/daymap.html:567
+#: personalstats/templates/personalstats/daymap.html:739
 msgid "Fullscreen map"
 msgstr "Carte en plein écran"
 
@@ -1328,8 +1323,8 @@ msgid "kWh used"
 msgstr "kWh utilisés"
 
 #: personalstats/templates/personalstats/_carstats_body.html:236
-#: personalstats/templates/personalstats/daymap.html:274
-#: personalstats/templates/personalstats/daymap.html:320
+#: personalstats/templates/personalstats/daymap.html:333
+#: personalstats/templates/personalstats/daymap.html:379
 #: personalstats/templates/personalstats/drives.html:183
 msgid "Avg speed"
 msgstr "Vitesse moyenne"
@@ -1352,6 +1347,7 @@ msgid "Loading map…"
 msgstr "Chargement de la carte…"
 
 #: personalstats/templates/personalstats/_carstats_body.html:269
+#: personalstats/templates/personalstats/daymap.html:500
 #: personalstats/templates/personalstats/dc_charge.html:366
 msgid "Close"
 msgstr "Fermer"
@@ -1382,7 +1378,7 @@ msgid "min"
 msgstr "min"
 
 #: personalstats/templates/personalstats/_carstats_js.html:471
-#: personalstats/templates/personalstats/daymap.html:568
+#: personalstats/templates/personalstats/daymap.html:740
 msgid "Exit fullscreen"
 msgstr "Quitter le plein écran"
 
@@ -1403,192 +1399,234 @@ msgstr ""
 "Comprenez l’évolution de votre voiture à travers la batterie, la charge, le "
 "climat et la conduite."
 
-#: personalstats/templates/personalstats/daymap.html:213
+#: personalstats/templates/personalstats/daymap.html:272
 msgid "Journey replay"
 msgstr "Rejeu du trajet"
 
-#: personalstats/templates/personalstats/daymap.html:214
+#: personalstats/templates/personalstats/daymap.html:273
 msgid "Where was the car"
 msgstr "Où était la voiture"
 
-#: personalstats/templates/personalstats/daymap.html:215
+#: personalstats/templates/personalstats/daymap.html:274
 msgid "drives, charges and GPS points"
 msgstr "trajets, recharges et points GPS"
 
-#: personalstats/templates/personalstats/daymap.html:222
+#: personalstats/templates/personalstats/daymap.html:281
 msgid "Previous day"
 msgstr "Jour précédent"
 
-#: personalstats/templates/personalstats/daymap.html:223
+#: personalstats/templates/personalstats/daymap.html:282
 #: personalstats/templates/personalstats/drives.html:190
 msgid "Date"
 msgstr "Date"
 
-#: personalstats/templates/personalstats/daymap.html:226
+#: personalstats/templates/personalstats/daymap.html:285
 msgid "Pick a date"
 msgstr "Choisir une date"
 
-#: personalstats/templates/personalstats/daymap.html:227
+#: personalstats/templates/personalstats/daymap.html:286
 msgid "Go"
 msgstr "Aller"
 
-#: personalstats/templates/personalstats/daymap.html:228
+#: personalstats/templates/personalstats/daymap.html:287
 msgid "Next day"
 msgstr "Jour suivant"
 
-#: personalstats/templates/personalstats/daymap.html:242
+#: personalstats/templates/personalstats/daymap.html:301
 msgid "No GPS points for this day (telemetry only)."
 msgstr "Pas de points GPS pour ce jour (télémétrie seule)."
 
-#: personalstats/templates/personalstats/daymap.html:246
+#: personalstats/templates/personalstats/daymap.html:305
 msgid "GPS points"
 msgstr "Points GPS"
 
-#: personalstats/templates/personalstats/daymap.html:248
+#: personalstats/templates/personalstats/daymap.html:307
 #, python-format
 msgid "%(n)s drawn on map"
 msgstr "%(n)s affichés sur la carte"
 
-#: personalstats/templates/personalstats/daymap.html:251
+#: personalstats/templates/personalstats/daymap.html:310
 msgid "Track"
 msgstr "Trajet"
 
-#: personalstats/templates/personalstats/daymap.html:254
+#: personalstats/templates/personalstats/daymap.html:313
 msgid "Charges"
 msgstr "Recharges"
 
-#: personalstats/templates/personalstats/daymap.html:257
-#: personalstats/templates/personalstats/daymap.html:366
-#: personalstats/templates/personalstats/daymap.html:558
+#: personalstats/templates/personalstats/daymap.html:316
+#: personalstats/templates/personalstats/daymap.html:425
+#: personalstats/templates/personalstats/daymap.html:730
 msgid "Start"
 msgstr "Départ"
 
-#: personalstats/templates/personalstats/daymap.html:262
-#: personalstats/templates/personalstats/daymap.html:367
-#: personalstats/templates/personalstats/daymap.html:560
+#: personalstats/templates/personalstats/daymap.html:321
+#: personalstats/templates/personalstats/daymap.html:426
+#: personalstats/templates/personalstats/daymap.html:732
 msgid "End"
 msgstr "Arrivée"
 
-#: personalstats/templates/personalstats/daymap.html:272
-#: personalstats/templates/personalstats/daymap.html:318
-#: personalstats/templates/personalstats/daymap.html:368
+#: personalstats/templates/personalstats/daymap.html:331
+#: personalstats/templates/personalstats/daymap.html:377
+#: personalstats/templates/personalstats/daymap.html:427
 #: personalstats/templates/personalstats/drives.html:182
 msgid "Duration"
 msgstr "Durée"
 
-#: personalstats/templates/personalstats/daymap.html:273
-#: personalstats/templates/personalstats/daymap.html:319
+#: personalstats/templates/personalstats/daymap.html:332
+#: personalstats/templates/personalstats/daymap.html:378
 #: personalstats/templates/personalstats/drives.html:181
 #: personalstats/views.py:3429
 msgid "Distance"
 msgstr "Distance"
 
-#: personalstats/templates/personalstats/daymap.html:275
-#: personalstats/templates/personalstats/daymap.html:321
-#: personalstats/templates/personalstats/daymap.html:369
+#: personalstats/templates/personalstats/daymap.html:334
+#: personalstats/templates/personalstats/daymap.html:380
+#: personalstats/templates/personalstats/daymap.html:428
 #: personalstats/templates/personalstats/drives.html:185
 msgid "SoC start"
 msgstr "SoC début"
 
-#: personalstats/templates/personalstats/daymap.html:276
-#: personalstats/templates/personalstats/daymap.html:322
-#: personalstats/templates/personalstats/daymap.html:370
+#: personalstats/templates/personalstats/daymap.html:335
+#: personalstats/templates/personalstats/daymap.html:381
+#: personalstats/templates/personalstats/daymap.html:429
 #: personalstats/templates/personalstats/drives.html:186
 #: personalstats/views.py:3434
 msgid "SoC end"
 msgstr "SoC fin"
 
-#: personalstats/templates/personalstats/daymap.html:277
+#: personalstats/templates/personalstats/daymap.html:336
 msgid "Sum of SoC used on drives only"
 msgstr "Somme du SoC utilisé en conduite"
 
-#: personalstats/templates/personalstats/daymap.html:277
-#: personalstats/templates/personalstats/daymap.html:323
+#: personalstats/templates/personalstats/daymap.html:336
+#: personalstats/templates/personalstats/daymap.html:382
 #: personalstats/templates/personalstats/drives.html:187
 msgid "SoC used"
 msgstr "SoC consommé"
 
-#: personalstats/templates/personalstats/daymap.html:278
+#: personalstats/templates/personalstats/daymap.html:337
 msgid ""
 "SoC drop not explained by drives (park climate, dog/camp, sentry, "
 "preconditioning, vampire drain), after accounting for charges"
 msgstr ""
-"Baisse de SoC non expliquée par les trajets (climatisation à l'arrêt, "
-"dog/camp, sentry, préconditionnement, consommation fantôme), après prise en "
+"Baisse de SoC non expliquée par les trajets (climatisation à l'arrêt, dog/"
+"camp, sentry, préconditionnement, consommation fantôme), après prise en "
 "compte des recharges"
 
-#: personalstats/templates/personalstats/daymap.html:278
+#: personalstats/templates/personalstats/daymap.html:337
 msgid "SoC outside driving"
 msgstr "SoC hors conduite"
 
-#: personalstats/templates/personalstats/daymap.html:279
-#: personalstats/templates/personalstats/daymap.html:324
+#: personalstats/templates/personalstats/daymap.html:338
+#: personalstats/templates/personalstats/daymap.html:383
 #: personalstats/templates/personalstats/drives.html:188
 msgid "kWh/100 km"
 msgstr "kWh/100 km"
 
-#: personalstats/templates/personalstats/daymap.html:304
+#: personalstats/templates/personalstats/daymap.html:363
 #, python-format
 msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range)."
 msgstr ""
 "Les estimations kWh utilisent un pack d’environ %(kwh)s kWh (d’après "
 "l’autonomie EPA)."
 
-#: personalstats/templates/personalstats/daymap.html:305
+#: personalstats/templates/personalstats/daymap.html:364
 msgid "SoC outside driving = (start − end) − drive SoC + charged."
 msgstr "SoC hors conduite = (début − fin) − SoC des trajets + rechargé"
 
-#: personalstats/templates/personalstats/daymap.html:316
+#: personalstats/templates/personalstats/daymap.html:375
 msgid "Departure"
 msgstr "Départ"
 
-#: personalstats/templates/personalstats/daymap.html:317
+#: personalstats/templates/personalstats/daymap.html:376
 msgid "Arrival"
 msgstr "Arrivée"
 
-#: personalstats/templates/personalstats/daymap.html:325
+#: personalstats/templates/personalstats/daymap.html:384
 #: personalstats/templates/personalstats/drives.html:189
 msgid "From → to"
 msgstr "De → à"
 
-#: personalstats/templates/personalstats/daymap.html:361
+#: personalstats/templates/personalstats/daymap.html:420
 msgid "Charging stops"
 msgstr "Arrêts recharge"
 
-#: personalstats/templates/personalstats/daymap.html:371
+#: personalstats/templates/personalstats/daymap.html:430
 msgid "SoC added"
 msgstr "SoC ajouté"
 
-#: personalstats/templates/personalstats/daymap.html:372
+#: personalstats/templates/personalstats/daymap.html:431
 msgid "kWh added"
 msgstr "kWh ajoutés"
 
-#: personalstats/templates/personalstats/daymap.html:373
+#: personalstats/templates/personalstats/daymap.html:432
 msgid "Min power"
 msgstr "Puissance min"
 
-#: personalstats/templates/personalstats/daymap.html:374
+#: personalstats/templates/personalstats/daymap.html:433
 msgid "Max power"
 msgstr "Puissance max"
 
-#: personalstats/templates/personalstats/daymap.html:375
+#: personalstats/templates/personalstats/daymap.html:434
 msgid "Address"
 msgstr "Adresse"
 
-#: personalstats/templates/personalstats/daymap.html:409
+#: personalstats/templates/personalstats/daymap.html:457
+#, python-format
+msgid "%(start)s–%(end)s · charge curve"
+msgstr "%(start)s–%(end)s · courbe de charge"
+
+#: personalstats/templates/personalstats/daymap.html:458
+msgid "Open charge speed curves (power vs time, power vs SoC)"
+msgstr "Ouvrir les courbes de vitesse de charge (puissance vs temps et vs SoC)"
+
+#: personalstats/templates/personalstats/daymap.html:459
+msgid "Curve"
+msgstr "Courbe"
+
+#: personalstats/templates/personalstats/daymap.html:479
 msgid "No drive or charge segments detected for this day."
 msgstr "Aucun trajet ni recharge détecté pour ce jour."
 
-#: personalstats/templates/personalstats/daymap.html:415
+#: personalstats/templates/personalstats/daymap.html:485
 msgid "No data for this day."
 msgstr "Aucune donnée pour ce jour."
 
-#: personalstats/templates/personalstats/daymap.html:416
+#: personalstats/templates/personalstats/daymap.html:486
 msgid "Try another date with the arrows or the date picker."
 msgstr "Essayez une autre date avec les flèches ou en tapant JJ/MM/AAAA."
 
-#: personalstats/templates/personalstats/daymap.html:478
-#| msgid "Start charge"
+#: personalstats/templates/personalstats/daymap.html:496
+msgid "Fast charge"
+msgstr "Charge rapide"
+
+#: personalstats/templates/personalstats/daymap.html:505
+msgid "Power vs time"
+msgstr "Puissance vs temps"
+
+#: personalstats/templates/personalstats/daymap.html:507
+#: personalstats/templates/personalstats/daymap.html:517
+msgid "Open PNG"
+msgstr "Ouvrir le PNG"
+
+#: personalstats/templates/personalstats/daymap.html:510
+msgid "Charge power versus elapsed time"
+msgstr "Puissance de charge versus temps écoulé"
+
+#: personalstats/templates/personalstats/daymap.html:515
+msgid "Power vs SoC"
+msgstr "Puissance vs SoC"
+
+#: personalstats/templates/personalstats/daymap.html:520
+msgid "Charge power versus battery SoC"
+msgstr "Puissance de charge versus SoC batterie"
+
+#: personalstats/templates/personalstats/daymap.html:524
+msgid ""
+"Two separate images — open PNG to save or print one curve. Press Esc or "
+"click outside to close."
+msgstr "Deux images séparées — ouvrir le PNG pour enregistrer ou imprimer une courbe. Échap ou clic extérieur pour fermer."
+#: personalstats/templates/personalstats/daymap.html:586
 msgid "Supercharger"
 msgstr "Superchargeur"
 
@@ -1610,11 +1648,13 @@ msgstr "Appliquer"
 #, python-format
 msgid ""
 "\n"
-"    DC Supercharging profiles for this vehicle. Filter: %(filter)s. Envelope: %(envelope)s.\n"
+"    DC Supercharging profiles for this vehicle. Filter: %(filter)s. "
+"Envelope: %(envelope)s.\n"
 "    "
 msgstr ""
 "\n"
-"    Profils de Supercharge DC pour ce véhicule. Filtre : %(filter)s. Enveloppe : %(envelope)s.\n"
+"    Profils de Supercharge DC pour ce véhicule. Filtre : %(filter)s. "
+"Enveloppe : %(envelope)s.\n"
 "    "
 
 #: personalstats/templates/personalstats/dc_charge.html:224
@@ -1667,8 +1707,8 @@ msgid ""
 "How fast the pack climbs when a DC session starts near 10%%, 20%%, … One "
 "median curve per arrival bucket."
 msgstr ""
-"Vitesse de montée de la batterie quand une session DC démarre vers 10 %%, 20"
-" %%, … Une courbe médiane par niveau d’arrivée."
+"Vitesse de montée de la batterie quand une session DC démarre vers 10 %%, 20 "
+"%%, … Une courbe médiane par niveau d’arrivée."
 
 #: personalstats/templates/personalstats/dc_charge.html:283
 msgid "DC charge SoC versus time by start SoC"
@@ -1681,12 +1721,14 @@ msgstr "Échantillons min / max → carte du jour"
 #: personalstats/templates/personalstats/dc_charge.html:295
 msgid ""
 "\n"
-"        Each edge of the min–max envelope is one real sample. Open the day map for that day\n"
+"        Each edge of the min–max envelope is one real sample. Open the day "
+"map for that day\n"
 "        to see the full charge (and what else the car was doing).\n"
 "        "
 msgstr ""
 "\n"
-"        Chaque bord de l’enveloppe min–max est un vrai échantillon. Ouvre la carte du jour\n"
+"        Chaque bord de l’enveloppe min–max est un vrai échantillon. Ouvre la "
+"carte du jour\n"
 "        pour voir toute la charge (et le reste de la journée).\n"
 "        "
 
@@ -1733,20 +1775,30 @@ msgstr ""
 #: personalstats/templates/personalstats/dc_charge.html:345
 msgid ""
 "\n"
-"    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast charger) are used —\n"
-"    home AC and destination charging are excluded. The first ~2 minutes of each session (and any\n"
-"    early sample still far below that session’s peak) are dropped so Supercharger power-ramp\n"
-"    samples do not pull the curve down. Robust filter further drops sessions with unusually low\n"
-"    peak power (typical of V2 stall sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls\n"
+"    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast "
+"charger) are used —\n"
+"    home AC and destination charging are excluded. The first ~2 minutes of "
+"each session (and any\n"
+"    early sample still far below that session’s peak) are dropped so "
+"Supercharger power-ramp\n"
+"    samples do not pull the curve down. Robust filter further drops sessions "
+"with unusually low\n"
+"    peak power (typical of V2 stall sharing) and cold / unpreconditioned "
+"crawls. V3 vs V4 stalls\n"
 "    are not separated: the car caps at its max power either way.\n"
 "    "
 msgstr ""
 "\n"
-"    Seules les sessions Supercharge / CCS (pic ≥ ~40 kW, ou chargeur rapide signalé) sont utilisées —\n"
-"    le AC domicile et la charge destination sont exclus. Les ~2 premières minutes de chaque session\n"
-"    (et tout échantillon encore bien sous le pic de cette session) sont ignorées pour ne pas\n"
-"    tirer la courbe vers le bas avec la montée en puissance Superchargeur. Le filtre robuste exclut\n"
-"    en plus les pics anormalement bas (partage V2) et les démarrages froids. V3 et V4 ne sont pas\n"
+"    Seules les sessions Supercharge / CCS (pic ≥ ~40 kW, ou chargeur rapide "
+"signalé) sont utilisées —\n"
+"    le AC domicile et la charge destination sont exclus. Les ~2 premières "
+"minutes de chaque session\n"
+"    (et tout échantillon encore bien sous le pic de cette session) sont "
+"ignorées pour ne pas\n"
+"    tirer la courbe vers le bas avec la montée en puissance Superchargeur. "
+"Le filtre robuste exclut\n"
+"    en plus les pics anormalement bas (partage V2) et les démarrages froids. "
+"V3 et V4 ne sont pas\n"
 "    séparés : la voiture plafonne de toute façon à sa puissance max.\n"
 "    "
 
@@ -1951,8 +2003,8 @@ msgstr "Requêtes Data"
 #: personalstats/views.py:535
 #, python-format
 msgid ""
-"n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car ·"
-" from request log · max %(days)s days"
+"n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car · "
+"from request log · max %(days)s days"
 msgstr ""
 "n=%(n)s vehicle_data facturables · est. %(money)s (@ %(rate)s/req) · cette "
 "voiture · journal des requêtes · max %(days)s jours"
@@ -2004,8 +2056,8 @@ msgid ""
 "One min / avg / max per calendar month · band = monthly range · gaps = no "
 "data"
 msgstr ""
-"Un min / moy / max par mois civil · bande = plage mensuelle · trous = pas de"
-" données"
+"Un min / moy / max par mois civil · bande = plage mensuelle · trous = pas de "
+"données"
 
 #: personalstats/views.py:1306
 msgid "Average speed (km/h)"
@@ -2067,8 +2119,7 @@ msgstr "Vitesse (km/h)"
 
 #: personalstats/views.py:2364
 msgid "drive samples only · Tesla speed converted mph→km/h"
-msgstr ""
-"échantillons en conduite seulement · vitesse Tesla convertie mi/h→km/h"
+msgstr "échantillons en conduite seulement · vitesse Tesla convertie mi/h→km/h"
 
 #: personalstats/views.py:2379
 #, python-format
@@ -2125,12 +2176,12 @@ msgstr "une valeur par jour civil"
 msgid "Days"
 msgstr "Jours"
 
-#: personalstats/views.py:3217 personalstats/views.py:3875
+#: personalstats/views.py:3217 personalstats/views.py:3880
 #, python-format
 msgid "%(h)s h %(m)s min"
 msgstr "%(h)s h %(m)s min"
 
-#: personalstats/views.py:3219 personalstats/views.py:3877
+#: personalstats/views.py:3219 personalstats/views.py:3882
 #, python-format
 msgid "%(m)s min"
 msgstr "%(m)s min"
@@ -2175,52 +2226,65 @@ msgstr "Temp. ext. max"
 msgid "Min outside temp"
 msgstr "Temp. ext. min"
 
-#: personalstats/views.py:3715
+#: personalstats/views.py:3720
 msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
 msgstr "Date invalide. Utilisez JJ/MM/AAAA ou AAAA-MM-JJ."
 
-#: personalstats/views.py:4453
+#: personalstats/views.py:4459
 msgid "No DC charge samples in this period"
 msgstr "Aucun échantillon de charge DC sur cette période"
 
-#: personalstats/views.py:4468
+#: personalstats/views.py:4474
 msgid "Min–max"
 msgstr "Min–max"
 
-#: personalstats/views.py:4472
+#: personalstats/views.py:4478
 msgid "P10–P90"
 msgstr "P10–P90"
 
-#: personalstats/views.py:4482
+#: personalstats/views.py:4488
 msgid "Median kW"
 msgstr "Médiane kW"
 
-#: personalstats/views.py:4484 personalstats/views.py:4528
+#: personalstats/views.py:4490 personalstats/views.py:4534
+#: personalstats/views.py:4690
 msgid "Battery SoC (%)"
 msgstr "SoC batterie (%)"
 
-#: personalstats/views.py:4485
+#: personalstats/views.py:4491 personalstats/views.py:4705
 msgid "Charger power (kW)"
 msgstr "Puissance chargeur (kW)"
 
-#: personalstats/views.py:4501
+#: personalstats/views.py:4507
 msgid "Not enough DC sessions for start-SoC curves"
 msgstr "Pas assez de sessions DC pour les courbes par SoC de départ"
 
-#: personalstats/views.py:4516
+#: personalstats/views.py:4522
 #, python-format
 msgid "%(start)s%% start · n=%(n)s"
 msgstr "Départ %(start)s%% · n=%(n)s"
 
-#: personalstats/views.py:4527
+#: personalstats/views.py:4533 personalstats/views.py:4702
 msgid "Minutes since charge start"
 msgstr "Minutes depuis le début de charge"
 
-#: personalstats/views.py:4621
+#: personalstats/views.py:4660
+msgid "No charge samples for this stop"
+msgstr "Aucun échantillon de charge pour cet arrêt"
+
+#: personalstats/views.py:4755
+msgid "Charge power vs SoC — %(day)s"
+msgstr "Puissance de charge vs SoC — %(day)s"
+
+#: personalstats/views.py:4757
+msgid "Charge power vs time — %(day)s"
+msgstr "Puissance de charge vs temps — %(day)s"
+
+#: personalstats/views.py:4849
 msgid "DC charge power vs battery SoC"
 msgstr "Puissance de charge DC vs SoC batterie"
 
-#: personalstats/views.py:4629
+#: personalstats/views.py:4857
 msgid "DC charge: SoC vs time by start SoC"
 msgstr "Charge DC : SoC vs temps selon SoC de départ"
 
@@ -2263,8 +2327,8 @@ msgid ""
 "location and remote control charge, temperature,... Statistics on firmware "
 "updates are also available."
 msgstr ""
-"MaTesla est un site web Python/django libre utilisant l'API de Tesla pour se"
-" connecter à votre merveilleuse voiture Tesla, obtenir des informations sur "
+"MaTesla est un site web Python/django libre utilisant l'API de Tesla pour se "
+"connecter à votre merveilleuse voiture Tesla, obtenir des informations sur "
 "son état, sa position, et contrôller à distance sa charge, sa "
 "température,... Des statistiques sur les mises à jour du firmware sont "
 "également disponibles."
@@ -2283,8 +2347,7 @@ msgstr "Créer un compte"
 
 #: templates/registration/login.html:77
 msgid "Your tesla odometer graph in function of time. Who drives the most?"
-msgstr ""
-"Graphique d’odomètre Tesla en fonction du temps. Qui conduit le plus ?"
+msgstr "Graphique d’odomètre Tesla en fonction du temps. Qui conduit le plus ?"
 
 #: templates/registration/password_reset_complete.html:4
 #: templates/registration/password_reset_complete.html:10
@@ -2339,8 +2402,8 @@ msgid ""
 "address you registered with, and check your spam folder."
 msgstr ""
 "Si vous ne recevez pas de mail, veuillez vérifier que vous avez entré "
-"l’adresse avec laquelle vous vous êtes enregistré, et vérifiez votre dossier"
-" spam"
+"l’adresse avec laquelle vous vous êtes enregistré, et vérifiez votre dossier "
+"spam"
 
 #: templates/registration/password_reset_done.html:13
 #: templates/registration/password_reset_form.html:28
@@ -2396,11 +2459,11 @@ msgstr "Envoyer le mail"
 #~ msgstr "Longitude min"
 
 #~ msgid ""
-#~ "E.g. robotcar.example.com — not localhost. Must also be an Allowed Origin on"
-#~ " developer.tesla.com"
+#~ "E.g. robotcar.example.com — not localhost. Must also be an Allowed Origin "
+#~ "on developer.tesla.com"
 #~ msgstr ""
-#~ "Ex. robotcar.example.com — pas localhost. Doit aussi être en Allowed Origin "
-#~ "sur developer.tesla.com"
+#~ "Ex. robotcar.example.com — pas localhost. Doit aussi être en Allowed "
+#~ "Origin sur developer.tesla.com"
 
 #~ msgid "active"
 #~ msgstr "actif"
@@ -2435,8 +2498,8 @@ msgstr "Envoyer le mail"
 #~ "protocole."
 
 #~ msgid ""
-#~ "Keep <code>https://mehdirahbe.github.io</code> in the allowed origins of the"
-#~ " Tesla dashboard."
+#~ "Keep <code>https://mehdirahbe.github.io</code> in the allowed origins of "
+#~ "the Tesla dashboard."
 #~ msgstr ""
 #~ "Conservez <code>https://mehdirahbe.github.io</code> dans les origines "
 #~ "autorisées du dashboard Tesla."
@@ -2444,8 +2507,8 @@ msgstr "Envoyer le mail"
 #~ msgid ""
 #~ "Verify the published key, register the EU region, then resync vehicles."
 #~ msgstr ""
-#~ "Vérifiez la clé publiée, enregistrez la région EU, puis resynchronisez les "
-#~ "véhicules."
+#~ "Vérifiez la clé publiée, enregistrez la région EU, puis resynchronisez "
+#~ "les véhicules."
 
 #~ msgid "Public URL"
 #~ msgstr "URL publique"
@@ -2478,8 +2541,8 @@ msgstr "Envoyer le mail"
 
 #, python-format
 #~ msgid ""
-#~ "n=%(n)s saved samples · est. $%(usd).2f Data (@ $%(rate).3f/req) · this car "
-#~ "only · not Tesla portal total"
+#~ "n=%(n)s saved samples · est. $%(usd).2f Data (@ $%(rate).3f/req) · this "
+#~ "car only · not Tesla portal total"
 #~ msgstr ""
 #~ "n=%(n)s échantillons · est. $%(usd).2f Data (@ $%(rate).3f/req) · cette "
 #~ "voiture seule · pas le total portail Tesla"

@@ -692,3 +692,50 @@ def envelope_mode_label(mode: str) -> str:
     if mode == "min_max":
         return _("Min / max")
     return _("P10–P90 band")
+
+
+def charge_session_curve_series(points: Sequence[dict]) -> list[dict]:
+    """
+    Build plot series for one day-map charge stop (power vs time / SoC).
+
+    Each row: elapsed_min, soc, power_kw. Includes the Supercharger ramp —
+    this is a single-session detail curve, not the aggregate envelope.
+    Samples without usable SoC or power are skipped.
+    """
+    if not points:
+        return []
+    ordered = [p for p in points if p.get("t") is not None]
+    if not ordered:
+        return []
+    ordered = sorted(ordered, key=lambda p: p["t"])
+    t0 = ordered[0]["t"]
+    series: list[dict] = []
+    for point in ordered:
+        power = effective_charger_power_kw(point)
+        if power is None or power < 0.3:
+            continue
+        soc = _point_soc(point)
+        if soc is None:
+            # Day-map rows use battery_level / usable_battery_level keys too
+            raw = point.get("usable_battery_level")
+            if raw is None:
+                raw = point.get("battery_level")
+            if raw is not None:
+                try:
+                    soc = float(raw)
+                except (TypeError, ValueError):
+                    soc = None
+        if soc is None:
+            continue
+        try:
+            elapsed_min = max(0.0, (point["t"] - t0).total_seconds() / 60.0)
+        except Exception:
+            elapsed_min = 0.0
+        series.append(
+            {
+                "elapsed_min": elapsed_min,
+                "soc": float(soc),
+                "power_kw": float(power),
+            }
+        )
+    return series

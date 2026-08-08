@@ -8,6 +8,7 @@ from personalstats.dc_charge import (
     ChargePoint,
     DcSession,
     charge_power_min_max_excluding_ramp,
+    charge_session_curve_series,
     effective_charger_power_kw,
     filter_outlier_sessions,
     iter_power_curve_points,
@@ -211,6 +212,30 @@ class DcChargeLogicTests(SimpleTestCase):
         curve = power_vs_soc_curve([session], min_n=1)
         all_mins = [row["min"] for row in curve]
         self.assertTrue(all(m >= 200 for m in all_mins), all_mins)
+
+    def test_charge_session_curve_series(self):
+        t0 = datetime(2024, 6, 1, 12, 0, tzinfo=timezone.utc)
+        points = [
+            {
+                "t": t0 + timedelta(minutes=i),
+                "battery_level": 20 + i * 5,
+                "charger_power": 80.0 + i * 20,
+            }
+            for i in range(4)
+        ]
+        series = charge_session_curve_series(points)
+        self.assertEqual(len(series), 4)
+        self.assertEqual(series[0]["elapsed_min"], 0.0)
+        self.assertAlmostEqual(series[1]["elapsed_min"], 1.0)
+        self.assertEqual(series[0]["soc"], 20.0)
+        self.assertEqual(series[-1]["power_kw"], 140.0)
+        # No power → skipped
+        self.assertEqual(
+            charge_session_curve_series(
+                [{"t": t0, "battery_level": 50, "charger_power": 0.0}]
+            ),
+            [],
+        )
 
     def test_soc_vs_time_curves_by_start_bucket(self):
         sessions = [

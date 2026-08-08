@@ -13,6 +13,13 @@ path('Stats/<str:hashedVin>', views.Stats, name='PersoStats'),
 # Day path / map: type a calendar day (or use prev/next arrows)
 path('DayMap/<str:hashedVin>', views.DayMap, name='PersoDayMap'),
 path('DayMap/<str:hashedVin>/<str:day>', views.DayMap, name='PersoDayMapDay'),
+# Single fast-charge stop curve PNGs from day-map DC rows
+# chart: power_vs_time | power_vs_soc (separate files for save/print)
+path(
+    'DayChargeSessionGraph/<str:hashedVin>/<str:day>/<int:start_ts>/<str:chart>',
+    views.DayChargeSessionGraph,
+    name='PersoDayChargeSessionGraph',
+),
 # Multi-criteria trip leaderboard (≥ 20 km): longest, elevation, cardinals, temp
 path('Drives/<str:hashedVin>', views.Drives, name='PersoDrives'),
 # DC fast-charge profiles (power vs SoC, SoC vs time)
