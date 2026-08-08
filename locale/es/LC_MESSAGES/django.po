@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: matesla\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-08 14:31+0000\n"
+"POT-Creation-Date: 2026-08-08 18:15+0000\n"
 "PO-Revision-Date: 2026-07-27 22:00+0000\n"
 "Last-Translator: MaTesla\n"
 "Language-Team: Spanish\n"
@@ -759,7 +759,7 @@ msgstr "Mis datos"
 #: matesla/templates/matesla/_vehicle_chrome.html:61
 #: personalstats/templates/personalstats/daymap.html:6
 #: personalstats/templates/personalstats/daymap.html:278
-#: personalstats/templates/personalstats/dc_charge.html:308
+#: personalstats/templates/personalstats/dc_charge.html:309
 msgid "Day map"
 msgstr "Mapa del día"
 
@@ -1030,19 +1030,19 @@ msgstr "Norsk"
 msgid "Write operations are only allowed from the local server."
 msgstr "Las operaciones de escritura solo se permiten desde el servidor local."
 
-#: personalstats/dc_charge.py:687
+#: personalstats/dc_charge.py:734
 msgid "All DC sessions"
 msgstr "Todas las sesiones DC"
 
-#: personalstats/dc_charge.py:688
+#: personalstats/dc_charge.py:735
 msgid "Robust (drop V2 share / cold crawl)"
 msgstr "Robusto (excluye V2 compartido / frío)"
 
-#: personalstats/dc_charge.py:693
+#: personalstats/dc_charge.py:740
 msgid "Min / max"
 msgstr "Mín / máx"
 
-#: personalstats/dc_charge.py:694
+#: personalstats/dc_charge.py:741
 msgid "P10–P90 band"
 msgstr "Banda P10–P90"
 
@@ -1336,12 +1336,12 @@ msgstr "Cargando mapa…"
 
 #: personalstats/templates/personalstats/_carstats_body.html:269
 #: personalstats/templates/personalstats/daymap.html:500
-#: personalstats/templates/personalstats/dc_charge.html:366
+#: personalstats/templates/personalstats/dc_charge.html:396
 msgid "Close"
 msgstr "Cerrar"
 
 #: personalstats/templates/personalstats/_carstats_body.html:274
-#: personalstats/templates/personalstats/dc_charge.html:371
+#: personalstats/templates/personalstats/dc_charge.html:401
 msgid "Press Esc or click outside to close."
 msgstr "Pulsa Esc o haz clic fuera para cerrar."
 
@@ -1612,7 +1612,10 @@ msgstr "Potencia de carga versus SoC de batería"
 msgid ""
 "Two separate images — open PNG to save or print one curve. Press Esc or "
 "click outside to close."
-msgstr "Dos imágenes separadas: abre el PNG para guardar o imprimir una curva. Esc o clic fuera para cerrar."
+msgstr ""
+"Dos imágenes separadas: abre el PNG para guardar o imprimir una curva. Esc o "
+"clic fuera para cerrar."
+
 #: personalstats/templates/personalstats/daymap.html:586
 msgid "Supercharger"
 msgstr "Supercharger"
@@ -1725,33 +1728,83 @@ msgstr "Borde"
 
 #: personalstats/templates/personalstats/dc_charge.html:305
 msgid "SoC bin"
-msgstr "Bin SoC"
+msgstr "Tramo SoC"
 
 #: personalstats/templates/personalstats/dc_charge.html:306
-msgid "SoC"
-msgstr "SoC"
-
-#: personalstats/templates/personalstats/dc_charge.html:307
 msgid "Power"
 msgstr "Potencia"
 
-#: personalstats/templates/personalstats/dc_charge.html:309
-msgid "n in bin"
-msgstr "n en el bin"
+#: personalstats/templates/personalstats/dc_charge.html:307
+msgid "Rated range added per hour at this power (EPA energy intensity)"
+msgstr "Autonomía homologada añadida por hora a esta potencia (intensidad energética EPA)"
 
-#: personalstats/templates/personalstats/dc_charge.html:317
+#: personalstats/templates/personalstats/dc_charge.html:307
+msgid "EPA km/h"
+msgstr "km/h EPA"
+
+#: personalstats/templates/personalstats/dc_charge.html:308
+msgid "Driving range added per hour at this power (your average consumption)"
+msgstr "Autonomía real añadida por hora a esta potencia (tu consumo medio)"
+
+#: personalstats/templates/personalstats/dc_charge.html:308
+msgid "Real km/h"
+msgstr "km/h reales"
+
+#: personalstats/templates/personalstats/dc_charge.html:310
+msgid "n in bin"
+msgstr "n en el tramo"
+
+#: personalstats/templates/personalstats/dc_charge.html:318
 msgid "Min"
 msgstr "Mín"
 
-#: personalstats/templates/personalstats/dc_charge.html:319
+#: personalstats/templates/personalstats/dc_charge.html:320
 msgid "Max"
 msgstr "Máx"
 
-#: personalstats/templates/personalstats/dc_charge.html:327
+#: personalstats/templates/personalstats/dc_charge.html:337
 msgid "Open day map for this charge day"
 msgstr "Abrir el mapa del día de esta carga"
 
-#: personalstats/templates/personalstats/dc_charge.html:340
+#: personalstats/templates/personalstats/dc_charge.html:349
+#, python-format
+msgid ""
+"\n"
+"        Range rates convert power to km/h using EPA ≈ %(epa)s kWh/100 km and "
+"your\n"
+"        recent driving average ≈ %(real)s kWh/100 km (distance-weighted).\n"
+"        "
+msgstr ""
+"\n"
+"        Las tasas de autonomía convierten la potencia en km/h con EPA ≈ %(epa)s kWh/100 km y tu\n"
+"        consumo de conducción reciente ≈ %(real)s kWh/100 km (ponderado por distancia).\n"
+"        "
+
+#: personalstats/templates/personalstats/dc_charge.html:356
+#, python-format
+msgid ""
+"\n"
+"        Range rates use EPA ≈ %(epa)s kWh/100 km. Real km/h needs more "
+"driving data.\n"
+"        "
+msgstr ""
+"\n"
+"        Las tasas de autonomía usan EPA ≈ %(epa)s kWh/100 km. Los km/h reales necesitan más trayectos.\n"
+"        "
+
+#: personalstats/templates/personalstats/dc_charge.html:362
+#, python-format
+msgid ""
+"\n"
+"        Real range rates use your driving average ≈ %(real)s kWh/100 km. EPA "
+"km/h needs a catalog range.\n"
+"        "
+msgstr ""
+"\n"
+"        Los km/h reales usan tu consumo medio ≈ %(real)s kWh/100 km. Los km/h EPA necesitan autonomía de catálogo.\n"
+"        "
+
+#: personalstats/templates/personalstats/dc_charge.html:370
 msgid ""
 "Tip: switch Envelope to Min / max to get day-map links for the samples that "
 "form the band edges."
@@ -1759,7 +1812,7 @@ msgstr ""
 "Consejo: cambia la envolvente a Mín / máx para enlaces al mapa del día en "
 "los bordes."
 
-#: personalstats/templates/personalstats/dc_charge.html:345
+#: personalstats/templates/personalstats/dc_charge.html:375
 msgid ""
 "\n"
 "    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast "
@@ -2214,61 +2267,63 @@ msgstr "Temp. ext. mín."
 msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
 msgstr "Fecha no válida. Usa DD/MM/AAAA o AAAA-MM-DD."
 
-#: personalstats/views.py:4459
+#: personalstats/views.py:4511
 msgid "No DC charge samples in this period"
 msgstr "No hay muestras de carga DC en este período"
 
-#: personalstats/views.py:4474
+#: personalstats/views.py:4526
 msgid "Min–max"
 msgstr "Mín–máx"
 
-#: personalstats/views.py:4478
+#: personalstats/views.py:4530
 msgid "P10–P90"
 msgstr "P10–P90"
 
-#: personalstats/views.py:4488
+#: personalstats/views.py:4540
 msgid "Median kW"
 msgstr "Mediana kW"
 
-#: personalstats/views.py:4490 personalstats/views.py:4534
-#: personalstats/views.py:4690
+#: personalstats/views.py:4542 personalstats/views.py:4586
+#: personalstats/views.py:4742
 msgid "Battery SoC (%)"
 msgstr "SoC de batería (%)"
 
-#: personalstats/views.py:4491 personalstats/views.py:4705
+#: personalstats/views.py:4543 personalstats/views.py:4757
 msgid "Charger power (kW)"
 msgstr "Potencia del cargador (kW)"
 
-#: personalstats/views.py:4507
+#: personalstats/views.py:4559
 msgid "Not enough DC sessions for start-SoC curves"
 msgstr "No hay suficientes sesiones DC para curvas por SoC de inicio"
 
-#: personalstats/views.py:4522
+#: personalstats/views.py:4574
 #, python-format
 msgid "%(start)s%% start · n=%(n)s"
 msgstr "Inicio %(start)s%% · n=%(n)s"
 
-#: personalstats/views.py:4533 personalstats/views.py:4702
+#: personalstats/views.py:4585 personalstats/views.py:4754
 msgid "Minutes since charge start"
 msgstr "Minutos desde el inicio de la carga"
 
-#: personalstats/views.py:4660
+#: personalstats/views.py:4712
 msgid "No charge samples for this stop"
 msgstr "No hay muestras de carga para esta parada"
 
-#: personalstats/views.py:4755
+#: personalstats/views.py:4807
+#, python-format
 msgid "Charge power vs SoC — %(day)s"
 msgstr "Potencia de carga vs SoC — %(day)s"
 
-#: personalstats/views.py:4757
+#: personalstats/views.py:4809
+#, python-format
 msgid "Charge power vs time — %(day)s"
 msgstr "Potencia de carga vs tiempo — %(day)s"
 
-#: personalstats/views.py:4849
+#: personalstats/views.py:4908
 msgid "DC charge power vs battery SoC"
 msgstr "Potencia de carga DC vs SoC de batería"
 
-#: personalstats/views.py:4857
+#: personalstats/views.py:4916
 msgid "DC charge: SoC vs time by start SoC"
 msgstr "Carga DC: SoC vs tiempo según SoC de inicio"
 
@@ -2414,6 +2469,9 @@ msgstr "Atentamente, el equipo MaTesla"
 #: templates/registration/password_reset_form.html:25
 msgid "Send e-mail"
 msgstr "Enviar correo"
+
+#~ msgid "SoC"
+#~ msgstr "SoC"
 
 #~ msgid "Furthest north"
 #~ msgstr "Más al norte"

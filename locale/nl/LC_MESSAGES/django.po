@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-08 14:31+0000\n"
+"POT-Creation-Date: 2026-08-08 18:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: MaTesla i18n <noreply@matesla.local>\n"
 "Language-Team: Nederlands <LL@li.org>\n"
@@ -763,7 +763,7 @@ msgstr "Mijn gegevens"
 #: matesla/templates/matesla/_vehicle_chrome.html:61
 #: personalstats/templates/personalstats/daymap.html:6
 #: personalstats/templates/personalstats/daymap.html:278
-#: personalstats/templates/personalstats/dc_charge.html:308
+#: personalstats/templates/personalstats/dc_charge.html:309
 msgid "Day map"
 msgstr "Dagkaart"
 
@@ -1036,19 +1036,19 @@ msgstr "Norsk"
 msgid "Write operations are only allowed from the local server."
 msgstr "Schrijfbewerkingen zijn alleen toegestaan vanaf de lokale server."
 
-#: personalstats/dc_charge.py:687
+#: personalstats/dc_charge.py:734
 msgid "All DC sessions"
 msgstr "Alle DC-sessies"
 
-#: personalstats/dc_charge.py:688
+#: personalstats/dc_charge.py:735
 msgid "Robust (drop V2 share / cold crawl)"
 msgstr "Robuust (zonder V2-delen / koud)"
 
-#: personalstats/dc_charge.py:693
+#: personalstats/dc_charge.py:740
 msgid "Min / max"
 msgstr "Min / max"
 
-#: personalstats/dc_charge.py:694
+#: personalstats/dc_charge.py:741
 msgid "P10–P90 band"
 msgstr "P10–P90-band"
 
@@ -1341,12 +1341,12 @@ msgstr "Kaart laden…"
 
 #: personalstats/templates/personalstats/_carstats_body.html:269
 #: personalstats/templates/personalstats/daymap.html:500
-#: personalstats/templates/personalstats/dc_charge.html:366
+#: personalstats/templates/personalstats/dc_charge.html:396
 msgid "Close"
 msgstr "Sluiten"
 
 #: personalstats/templates/personalstats/_carstats_body.html:274
-#: personalstats/templates/personalstats/dc_charge.html:371
+#: personalstats/templates/personalstats/dc_charge.html:401
 msgid "Press Esc or click outside to close."
 msgstr "Druk Esc of klik buiten om te sluiten."
 
@@ -1615,7 +1615,10 @@ msgstr "Laadvermogen versus batterij-SoC"
 msgid ""
 "Two separate images — open PNG to save or print one curve. Press Esc or "
 "click outside to close."
-msgstr "Twee aparte afbeeldingen — open PNG om één curve op te slaan of te printen. Esc of klik buiten om te sluiten."
+msgstr ""
+"Twee aparte afbeeldingen — open PNG om één curve op te slaan of te printen. "
+"Esc of klik buiten om te sluiten."
+
 #: personalstats/templates/personalstats/daymap.html:586
 msgid "Supercharger"
 msgstr "Supercharger"
@@ -1728,39 +1731,89 @@ msgstr "Rand"
 
 #: personalstats/templates/personalstats/dc_charge.html:305
 msgid "SoC bin"
-msgstr "SoC-bin"
+msgstr "SoC-tranche"
 
 #: personalstats/templates/personalstats/dc_charge.html:306
-msgid "SoC"
-msgstr "SoC"
-
-#: personalstats/templates/personalstats/dc_charge.html:307
 msgid "Power"
 msgstr "Vermogen"
 
-#: personalstats/templates/personalstats/dc_charge.html:309
-msgid "n in bin"
-msgstr "n in bin"
+#: personalstats/templates/personalstats/dc_charge.html:307
+msgid "Rated range added per hour at this power (EPA energy intensity)"
+msgstr "Gehomologeerde actieradius per uur bij dit vermogen (EPA-energie-intensiteit)"
 
-#: personalstats/templates/personalstats/dc_charge.html:317
+#: personalstats/templates/personalstats/dc_charge.html:307
+msgid "EPA km/h"
+msgstr "EPA km/u"
+
+#: personalstats/templates/personalstats/dc_charge.html:308
+msgid "Driving range added per hour at this power (your average consumption)"
+msgstr "Rij-actieradius per uur bij dit vermogen (jouw gemiddelde verbruik)"
+
+#: personalstats/templates/personalstats/dc_charge.html:308
+msgid "Real km/h"
+msgstr "Echte km/u"
+
+#: personalstats/templates/personalstats/dc_charge.html:310
+msgid "n in bin"
+msgstr "n in de tranche"
+
+#: personalstats/templates/personalstats/dc_charge.html:318
 msgid "Min"
 msgstr "Min"
 
-#: personalstats/templates/personalstats/dc_charge.html:319
+#: personalstats/templates/personalstats/dc_charge.html:320
 msgid "Max"
 msgstr "Max"
 
-#: personalstats/templates/personalstats/dc_charge.html:327
+#: personalstats/templates/personalstats/dc_charge.html:337
 msgid "Open day map for this charge day"
 msgstr "Dagkaart voor deze laaddag openen"
 
-#: personalstats/templates/personalstats/dc_charge.html:340
+#: personalstats/templates/personalstats/dc_charge.html:349
+#, python-format
+msgid ""
+"\n"
+"        Range rates convert power to km/h using EPA ≈ %(epa)s kWh/100 km and "
+"your\n"
+"        recent driving average ≈ %(real)s kWh/100 km (distance-weighted).\n"
+"        "
+msgstr ""
+"\n"
+"        Actieradius-snelheden zetten vermogen om naar km/u met EPA ≈ %(epa)s kWh/100 km en jouw\n"
+"        recente rijverbruik ≈ %(real)s kWh/100 km (afstand-gewogen).\n"
+"        "
+
+#: personalstats/templates/personalstats/dc_charge.html:356
+#, python-format
+msgid ""
+"\n"
+"        Range rates use EPA ≈ %(epa)s kWh/100 km. Real km/h needs more "
+"driving data.\n"
+"        "
+msgstr ""
+"\n"
+"        Actieradius-snelheden gebruiken EPA ≈ %(epa)s kWh/100 km. Echte km/u heeft meer ritten nodig.\n"
+"        "
+
+#: personalstats/templates/personalstats/dc_charge.html:362
+#, python-format
+msgid ""
+"\n"
+"        Real range rates use your driving average ≈ %(real)s kWh/100 km. EPA "
+"km/h needs a catalog range.\n"
+"        "
+msgstr ""
+"\n"
+"        Echte km/u gebruikt jouw rijverbruik ≈ %(real)s kWh/100 km. EPA km/u heeft catalogusbereik nodig.\n"
+"        "
+
+#: personalstats/templates/personalstats/dc_charge.html:370
 msgid ""
 "Tip: switch Envelope to Min / max to get day-map links for the samples that "
 "form the band edges."
 msgstr "Tip: zet Envelop op Min / max voor dagkaartlinks op de bandranden."
 
-#: personalstats/templates/personalstats/dc_charge.html:345
+#: personalstats/templates/personalstats/dc_charge.html:375
 msgid ""
 "\n"
 "    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast "
@@ -2215,61 +2268,63 @@ msgstr "Min. buitentemp."
 msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
 msgstr "Ongeldige datum. Gebruik DD/MM/JJJJ of JJJJ-MM-DD."
 
-#: personalstats/views.py:4459
+#: personalstats/views.py:4511
 msgid "No DC charge samples in this period"
 msgstr "Geen DC-laadmonsters in deze periode"
 
-#: personalstats/views.py:4474
+#: personalstats/views.py:4526
 msgid "Min–max"
 msgstr "Min–max"
 
-#: personalstats/views.py:4478
+#: personalstats/views.py:4530
 msgid "P10–P90"
 msgstr "P10–P90"
 
-#: personalstats/views.py:4488
+#: personalstats/views.py:4540
 msgid "Median kW"
 msgstr "Mediaan kW"
 
-#: personalstats/views.py:4490 personalstats/views.py:4534
-#: personalstats/views.py:4690
+#: personalstats/views.py:4542 personalstats/views.py:4586
+#: personalstats/views.py:4742
 msgid "Battery SoC (%)"
 msgstr "Batterij-SoC (%)"
 
-#: personalstats/views.py:4491 personalstats/views.py:4705
+#: personalstats/views.py:4543 personalstats/views.py:4757
 msgid "Charger power (kW)"
 msgstr "Laadvermogen (kW)"
 
-#: personalstats/views.py:4507
+#: personalstats/views.py:4559
 msgid "Not enough DC sessions for start-SoC curves"
 msgstr "Niet genoeg DC-sessies voor start-SoC-curves"
 
-#: personalstats/views.py:4522
+#: personalstats/views.py:4574
 #, python-format
 msgid "%(start)s%% start · n=%(n)s"
 msgstr "%(start)s%% start · n=%(n)s"
 
-#: personalstats/views.py:4533 personalstats/views.py:4702
+#: personalstats/views.py:4585 personalstats/views.py:4754
 msgid "Minutes since charge start"
 msgstr "Minuten sinds start van de lading"
 
-#: personalstats/views.py:4660
+#: personalstats/views.py:4712
 msgid "No charge samples for this stop"
 msgstr "Geen laadmonsters voor deze stop"
 
-#: personalstats/views.py:4755
+#: personalstats/views.py:4807
+#, python-format
 msgid "Charge power vs SoC — %(day)s"
 msgstr "Laadvermogen vs SoC — %(day)s"
 
-#: personalstats/views.py:4757
+#: personalstats/views.py:4809
+#, python-format
 msgid "Charge power vs time — %(day)s"
 msgstr "Laadvermogen vs tijd — %(day)s"
 
-#: personalstats/views.py:4849
+#: personalstats/views.py:4908
 msgid "DC charge power vs battery SoC"
 msgstr "DC-laadvermogen vs batterij-SoC"
 
-#: personalstats/views.py:4857
+#: personalstats/views.py:4916
 msgid "DC charge: SoC vs time by start SoC"
 msgstr "DC-laden: SoC vs tijd per start-SoC"
 
@@ -2417,3 +2472,6 @@ msgstr "Met vriendelijke groet, het MaTesla-team"
 #: templates/registration/password_reset_form.html:25
 msgid "Send e-mail"
 msgstr "E-mail verzenden"
+
+#~ msgid "SoC"
+#~ msgstr "SoC"

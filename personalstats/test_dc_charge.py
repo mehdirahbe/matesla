@@ -12,7 +12,9 @@ from personalstats.dc_charge import (
     effective_charger_power_kw,
     filter_outlier_sessions,
     iter_power_curve_points,
+    power_curve_extreme_rows,
     power_vs_soc_curve,
+    range_gain_km_per_hour,
     session_from_rows,
     soc_vs_time_curves,
 )
@@ -128,6 +130,26 @@ class DcChargeLogicTests(SimpleTestCase):
         self.assertIsNotNone(row.get("min_day"))
         self.assertIsNotNone(row.get("max_day"))
         self.assertRegex(row["min_day"], r"^\d{4}-\d{2}-\d{2}$")
+
+    def test_range_gain_km_per_hour_from_power_and_intensity(self):
+        # 15 kWh/100 km → 0.15 kWh/km; 150 kW adds 1000 km/h of range
+        self.assertAlmostEqual(range_gain_km_per_hour(150.0, 15.0), 1000.0)
+        self.assertIsNone(range_gain_km_per_hour(150.0, None))
+        self.assertIsNone(range_gain_km_per_hour(None, 15.0))
+        self.assertIsNone(range_gain_km_per_hour(150.0, 0.0))
+
+    def test_power_curve_extreme_rows_include_range_rates(self):
+        sessions = [_session(peak=150 + i, start_soc=10 + i) for i in range(5)]
+        curve = power_vs_soc_curve(sessions, min_n=1)
+        extremes = power_curve_extreme_rows(
+            curve, epa_kwh_per_100km=14.0, real_kwh_per_100km=18.0
+        )
+        self.assertGreater(len(extremes), 0)
+        row = extremes[0]
+        self.assertNotIn("soc", row)  # exact SoC dropped; band + rates instead
+        self.assertIsNotNone(row.get("kmh_epa"))
+        self.assertIsNotNone(row.get("kmh_real"))
+        self.assertGreater(row["kmh_epa"], row["kmh_real"])  # real conso worse → fewer km/h
 
     def test_power_vs_soc_single_session_covers_full_soc_range(self):
         """

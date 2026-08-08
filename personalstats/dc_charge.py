@@ -558,18 +558,45 @@ def power_vs_soc_curve(
     return rows
 
 
-def power_curve_extreme_rows(power_curve: Sequence[dict]) -> list[dict]:
+def range_gain_km_per_hour(
+    power_kw: float | None, kwh_per_100km: float | None
+) -> float | None:
+    """
+    Convert charger power (kW = kWh/h) into range added per hour (km/h).
+
+    Uses energy intensity: at C kWh/100 km, 1 kW adds 100/C km per hour.
+    EPA or real driving intensity both work the same way.
+    """
+    if power_kw is None or kwh_per_100km is None:
+        return None
+    try:
+        power = float(power_kw)
+        intensity = float(kwh_per_100km)
+    except (TypeError, ValueError):
+        return None
+    if power < 0 or intensity <= 0:
+        return None
+    return power / (intensity / 100.0)
+
+
+def power_curve_extreme_rows(
+    power_curve: Sequence[dict],
+    *,
+    epa_kwh_per_100km: float | None = None,
+    real_kwh_per_100km: float | None = None,
+) -> list[dict]:
     """
     Flatten min/max extremes for the min–max envelope drill-down table.
 
-    One row per (SoC bin, kind min|max) with day_iso for PersoDayMapDay.
+    One row per (SoC band, kind min|max) with day_iso for PersoDayMapDay,
+    plus optional EPA / real range-gain rates (km/h) from the sample power.
     """
     out: list[dict] = []
     for row in power_curve:
         soc = row.get("soc")
-        for kind, power_key, day_key, exact_soc_key in (
-            ("min", "min", "min_day", "min_soc"),
-            ("max", "max", "max_day", "max_soc"),
+        for kind, power_key, day_key in (
+            ("min", "min", "min_day"),
+            ("max", "max", "max_day"),
         ):
             day = row.get(day_key)
             power = row.get(power_key)
@@ -579,11 +606,12 @@ def power_curve_extreme_rows(power_curve: Sequence[dict]) -> list[dict]:
                 {
                     "kind": kind,
                     "soc_bin": soc,
-                    "soc": row.get(exact_soc_key, soc),
                     "power_kw": power,
                     "day_iso": day,
                     "n": row.get("n"),
                     "median": row.get("median"),
+                    "kmh_epa": range_gain_km_per_hour(power, epa_kwh_per_100km),
+                    "kmh_real": range_gain_km_per_hour(power, real_kwh_per_100km),
                 }
             )
     # Sort by SoC then min before max

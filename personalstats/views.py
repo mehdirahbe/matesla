@@ -4412,6 +4412,57 @@ def _parse_dc_envelope_mode(raw) -> str:
     return mode if mode in ENVELOPE_MODES else "p10_p90"
 
 
+def _epa_kwh_per_100km_for_hashed_vin(hashed_vin) -> float | None:
+    """EPA energy intensity (kWh/100 km) from catalog range + pack estimate."""
+    from matesla.models.TeslaCarInfo import TeslaCarInfo
+
+    info = TeslaCarInfo.objects.filter(hashedVin=hashed_vin).first()
+    try:
+        epa_miles = float(info.EPARange) if info and info.EPARange else None
+    except (TypeError, ValueError):
+        epa_miles = None
+    if not epa_miles or epa_miles < 50:
+        return None
+    pack_kwh = _estimate_pack_kwh(epa_miles)
+    epa_km = epa_miles * 1.609344
+    if epa_km <= 0 or pack_kwh <= 0:
+        return None
+    return pack_kwh / epa_km * 100.0
+
+
+def _vehicle_drive_kwh_per_100km(hashed_vin, *, weeks=52) -> float | None:
+    """
+    Distance-weighted real driving consumption (kWh/100 km).
+
+    Uses the ranked-drives list (already soft-cached). Outlier trips with
+    impossible kWh/100 km are ignored; need enough distance for stability.
+    """
+    trips = _load_ranked_drives(
+        hashed_vin, weeks, min_km=max(float(EFFICIENCY_MIN_KM), 10.0)
+    )
+    total_kwh = 0.0
+    total_km = 0.0
+    for trip in trips:
+        kwh = trip.get("kwh_used")
+        km = trip.get("km")
+        k100 = trip.get("kwh_per_100km")
+        if kwh is None or km is None or k100 is None:
+            continue
+        try:
+            kwh_f = float(kwh)
+            km_f = float(km)
+            k100_f = float(k100)
+        except (TypeError, ValueError):
+            continue
+        if km_f < 10.0 or k100_f < 5.0 or k100_f > 45.0:
+            continue
+        total_kwh += kwh_f
+        total_km += km_f
+    if total_km < 50.0:
+        return None
+    return total_kwh / total_km * 100.0
+
+
 def _dc_charge_period_queryset(hashed_vin, weeks: int):
     base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashed_vin)
     return _period_filter(base, weeks)
@@ -4420,7 +4471,7 @@ def _dc_charge_period_queryset(hashed_vin, weeks: int):
 def _load_dc_analysis(hashed_vin, weeks: int, outlier_mode: str):
     """Load DC sessions, filter outliers, build curve payloads + summary."""
     cache_key = (
-        f"dc_charge_v4:{hashed_vin}:{weeks}:{outlier_mode}:{get_language() or 'en'}"
+        f"dc_charge_v5:{hashed_vin}:{weeks}:{outlier_mode}:{get_language() or 'en'}"
     )
     try:
         hit = cache.get(cache_key)
@@ -4435,6 +4486,7 @@ def _load_dc_analysis(hashed_vin, weeks: int, outlier_mode: str):
     power_curve = power_vs_soc_curve(kept)
     time_curves = soc_vs_time_curves(kept)
     summary = summarize_sessions(kept, rejected)
+    # Extremes without range rates; DCCharge re-annotates with EPA/real conso.
     payload = {
         "power_curve": power_curve,
         "time_curves": time_curves,
@@ -4778,11 +4830,16 @@ def DCCharge(request, hashedVin):
     summary = analysis["summary"]
     # Day-map drill-down only useful when the envelope is the actual min/max
     # (P10–P90 is a statistical band, not a single sample day).
-    power_extremes = (
-        analysis.get("power_extremes") or []
-        if envelope_mode == "min_max"
-        else []
-    )
+    epa_kwh_100 = _epa_kwh_per_100km_for_hashed_vin(hashedVin)
+    real_kwh_100 = _vehicle_drive_kwh_per_100km(hashedVin, weeks=52)
+    if envelope_mode == "min_max" and analysis.get("power_curve"):
+        power_extremes = power_curve_extreme_rows(
+            analysis["power_curve"],
+            epa_kwh_per_100km=epa_kwh_100,
+            real_kwh_per_100km=real_kwh_100,
+        )
+    else:
+        power_extremes = []
 
     context = _vehicle_chrome_context(request, hashedVin)
     context.update(
@@ -4797,6 +4854,8 @@ def DCCharge(request, hashedVin):
             "has_time_curves": bool(analysis["time_curves"]),
             "power_extremes": power_extremes,
             "show_power_extremes": bool(power_extremes),
+            "epa_kwh_per_100km": epa_kwh_100,
+            "real_kwh_per_100km": real_kwh_100,
             "filter_choices": [
                 {"key": "robust", "label": outlier_mode_label("robust")},
                 {"key": "all", "label": outlier_mode_label("all")},

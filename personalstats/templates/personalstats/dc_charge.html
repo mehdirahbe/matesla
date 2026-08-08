@@ -303,8 +303,9 @@
                 <tr>
                     <th>{% trans 'Edge' %}</th>
                     <th>{% trans 'SoC bin' %}</th>
-                    <th>{% trans 'SoC' %}</th>
                     <th>{% trans 'Power' %}</th>
+                    <th title="{% trans 'Rated range added per hour at this power (EPA energy intensity)' %}">{% trans 'EPA km/h' %}</th>
+                    <th title="{% trans 'Driving range added per hour at this power (your average consumption)' %}">{% trans 'Real km/h' %}</th>
                     <th>{% trans 'Day map' %}</th>
                     <th>{% trans 'n in bin' %}</th>
                 </tr>
@@ -320,8 +321,17 @@
                         {% endif %}
                     </td>
                     <td>{{ row.soc_bin|floatformat:0 }}%</td>
-                    <td>{{ row.soc|floatformat:1 }}%</td>
                     <td>{{ row.power_kw|floatformat:0 }} kW</td>
+                    <td>
+                        {% if row.kmh_epa is not None %}
+                        {{ row.kmh_epa|floatformat:0 }}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if row.kmh_real is not None %}
+                        {{ row.kmh_real|floatformat:0 }}
+                        {% else %}—{% endif %}
+                    </td>
                     <td>
                         <a href="{% url 'PersoDayMapDay' hashedVin row.day_iso %}"
                            title="{% trans 'Open day map for this charge day' %}">
@@ -334,6 +344,26 @@
             </tbody>
         </table>
     </div>
+    {% if epa_kwh_per_100km and real_kwh_per_100km %}
+    <p class="dc-note">
+        {% blocktrans with epa=epa_kwh_per_100km|floatformat:1 real=real_kwh_per_100km|floatformat:1 %}
+        Range rates convert power to km/h using EPA ≈ {{ epa }} kWh/100 km and your
+        recent driving average ≈ {{ real }} kWh/100 km (distance-weighted).
+        {% endblocktrans %}
+    </p>
+    {% elif epa_kwh_per_100km %}
+    <p class="dc-note">
+        {% blocktrans with epa=epa_kwh_per_100km|floatformat:1 %}
+        Range rates use EPA ≈ {{ epa }} kWh/100 km. Real km/h needs more driving data.
+        {% endblocktrans %}
+    </p>
+    {% elif real_kwh_per_100km %}
+    <p class="dc-note">
+        {% blocktrans with real=real_kwh_per_100km|floatformat:1 %}
+        Real range rates use your driving average ≈ {{ real }} kWh/100 km. EPA km/h needs a catalog range.
+        {% endblocktrans %}
+    </p>
+    {% endif %}
 </section>
 {% elif envelope_mode == 'p10_p90' %}
 <p class="dc-note">
