@@ -129,6 +129,42 @@ class DcChargeLogicTests(SimpleTestCase):
         self.assertIsNotNone(row.get("max_day"))
         self.assertRegex(row["min_day"], r"^\d{4}-\d{2}-\d{2}$")
 
+    def test_power_vs_soc_single_session_covers_full_soc_range(self):
+        """
+        One dense Supercharge must not collapse to the high-SoC taper only.
+
+        With a fixed min_n=3, only bins where SoC climbs slowly (several
+        samples per 2% bin) survived — e.g. 87–89% while the stop was 33→90%.
+        """
+        t0 = datetime(2026, 7, 26, 7, 13, tzinfo=timezone.utc)
+        points = []
+        # ~1 sample/min, ~2–3% SoC steps early (1 sample/bin), slower at the end
+        soc = 33.0
+        for i in range(40):
+            power = 145.0 - i * 2.8  # 145 → ~36 kW
+            points.append(
+                ChargePoint(
+                    t=t0 + timedelta(minutes=i),
+                    soc=soc,
+                    power_kw=max(30.0, power),
+                )
+            )
+            # Fast climb early, taper late (multiple samples near 88%)
+            soc += 2.4 if i < 28 else 0.55
+        session = DcSession(
+            points=points,
+            peak_kw=145.0,
+            start_soc=points[0].soc,
+            end_soc=points[-1].soc,
+            duration_min=39.0,
+        )
+        # Default min_n (3) must adapt down for a single session
+        curve = power_vs_soc_curve([session])
+        socs = [row["soc"] for row in curve]
+        self.assertGreaterEqual(len(curve), 10, socs)
+        self.assertLess(min(socs), 45.0, socs)
+        self.assertGreater(max(socs), 80.0, socs)
+
     def test_daymap_min_max_excludes_ramp(self):
         t0 = datetime(2024, 5, 4, 17, 30, tzinfo=timezone.utc)
         timed = [

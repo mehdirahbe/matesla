@@ -500,9 +500,18 @@ def power_vs_soc_curve(
     to the day map when the envelope is min/max.
 
     Excludes Supercharger ramp samples at the start of each session.
+
+    ``min_n`` is capped by the number of sessions: a single Supercharge still
+    plots across the full SoC range (one sample per bin is enough). With many
+    sessions the floor stays at ``SOC_BIN_MIN_N`` so sparse edge bins drop out.
+    Without that cap, only the slow high-SoC taper (several samples per bin)
+    survived and the curve looked like a 87–89 % stub.
     """
     if bin_width <= 0:
         bin_width = SOC_BIN_WIDTH
+    # One sample per session per bin is typical while power is high; only the
+    # taper stacks multiple samples from the same stop into one bin.
+    effective_min_n = min(int(min_n), max(1, len(sessions)))
     # idx → list of (power_kw, sample_time, exact_soc)
     buckets: dict[int, list[tuple[float, object, float]]] = {}
     for session in sessions:
@@ -518,7 +527,7 @@ def power_vs_soc_curve(
     rows: list[dict] = []
     for idx in sorted(buckets):
         samples = buckets[idx]
-        if len(samples) < min_n:
+        if len(samples) < effective_min_n:
             continue
         powers = [s[0] for s in samples]
         ordered = sorted(powers)
