@@ -516,6 +516,133 @@ class PersonalStatsGraphPerfTests(TestCase):
         )
 
 
+class DayMapSegmentSocTests(TestCase):
+    """Drive/charge SoC anchors with sparse Supercharger polls."""
+
+    def _ts(self, hour, minute=0):
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+
+        tz = ZoneInfo("Europe/Brussels")
+        return datetime(2026, 8, 9, hour, minute, 0, tzinfo=tz)
+
+    def _row(self, t, *, kind, soc, odo, lat=50.0, lon=5.0, power_kw=0.0):
+        """Minimal day-map sample dict."""
+        if kind == "drive":
+            return {
+                "t": t,
+                "lat": lat,
+                "lon": lon,
+                "odometer": odo,
+                "battery_level": soc,
+                "usable_battery_level": soc,
+                "battery_range": soc * 2.5,
+                "shift_state": "D",
+                "speed": 60.0,
+                "power": 20.0,
+                "charging_state": "Disconnected",
+                "charger_power": 0.0,
+                "charge_energy_added": 0.0,
+                "outside_temp": 15.0,
+                "elevation": None,
+            }
+        if kind == "charge":
+            return {
+                "t": t,
+                "lat": lat,
+                "lon": lon,
+                "odometer": odo,
+                "battery_level": soc,
+                "usable_battery_level": soc,
+                "battery_range": soc * 2.5,
+                "shift_state": None,
+                "speed": None,
+                "power": -power_kw,
+                "charging_state": "Charging",
+                "charger_power": power_kw,
+                "charge_energy_added": max(0.0, (soc - 10.0) * 0.6),
+                "outside_temp": 15.0,
+                "elevation": None,
+            }
+        # park
+        return {
+            "t": t,
+            "lat": lat,
+            "lon": lon,
+            "odometer": odo,
+            "battery_level": soc,
+            "usable_battery_level": soc,
+            "battery_range": soc * 2.5,
+            "shift_state": None,
+            "speed": None,
+            "power": 0.0,
+            "charging_state": "Disconnected",
+            "charger_power": 0.0,
+            "charge_energy_added": 0.0,
+            "outside_temp": 15.0,
+            "elevation": None,
+        }
+
+    def test_drive_soc_end_ignores_mid_session_charge_poll(self):
+        """
+        Sparse SC: last drive ~9%, first charge poll already ~89%.
+        Drive end SoC must stay near arrival (~9%), not the mid-charge poll.
+        """
+        from personalstats.views import _segment_day
+
+        rows = [
+            self._row(self._ts(8, 0), kind="park", soc=76.0, odo=1000.0),
+            self._row(self._ts(8, 12), kind="drive", soc=76.0, odo=1000.5),
+            self._row(self._ts(10, 16), kind="drive", soc=8.9, odo=1140.0),
+            # 53 min gap; first SC poll already high
+            self._row(
+                self._ts(11, 9),
+                kind="charge",
+                soc=88.7,
+                odo=1148.0,
+                power_kw=40.0,
+            ),
+            self._row(self._ts(11, 12), kind="park", soc=90.0, odo=1148.0),
+        ]
+        drives, charges = _segment_day(rows, pack_kwh=75.0)
+        self.assertEqual(len(drives), 1)
+        drive = drives[0]
+        self.assertAlmostEqual(drive["soc_start"], 76.0, places=1)
+        self.assertAlmostEqual(drive["soc_end"], 8.9, places=1)
+        self.assertGreater(drive["soc_used"], 60.0)
+        # Late single charge poll kept with backfilled start SoC
+        self.assertEqual(len(charges), 1)
+        charge = charges[0]
+        self.assertAlmostEqual(charge["soc_start"], 8.9, places=1)
+        self.assertAlmostEqual(charge["soc_end"], 88.7, places=1)
+        self.assertGreater(charge["soc_added"], 70.0)
+        self.assertTrue(charge["is_dc_candidate"])
+
+    def test_dense_charge_not_backfilled_from_drive(self):
+        """Normal SC: first charge poll only slightly above last drive SoC."""
+        from personalstats.views import _segment_day
+
+        rows = [
+            self._row(self._ts(11, 0), kind="park", soc=90.0, odo=2000.0),
+            self._row(self._ts(11, 18), kind="drive", soc=90.0, odo=2000.5),
+            self._row(self._ts(13, 17), kind="drive", soc=41.1, odo=2100.0),
+            self._row(
+                self._ts(13, 20), kind="charge", soc=42.7, odo=2100.0, power_kw=100.0
+            ),
+            self._row(
+                self._ts(13, 40), kind="charge", soc=89.6, odo=2100.0, power_kw=50.0
+            ),
+            self._row(self._ts(13, 42), kind="park", soc=90.0, odo=2100.0),
+        ]
+        drives, charges = _segment_day(rows, pack_kwh=75.0)
+        self.assertEqual(len(drives), 1)
+        self.assertAlmostEqual(drives[0]["soc_end"], 41.1, places=1)
+        self.assertEqual(len(charges), 1)
+        # Start stays on first charge sample (not last drive) — small gap
+        self.assertAlmostEqual(charges[0]["soc_start"], 42.7, places=1)
+        self.assertAlmostEqual(charges[0]["soc_end"], 89.6, places=1)
+
+
 class DayMapUnmonitoredTailTests(TestCase):
     """Sparse capture: day-end GPS far from last drive arrival."""
 

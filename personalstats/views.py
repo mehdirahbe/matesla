@@ -3591,8 +3591,14 @@ def _segment_day(rows, pack_kwh):
       - Times: first in-gear sample → first park/charge after the drive
         (do NOT start the clock on the previous parking dwell, or a 10 min
         wait at the park becomes “drive time”).
-      - Addresses / odo / SoC: prefer adjacent park/charge samples so the
-        map shows the real parking GPS, not the last mid-road D sample.
+      - Addresses / odo: prefer adjacent park/charge samples so the map
+        shows the real parking GPS, not the last mid-road D sample.
+      - Drive SoC end: when the next group is charge, use the last in-gear
+        sample — a late Supercharger poll may already be mid-session with
+        SoC much higher than arrival (would look like regen over 200 km).
+      - Charge SoC start: if the first charge poll is ≥8 pts above the last
+        drive SoC, backfill start from that drive sample (and keep single
+        late charge polls instead of dropping them).
     """
     if not rows:
         return [], []
@@ -3625,9 +3631,10 @@ def _segment_day(rows, pack_kwh):
             # Timing anchors: actual drive samples only for start clock
             time_start_pt = points[0]
             time_end_pt = points[-1]
-            # Address / metrics anchors (may use parking)
+            # Address / odo anchors (may use parking or first charge GPS)
             geo_start = time_start_pt
             geo_end = time_end_pt
+            next_kind = None
             if group_index > 0 and groups[group_index - 1][0] in ("park", "charge"):
                 previous_points = groups[group_index - 1][1]
                 if previous_points:
@@ -3636,9 +3643,10 @@ def _segment_day(rows, pack_kwh):
                 "park",
                 "charge",
             ):
+                next_kind = groups[group_index + 1][0]
                 next_points = groups[group_index + 1][1]
                 if next_points:
-                    # Arrival park: end clock + GPS (trip finished when parked)
+                    # Arrival park/charge: end clock + GPS (trip finished when parked)
                     time_end_pt = next_points[0]
                     geo_end = next_points[0]
 
@@ -3651,7 +3659,7 @@ def _segment_day(rows, pack_kwh):
             # Need a real movement span
             if minutes < 1.0 and len(points) < 3:
                 continue
-            # Odo / SoC from parking when available (full trip), else drive ends
+            # Odo from parking/charge GPS when available (full trip), else drive ends
             odo_start = geo_start.get("odometer")
             odo_end = geo_end.get("odometer")
             miles = None
@@ -3661,7 +3669,14 @@ def _segment_day(rows, pack_kwh):
             if miles is not None and miles < 0.05 and minutes < 3:
                 continue
             km = miles * 1.609344 if miles is not None else None
-            soc_start, soc_end, soc_used = _drive_soc_metrics(geo_start, geo_end)
+            # SoC must not use a mid-session charge poll as "arrival" energy.
+            # Sparse capture often first sees a Supercharger after many kWh
+            # already went in (end SoC >> last drive SoC). GPS/odo still use
+            # geo_end; consumption uses last in-gear sample when next is charge.
+            soc_end_pt = geo_end
+            if next_kind == "charge":
+                soc_end_pt = points[-1]
+            soc_start, soc_end, soc_used = _drive_soc_metrics(geo_start, soc_end_pt)
             kwh_used = None
             if soc_used is not None and soc_used > 0:
                 kwh_used = soc_used / 100.0 * pack_kwh
@@ -3702,18 +3717,57 @@ def _segment_day(rows, pack_kwh):
                 }
             )
         elif kind == "charge":
-            if minutes < 1.0 and len(points) < 2:
-                continue
+            # Previous drive end (if any): used when the first charge poll is
+            # already mid-session (sparse capture missed plug-in / early kWh).
+            prev_drive_end = None
+            if group_index > 0 and groups[group_index - 1][0] == "drive":
+                prev_drive_pts = groups[group_index - 1][1]
+                if prev_drive_pts:
+                    prev_drive_end = prev_drive_pts[-1]
+
             soc_start, soc_end, soc_added = _charge_soc_metrics(start_pt, end_pt)
+            # Backfill start SoC from last drive when first charge sample is late
+            mid_session_backfill = False
+            if prev_drive_end is not None:
+                prev_soc = _soc(prev_drive_end)
+                first_charge_soc = _soc(start_pt)
+                # ≥8 pts: first poll is mid-session (missed early SC kWh).
+                # Normal dense capture is only +1–5 pts by the first charge row.
+                if (
+                    prev_soc is not None
+                    and first_charge_soc is not None
+                    and first_charge_soc >= prev_soc + 8.0
+                ):
+                    mid_session_backfill = True
+                    soc_start = prev_soc
+                    if soc_end is not None:
+                        soc_added = soc_end - soc_start
+                    else:
+                        soc_added = first_charge_soc - prev_soc
+                        soc_end = first_charge_soc
+
+            sparse_single = minutes < 1.0 and len(points) < 2
+            if sparse_single and not mid_session_backfill:
+                # Single glitchy charge poll with no clear energy gain — skip
+                continue
+            if sparse_single and mid_session_backfill:
+                # Keep the stop visible even with one late poll
+                minutes = max(minutes, 1.0)
+
             energy_start = start_pt.get("charge_energy_added")
             energy_end = end_pt.get("charge_energy_added")
             kwh_added = None
             if (
-                energy_start is not None
+                not mid_session_backfill
+                and energy_start is not None
                 and energy_end is not None
                 and energy_end >= energy_start
             ):
+                # Same session multi-sample: delta of charge_energy_added
                 kwh_added = energy_end - energy_start
+            elif mid_session_backfill and energy_end is not None and energy_end > 0.3:
+                # Session total reported on the late poll (API counter for this plug-in)
+                kwh_added = float(energy_end)
             elif soc_added is not None and soc_added > 0:
                 kwh_added = soc_added / 100.0 * pack_kwh
             # Effective kW: charger_power when set, else V×I×phases (AC wall
@@ -3752,6 +3806,13 @@ def _segment_day(rows, pack_kwh):
             is_dc_candidate = (
                 max_power is not None and float(max_power) >= DC_SESSION_PEAK_KW_MIN
             )
+            # Late single SC poll often still reports high charger_power
+            if not is_dc_candidate and mid_session_backfill:
+                peak = end_pt.get("charger_power")
+                if peak is not None and float(peak) >= DC_SESSION_PEAK_KW_MIN:
+                    is_dc_candidate = True
+                    if max_power is None or max_power < float(peak):
+                        max_power = float(peak)
             try:
                 start_ts = int(start_pt["t"].timestamp())
             except Exception:
