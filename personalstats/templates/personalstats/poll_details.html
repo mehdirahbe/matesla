@@ -267,6 +267,17 @@
             <span class="poll-kpi__label">{% trans 'Effective interval' %}</span>
             <span class="poll-kpi__value">{{ current.effective_interval_minutes }} {% trans 'min' %}</span>
         </div>
+        {% if current.route_minutes_to_arrival != None %}
+        <div class="poll-kpi">
+            <span class="poll-kpi__label">{% trans 'Nav ETA' %}</span>
+            <span class="poll-kpi__value">
+                {{ current.route_minutes_to_arrival|floatformat:0 }} {% trans 'min' %}
+                {% if current.route_miles_to_arrival != None %}
+                    · {{ current.route_miles_to_arrival|floatformat:0 }} {% trans 'mi' %}
+                {% endif %}
+            </span>
+        </div>
+        {% endif %}
         <div class="poll-kpi">
             <span class="poll-kpi__label">{% trans 'Decision source' %}</span>
             <span class="poll-kpi__value">

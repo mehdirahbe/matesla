@@ -46,7 +46,14 @@ NIGHT_START_HOUR = 22
 NIGHT_END_HOUR = 6
 
 # Intervals in minutes (user policy).
-INTERVAL_DRIVING_MIN = 2
+INTERVAL_DRIVING_MIN = 2  # near arrival, no ETA, crawl, or trip-seal
+INTERVAL_DRIVING_MID_MIN = 5  # navigation ETA in mid range
+INTERVAL_DRIVING_FAR_MIN = 10  # long remaining ETA on an active route
+# Stretch drive polls only when nav ETA is comfortably above these thresholds.
+DRIVING_ETA_NEAR_MINUTES = 12.0  # ≤ this → stay at INTERVAL_DRIVING_MIN
+DRIVING_ETA_MID_MINUTES = 40.0  # ≤ this → mid; above → far
+# Below this road speed (mph), treat as approach/traffic → dense 2 min even if ETA far.
+DRIVING_SLOW_MPH = 20.0
 INTERVAL_DC_CHARGE_MIN = 2  # Supercharge: always 2 min (day and night)
 INTERVAL_AC_CHARGE_MIN = 15  # wall AC lasts hours; day only (night → 30)
 INTERVAL_CABIN_MIN = 2  # user present, dog/camp/climate keeper
@@ -99,7 +106,9 @@ def _latest_activity_snapshot(vehicle: TeslaVehicle) -> TeslaCarDataSnapshot | N
             "sentry_mode",
             "climate_keeper_mode",
             "is_climate_on",
-            "climate_keeper_modeRaw", #to have dog/camping modes
+            "climate_keeper_modeRaw",  # dog/camping modes
+            "active_route_minutes_to_arrival",
+            "active_route_miles_to_arrival",
         )
         .first()
     )
@@ -240,29 +249,72 @@ def activity_kind(
 
 
 # Live activity always uses the reactive baseline; habits never stretch these.
+# Driving uses a dedicated ETA-aware interval (see driving_poll_interval_minutes).
 LIVE_ACTIVITY_KINDS = frozenset(
     {"driving", "dc_charge", "ac_charge", "cabin", "dogcamp"}
 )
+
+
+def driving_poll_interval_minutes(
+    snap: TeslaCarDataSnapshot | None,
+) -> int:
+    """
+    Spacing while the car is driving.
+
+    Goal: spend fewer Fleet calls mid-trip when navigation exposes a long ETA,
+    without missing the arrival (day-map seal).
+
+    Policy:
+      - no nav ETA, invalid ETA, or crawling (speed < DRIVING_SLOW_MPH) → 2 min
+      - ETA ≤ DRIVING_ETA_NEAR_MINUTES → 2 min (approach densify)
+      - ETA ≤ DRIVING_ETA_MID_MINUTES → 5 min
+      - ETA longer → 10 min
+
+    Trip-seal after a drive sample still forces 2 min in vehicle_is_due.
+    """
+    if snap is None:
+        return INTERVAL_DRIVING_MIN
+
+    try:
+        if snap.speed is not None and float(snap.speed) < DRIVING_SLOW_MPH:
+            return INTERVAL_DRIVING_MIN
+    except (TypeError, ValueError):
+        pass
+
+    eta = getattr(snap, "active_route_minutes_to_arrival", None)
+    try:
+        if eta is None:
+            return INTERVAL_DRIVING_MIN
+        eta_min = float(eta)
+    except (TypeError, ValueError):
+        return INTERVAL_DRIVING_MIN
+    if eta_min != eta_min or eta_min <= 0:  # NaN or non-positive
+        return INTERVAL_DRIVING_MIN
+    if eta_min <= DRIVING_ETA_NEAR_MINUTES:
+        return INTERVAL_DRIVING_MIN
+    if eta_min <= DRIVING_ETA_MID_MINUTES:
+        return INTERVAL_DRIVING_MID_MIN
+    return INTERVAL_DRIVING_FAR_MIN
 
 
 def base_poll_interval_minutes(
     kind: str,
     *,
     night: bool,
+    snap: TeslaCarDataSnapshot | None = None,
 ) -> int:
     """
     Hand-tuned baseline interval in minutes (no habit model).
 
-    Always (day and night): driving → 2 min, DC/Supercharge → 2 min
-    (night road trips + V3 sessions do not get the idle night stretch).
+    Driving uses navigation ETA when available (see driving_poll_interval_minutes);
+    without ETA it stays at 2 min. DC/Supercharge → 2 min always.
 
     Night (22h–6h local), other kinds: 30 min (incl. AC wall charge).
 
     Day: AC 15, cabin 2, dog/camp 15, sentry 10, online idle/asleep 5.
     """
-    # High-value live states: never stretch for night quiet hours.
     if kind == "driving":
-        return INTERVAL_DRIVING_MIN
+        return driving_poll_interval_minutes(snap)
     if kind == "dc_charge":
         return INTERVAL_DC_CHARGE_MIN
 
@@ -291,17 +343,19 @@ def poll_interval_minutes(
     """
     How long to wait between Fleet polls for this vehicle.
 
-    Reactive kinds (drive / charge / cabin / dog-camp) always use the baseline.
+    Driving may stretch to 5–10 min with a long nav ETA; charge/cabin stay short.
     For idle/asleep/sentry only, a *recent* habit model may set 5 / 15 / 30 min
     when the current weekday+hour is historically classified and no regime break
     is active. See ``matesla.poll_habits`` and ``matesla.poll_diagnostics``.
     """
     now = now or timezone.now()
+    if snap is None:
+        snap = _latest_activity_snapshot(vehicle)
     kind = activity_kind(vehicle, snap, now=now)
     night = is_night(now)
-    base = base_poll_interval_minutes(kind, night=night)
+    base = base_poll_interval_minutes(kind, night=night, snap=snap)
 
-    # Never slow down while something is happening (or might need seal soon).
+    # Never slow down with habits while something is happening.
     if kind in LIVE_ACTIVITY_KINDS:
         return base
 

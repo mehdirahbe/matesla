@@ -322,8 +322,13 @@ Flags from a snapshot older than **20 minutes** are ignored, and list
 
 ### Adaptive poll spacing (Fleet cost)
 
-`matesla/capture.py` still uses a **reactive** baseline (drive/DC 2 min,
-AC 15 min day, night idle 30 min, day idle 5 min). On top of that, `matesla/poll_habits.py`
+`matesla/capture.py` still uses a **reactive** baseline (drive 2 min by default,
+or 5–10 min mid-trip when Fleet reports a long navigation ETA;
+DC 2 min, AC 15 min day, night idle 30 min, day idle 5 min). Near arrival
+(ETA ≤ ~12 min), crawl (speed &lt; 20 mph), missing ETA, or trip-seal after a
+drive sample always densify to **2 min** so arrivals are not missed.
+
+On top of that, `matesla/poll_habits.py`
 may **set idle/asleep** spacing for the current weekday+hour to:
 
 | Habit class | Idle interval | Effect vs baseline |

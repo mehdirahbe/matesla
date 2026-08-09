@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: matesla\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-09 11:19+0000\n"
+"POT-Creation-Date: 2026-08-09 11:36+0000\n"
 "PO-Revision-Date: 2026-07-27 22:00+0000\n"
 "Last-Translator: MaTesla\n"
 "Language-Team: Spanish\n"
@@ -172,63 +172,63 @@ msgstr ""
 "known/appspecific/com.tesla.3p.public-key.pem en ese host. Añade el mismo "
 "host con https:// como Allowed Origin en developer.tesla.com. No localhost."
 
-#: matesla/poll_diagnostics.py:75
+#: matesla/poll_diagnostics.py:79
 msgid "Mon"
 msgstr "lun"
 
-#: matesla/poll_diagnostics.py:76
+#: matesla/poll_diagnostics.py:80
 msgid "Tue"
 msgstr "mar"
 
-#: matesla/poll_diagnostics.py:77
+#: matesla/poll_diagnostics.py:81
 msgid "Wed"
 msgstr "mié"
 
-#: matesla/poll_diagnostics.py:78
+#: matesla/poll_diagnostics.py:82
 msgid "Thu"
 msgstr "jue"
 
-#: matesla/poll_diagnostics.py:79
+#: matesla/poll_diagnostics.py:83
 msgid "Fri"
 msgstr "vie"
 
-#: matesla/poll_diagnostics.py:80
+#: matesla/poll_diagnostics.py:84
 msgid "Sat"
 msgstr "sáb"
 
-#: matesla/poll_diagnostics.py:81
+#: matesla/poll_diagnostics.py:85
 msgid "Sun"
 msgstr "dom"
 
-#: matesla/poll_diagnostics.py:88
+#: matesla/poll_diagnostics.py:92
 msgid "Monday"
 msgstr "lunes"
 
-#: matesla/poll_diagnostics.py:89
+#: matesla/poll_diagnostics.py:93
 msgid "Tuesday"
 msgstr "martes"
 
-#: matesla/poll_diagnostics.py:90
+#: matesla/poll_diagnostics.py:94
 msgid "Wednesday"
 msgstr "miércoles"
 
-#: matesla/poll_diagnostics.py:91
+#: matesla/poll_diagnostics.py:95
 msgid "Thursday"
 msgstr "jueves"
 
-#: matesla/poll_diagnostics.py:92
+#: matesla/poll_diagnostics.py:96
 msgid "Friday"
 msgstr "viernes"
 
-#: matesla/poll_diagnostics.py:93
+#: matesla/poll_diagnostics.py:97
 msgid "Saturday"
 msgstr "sábado"
 
-#: matesla/poll_diagnostics.py:94
+#: matesla/poll_diagnostics.py:98
 msgid "Sunday"
 msgstr "domingo"
 
-#: matesla/poll_diagnostics.py:110
+#: matesla/poll_diagnostics.py:114
 #: matesla/templates/matesla/_carstatus_body.html:18
 #: matesla/templates/matesla/_carstatus_body.html:22
 #: matesla/templates/matesla/_carstatus_body.html:96
@@ -236,101 +236,101 @@ msgstr "domingo"
 msgid "online"
 msgstr "en línea"
 
-#: matesla/poll_diagnostics.py:111 matesla/poll_diagnostics.py:129
+#: matesla/poll_diagnostics.py:115 matesla/poll_diagnostics.py:133
 #: matesla/templates/matesla/_carstatus_body.html:19
 #: matesla/templates/matesla/_carstatus_body.html:97
 #: matesla/templates/matesla/_vehicle_chrome.html:35
 msgid "asleep"
 msgstr "dormido"
 
-#: matesla/poll_diagnostics.py:112
+#: matesla/poll_diagnostics.py:116
 #: matesla/templates/matesla/_carstatus_body.html:20
 #: matesla/templates/matesla/_carstatus_body.html:98
 #: matesla/templates/matesla/_vehicle_chrome.html:36
 msgid "offline"
 msgstr "fuera de línea"
 
-#: matesla/poll_diagnostics.py:113 matesla/poll_diagnostics.py:131
+#: matesla/poll_diagnostics.py:117 matesla/poll_diagnostics.py:135
 msgid "unknown"
 msgstr "desconocido"
 
-#: matesla/poll_diagnostics.py:122
+#: matesla/poll_diagnostics.py:126
 msgid "driving"
 msgstr "conduciendo"
 
-#: matesla/poll_diagnostics.py:123
+#: matesla/poll_diagnostics.py:127
 msgid "DC charging"
 msgstr "carga DC"
 
-#: matesla/poll_diagnostics.py:124
+#: matesla/poll_diagnostics.py:128
 msgid "AC charging"
 msgstr "carga AC"
 
-#: matesla/poll_diagnostics.py:125
+#: matesla/poll_diagnostics.py:129
 msgid "cabin activity"
 msgstr "actividad en habitáculo"
 
-#: matesla/poll_diagnostics.py:126
+#: matesla/poll_diagnostics.py:130
 msgid "dog / camp mode"
 msgstr "modo perro / campamento"
 
-#: matesla/poll_diagnostics.py:127
+#: matesla/poll_diagnostics.py:131
 msgid "sentry mode"
 msgstr "modo centinela"
 
-#: matesla/poll_diagnostics.py:128
+#: matesla/poll_diagnostics.py:132
 msgid "online, idle"
 msgstr "en línea, en reposo"
 
-#: matesla/poll_diagnostics.py:137
-#: personalstats/templates/personalstats/poll_details.html:288
+#: matesla/poll_diagnostics.py:141
+#: personalstats/templates/personalstats/poll_details.html:299
 msgid "None"
 msgstr "Ninguno"
 
-#: matesla/poll_diagnostics.py:139
-#: personalstats/templates/personalstats/poll_details.html:352
-#: personalstats/templates/personalstats/poll_details.html:385
+#: matesla/poll_diagnostics.py:143
+#: personalstats/templates/personalstats/poll_details.html:363
+#: personalstats/templates/personalstats/poll_details.html:396
 msgid "busy"
 msgstr "ocupado"
 
-#: matesla/poll_diagnostics.py:140
-#: personalstats/templates/personalstats/poll_details.html:353
-#: personalstats/templates/personalstats/poll_details.html:385
+#: matesla/poll_diagnostics.py:144
+#: personalstats/templates/personalstats/poll_details.html:364
+#: personalstats/templates/personalstats/poll_details.html:396
 msgid "moderate"
 msgstr "moderado"
 
-#: matesla/poll_diagnostics.py:141
-#: personalstats/templates/personalstats/poll_details.html:354
-#: personalstats/templates/personalstats/poll_details.html:385
+#: matesla/poll_diagnostics.py:145
+#: personalstats/templates/personalstats/poll_details.html:365
+#: personalstats/templates/personalstats/poll_details.html:396
 msgid "quiet"
 msgstr "tranquilo"
 
-#: matesla/poll_diagnostics.py:149
+#: matesla/poll_diagnostics.py:153
 #: matesla/templates/matesla/_vehicle_chrome.html:42
 msgid "OK"
 msgstr "OK"
 
-#: matesla/poll_diagnostics.py:150
+#: matesla/poll_diagnostics.py:154
 msgid "No VIN"
 msgstr "Sin VIN"
 
-#: matesla/poll_diagnostics.py:151
+#: matesla/poll_diagnostics.py:155
 msgid "Insufficient reference weeks"
 msgstr "Semanas de referencia insuficientes"
 
-#: matesla/poll_diagnostics.py:152
+#: matesla/poll_diagnostics.py:156
 msgid "Regime break"
 msgstr "Ruptura de régimen"
 
-#: matesla/poll_diagnostics.py:153
+#: matesla/poll_diagnostics.py:157
 msgid "No habit slots"
 msgstr "Sin franjas de hábito"
 
-#: matesla/poll_diagnostics.py:154
+#: matesla/poll_diagnostics.py:158
 msgid "Unknown"
 msgstr "Desconocido"
 
-#: matesla/poll_diagnostics.py:321
+#: matesla/poll_diagnostics.py:329
 msgid ""
 "Habit model is trusted. For idle/asleep hours it can set 5, 15 or 30 minute "
 "spacing from historical weekday+hour patterns. Live drive, charge and cabin "
@@ -340,12 +340,12 @@ msgstr ""
 "5, 15 o 30 minutos según el historial día+hora. Conducción, carga y "
 "habitáculo siempre mantienen los intervalos reactivos cortos."
 
-#: matesla/poll_diagnostics.py:326
+#: matesla/poll_diagnostics.py:334
 msgid "No VIN is available, so habit-based spacing cannot run."
 msgstr ""
 "No hay VIN disponible, así que el espaciado por hábitos no puede ejecutarse."
 
-#: matesla/poll_diagnostics.py:329
+#: matesla/poll_diagnostics.py:337
 #, python-format
 msgid ""
 "Not enough reference weeks of telemetry before the last %(recent)s days "
@@ -357,7 +357,7 @@ msgstr ""
 "solo usa el espaciado por defecto día/noche hasta tener suficiente "
 "historial."
 
-#: matesla/poll_diagnostics.py:340
+#: matesla/poll_diagnostics.py:348
 #, fuzzy
 #| msgid ""
 #| "Recent mobility does not match the reference weeks (regime break). Habits "
@@ -375,7 +375,7 @@ msgstr ""
 "un viaje no estire mal los sondeos. Se usa el espaciado base día/noche hasta"
 " que los patrones vuelvan a ser coherentes."
 
-#: matesla/poll_diagnostics.py:347
+#: matesla/poll_diagnostics.py:355
 #, fuzzy
 #| msgid ""
 #| "There are enough reference weeks, but no weekday+hour slot was classified "
@@ -387,7 +387,7 @@ msgstr ""
 "Hay suficientes semanas de referencia, pero ninguna franja día+hora se "
 "clasificó como tranquila, moderada u ocupada. Solo espaciado base."
 
-#: matesla/poll_diagnostics.py:350
+#: matesla/poll_diagnostics.py:358
 #, fuzzy, python-format
 #| msgid ""
 #| "Habit model is not trusted (%(reason)s). Baseline spacing only."
@@ -395,7 +395,7 @@ msgid "Habit model is not trusted (%(reason)s). Default spacing only."
 msgstr ""
 "El modelo de hábitos no es de confianza (%(reason)s). Solo espaciado base."
 
-#: matesla/poll_diagnostics.py:362
+#: matesla/poll_diagnostics.py:370
 #, python-format
 msgid ""
 "Recent mobile hours per day dropped sharply versus the reference period "
@@ -404,7 +404,7 @@ msgstr ""
 "Las horas móviles por día cayeron bruscamente frente al periodo de "
 "referencia (típico colegio → vacaciones). Detalle: %(detail)s"
 
-#: matesla/poll_diagnostics.py:367
+#: matesla/poll_diagnostics.py:375
 #, python-format
 msgid ""
 "Recent mobile hours per day rose sharply versus the reference period "
@@ -413,7 +413,7 @@ msgstr ""
 "Las horas móviles por día subieron bruscamente frente al periodo de "
 "referencia (típico vacaciones → colegio o viaje). Detalle: %(detail)s"
 
-#: matesla/poll_diagnostics.py:372
+#: matesla/poll_diagnostics.py:380
 #, python-format
 msgid ""
 "Several recent drives occurred in weekday+hour slots that were historically "
@@ -422,15 +422,36 @@ msgstr ""
 "Varios trayectos recientes ocurrieron en franjas día+hora que históricamente"
 " casi nunca eran móviles. Detalle: %(detail)s"
 
-#: matesla/poll_diagnostics.py:407
+#: matesla/poll_diagnostics.py:416
 msgid "night"
 msgstr "noche"
 
-#: matesla/poll_diagnostics.py:407
+#: matesla/poll_diagnostics.py:416
 msgid "day"
 msgstr "día"
 
-#: matesla/poll_diagnostics.py:412
+#: matesla/poll_diagnostics.py:422
+#, python-format
+msgid ""
+"Driving with navigation ETA %(eta)s min → query every %(minutes)s min (2 min"
+" near arrival or when crawling; %(mid)s min mid-trip; %(far)s min when ETA "
+"is long). Habits do not apply while driving."
+msgstr ""
+"Conduciendo con ETA de navegación %(eta)s min → consulta cada %(minutes)s "
+"min (2 min cerca de la llegada o a paso lento; %(mid)s min a mitad de viaje;"
+" %(far)s min si el ETA es largo). Los hábitos no aplican al conducir."
+
+#: matesla/poll_diagnostics.py:433
+#, python-format
+msgid ""
+"Driving without navigation ETA → dense %(minutes)s min queries (stretch only"
+" when Tesla reports minutes-to-arrival). Habits do not apply while driving."
+msgstr ""
+"Conduciendo sin ETA de navegación → consultas densas cada %(minutes)s min "
+"(solo se alarga si Tesla da minutos hasta llegada). Los hábitos no aplican "
+"al conducir."
+
+#: matesla/poll_diagnostics.py:439
 #, python-format
 msgid ""
 "Live activity “%(activity)s” → reactive default spacing %(minutes)s min "
@@ -440,7 +461,7 @@ msgstr ""
 "%(minutes)s min (%(day_or_night)s). Los hábitos no aplican mientras el coche"
 " está activo."
 
-#: matesla/poll_diagnostics.py:422
+#: matesla/poll_diagnostics.py:449
 #, python-format
 msgid ""
 "Idle/asleep policy: habit class “%(habit_class)s” sets %(minutes)s min for "
@@ -450,7 +471,7 @@ msgstr ""
 " min para este día+hora (el valor por defecto sería %(baseline)s min, "
 "%(day_or_night)s)."
 
-#: matesla/poll_diagnostics.py:432
+#: matesla/poll_diagnostics.py:459
 #, python-format
 msgid ""
 "Idle/asleep policy: slot is historically moderate, but at night moderate "
@@ -460,7 +481,7 @@ msgstr ""
 "lo moderado no densifica — se mantiene el valor nocturno por defecto "
 "%(minutes)s min."
 
-#: matesla/poll_diagnostics.py:436
+#: matesla/poll_diagnostics.py:463
 #, python-format
 msgid ""
 "Idle/asleep policy: no habit for this weekday+hour → %(day_or_night)s "
@@ -469,7 +490,7 @@ msgstr ""
 "Política reposo/sueño: sin hábito para este día+hora → por defecto "
 "%(day_or_night)s %(minutes)s min."
 
-#: matesla/poll_diagnostics.py:699
+#: matesla/poll_diagnostics.py:754
 msgid ""
 "Forecast and week grid describe idle/asleep/sentry spacing only. If the car "
 "drives, DC/AC charges or has cabin activity, capture switches to the short "
@@ -480,7 +501,7 @@ msgstr ""
 " en habitáculo, la captura vuelve al espaciado por defecto reactivo corto "
 "hasta que termine."
 
-#: matesla/poll_diagnostics.py:704
+#: matesla/poll_diagnostics.py:759
 #, python-format
 msgid ""
 "Habits use at most the last %(lookback)s days, require %(min_weeks)s "
@@ -491,7 +512,7 @@ msgstr ""
 "%(min_weeks)s semanas de referencia antes de los últimos %(recent)s días, y "
 "se desactivan ante una ruptura de régimen."
 
-#: matesla/poll_diagnostics.py:714
+#: matesla/poll_diagnostics.py:769
 #, python-format
 msgid ""
 "When habits are trusted, every weekday+hour is busy (%(busy)s min), quiet "
@@ -1695,13 +1716,14 @@ msgstr "h"
 
 #: personalstats/templates/personalstats/_carstats_js.html:337
 #: personalstats/templates/personalstats/poll_details.html:268
-#: personalstats/templates/personalstats/poll_details.html:280
-#: personalstats/templates/personalstats/poll_details.html:286
-#: personalstats/templates/personalstats/poll_details.html:332
-#: personalstats/templates/personalstats/poll_details.html:333
-#: personalstats/templates/personalstats/poll_details.html:334
-#: personalstats/templates/personalstats/poll_details.html:351
-#: personalstats/templates/personalstats/poll_details.html:385
+#: personalstats/templates/personalstats/poll_details.html:274
+#: personalstats/templates/personalstats/poll_details.html:291
+#: personalstats/templates/personalstats/poll_details.html:297
+#: personalstats/templates/personalstats/poll_details.html:343
+#: personalstats/templates/personalstats/poll_details.html:344
+#: personalstats/templates/personalstats/poll_details.html:345
+#: personalstats/templates/personalstats/poll_details.html:362
+#: personalstats/templates/personalstats/poll_details.html:396
 msgid "min"
 msgstr "min"
 
@@ -2263,17 +2285,15 @@ msgid "Back to my data"
 msgstr "Volver a mis datos"
 
 #: personalstats/templates/personalstats/poll_details.html:242
-#| msgid "Habit-based idle spacing is active"
 msgid "Habit-adapted collection frequency: active"
 msgstr "Frecuencia de recogida adaptada a los hábitos: activa."
 
 #: personalstats/templates/personalstats/poll_details.html:244
-#| msgid "Habit-based idle spacing is inactive"
 msgid "Habit-adapted collection frequency: inactive"
 msgstr "Frecuencia de recogida adaptada a los hábitos: inactiva."
 
 #: personalstats/templates/personalstats/poll_details.html:255
-#: personalstats/templates/personalstats/poll_details.html:310
+#: personalstats/templates/personalstats/poll_details.html:321
 msgid "Right now"
 msgstr "Ahora mismo"
 
@@ -2289,44 +2309,53 @@ msgstr "Tipo de actividad"
 msgid "Effective interval"
 msgstr "Intervalo efectivo"
 
-#: personalstats/templates/personalstats/poll_details.html:271
+#: personalstats/templates/personalstats/poll_details.html:272
+msgid "Nav ETA"
+msgstr "ETA navegación"
+
+#: personalstats/templates/personalstats/poll_details.html:276
+#| msgid "min"
+msgid "mi"
+msgstr "mi"
+
+#: personalstats/templates/personalstats/poll_details.html:282
 msgid "Decision source"
 msgstr "Fuente de la decisión"
 
-#: personalstats/templates/personalstats/poll_details.html:273
+#: personalstats/templates/personalstats/poll_details.html:284
 msgid "Live activity"
 msgstr "Actividad en vivo"
 
-#: personalstats/templates/personalstats/poll_details.html:274
-#: personalstats/templates/personalstats/poll_details.html:316
+#: personalstats/templates/personalstats/poll_details.html:285
+#: personalstats/templates/personalstats/poll_details.html:327
 msgid "Habit model"
 msgstr "Modelo de hábitos"
 
-#: personalstats/templates/personalstats/poll_details.html:275
+#: personalstats/templates/personalstats/poll_details.html:286
 msgid "Default spacing"
 msgstr "Espaciado por defecto"
 
-#: personalstats/templates/personalstats/poll_details.html:279
+#: personalstats/templates/personalstats/poll_details.html:290
 msgid "Default for this kind"
 msgstr "Por defecto para este tipo"
 
-#: personalstats/templates/personalstats/poll_details.html:283
+#: personalstats/templates/personalstats/poll_details.html:294
 msgid "Habit for this hour"
 msgstr "Hábito para esta hora"
 
-#: personalstats/templates/personalstats/poll_details.html:293
+#: personalstats/templates/personalstats/poll_details.html:304
 msgid "Last query"
 msgstr "Última consulta"
 
-#: personalstats/templates/personalstats/poll_details.html:299
+#: personalstats/templates/personalstats/poll_details.html:310
 msgid "Next query due"
 msgstr "Próxima consulta"
 
-#: personalstats/templates/personalstats/poll_details.html:301
+#: personalstats/templates/personalstats/poll_details.html:312
 msgid "Due now"
 msgstr "Debido ahora"
 
-#: personalstats/templates/personalstats/poll_details.html:311
+#: personalstats/templates/personalstats/poll_details.html:322
 msgid ""
 "No vehicle row in the account list for this VIN, so list state and last poll"
 " time are unknown. Habit history below still uses telemetry snapshots when "
@@ -2336,7 +2365,7 @@ msgstr ""
 "estado de lista y el último sondeo son desconocidos. El historial de hábitos"
 " de abajo sigue usando snapshots de telemetría si existen."
 
-#: personalstats/templates/personalstats/poll_details.html:318
+#: personalstats/templates/personalstats/poll_details.html:329
 #, python-format
 msgid ""
 "\n"
@@ -2350,60 +2379,60 @@ msgstr ""
 "        El modelo busca como máximo los últimos %(max_days)s días. El entrenamiento solo usa semanas *antes* de los últimos %(recent)s días (control de régimen). Se necesitan ≥ %(min_ref)s semanas de referencia. «Semanas con muestras» cuenta semanas civiles distintas con telemetría en la ventana, no la duración de la captura continua de datos.\n"
 "        "
 
-#: personalstats/templates/personalstats/poll_details.html:326
+#: personalstats/templates/personalstats/poll_details.html:337
 msgid "Trusted"
 msgstr "Fiable"
 
-#: personalstats/templates/personalstats/poll_details.html:326
+#: personalstats/templates/personalstats/poll_details.html:337
 msgid "Yes"
 msgstr "Sí"
 
-#: personalstats/templates/personalstats/poll_details.html:326
+#: personalstats/templates/personalstats/poll_details.html:337
 msgid "No"
 msgstr "No"
 
-#: personalstats/templates/personalstats/poll_details.html:327
+#: personalstats/templates/personalstats/poll_details.html:338
 msgid "Reason"
 msgstr "Motivo"
 
-#: personalstats/templates/personalstats/poll_details.html:328
+#: personalstats/templates/personalstats/poll_details.html:339
 msgid "Reference weeks (training)"
 msgstr "Semanas de referencia (entrenamiento)"
 
-#: personalstats/templates/personalstats/poll_details.html:329
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "Weeks with samples (in search window)"
 msgstr "Semanas con muestras (en la ventana de búsqueda)"
 
-#: personalstats/templates/personalstats/poll_details.html:330
+#: personalstats/templates/personalstats/poll_details.html:341
 msgid "Max search window"
 msgstr "Ventana de búsqueda máx."
 
-#: personalstats/templates/personalstats/poll_details.html:330
-#: personalstats/templates/personalstats/poll_details.html:331
+#: personalstats/templates/personalstats/poll_details.html:341
+#: personalstats/templates/personalstats/poll_details.html:342
 msgid "days"
 msgstr "días"
 
-#: personalstats/templates/personalstats/poll_details.html:331
+#: personalstats/templates/personalstats/poll_details.html:342
 msgid "Excluded from training (recent check)"
 msgstr "Excluidas del entrenamiento (control reciente)"
 
-#: personalstats/templates/personalstats/poll_details.html:332
+#: personalstats/templates/personalstats/poll_details.html:343
 msgid "Busy slots"
 msgstr "Franjas ocupadas"
 
-#: personalstats/templates/personalstats/poll_details.html:333
+#: personalstats/templates/personalstats/poll_details.html:344
 msgid "Moderate slots"
 msgstr "Franjas moderadas"
 
-#: personalstats/templates/personalstats/poll_details.html:334
+#: personalstats/templates/personalstats/poll_details.html:345
 msgid "Quiet slots"
 msgstr "Franjas tranquilas"
 
-#: personalstats/templates/personalstats/poll_details.html:339
+#: personalstats/templates/personalstats/poll_details.html:350
 msgid "Idle plan — next 7 days"
 msgstr "Plan en reposo — próximos 7 días"
 
-#: personalstats/templates/personalstats/poll_details.html:340
+#: personalstats/templates/personalstats/poll_details.html:351
 msgid ""
 "What idle/asleep spacing the model would use if the car is not driving or "
 "charging. Segments merge consecutive hours with the same interval."
@@ -2411,15 +2440,15 @@ msgstr ""
 "Qué espaciado reposo/sueño usaría el modelo si el coche no conduce ni carga."
 " Los segmentos fusionan horas consecutivas con el mismo intervalo."
 
-#: personalstats/templates/personalstats/poll_details.html:362
+#: personalstats/templates/personalstats/poll_details.html:373
 msgid "No forecast available."
 msgstr "No hay previsión disponible."
 
-#: personalstats/templates/personalstats/poll_details.html:367
+#: personalstats/templates/personalstats/poll_details.html:378
 msgid "Typical week (idle minutes by weekday and hour)"
 msgstr "Semana típica (minutos en reposo por día y hora)"
 
-#: personalstats/templates/personalstats/poll_details.html:368
+#: personalstats/templates/personalstats/poll_details.html:379
 msgid ""
 "Household local time (Europe/Brussels). When the model is trusted, every "
 "cell is busy, moderate or quiet (no default-spacing holes). Plain cells only"
@@ -2429,31 +2458,31 @@ msgstr ""
 "cada celda es ocupada, moderada o tranquila (sin huecos de espaciado por "
 "defecto). Las celdas planas solo aparecen si los hábitos están inactivos."
 
-#: personalstats/templates/personalstats/poll_details.html:373
+#: personalstats/templates/personalstats/poll_details.html:384
 msgid "Hour"
 msgstr "Hora"
 
-#: personalstats/templates/personalstats/poll_details.html:385
+#: personalstats/templates/personalstats/poll_details.html:396
 msgid "class only; default spacing kept"
 msgstr "solo clase; se mantiene el espaciado por defecto"
 
-#: personalstats/templates/personalstats/poll_details.html:395
+#: personalstats/templates/personalstats/poll_details.html:406
 msgid "Busy (denser idle)"
 msgstr "Ocupado (reposo más denso)"
 
-#: personalstats/templates/personalstats/poll_details.html:396
+#: personalstats/templates/personalstats/poll_details.html:407
 msgid "Moderate"
 msgstr "Moderado"
 
-#: personalstats/templates/personalstats/poll_details.html:397
+#: personalstats/templates/personalstats/poll_details.html:408
 msgid "Quiet (sparser idle)"
 msgstr "Tranquilo (reposo más espaciado)"
 
-#: personalstats/templates/personalstats/poll_details.html:398
+#: personalstats/templates/personalstats/poll_details.html:409
 msgid "Uncoloured = habits inactive (day/night default)"
 msgstr "Sin color = hábitos inactivos (por defecto día/noche)"
 
-#: personalstats/templates/personalstats/poll_details.html:403
+#: personalstats/templates/personalstats/poll_details.html:414
 msgid "How it works"
 msgstr "Cómo funciona"
 

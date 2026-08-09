@@ -36,6 +36,9 @@ from django.utils.translation import gettext as _
 
 from matesla.capture import (
     CAPTURE_TZ,
+    INTERVAL_DRIVING_FAR_MIN,
+    INTERVAL_DRIVING_MID_MIN,
+    INTERVAL_DRIVING_MIN,
     INTERVAL_NIGHT_DEFAULT_MIN,
     INTERVAL_ONLINE_IDLE_MIN,
     LIVE_ACTIVITY_KINDS,
@@ -189,6 +192,10 @@ class CurrentPollStatus:
     # "live_activity" | "habit" | "baseline"
     decision_source: str
     decision_summary: str
+    # Navigation ETA from last drive sample (minutes), if Tesla provided it.
+    route_minutes_to_arrival: float | None = None
+    route_miles_to_arrival: float | None = None
+    route_destination: str = ""
 
 
 @dataclass(frozen=True)
@@ -403,10 +410,29 @@ def _decision_summary(
     baseline_interval_minutes: int,
     effective_interval_minutes: int,
     is_night_now: bool,
+    route_minutes_to_arrival: float | None = None,
 ) -> str:
     night_label = _("night") if is_night_now else _("day")
     activity_label = label_activity_kind(activity)
     habit_label = label_habit_class(habit_class)
+    if decision_source == "live_activity" and activity == "driving":
+        if route_minutes_to_arrival is not None:
+            return _(
+                "Driving with navigation ETA %(eta)s min → query every "
+                "%(minutes)s min (2 min near arrival or when crawling; "
+                "%(mid)s min mid-trip; %(far)s min when ETA is long). "
+                "Habits do not apply while driving."
+            ) % {
+                "eta": f"{float(route_minutes_to_arrival):.0f}",
+                "minutes": effective_interval_minutes,
+                "mid": INTERVAL_DRIVING_MID_MIN,
+                "far": INTERVAL_DRIVING_FAR_MIN,
+            }
+        return _(
+            "Driving without navigation ETA → dense %(minutes)s min queries "
+            "(stretch only when Tesla reports minutes-to-arrival). "
+            "Habits do not apply while driving."
+        ) % {"minutes": effective_interval_minutes}
     if decision_source == "live_activity":
         return _(
             "Live activity “%(activity)s” → reactive default spacing "
@@ -588,16 +614,24 @@ def build_current_poll_status(
     now: datetime,
 ) -> CurrentPollStatus:
     """Mirror capture's current decision for this vehicle."""
-    kind = activity_kind(vehicle, now=now)
+    from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+
+    vin = (vehicle.vin or "").strip()
+    snap = None
+    if vin:
+        snap = (
+            TeslaCarDataSnapshot.objects.filter(vin=vin).order_by("-Date").first()
+        )
+    kind = activity_kind(vehicle, snap, now=now)
     night = is_night(now)
-    baseline = base_poll_interval_minutes(kind, night=night)
+    baseline = base_poll_interval_minutes(kind, night=night, snap=snap)
     local_now = now.astimezone(CAPTURE_TZ)
     habit_class = None
     habit_interval = None
     if kind not in LIVE_ACTIVITY_KINDS:
         habit_class = model.habit_class_for_local_time(local_now)
         habit_interval = model.suggested_idle_interval_minutes(local_now)
-    effective = poll_interval_minutes(vehicle, now=now)
+    effective = poll_interval_minutes(vehicle, now=now, snap=snap)
     source = _decision_source(
         activity=kind,
         habit_interval_minutes=habit_interval,
@@ -614,6 +648,22 @@ def build_current_poll_status(
         is_due = now >= next_due
 
     list_state = (vehicle.state or "").strip() or "unknown"
+    route_eta = None
+    route_miles = None
+    route_dest = ""
+    if snap is not None:
+        try:
+            if snap.active_route_minutes_to_arrival is not None:
+                route_eta = float(snap.active_route_minutes_to_arrival)
+        except (TypeError, ValueError):
+            route_eta = None
+        try:
+            if snap.active_route_miles_to_arrival is not None:
+                route_miles = float(snap.active_route_miles_to_arrival)
+        except (TypeError, ValueError):
+            route_miles = None
+        route_dest = (snap.active_route_destination or "").strip()
+
     return CurrentPollStatus(
         list_state=list_state,
         list_state_label=label_list_state(list_state),
@@ -638,7 +688,11 @@ def build_current_poll_status(
             baseline_interval_minutes=baseline,
             effective_interval_minutes=effective,
             is_night_now=night,
+            route_minutes_to_arrival=route_eta,
         ),
+        route_minutes_to_arrival=route_eta,
+        route_miles_to_arrival=route_miles,
+        route_destination=route_dest,
     )
 
 

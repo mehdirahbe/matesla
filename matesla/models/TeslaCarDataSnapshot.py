@@ -115,6 +115,11 @@ class TeslaCarDataSnapshot(models.Model):
     shift_state = models.TextField(null=True, blank=True)
     gps_as_of = models.BigIntegerField(null=True, blank=True)
     elevation = models.FloatField(null=True, blank=True)
+    # Navigation destination (present only while a route is active in the car).
+    # Used to stretch drive polling far from arrival; null when no nav / unknown.
+    active_route_minutes_to_arrival = models.FloatField(null=True, blank=True)
+    active_route_miles_to_arrival = models.FloatField(null=True, blank=True)
+    active_route_destination = models.TextField(null=True, blank=True)
 
     # --- vehicle_state / vehicle ---
     odometer = models.FloatField(null=True, blank=True)  # miles
@@ -242,6 +247,16 @@ class TeslaCarDataSnapshot(models.Model):
         self.shift_state = parse_str(drive_state.get("shift_state"))
         self.gps_as_of = parse_int(drive_state.get("gps_as_of"))
         self.elevation = parse_float(drive_state.get("elevation") or context.get("elevation"))
+        # Fleet may omit these when no navigation destination is set.
+        self.active_route_minutes_to_arrival = parse_float(
+            drive_state.get("active_route_minutes_to_arrival")
+        )
+        self.active_route_miles_to_arrival = parse_float(
+            drive_state.get("active_route_miles_to_arrival")
+        )
+        self.active_route_destination = parse_str(
+            drive_state.get("active_route_destination")
+        )
 
         self.odometer = parse_float(vehicle_state.get("odometer"))
         self.locked = parse_bool(vehicle_state.get("locked"))
