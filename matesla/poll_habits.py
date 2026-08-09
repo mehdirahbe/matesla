@@ -3,11 +3,14 @@ Per-vehicle poll spacing from recent usage habits (not all-time history).
 
 Design (hybrid):
   - Live drive/charge/cabin → short intervals (caller keeps reactive policy).
-  - Idle/asleep only → habit may set 5 / 15 / 30 min for this weekday+hour:
-      * busy  → 5 min  (denser than night baseline 30 — e.g. night driver)
-      * moderate quiet → 15 min
-      * quiet → 30 min
-  - When a habit interval is set, it *replaces* the baseline for idle (not max()).
+  - Idle/asleep only → habit sets 5 / 15 / 30 min for this weekday+hour.
+  - When the model is *trusted*, every civil (weekday, hour) is one of three
+    classes — no “baseline hole” left in the week grid:
+      * busy     → 5 min  (mobility-dense; ±1 h smoothing; can beat night 30)
+      * quiet    → 30 min (strict evidence only; ±1 h must all look quiet)
+      * moderate → 15 min (day) / night keeps baseline 30 — residual default
+        for everything that is neither busy nor quiet
+  - When a habit interval is set, it *replaces* the idle baseline (not max()).
   - Training data = last HABIT_WINDOW_DAYS only (ignore old TeslaFi / prior drivers).
   - Sample unit for confidence = weeks (not correlated minutes).
   - Regime break: last HABIT_RECENT_DAYS incompatible with earlier weeks in the
@@ -57,7 +60,7 @@ REGIME_ACTIVE_MISMATCH_MIN = 4  # mobility in historically calm slots
 # Activity heuristics (aligned with capture.activity_kind inputs)
 DRIVING_SPEED_MPH_MIN = 1.0
 CACHE_TTL_SECONDS = 12 * 3600
-CACHE_KEY_PREFIX = "matesla:poll_habits:v3:"
+CACHE_KEY_PREFIX = "matesla:poll_habits:v5:"
 
 
 @dataclass
@@ -82,13 +85,26 @@ class SlotStats:
 
 @dataclass
 class HabitModel:
-    """Cached habit summary for one VIN."""
+    """
+    Cached habit summary for one VIN.
+
+    ``reason`` machine codes (see also poll_diagnostics explanations):
+      - ``ok`` — trusted; quiet/moderate/busy slots may replace idle baseline
+      - ``no_vin`` — empty VIN
+      - ``insufficient_ref_weeks=N<MIN`` — fewer than HABIT_MIN_WEEKS in the
+        reference window (history before the last HABIT_RECENT_DAYS)
+      - ``regime_break`` — last HABIT_RECENT_DAYS mobility incompatible with
+        the reference model (school↔holiday, trip, new driver…)
+      - ``no_habit_slots`` — enough weeks but no slot classified calm or busy
+    """
 
     vin: str
     trusted: bool
     reason: str
     weeks_in_window: int
     computed_at: datetime
+    # Weeks with samples in the *reference* period only (before recent window).
+    reference_weeks: int = 0
     # (isoweekday 1-7, hour 0-23) → stats from reference period
     slots: dict[tuple[int, int], SlotStats] = field(default_factory=dict)
     # smoothed classes over hour±1
@@ -97,6 +113,25 @@ class HabitModel:
     busy_hours: set[tuple[int, int]] = field(default_factory=set)
     regime_break: bool = False
     regime_detail: str = ""
+
+    def habit_class_for_local_time(self, when: datetime) -> str | None:
+        """
+        Slot class at household-local ``when``: ``busy``, ``quiet``, ``moderate``,
+        or None if habits do not apply / slot unclassified.
+
+        Does not itself apply night-moderate → baseline; use
+        ``suggested_idle_interval_minutes`` for the actual idle spacing.
+        """
+        if not self.trusted or self.regime_break:
+            return None
+        key = (when.isoweekday(), when.hour)
+        if key in self.busy_hours:
+            return "busy"
+        if key in self.quiet_hours:
+            return "quiet"
+        if key in self.moderate_hours:
+            return "moderate"
+        return None
 
     def suggested_idle_interval_minutes(self, when: datetime) -> int | None:
         """
@@ -108,17 +143,16 @@ class HabitModel:
           - moderate → 15 min by day only; at night leave baseline 30
             (moderate means “fairly calm”, not “log more at night”)
         """
-        if not self.trusted or self.regime_break:
+        habit_class = self.habit_class_for_local_time(when)
+        if habit_class is None:
             return None
-        local = when
-        hour = local.hour
-        key = (local.isoweekday(), hour)
+        hour = when.hour
         night = hour in NIGHT_HOURS
-        if key in self.busy_hours:
+        if habit_class == "busy":
             return INTERVAL_HABIT_BUSY_MIN
-        if key in self.quiet_hours:
+        if habit_class == "quiet":
             return INTERVAL_HABIT_QUIET_MIN
-        if key in self.moderate_hours:
+        if habit_class == "moderate":
             if night:
                 return None
             return INTERVAL_HABIT_MODERATE_MIN
@@ -363,14 +397,24 @@ def _fill_night_band_from_weeks(
                 moderate.add(key)
 
 
-def _smoothed_calm_class(
+def _slot_is_quiet(slot: SlotStats | None) -> bool:
+    """True if this single slot meets the strict quiet bar (not moderate)."""
+    if slot is None or slot.weeks_observed < HABIT_MIN_WEEKS:
+        return False
+    return _classify_slot_calm(slot) == "quiet"
+
+
+def _is_smoothed_quiet(
     stats: dict[tuple[int, int], SlotStats], dow: int, hour: int
-) -> str | None:
+) -> bool:
     """
-    Neighbour-aware quiet/moderate over hour±1.
-    Any neighbour that is not calm → no stretch for this hour.
+    Strict quiet with hour±1 agreement.
+
+    Quiet stretches idle to 30 min, so every neighbour hour that has enough
+    data must also be quiet. Missing/insufficient neighbours are ignored
+    (do not veto); any neighbour that is only moderate or unclassified does.
     """
-    classes = []
+    saw_enough = False
     for delta in (-1, 0, 1):
         h = hour + delta
         if h < 0 or h > 23:
@@ -378,14 +422,10 @@ def _smoothed_calm_class(
         slot = stats.get((dow, h))
         if slot is None or slot.weeks_observed < HABIT_MIN_WEEKS:
             continue
-        classes.append(_classify_slot_calm(slot))
-    if not classes:
-        return None
-    if any(c is None for c in classes):
-        return None
-    if all(c == "quiet" for c in classes):
-        return "quiet"
-    return "moderate"
+        saw_enough = True
+        if not _slot_is_quiet(slot):
+            return False
+    return saw_enough
 
 
 def _smoothed_busy(
@@ -516,6 +556,7 @@ def compute_habit_model(vin: str, *, now: datetime | None = None) -> HabitModel:
             reason=f"insufficient_ref_weeks={n_ref_weeks}<{HABIT_MIN_WEEKS}",
             weeks_in_window=weeks_in_window,
             computed_at=now,
+            reference_weeks=n_ref_weeks,
             slots=ref_stats,
         )
 
@@ -529,11 +570,15 @@ def compute_habit_model(vin: str, *, now: datetime | None = None) -> HabitModel:
             reason="regime_break",
             weeks_in_window=weeks_in_window,
             computed_at=now,
+            reference_weeks=n_ref_weeks,
             slots=ref_stats,
             regime_break=True,
             regime_detail=regime_detail,
         )
 
+    # Three-way partition when trusted: busy | quiet | moderate (residual).
+    # Busy and quiet stay selective; everything else is moderate so a trusted
+    # model never leaves “baseline only” holes in the week grid.
     quiet: set[tuple[int, int]] = set()
     moderate: set[tuple[int, int]] = set()
     busy: set[tuple[int, int]] = set()
@@ -541,21 +586,27 @@ def compute_habit_model(vin: str, *, now: datetime | None = None) -> HabitModel:
         for hour in range(24):
             if _smoothed_busy(ref_mobile_stats, dow, hour):
                 busy.add((dow, hour))
-                continue
-            kind = _smoothed_calm_class(ref_stats, dow, hour)
-            if kind == "quiet":
+            elif _is_smoothed_quiet(ref_stats, dow, hour):
                 quiet.add((dow, hour))
-            elif kind == "moderate":
+            else:
                 moderate.add((dow, hour))
 
-    # Night band fill: calm from full-activity map; busy from mobility map.
+    # Night band fill: sparse asleep samples may under-mark per-hour quiet/busy.
+    # Can upgrade a whole 22h–06h band; busy still wins after.
     _fill_night_band_from_weeks(ref_active_map, quiet, moderate, set())
     _fill_night_band_from_weeks(ref_mobile_map, set(), set(), busy)
-    # Busy wins over calm if both claimed a slot
     for key in list(busy):
         quiet.discard(key)
         moderate.discard(key)
+    # Residual moderate: any hour still unclaimed after night fill / busy win.
+    for dow in range(1, 8):
+        for hour in range(24):
+            key = (dow, hour)
+            if key not in busy and key not in quiet:
+                moderate.add(key)
 
+    # Trusted models always fill the full week → moderate non-empty unless
+    # every slot is busy/quiet (still a valid partition).
     if not quiet and not moderate and not busy:
         return HabitModel(
             vin=vin,
@@ -563,6 +614,7 @@ def compute_habit_model(vin: str, *, now: datetime | None = None) -> HabitModel:
             reason="no_habit_slots",
             weeks_in_window=weeks_in_window,
             computed_at=now,
+            reference_weeks=n_ref_weeks,
             slots=ref_stats,
         )
 
@@ -572,6 +624,7 @@ def compute_habit_model(vin: str, *, now: datetime | None = None) -> HabitModel:
         reason="ok",
         weeks_in_window=weeks_in_window,
         computed_at=now,
+        reference_weeks=n_ref_weeks,
         slots=ref_stats,
         quiet_hours=quiet,
         moderate_hours=moderate,

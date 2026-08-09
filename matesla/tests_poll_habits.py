@@ -227,3 +227,93 @@ class HabitModelIntegrationTests(TestCase):
         self.assertIsNone(
             model.suggested_idle_interval_minutes(now.astimezone(TZ))
         )
+
+    def test_trusted_model_partitions_full_week_no_baseline_holes(self):
+        """
+        Busy stays selective; residual non-busy/non-quiet slots are moderate.
+
+        Mid-day between school peaks must not stay “no habit → day baseline 5”.
+        """
+        now_local = datetime(2025, 6, 23, 12, 0, tzinfo=TZ)
+        now = now_local.astimezone(dt_timezone.utc)
+        monday = datetime(2025, 4, 21, tzinfo=TZ)
+        for _ in range(10):
+            self._seed_week(monday=monday, morning_drive=True)
+            monday = monday + timedelta(days=7)
+
+        model = compute_habit_model(VIN, now=now)
+        self.assertTrue(model.trusted, model.reason)
+        # Full 7×24 partition
+        all_slots = {
+            (dow, hour) for dow in range(1, 8) for hour in range(24)
+        }
+        classified = model.busy_hours | model.moderate_hours | model.quiet_hours
+        self.assertEqual(classified, all_slots)
+        self.assertEqual(
+            len(model.busy_hours & model.moderate_hours),
+            0,
+        )
+        self.assertEqual(len(model.busy_hours & model.quiet_hours), 0)
+        self.assertEqual(len(model.moderate_hours & model.quiet_hours), 0)
+        # Tuesday late morning (after 08:00 school seed) should not be a hole
+        self.assertIn(
+            (2, 11),
+            model.moderate_hours | model.quiet_hours | model.busy_hours,
+        )
+        midday = model.suggested_idle_interval_minutes(
+            datetime(2025, 6, 24, 11, 0, tzinfo=TZ)
+        )
+        # Moderate day → 15; quiet → 30; busy → 5 — never None when trusted
+        self.assertIsNotNone(midday)
+        self.assertIn(midday, (5, 15, 30))
+
+
+class PollDiagnosticsTests(TestCase):
+    """Shared CLI/web diagnostic report (no Tesla network)."""
+
+    def test_insufficient_history_report_explains_inactive_habits(self):
+        from matesla.poll_diagnostics import (
+            build_poll_diagnostic_report,
+            format_report_for_cli,
+        )
+
+        now = timezone.now()
+        for day in range(3):
+            TeslaCarDataSnapshot.objects.create(
+                vin=VIN,
+                hashedVin="h" * 56,
+                Date=now - timedelta(days=day, hours=2),
+                speed=0,
+                shift_state="P",
+                charging_state="Disconnected",
+            )
+        report = build_poll_diagnostic_report(vin=VIN, now=now, force_recompute=True)
+        self.assertFalse(report.habits.trusted)
+        self.assertEqual(report.habits.reason_code, "insufficient_ref_weeks")
+        self.assertLess(
+            report.habits.reference_weeks, report.habits.minimum_reference_weeks
+        )
+        self.assertEqual(len(report.week_grid), 7 * 24)
+        self.assertGreaterEqual(len(report.forecast_days), 1)
+        lines = format_report_for_cli(report)
+        self.assertTrue(any("trusted=False" in line for line in lines))
+
+    def test_trusted_report_has_habit_overrides(self):
+        from matesla.poll_diagnostics import build_poll_diagnostic_report
+
+        seeder = HabitModelIntegrationTests()
+        now_local = datetime(2025, 6, 23, 12, 0, tzinfo=TZ)
+        now = now_local.astimezone(dt_timezone.utc)
+        monday = datetime(2025, 4, 21, tzinfo=TZ)
+        for _ in range(10):
+            seeder._seed_week(monday=monday, morning_drive=True)
+            monday = monday + timedelta(days=7)
+
+        report = build_poll_diagnostic_report(vin=VIN, now=now, force_recompute=True)
+        self.assertTrue(
+            report.habits.trusted,
+            f"expected trusted, got {report.habits.reason_code}",
+        )
+        overrides = [cell for cell in report.week_grid if cell.habit_overrides_baseline]
+        self.assertGreater(len(overrides), 0)
+        self.assertTrue(any(day for day in report.forecast_days))

@@ -88,6 +88,7 @@ class PersonalStatsUrlTests(TestCase):
             f"/en/personalstats/Drives/{bad}",
             f"/en/personalstats/DCCharge/{bad}",
             f"/en/personalstats/DCChargeGraph/{bad}/power_vs_soc/52",
+            f"/en/personalstats/PollDetails/{bad}",
             f"/en/personalstats/LifetimeMapData/{bad}",
             f"/en/personalstats/FirmwareHistory/{bad}",
             f"/en/personalstats/FirmwareHistoryCSV/{bad}",
@@ -141,6 +142,13 @@ class PersonalStatsPageTests(TestCase):
         response = client.get(f"/en/personalstats/DCCharge/{FAKE_HASHED_VIN}")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "DC charge", status_code=200)
+
+    def test_poll_details_page_ok(self):
+        client = Client()
+        response = client.get(f"/en/personalstats/PollDetails/{FAKE_HASHED_VIN}")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Query spacing details", status_code=200)
+        self.assertContains(response, "Habit model", status_code=200)
 
     def test_dc_charge_graphs_png(self):
         client = Client()

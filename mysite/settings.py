@@ -176,6 +176,7 @@ READONLY_ALLOWED_URL_NAMES = [
     "PersoDrives",
     "PersoDCCharge",
     "PersoDCChargeGraph",
+    "PersoPollDetails",
     "PersoLifetimeMapData",
     "PersoResolveAddress",
     "PersoMatchSupercharger",

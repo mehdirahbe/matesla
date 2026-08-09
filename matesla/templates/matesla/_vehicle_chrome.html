@@ -16,6 +16,8 @@
         <input type="hidden" name="period" value="{{ stats_period|default:520 }}">
         <input type="hidden" name="filter" value="{{ outlier_mode|default:'robust' }}">
         <input type="hidden" name="envelope" value="{{ envelope_mode|default:'p10_p90' }}">
+        {% elif request.resolver_match.url_name == 'PersoPollDetails' %}
+        <input type="hidden" name="next" value="polldetails">
         {% elif request.resolver_match.url_name == 'PersoStats' %}
         <input type="hidden" name="next" value="stats">
         <input type="hidden" name="period" id="vehicle_switch_period" value="{{ stats_period|default:520 }}">

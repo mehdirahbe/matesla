@@ -29,6 +29,9 @@ path(
     views.DCChargeGraph,
     name='PersoDCChargeGraph',
 ),
+# Adaptive Fleet poll spacing diagnostics (habits + current decision)
+path('PollDetails/<str:hashedVin>', views.PollDetails, name='PersoPollDetails'),
+
 # Lifetime map JSON (path + KPIs) for the personal stats card
 path('LifetimeMapData/<str:hashedVin>', views.LifetimeMapData, name='PersoLifetimeMapData'),
 # Async reverse-geocode (cache miss → Nominatim, rate-limited)

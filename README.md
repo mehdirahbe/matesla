@@ -329,15 +329,19 @@ may **set idle/asleep** spacing for the current weekday+hour to:
 | Habit class | Idle interval | Effect vs baseline |
 |-------------|---------------|--------------------|
 | **busy** | **5 min** | denser than night 30 (e.g. night driver) |
-| **moderate** | **15 min** | sparser than day 5; denser than night 30 |
-| **quiet** | **30 min** | sparser than day 5 |
+| **moderate** | **15 min** | residual default when trusted (day); night keeps 30 |
+| **quiet** | **30 min** | strict only — sparser than day 5 |
 
-When a habit applies it **replaces** the idle baseline (not `max()`), so reliable
-busy nights *do* poll more often. Live drive/charge/cabin never use habits.
+When the model is **trusted**, every weekday+hour is one of these three (no
+idle “baseline holes”). Busy and quiet stay selective; everything else is
+moderate. A habit interval **replaces** the idle baseline (not `max()`).
+Live drive/charge/cabin never use habits.
 
 Conditions: last ~12 weeks only, ≥4 reference weeks, no regime break
 (school ↔ holidays ↔ trips).  
-Diagnose: `python manage.py ShowPollHabits --force`
+Diagnose: `python manage.py ShowPollHabits --force`, or the personal-stats
+page **Polling details** (link next to the Fleet poll cost graph) — same
+logic via `matesla/poll_diagnostics.py`.
 
 ### Why not `manage.py` from cron?
 

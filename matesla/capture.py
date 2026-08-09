@@ -239,20 +239,26 @@ def activity_kind(
     return "asleep"
 
 
-def _base_poll_interval_minutes(
+# Live activity always uses the reactive baseline; habits never stretch these.
+LIVE_ACTIVITY_KINDS = frozenset(
+    {"driving", "dc_charge", "ac_charge", "cabin", "dogcamp"}
+)
+
+
+def base_poll_interval_minutes(
     kind: str,
     *,
     night: bool,
 ) -> int:
     """
-    Hand-tuned baseline (no habit model).
+    Hand-tuned baseline interval in minutes (no habit model).
 
     Always (day and night): driving → 2 min, DC/Supercharge → 2 min
     (night road trips + V3 sessions do not get the idle night stretch).
 
     Night (22h–6h local), other kinds: 30 min (incl. AC wall charge).
 
-    Day: AC 15, cabin 2, sentry/online idle/asleep 5.
+    Day: AC 15, cabin 2, dog/camp 15, sentry 10, online idle/asleep 5.
     """
     # High-value live states: never stretch for night quiet hours.
     if kind == "driving":
@@ -268,7 +274,7 @@ def _base_poll_interval_minutes(
     if kind == "cabin":
         return INTERVAL_CABIN_MIN
     if kind == "dogcamp":
-        return INTERVAL_DOGCAMP_MIN    
+        return INTERVAL_DOGCAMP_MIN
     if kind == "sentry":
         return INTERVAL_SENTRY_MIN
     if kind == "asleep":
@@ -285,17 +291,18 @@ def poll_interval_minutes(
     """
     How long to wait between Fleet polls for this vehicle.
 
-    Reactive kinds (drive / charge / cabin / seal path) always use the baseline.
-    For idle/asleep only, a *recent* habit model may stretch to 15–30 min when
-    the current weekday+hour is historically quiet and no regime break is active.
+    Reactive kinds (drive / charge / cabin / dog-camp) always use the baseline.
+    For idle/asleep/sentry only, a *recent* habit model may set 5 / 15 / 30 min
+    when the current weekday+hour is historically classified and no regime break
+    is active. See ``matesla.poll_habits`` and ``matesla.poll_diagnostics``.
     """
     now = now or timezone.now()
     kind = activity_kind(vehicle, snap, now=now)
     night = is_night(now)
-    base = _base_poll_interval_minutes(kind, night=night)
+    base = base_poll_interval_minutes(kind, night=night)
 
     # Never slow down while something is happening (or might need seal soon).
-    if kind in {"driving", "dc_charge", "ac_charge", "cabin", "dogcamp"}:
+    if kind in LIVE_ACTIVITY_KINDS:
         return base
 
     vin = (getattr(vehicle, "vin", None) or "").strip()

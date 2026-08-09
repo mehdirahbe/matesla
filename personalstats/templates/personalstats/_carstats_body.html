@@ -166,16 +166,25 @@
                 <span class="graph-card__index">{% trans '06 · FLEET' %}</span>
                 <h2>{% trans 'Fleet poll cost' %}</h2>
             </div>
-            <button type="button" class="graph-card__expand" data-graph-expand
-                    title="{% trans 'Expand' %}" aria-label="{% trans 'Expand chart' %}">
-                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"/>
-                </svg>
-            </button>
+            <div class="graph-card__header-actions" style="display:flex;align-items:center;gap:0.5rem;">
+                {# Not inside the expand lightbox — stays on the card for navigation. #}
+                <a href="{% url 'PersoPollDetails' hashedVin %}"
+                   class="btn btn-sm btn-outline-primary"
+                   style="white-space:nowrap;">
+                    {% trans 'Query spacing details' %}
+                </a>
+                <button type="button" class="graph-card__expand" data-graph-expand
+                        title="{% trans 'Expand' %}" aria-label="{% trans 'Expand chart' %}">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"/>
+                    </svg>
+                </button>
+            </div>
         </header>
         <div class="graph-card__controls">
             <p class="text-muted" style="margin:0;font-size:0.85rem;">
                 {% trans 'Vehicle_data HTTP calls, day by day, max 30 days.' %}
+                {% trans 'Open query spacing details for the current interval, habit model, and idle plan.' %}
             </p>
         </div>
         <div class="graph-card__media" data-graph-media>

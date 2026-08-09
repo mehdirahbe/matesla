@@ -834,7 +834,14 @@ def view_select_vehicle(request):
 
     next_kind = (request.POST.get("next") or "").strip().lower()
     # Whitelist only — never open-redirect on user-supplied URLs
-    if next_kind in ("daymap", "stats", "firmware", "drives", "dccharge") and vehicle.vin:
+    if next_kind in (
+        "daymap",
+        "stats",
+        "firmware",
+        "drives",
+        "dccharge",
+        "polldetails",
+    ) and vehicle.vin:
         from matesla.models.VinHash import HashTheVin
 
         hashed = HashTheVin(vehicle.vin)
@@ -909,6 +916,8 @@ def view_select_vehicle(request):
                 return redirect(
                     f"{url}?period={period}&filter={filt}&envelope={envelope}"
                 )
+            if next_kind == "polldetails":
+                return redirect("PersoPollDetails", hashedVin=hashed)
 
     return redirect("tesla_status")
 

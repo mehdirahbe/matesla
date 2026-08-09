@@ -5005,3 +5005,62 @@ def DCChargeGraph(request, hashedVin, chart, desiredperiod):
             size=size,
         )
     return _cache_graph_png(cache_key, response, size)
+
+
+@require_GET
+def PollDetails(request, hashedVin):
+    """
+    Adaptive Fleet polling diagnostics: current interval, habit trust, and
+    idle forecast. Complements the fleet poll cost graph (counts only).
+    """
+    if not IsValidHash(hashedVin):
+        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+
+    from matesla.poll_diagnostics import (
+        build_poll_diagnostic_report,
+        resolve_vehicle_for_hashed_vin,
+        resolve_vin_for_hashed_vin,
+        weekday_short_label,
+    )
+    from matesla.poll_habits import NIGHT_HOURS
+
+    vehicle = resolve_vehicle_for_hashed_vin(hashedVin)
+    vin = resolve_vin_for_hashed_vin(hashedVin)
+    report = build_poll_diagnostic_report(
+        vehicle=vehicle,
+        vin=vin,
+        hashed_vin=hashedVin,
+        force_recompute=False,
+        forecast_days=7,
+    )
+
+    # Reshape week grid for the template: rows = hours 0–23, columns = Mon–Sun.
+    grid_by_hour = []
+    cells_by_key = {
+        (cell.isoweekday, cell.hour): cell for cell in report.week_grid
+    }
+    for hour in range(24):
+        row_cells = []
+        for isoweekday in range(1, 8):
+            row_cells.append(cells_by_key.get((isoweekday, hour)))
+        grid_by_hour.append({"hour": hour, "cells": row_cells})
+
+    weekday_headers = [
+        {"isoweekday": day, "label": weekday_short_label(day)}
+        for day in range(1, 8)
+    ]
+
+    context = _vehicle_chrome_context(request, hashedVin)
+    context.update(
+        {
+            "report": report,
+            "habits": report.habits,
+            "current": report.current,
+            "grid_by_hour": grid_by_hour,
+            "weekday_headers": weekday_headers,
+            "forecast_days": report.forecast_days,
+            "night_hours": set(NIGHT_HOURS),
+            "notes": report.notes,
+        }
+    )
+    return render(request, "personalstats/poll_details.html", context)

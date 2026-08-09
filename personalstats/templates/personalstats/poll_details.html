@@ -1,0 +1,412 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans 'Query spacing details' %}{% endblock %}
+
+{% block cssstyle %}
+    .poll-page .vehicle-chrome { margin-bottom: 12px; }
+    .poll-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--app-line, #2a3548);
+        background: var(--app-surface, #121a28);
+    }
+    .poll-toolbar h1 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: var(--app-text, #eef4ff);
+    }
+    .poll-toolbar p {
+        margin: 0.25rem 0 0;
+        font-size: 0.88rem;
+        color: var(--app-muted, #8b9bb4);
+    }
+    .poll-banner {
+        margin-bottom: 1rem;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--app-line, #2a3548);
+        background: var(--app-surface, #121a28);
+        font-size: 0.95rem;
+        line-height: 1.45;
+        color: var(--app-text, #eef4ff);
+    }
+    .poll-banner--ok {
+        border-color: rgba(80, 200, 140, 0.45);
+        background: rgba(40, 120, 80, 0.18);
+    }
+    .poll-banner--warn {
+        border-color: rgba(240, 180, 41, 0.45);
+        background: rgba(120, 90, 20, 0.18);
+    }
+    .poll-banner strong { display: block; margin-bottom: 0.35rem; }
+    .poll-kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+        gap: 0.65rem;
+        margin-bottom: 1.1rem;
+    }
+    .poll-kpi {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--app-line, #2a3548);
+        background: var(--app-surface, #121a28);
+    }
+    .poll-kpi__label {
+        display: block;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--app-muted, #8b9bb4);
+        margin-bottom: 4px;
+    }
+    .poll-kpi__value {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--app-text, #eef4ff);
+        word-break: break-word;
+    }
+    .poll-section {
+        margin-bottom: 1.25rem;
+        padding: 12px 14px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--app-line, #2a3548);
+        background: var(--app-surface, #121a28);
+    }
+    .poll-section h2 {
+        margin: 0 0 0.45rem;
+        font-size: 1.05rem;
+        color: var(--app-text, #eef4ff);
+    }
+    .poll-section > p,
+    .poll-section .poll-muted {
+        margin: 0 0 0.75rem;
+        font-size: 0.9rem;
+        color: var(--app-muted, #8b9bb4);
+        line-height: 1.4;
+    }
+    .poll-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+        gap: 0.4rem 1rem;
+        font-size: 0.9rem;
+        color: var(--app-text, #eef4ff);
+        margin-bottom: 0.5rem;
+    }
+    .poll-meta span { color: var(--app-muted, #8b9bb4); }
+    .poll-forecast-day {
+        margin-bottom: 0.75rem;
+    }
+    .poll-forecast-day__title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--app-text, #eef4ff);
+        margin-bottom: 0.35rem;
+    }
+    .poll-segments {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+    .poll-seg {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        border: 1px solid var(--app-line, #2a3548);
+        background: #162338;
+        color: var(--app-text, #eef4ff);
+    }
+    .poll-seg--busy {
+        border-color: rgba(255, 140, 100, 0.5);
+        background: rgba(180, 70, 40, 0.22);
+    }
+    .poll-seg--moderate {
+        border-color: rgba(240, 180, 41, 0.45);
+        background: rgba(120, 90, 20, 0.2);
+    }
+    .poll-seg--quiet {
+        border-color: rgba(80, 180, 255, 0.45);
+        background: rgba(30, 90, 140, 0.22);
+    }
+    .poll-grid-wrap {
+        overflow-x: auto;
+        border-radius: 8px;
+        border: 1px solid var(--app-line, #2a3548);
+    }
+    .poll-grid {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.72rem;
+        min-width: 36rem;
+    }
+    .poll-grid th,
+    .poll-grid td {
+        padding: 3px 4px;
+        text-align: center;
+        border-bottom: 1px solid var(--app-line, #2a3548);
+        border-right: 1px solid rgba(42, 53, 72, 0.6);
+    }
+    .poll-grid th {
+        background: #162338;
+        color: var(--app-muted, #8b9bb4);
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+    .poll-grid th.poll-grid__hour {
+        text-align: left;
+        padding-left: 8px;
+        min-width: 3rem;
+    }
+    .poll-grid td.poll-cell {
+        font-variant-numeric: tabular-nums;
+        color: var(--app-muted, #8b9bb4);
+    }
+    .poll-grid td.poll-cell--busy {
+        background: rgba(180, 70, 40, 0.28);
+        color: #ffc4a8;
+        font-weight: 600;
+    }
+    .poll-grid td.poll-cell--moderate {
+        background: rgba(120, 90, 20, 0.28);
+        color: #ffe0a0;
+        font-weight: 600;
+    }
+    .poll-grid td.poll-cell--quiet {
+        background: rgba(30, 90, 140, 0.28);
+        color: #a8d8ff;
+        font-weight: 600;
+    }
+    .poll-grid tr.poll-row--night td.poll-grid__hour {
+        color: #9aa8c0;
+    }
+    .poll-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem 1rem;
+        margin: 0.65rem 0 0;
+        font-size: 0.82rem;
+        color: var(--app-muted, #8b9bb4);
+    }
+    .poll-legend i {
+        display: inline-block;
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 2px;
+        margin-right: 0.3rem;
+        vertical-align: -1px;
+    }
+    .poll-legend .lg-busy { background: rgba(180, 70, 40, 0.7); }
+    .poll-legend .lg-mod { background: rgba(180, 140, 30, 0.7); }
+    .poll-legend .lg-quiet { background: rgba(40, 120, 180, 0.7); }
+    .poll-notes ul {
+        margin: 0;
+        padding-left: 1.15rem;
+        color: var(--app-muted, #8b9bb4);
+        font-size: 0.88rem;
+        line-height: 1.45;
+    }
+    .poll-notes li { margin-bottom: 0.35rem; }
+{% endblock %}
+
+{% block content %}
+<div class="poll-page">
+{% include 'matesla/_vehicle_chrome.html' %}
+
+<div class="poll-toolbar">
+    <div>
+        <h1>{% trans 'Query spacing details' %}</h1>
+        <p>
+            {% blocktrans with name=report.display_name when=report.now_local_label %}
+            Adaptive Fleet API spacing for {{ name }} · local time {{ when }}
+            {% endblocktrans %}
+        </p>
+    </div>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'PersoStats' hashedVin %}">{% trans 'Back to my data' %}</a>
+</div>
+
+<div class="poll-banner {% if habits.trusted %}poll-banner--ok{% else %}poll-banner--warn{% endif %}">
+    <strong>
+        {% if habits.trusted %}
+            {% trans 'Habit-adapted collection frequency: active' %}
+        {% else %}
+            {% trans 'Habit-adapted collection frequency: inactive' %}
+        {% endif %}
+    </strong>
+    {{ habits.reason_summary }}
+    {% if habits.regime_summary %}
+        <p class="poll-muted" style="margin:0.5rem 0 0;">{{ habits.regime_summary }}</p>
+    {% endif %}
+</div>
+
+{% if current %}
+<section class="poll-section" aria-labelledby="poll-now-title">
+    <h2 id="poll-now-title">{% trans 'Right now' %}</h2>
+    <p>{{ current.decision_summary }}</p>
+    <div class="poll-kpis">
+        <div class="poll-kpi">
+            <span class="poll-kpi__label">{% trans 'List state' %}</span>
+            <span class="poll-kpi__value">{{ current.list_state_label }}</span>
+        </div>
+        <div class="poll-kpi">
+            <span class="poll-kpi__label">{% trans 'Activity kind' %}</span>
+            <span class="poll-kpi__value">{{ current.activity_kind_label }}</span>
+        </div>
+        <div class="poll-kpi">
+            <span class="poll-kpi__label">{% trans 'Effective interval' %}</span>
+            <span class="poll-kpi__value">{{ current.effective_interval_minutes }} {% trans 'min' %}</span>
+        </div>
+        <div class="poll-kpi">
+            <span class="poll-kpi__label">{% trans 'Decision source' %}</span>
+            <span class="poll-kpi__value">
+                {% if current.decision_source == 'live_activity' %}{% trans 'Live activity' %}
+                {% elif current.decision_source == 'habit' %}{% trans 'Habit model' %}
+                {% else %}{% trans 'Default spacing' %}{% endif %}
+            </span>
+        </div>
+        <div class="poll-kpi">
+            <span class="poll-kpi__label">{% trans 'Default for this kind' %}</span>
+            <span class="poll-kpi__value">{{ current.baseline_interval_minutes }} {% trans 'min' %}</span>
+        </div>
+        <div class="poll-kpi">
+            <span class="poll-kpi__label">{% trans 'Habit for this hour' %}</span>
+            <span class="poll-kpi__value">
+                {% if current.habit_interval_minutes %}
+                    {{ current.habit_class_label }} · {{ current.habit_interval_minutes }} {% trans 'min' %}
+                {% else %}
+                    {% trans 'None' %}
+                {% endif %}
+            </span>
+        </div>
+        <div class="poll-kpi">
+            <span class="poll-kpi__label">{% trans 'Last query' %}</span>
+            <span class="poll-kpi__value">
+                {% if current.last_polled_at %}{{ current.last_polled_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}
+            </span>
+        </div>
+        <div class="poll-kpi">
+            <span class="poll-kpi__label">{% trans 'Next query due' %}</span>
+            <span class="poll-kpi__value">
+                {% if current.is_due_now %}{% trans 'Due now' %}
+                {% elif current.next_poll_due_at %}{{ current.next_poll_due_at|date:"Y-m-d H:i" }}
+                {% else %}—{% endif %}
+            </span>
+        </div>
+    </div>
+</section>
+{% else %}
+<section class="poll-section">
+    <h2>{% trans 'Right now' %}</h2>
+    <p class="poll-muted">{% trans 'No vehicle row in the account list for this VIN, so list state and last poll time are unknown. Habit history below still uses telemetry snapshots when available.' %}</p>
+</section>
+{% endif %}
+
+<section class="poll-section" aria-labelledby="poll-habits-title">
+    <h2 id="poll-habits-title">{% trans 'Habit model' %}</h2>
+    <p class="poll-muted">
+        {% blocktrans with max_days=habits.max_lookback_days recent=habits.recent_check_days min_ref=habits.minimum_reference_weeks %}
+        The model searches at most the last {{ max_days }} days. Training uses only weeks
+        *before* the last {{ recent }} days (regime check). Need ≥ {{ min_ref }} such
+        reference weeks. “Weeks with samples” counts distinct calendar weeks that have
+        any telemetry in the search window — not the length of continuous data capture.
+        {% endblocktrans %}
+    </p>
+    <div class="poll-meta">
+        <div><span>{% trans 'Trusted' %}:</span> {% if habits.trusted %}{% trans 'Yes' %}{% else %}{% trans 'No' %}{% endif %}</div>
+        <div><span>{% trans 'Reason' %}:</span> {{ habits.reason_label }}</div>
+        <div><span>{% trans 'Reference weeks (training)' %}:</span> {{ habits.reference_weeks }} / {{ habits.minimum_reference_weeks }}</div>
+        <div><span>{% trans 'Weeks with samples (in search window)' %}:</span> {{ habits.weeks_with_samples }}</div>
+        <div><span>{% trans 'Max search window' %}:</span> {{ habits.max_lookback_days }} {% trans 'days' %}</div>
+        <div><span>{% trans 'Excluded from training (recent check)' %}:</span> {{ habits.recent_check_days }} {% trans 'days' %}</div>
+        <div><span>{% trans 'Busy slots' %}:</span> {{ habits.busy_slot_count }} → {{ habits.busy_interval_minutes }} {% trans 'min' %}</div>
+        <div><span>{% trans 'Moderate slots' %}:</span> {{ habits.moderate_slot_count }} → {{ habits.moderate_interval_minutes }} {% trans 'min' %}</div>
+        <div><span>{% trans 'Quiet slots' %}:</span> {{ habits.quiet_slot_count }} → {{ habits.quiet_interval_minutes }} {% trans 'min' %}</div>
+    </div>
+</section>
+
+<section class="poll-section" aria-labelledby="poll-forecast-title">
+    <h2 id="poll-forecast-title">{% trans 'Idle plan — next 7 days' %}</h2>
+    <p>{% trans 'What idle/asleep spacing the model would use if the car is not driving or charging. Segments merge consecutive hours with the same interval.' %}</p>
+    {% for day_segments in forecast_days %}
+        {% if day_segments %}
+        <div class="poll-forecast-day">
+            <div class="poll-forecast-day__title">
+                {{ day_segments.0.weekday_name }} {{ day_segments.0.local_date_label }}
+            </div>
+            <div class="poll-segments">
+                {% for segment in day_segments %}
+                <span class="poll-seg {% if segment.habit_class == 'busy' %}poll-seg--busy{% elif segment.habit_class == 'moderate' %}poll-seg--moderate{% elif segment.habit_class == 'quiet' %}poll-seg--quiet{% endif %}">
+                    {{ segment.start_hour|stringformat:"02d" }}–{{ segment.end_hour_exclusive|stringformat:"02d" }}h
+                    · {{ segment.idle_interval_minutes }} {% trans 'min' %}
+                    {% if segment.habit_class == 'busy' %}· {% trans 'busy' %}
+                    {% elif segment.habit_class == 'moderate' %}· {% trans 'moderate' %}
+                    {% elif segment.habit_class == 'quiet' %}· {% trans 'quiet' %}
+                    {% endif %}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    {% empty %}
+        <p class="poll-muted">{% trans 'No forecast available.' %}</p>
+    {% endfor %}
+</section>
+
+<section class="poll-section" aria-labelledby="poll-grid-title">
+    <h2 id="poll-grid-title">{% trans 'Typical week (idle minutes by weekday and hour)' %}</h2>
+    <p>{% trans 'Household local time (Europe/Brussels). When the model is trusted, every cell is busy, moderate or quiet (no default-spacing holes). Plain cells only appear if habits are inactive.' %}</p>
+    <div class="poll-grid-wrap">
+        <table class="poll-grid">
+            <thead>
+                <tr>
+                    <th class="poll-grid__hour">{% trans 'Hour' %}</th>
+                    {% for day in weekday_headers %}
+                    <th>{{ day.label }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in grid_by_hour %}
+                <tr class="{% if row.hour in night_hours %}poll-row--night{% endif %}">
+                    <td class="poll-grid__hour">{{ row.hour|stringformat:"02d" }}h</td>
+                    {% for cell in row.cells %}
+                    <td class="poll-cell {% if cell.habit_overrides_baseline and cell.habit_class == 'busy' %}poll-cell--busy{% elif cell.habit_overrides_baseline and cell.habit_class == 'moderate' %}poll-cell--moderate{% elif cell.habit_overrides_baseline and cell.habit_class == 'quiet' %}poll-cell--quiet{% endif %}"
+                        title="{% if cell.habit_class == 'busy' %}{% trans 'busy' %}{% elif cell.habit_class == 'moderate' %}{% trans 'moderate' %}{% elif cell.habit_class == 'quiet' %}{% trans 'quiet' %}{% endif %}{% if cell.habit_class and not cell.habit_overrides_baseline %} ({% trans 'class only; default spacing kept' %}){% endif %}{% if cell.habit_class %} · {% endif %}{{ cell.idle_interval_minutes }} {% trans 'min' %}">
+                        {{ cell.idle_interval_minutes }}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="poll-legend">
+        <span><i class="lg-busy" aria-hidden="true"></i>{% trans 'Busy (denser idle)' %}</span>
+        <span><i class="lg-mod" aria-hidden="true"></i>{% trans 'Moderate' %}</span>
+        <span><i class="lg-quiet" aria-hidden="true"></i>{% trans 'Quiet (sparser idle)' %}</span>
+        <span>{% trans 'Uncoloured = habits inactive (day/night default)' %}</span>
+    </div>
+</section>
+
+<section class="poll-section poll-notes" aria-labelledby="poll-notes-title">
+    <h2 id="poll-notes-title">{% trans 'How it works' %}</h2>
+    <ul>
+        {% for note in notes %}
+        <li>{{ note }}</li>
+        {% endfor %}
+    </ul>
+</section>
+
+</div>
+{% endblock %}
