@@ -10,12 +10,12 @@
 <section class="login-hero">
     <div class="login-hero__inner">
         <div class="login-hero__copy">
-            <p class="eyebrow">Your car. Your data.</p>
-            <h1 class="login-title">The quiet<br><span>co-pilot.</span></h1>
+            <p class="eyebrow">{% trans 'Your car. Your data.' %}</p>
+            <h1 class="login-title">{% trans 'The quiet' %}<br><span>{% trans 'co-pilot.' %}</span></h1>
             <p class="login-lede">
                 {% trans 'MaTesla is a Python/django free open source website using tesla api to connect to your marvellous Tesla car, have information on its state, location and remote control charge, temperature,... Statistics on firmware updates are also available.' %}
             </p>
-            <div class="privacy-note">Open source · your telemetry stays under your control</div>
+            <div class="privacy-note">{% trans 'Open source · your telemetry stays under your control' %}</div>
         </div>
 
         <div class="auth-card">
@@ -23,7 +23,7 @@
                 <div>
                     <p class="eyebrow">{% trans 'Private space' %}</p>
                     <h2>{% trans 'Login' %}</h2>
-                    <p class="auth-card__hint">Retrouvez votre véhicule et son historique.</p>
+                    <p class="auth-card__hint">{% trans 'Find your vehicle and its history.' %}</p>
                 </div>
             </div>
 
@@ -55,24 +55,24 @@
 
 <section class="showcase" aria-labelledby="showcase-title">
     <div class="showcase__heading">
-        <p class="eyebrow">One dashboard, the full story</p>
-        <h2 id="showcase-title">Beyond a status screen.</h2>
-        <p>Suivez la santé de la batterie, les trajets et les versions logicielles sans perdre votre temps dans des menus.</p>
+        <p class="eyebrow">{% trans 'One dashboard, the full story' %}</p>
+        <h2 id="showcase-title">{% trans 'Beyond a status screen.' %}</h2>
+        <p>{% trans 'Follow battery health, trips and software versions without getting lost in menus.' %}</p>
     </div>
 
     <div class="showcase-grid">
         <article class="showcase-card">
             <span class="showcase-card__index">01 · BATTERY</span>
             <h3>{% trans 'Battery degradation graphs' %}</h3>
-            <p>Une lecture claire de l’évolution réelle de votre autonomie.</p>
+            <p>{% trans 'A clear view of how your real range evolves.' %}</p>
             <div class="showcase-card__media">
                 <img class="lazyload" data-src="{% static 'demo_battery_degradation.png' %}" alt="{% trans 'Battery degradation graphs' %}" width="399" height="193">
             </div>
         </article>
         <article class="showcase-card">
             <span class="showcase-card__index">02 · DRIVE</span>
-            <h3>Trajets &amp; localisation</h3>
-            <p>Retrouvez kilomètres, cycles et journées de conduite.</p>
+            <h3>{% trans 'Trips & location' %}</h3>
+            <p>{% trans 'Find kilometres, cycles and driving days.' %}</p>
             <div class="showcase-card__media">
                 <img class="lazyload" data-src="{% static 'demo_odometer_miles.png' %}" alt="{% trans 'Your tesla odometer graph in function of time. Who drives the most?' %}" width="400" height="167">
             </div>
@@ -80,7 +80,7 @@
         <article class="showcase-card">
             <span class="showcase-card__index">03 · SOFTWARE</span>
             <h3>{% trans 'Firmware history' %}</h3>
-            <p>Chaque mise à jour, replacée dans le temps.</p>
+            <p>{% trans 'Every update, placed back in time.' %}</p>
             <div class="showcase-card__media">
                 <img class="lazyload" data-src="{% static 'demo_my_firmware_history.png' %}" alt="{% trans 'Firmware history' %}" width="399" height="354">
             </div>

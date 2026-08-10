@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: matesla\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-09 11:36+0000\n"
+"POT-Creation-Date: 2026-08-10 17:51+0000\n"
 "PO-Revision-Date: 2026-07-27 22:00+0000\n"
 "Last-Translator: MaTesla\n"
 "Language-Team: Spanish\n"
@@ -23,8 +23,18 @@ msgstr "Necesario para poder restablecer la contraseña si la olvidas"
 msgid "Sign up"
 msgstr "Crear cuenta"
 
+#: accounts/templates/signup.html:12
+msgid ""
+"Create your private space, then link your Tesla account in a few steps."
+msgstr ""
+"Crea tu espacio privado y luego vincula tu cuenta Tesla en unos pasos."
+
+#: accounts/templates/signup.html:30
+msgid "Already registered?"
+msgstr "¿Ya registrado?"
+
 #: accounts/templates/signup.html:31 templates/base.html:41
-#: templates/base.html:56 templates/base.html:72
+#: templates/base.html:57 templates/base.html:73
 #: templates/registration/login.html:5 templates/registration/login.html:25
 #: templates/registration/login.html:45
 msgid "Login"
@@ -172,63 +182,63 @@ msgstr ""
 "known/appspecific/com.tesla.3p.public-key.pem en ese host. Añade el mismo "
 "host con https:// como Allowed Origin en developer.tesla.com. No localhost."
 
-#: matesla/poll_diagnostics.py:79
+#: matesla/poll_diagnostics.py:78
 msgid "Mon"
 msgstr "lun"
 
-#: matesla/poll_diagnostics.py:80
+#: matesla/poll_diagnostics.py:79
 msgid "Tue"
 msgstr "mar"
 
-#: matesla/poll_diagnostics.py:81
+#: matesla/poll_diagnostics.py:80
 msgid "Wed"
 msgstr "mié"
 
-#: matesla/poll_diagnostics.py:82
+#: matesla/poll_diagnostics.py:81
 msgid "Thu"
 msgstr "jue"
 
-#: matesla/poll_diagnostics.py:83
+#: matesla/poll_diagnostics.py:82
 msgid "Fri"
 msgstr "vie"
 
-#: matesla/poll_diagnostics.py:84
+#: matesla/poll_diagnostics.py:83
 msgid "Sat"
 msgstr "sáb"
 
-#: matesla/poll_diagnostics.py:85
+#: matesla/poll_diagnostics.py:84
 msgid "Sun"
 msgstr "dom"
 
-#: matesla/poll_diagnostics.py:92
+#: matesla/poll_diagnostics.py:91
 msgid "Monday"
 msgstr "lunes"
 
-#: matesla/poll_diagnostics.py:93
+#: matesla/poll_diagnostics.py:92
 msgid "Tuesday"
 msgstr "martes"
 
-#: matesla/poll_diagnostics.py:94
+#: matesla/poll_diagnostics.py:93
 msgid "Wednesday"
 msgstr "miércoles"
 
-#: matesla/poll_diagnostics.py:95
+#: matesla/poll_diagnostics.py:94
 msgid "Thursday"
 msgstr "jueves"
 
-#: matesla/poll_diagnostics.py:96
+#: matesla/poll_diagnostics.py:95
 msgid "Friday"
 msgstr "viernes"
 
-#: matesla/poll_diagnostics.py:97
+#: matesla/poll_diagnostics.py:96
 msgid "Saturday"
 msgstr "sábado"
 
-#: matesla/poll_diagnostics.py:98
+#: matesla/poll_diagnostics.py:97
 msgid "Sunday"
 msgstr "domingo"
 
-#: matesla/poll_diagnostics.py:114
+#: matesla/poll_diagnostics.py:113
 #: matesla/templates/matesla/_carstatus_body.html:18
 #: matesla/templates/matesla/_carstatus_body.html:22
 #: matesla/templates/matesla/_carstatus_body.html:96
@@ -236,101 +246,101 @@ msgstr "domingo"
 msgid "online"
 msgstr "en línea"
 
-#: matesla/poll_diagnostics.py:115 matesla/poll_diagnostics.py:133
+#: matesla/poll_diagnostics.py:114 matesla/poll_diagnostics.py:132
 #: matesla/templates/matesla/_carstatus_body.html:19
 #: matesla/templates/matesla/_carstatus_body.html:97
 #: matesla/templates/matesla/_vehicle_chrome.html:35
 msgid "asleep"
 msgstr "dormido"
 
-#: matesla/poll_diagnostics.py:116
+#: matesla/poll_diagnostics.py:115
 #: matesla/templates/matesla/_carstatus_body.html:20
 #: matesla/templates/matesla/_carstatus_body.html:98
 #: matesla/templates/matesla/_vehicle_chrome.html:36
 msgid "offline"
 msgstr "fuera de línea"
 
-#: matesla/poll_diagnostics.py:117 matesla/poll_diagnostics.py:135
+#: matesla/poll_diagnostics.py:116 matesla/poll_diagnostics.py:134
 msgid "unknown"
 msgstr "desconocido"
 
-#: matesla/poll_diagnostics.py:126
+#: matesla/poll_diagnostics.py:125
 msgid "driving"
 msgstr "conduciendo"
 
-#: matesla/poll_diagnostics.py:127
+#: matesla/poll_diagnostics.py:126
 msgid "DC charging"
 msgstr "carga DC"
 
-#: matesla/poll_diagnostics.py:128
+#: matesla/poll_diagnostics.py:127
 msgid "AC charging"
 msgstr "carga AC"
 
-#: matesla/poll_diagnostics.py:129
+#: matesla/poll_diagnostics.py:128
 msgid "cabin activity"
 msgstr "actividad en habitáculo"
 
-#: matesla/poll_diagnostics.py:130
+#: matesla/poll_diagnostics.py:129
 msgid "dog / camp mode"
 msgstr "modo perro / campamento"
 
-#: matesla/poll_diagnostics.py:131
+#: matesla/poll_diagnostics.py:130
 msgid "sentry mode"
 msgstr "modo centinela"
 
-#: matesla/poll_diagnostics.py:132
+#: matesla/poll_diagnostics.py:131
 msgid "online, idle"
 msgstr "en línea, en reposo"
 
-#: matesla/poll_diagnostics.py:141
-#: personalstats/templates/personalstats/poll_details.html:299
+#: matesla/poll_diagnostics.py:140
+#: personalstats/templates/personalstats/poll_details.html:300
 msgid "None"
 msgstr "Ninguno"
 
-#: matesla/poll_diagnostics.py:143
-#: personalstats/templates/personalstats/poll_details.html:363
-#: personalstats/templates/personalstats/poll_details.html:396
+#: matesla/poll_diagnostics.py:142
+#: personalstats/templates/personalstats/poll_details.html:364
+#: personalstats/templates/personalstats/poll_details.html:397
 msgid "busy"
 msgstr "ocupado"
 
-#: matesla/poll_diagnostics.py:144
-#: personalstats/templates/personalstats/poll_details.html:364
-#: personalstats/templates/personalstats/poll_details.html:396
+#: matesla/poll_diagnostics.py:143
+#: personalstats/templates/personalstats/poll_details.html:365
+#: personalstats/templates/personalstats/poll_details.html:397
 msgid "moderate"
 msgstr "moderado"
 
-#: matesla/poll_diagnostics.py:145
-#: personalstats/templates/personalstats/poll_details.html:365
-#: personalstats/templates/personalstats/poll_details.html:396
+#: matesla/poll_diagnostics.py:144
+#: personalstats/templates/personalstats/poll_details.html:366
+#: personalstats/templates/personalstats/poll_details.html:397
 msgid "quiet"
 msgstr "tranquilo"
 
-#: matesla/poll_diagnostics.py:153
+#: matesla/poll_diagnostics.py:152
 #: matesla/templates/matesla/_vehicle_chrome.html:42
 msgid "OK"
 msgstr "OK"
 
-#: matesla/poll_diagnostics.py:154
+#: matesla/poll_diagnostics.py:153
 msgid "No VIN"
 msgstr "Sin VIN"
 
-#: matesla/poll_diagnostics.py:155
+#: matesla/poll_diagnostics.py:154
 msgid "Insufficient reference weeks"
 msgstr "Semanas de referencia insuficientes"
 
-#: matesla/poll_diagnostics.py:156
+#: matesla/poll_diagnostics.py:155
 msgid "Regime break"
 msgstr "Ruptura de régimen"
 
-#: matesla/poll_diagnostics.py:157
+#: matesla/poll_diagnostics.py:156
 msgid "No habit slots"
 msgstr "Sin franjas de hábito"
 
-#: matesla/poll_diagnostics.py:158
+#: matesla/poll_diagnostics.py:157
 msgid "Unknown"
 msgstr "Desconocido"
 
-#: matesla/poll_diagnostics.py:329
+#: matesla/poll_diagnostics.py:328
 msgid ""
 "Habit model is trusted. For idle/asleep hours it can set 5, 15 or 30 minute "
 "spacing from historical weekday+hour patterns. Live drive, charge and cabin "
@@ -340,12 +350,12 @@ msgstr ""
 "5, 15 o 30 minutos según el historial día+hora. Conducción, carga y "
 "habitáculo siempre mantienen los intervalos reactivos cortos."
 
-#: matesla/poll_diagnostics.py:334
+#: matesla/poll_diagnostics.py:333
 msgid "No VIN is available, so habit-based spacing cannot run."
 msgstr ""
 "No hay VIN disponible, así que el espaciado por hábitos no puede ejecutarse."
 
-#: matesla/poll_diagnostics.py:337
+#: matesla/poll_diagnostics.py:336
 #, python-format
 msgid ""
 "Not enough reference weeks of telemetry before the last %(recent)s days "
@@ -357,45 +367,34 @@ msgstr ""
 "solo usa el espaciado por defecto día/noche hasta tener suficiente "
 "historial."
 
-#: matesla/poll_diagnostics.py:348
-#, fuzzy
-#| msgid ""
-#| "Recent mobility does not match the reference weeks (regime break). Habits "
-#| "are disabled so a school↔holiday or trip change cannot stretch polls "
-#| "incorrectly. Baseline day/night spacing is used until patterns look "
-#| "consistent again."
+#: matesla/poll_diagnostics.py:347
 msgid ""
 "Recent mobility does not match the reference weeks (regime break). Habits "
 "are disabled so a school↔holiday or trip change cannot stretch polls "
 "incorrectly. Default day/night spacing is used until patterns look "
 "consistent again."
 msgstr ""
-"La movilidad reciente no coincide con las semanas de referencia (ruptura de "
+"La movilidad reciente no coincide con las semanas de referencia (cambio de "
 "régimen). Los hábitos se desactivan para que un cambio colegio↔vacaciones o "
-"un viaje no estire mal los sondeos. Se usa el espaciado base día/noche hasta"
-" que los patrones vuelvan a ser coherentes."
+"un viaje no alargue las consultas incorrectamente. Se usa el espaciado "
+"día/noche por defecto hasta que los patrones vuelvan a ser coherentes."
 
-#: matesla/poll_diagnostics.py:355
-#, fuzzy
-#| msgid ""
-#| "There are enough reference weeks, but no weekday+hour slot was classified "
-#| "quiet, moderate or busy. Baseline spacing only."
+#: matesla/poll_diagnostics.py:354
 msgid ""
 "There are enough reference weeks, but no weekday+hour slot was classified "
 "quiet, moderate or busy. Default spacing only."
 msgstr ""
-"Hay suficientes semanas de referencia, pero ninguna franja día+hora se "
-"clasificó como tranquila, moderada u ocupada. Solo espaciado base."
+"Hay suficientes semanas de referencia, pero ningún hueco día+hora se "
+"clasificó como tranquilo, moderado o ocupado. Solo espaciado por defecto."
 
-#: matesla/poll_diagnostics.py:358
-#, fuzzy, python-format
-#| msgid ""
-#| "Habit model is not trusted (%(reason)s). Baseline spacing only."
+#: matesla/poll_diagnostics.py:357
+#, python-format
 msgid "Habit model is not trusted (%(reason)s). Default spacing only."
 msgstr ""
-"El modelo de hábitos no es de confianza (%(reason)s). Solo espaciado base."
+"El modelo de hábitos no es de confianza (%(reason)s). Solo espaciado por "
+"defecto."
 
-#: matesla/poll_diagnostics.py:370
+#: matesla/poll_diagnostics.py:369
 #, python-format
 msgid ""
 "Recent mobile hours per day dropped sharply versus the reference period "
@@ -404,7 +403,7 @@ msgstr ""
 "Las horas móviles por día cayeron bruscamente frente al periodo de "
 "referencia (típico colegio → vacaciones). Detalle: %(detail)s"
 
-#: matesla/poll_diagnostics.py:375
+#: matesla/poll_diagnostics.py:374
 #, python-format
 msgid ""
 "Recent mobile hours per day rose sharply versus the reference period "
@@ -413,7 +412,7 @@ msgstr ""
 "Las horas móviles por día subieron bruscamente frente al periodo de "
 "referencia (típico vacaciones → colegio o viaje). Detalle: %(detail)s"
 
-#: matesla/poll_diagnostics.py:380
+#: matesla/poll_diagnostics.py:379
 #, python-format
 msgid ""
 "Several recent drives occurred in weekday+hour slots that were historically "
@@ -422,15 +421,15 @@ msgstr ""
 "Varios trayectos recientes ocurrieron en franjas día+hora que históricamente"
 " casi nunca eran móviles. Detalle: %(detail)s"
 
-#: matesla/poll_diagnostics.py:416
+#: matesla/poll_diagnostics.py:415
 msgid "night"
 msgstr "noche"
 
-#: matesla/poll_diagnostics.py:416
+#: matesla/poll_diagnostics.py:415
 msgid "day"
 msgstr "día"
 
-#: matesla/poll_diagnostics.py:422
+#: matesla/poll_diagnostics.py:421
 #, python-format
 msgid ""
 "Driving with navigation ETA %(eta)s min → query every %(minutes)s min (2 min"
@@ -441,7 +440,7 @@ msgstr ""
 "min (2 min cerca de la llegada o a paso lento; %(mid)s min a mitad de viaje;"
 " %(far)s min si el ETA es largo). Los hábitos no aplican al conducir."
 
-#: matesla/poll_diagnostics.py:433
+#: matesla/poll_diagnostics.py:432
 #, python-format
 msgid ""
 "Driving without navigation ETA → dense %(minutes)s min queries (stretch only"
@@ -451,7 +450,7 @@ msgstr ""
 "(solo se alarga si Tesla da minutos hasta llegada). Los hábitos no aplican "
 "al conducir."
 
-#: matesla/poll_diagnostics.py:439
+#: matesla/poll_diagnostics.py:438
 #, python-format
 msgid ""
 "Live activity “%(activity)s” → reactive default spacing %(minutes)s min "
@@ -461,7 +460,7 @@ msgstr ""
 "%(minutes)s min (%(day_or_night)s). Los hábitos no aplican mientras el coche"
 " está activo."
 
-#: matesla/poll_diagnostics.py:449
+#: matesla/poll_diagnostics.py:448
 #, python-format
 msgid ""
 "Idle/asleep policy: habit class “%(habit_class)s” sets %(minutes)s min for "
@@ -471,7 +470,7 @@ msgstr ""
 " min para este día+hora (el valor por defecto sería %(baseline)s min, "
 "%(day_or_night)s)."
 
-#: matesla/poll_diagnostics.py:459
+#: matesla/poll_diagnostics.py:458
 #, python-format
 msgid ""
 "Idle/asleep policy: slot is historically moderate, but at night moderate "
@@ -481,7 +480,7 @@ msgstr ""
 "lo moderado no densifica — se mantiene el valor nocturno por defecto "
 "%(minutes)s min."
 
-#: matesla/poll_diagnostics.py:463
+#: matesla/poll_diagnostics.py:462
 #, python-format
 msgid ""
 "Idle/asleep policy: no habit for this weekday+hour → %(day_or_night)s "
@@ -490,7 +489,7 @@ msgstr ""
 "Política reposo/sueño: sin hábito para este día+hora → por defecto "
 "%(day_or_night)s %(minutes)s min."
 
-#: matesla/poll_diagnostics.py:754
+#: matesla/poll_diagnostics.py:753
 msgid ""
 "Forecast and week grid describe idle/asleep/sentry spacing only. If the car "
 "drives, DC/AC charges or has cabin activity, capture switches to the short "
@@ -501,7 +500,7 @@ msgstr ""
 " en habitáculo, la captura vuelve al espaciado por defecto reactivo corto "
 "hasta que termine."
 
-#: matesla/poll_diagnostics.py:759
+#: matesla/poll_diagnostics.py:758
 #, python-format
 msgid ""
 "Habits use at most the last %(lookback)s days, require %(min_weeks)s "
@@ -512,7 +511,7 @@ msgstr ""
 "%(min_weeks)s semanas de referencia antes de los últimos %(recent)s días, y "
 "se desactivan ante una ruptura de régimen."
 
-#: matesla/poll_diagnostics.py:769
+#: matesla/poll_diagnostics.py:768
 #, python-format
 msgid ""
 "When habits are trusted, every weekday+hour is busy (%(busy)s min), quiet "
@@ -573,7 +572,7 @@ msgstr "Clave pública y región"
 #: matesla/templates/matesla/NoTeslaVehicules.html:13
 #: matesla/templates/matesla/TeslaServerError.html:14
 #: matesla/templates/matesla/_vehicle_chrome.html:69 templates/base.html:38
-#: templates/base.html:64
+#: templates/base.html:65
 msgid "Tesla account"
 msgstr "Cuenta Tesla"
 
@@ -953,8 +952,8 @@ msgid "Usable battery level (%%)"
 msgstr "Nivel de batería utilizable (%%)"
 
 #: matesla/templates/matesla/_carstatus_body.html:128
-msgid "Battery range km"
-msgstr "Autonomía de batería km"
+msgid "Battery range"
+msgstr "Autonomía de batería"
 
 #: matesla/templates/matesla/_carstatus_body.html:130
 #, python-format
@@ -1019,8 +1018,8 @@ msgid "Estim. number of battery cycles"
 msgstr "N.º estimado de ciclos de batería"
 
 #: matesla/templates/matesla/_carstatus_body.html:162
-msgid "EPA Range (miles)"
-msgstr "Autonomía EPA (millas)"
+msgid "EPA range"
+msgstr "Autonomía EPA"
 
 #: matesla/templates/matesla/_carstatus_body.html:168
 msgid "Climate information"
@@ -1092,23 +1091,23 @@ msgid "My data"
 msgstr "Mis datos"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:63
-#: personalstats/templates/personalstats/daymap.html:6
-#: personalstats/templates/personalstats/daymap.html:278
-#: personalstats/templates/personalstats/dc_charge.html:309
+#: personalstats/templates/personalstats/daymap.html:7
+#: personalstats/templates/personalstats/daymap.html:279
+#: personalstats/templates/personalstats/dc_charge.html:310
 msgid "Day map"
 msgstr "Mapa del día"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:64
-#: personalstats/templates/personalstats/_carstats_body.html:221
-#: personalstats/templates/personalstats/daymap.html:312
-#: personalstats/templates/personalstats/daymap.html:375
-#: personalstats/templates/personalstats/drives.html:5
-#: personalstats/templates/personalstats/drives.html:111
+#: personalstats/templates/personalstats/_carstats_body.html:225
+#: personalstats/templates/personalstats/daymap.html:313
+#: personalstats/templates/personalstats/daymap.html:370
+#: personalstats/templates/personalstats/drives.html:6
+#: personalstats/templates/personalstats/drives.html:112
 msgid "Drives"
 msgstr "Trayectos"
 
 #: matesla/templates/matesla/_vehicle_chrome.html:65
-#: personalstats/templates/personalstats/dc_charge.html:5
+#: personalstats/templates/personalstats/dc_charge.html:6
 msgid "DC charge"
 msgstr "Carga DC"
 
@@ -1186,12 +1185,12 @@ msgstr "Aún no hay historial"
 msgid "The VIN for this vehicle is not known to MaTesla yet."
 msgstr "MaTesla aún no conoce el VIN de este vehículo."
 
-#: matesla/views.py:467
+#: matesla/views.py:538
 msgid "Application settings unchanged (safe to save again anytime)."
 msgstr ""
 "Ajustes de la aplicación sin cambios (puedes guardar de nuevo sin riesgo)."
 
-#: matesla/views.py:473
+#: matesla/views.py:544
 msgid ""
 "Developer credentials updated. If you changed Client ID or secret, use Re-"
 "authorize."
@@ -1199,22 +1198,22 @@ msgstr ""
 "Credenciales de desarrollador actualizadas. Si cambiaste el Client ID o el "
 "secret, usa Reautorizar."
 
-#: matesla/views.py:478
+#: matesla/views.py:549
 msgid "Developer credentials saved."
 msgstr "Credenciales de desarrollador guardadas."
 
-#: matesla/views.py:487
+#: matesla/views.py:558
 msgid "Save Client ID and secret in step 1 before setting a partner domain."
 msgstr ""
 "Guarda el Client ID y el secret en el paso 1 antes de definir un dominio "
 "partner."
 
-#: matesla/views.py:496
+#: matesla/views.py:567
 #, python-format
 msgid "Partner domain unchanged: %(domain)s"
 msgstr "Dominio partner sin cambios: %(domain)s"
 
-#: matesla/views.py:510
+#: matesla/views.py:581
 #, python-format
 msgid ""
 "Partner domain changed to %(domain)s. Previous registration no longer "
@@ -1223,16 +1222,16 @@ msgstr ""
 "Dominio partner cambiado a %(domain)s. El registro anterior ya no aplica: "
 "verifica la clave pública y registra de nuevo."
 
-#: matesla/views.py:517 matesla/views.py:526
+#: matesla/views.py:588 matesla/views.py:597
 msgid "Partner domain cleared."
 msgstr "Dominio partner borrado."
 
-#: matesla/views.py:523
+#: matesla/views.py:594
 #, python-format
 msgid "Partner domain saved: %(domain)s"
 msgstr "Dominio partner guardado: %(domain)s"
 
-#: matesla/views.py:536
+#: matesla/views.py:607
 #, python-format
 msgid ""
 "EC key pair created. Publish the public key to your partner domain (file: "
@@ -1241,7 +1240,7 @@ msgstr ""
 "Par de claves EC creado. Publica la clave pública en tu dominio partner "
 "(archivo: %(pub)s). La clave privada se queda en local: %(priv)s."
 
-#: matesla/views.py:545
+#: matesla/views.py:616
 msgid ""
 "EC key pair already exists — left unchanged. Regenerating would invalidate "
 "the public key on HTTPS; delete the files under tesla_keys/ only if you "
@@ -1251,11 +1250,11 @@ msgstr ""
 "clave pública en HTTPS; borra los archivos en tesla_keys/ solo si de verdad "
 "lo quieres."
 
-#: matesla/views.py:556
+#: matesla/views.py:627
 msgid "Set a partner domain first."
 msgstr "Indica primero un dominio partner."
 
-#: matesla/views.py:583
+#: matesla/views.py:654
 #, python-format
 msgid ""
 "Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail:"
@@ -1264,7 +1263,7 @@ msgstr ""
 "Registro partner reconfirmado para « %(domain)s ». Se puede repetir sin "
 "riesgo. Detalle: %(result)s"
 
-#: matesla/views.py:592
+#: matesla/views.py:663
 #, python-format
 msgid ""
 "Partner register OK for « %(domain)s ». You can authorize Tesla / resync "
@@ -1273,42 +1272,42 @@ msgstr ""
 "Registro partner OK para « %(domain)s ». Ya puedes autorizar Tesla / "
 "resincronizar vehículos. Detalle: %(result)s"
 
-#: matesla/views.py:602
+#: matesla/views.py:673
 msgid "No Tesla token — sign in first."
 msgstr "No hay token Tesla: inicia sesión primero."
 
-#: matesla/views.py:615
+#: matesla/views.py:686
 #, python-format
 msgid "%(count)s vehicle(s) synchronized. Active: %(label)s."
 msgstr "%(count)s vehículo(s) sincronizado(s). Activo: %(label)s."
 
-#: matesla/views.py:619
+#: matesla/views.py:690
 msgid "No vehicles on the Tesla account."
 msgstr "No hay vehículos en la cuenta Tesla."
 
-#: matesla/views.py:624
+#: matesla/views.py:695
 #, python-format
 msgid "Resync failed: %(err)s"
 msgstr "Resincronización fallida: %(err)s"
 
-#: matesla/views.py:632
+#: matesla/views.py:703
 msgid "Tesla account disconnected (tokens and vehicles removed)."
 msgstr "Cuenta Tesla desconectada (tokens y vehículos eliminados)."
 
-#: matesla/views.py:699
+#: matesla/views.py:770
 msgid "Configure the Client ID and Client Secret first."
 msgstr "Configura primero el Client ID y el Client Secret."
 
-#: matesla/views.py:730
+#: matesla/views.py:801
 #, python-format
 msgid "Tesla denied authorization: %(error)s (%(desc)s)"
 msgstr "Tesla denegó la autorización: %(error)s (%(desc)s)"
 
-#: matesla/views.py:741
+#: matesla/views.py:812
 msgid "Invalid OAuth callback (missing code or state). Please try again."
 msgstr "Callback OAuth no válido (falta code o state). Inténtalo de nuevo."
 
-#: matesla/views.py:756
+#: matesla/views.py:827
 msgid ""
 "Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again,"
 " then use “Sign in with Tesla”."
@@ -1316,50 +1315,50 @@ msgstr ""
 "Callback OAuth no válido (state desconocido o caducado). Vuelve a entrar en "
 "MaTesla y usa «Iniciar sesión con Tesla»."
 
-#: matesla/views.py:769
+#: matesla/views.py:840
 msgid "OAuth user not found."
 msgstr "Usuario OAuth no encontrado."
 
-#: matesla/views.py:788
+#: matesla/views.py:859
 msgid "Connected to Tesla, but no vehicles found on the account."
 msgstr "Conectado a Tesla, pero no se encontraron vehículos en la cuenta."
 
-#: matesla/views.py:796
+#: matesla/views.py:867
 #, python-format
 msgid "Tesla connected — %(count)s vehicle(s): %(names)s. Active: %(label)s."
 msgstr ""
 "Tesla conectado — %(count)s vehículo(s): %(names)s. Activo: %(label)s."
 
-#: matesla/views.py:809
+#: matesla/views.py:880
 #, python-format
 msgid "Unexpected error: %(err)s"
 msgstr "Error inesperado: %(err)s"
 
-#: matesla/views.py:832
+#: matesla/views.py:903
 msgid "Unknown vehicle."
 msgstr "Vehículo desconocido."
 
-#: mysite/settings.py:267
+#: mysite/settings.py:272
 msgid "English"
 msgstr "Inglés"
 
-#: mysite/settings.py:268
+#: mysite/settings.py:273
 msgid "Français"
 msgstr "Francés"
 
-#: mysite/settings.py:269
+#: mysite/settings.py:274
 msgid "Espanol"
 msgstr "Español"
 
-#: mysite/settings.py:270
+#: mysite/settings.py:275
 msgid "Deutsch"
 msgstr "Deutsch"
 
-#: mysite/settings.py:271
+#: mysite/settings.py:276
 msgid "Nederlands"
 msgstr "Nederlands"
 
-#: mysite/settings.py:272
+#: mysite/settings.py:277
 msgid "Norsk"
 msgstr "Norsk"
 
@@ -1428,62 +1427,62 @@ msgid "Current"
 msgstr "Actual"
 
 #: personalstats/templates/personalstats/_carstats_body.html:11
-#: personalstats/templates/personalstats/dc_charge.html:183
-#: personalstats/templates/personalstats/drives.html:124
+#: personalstats/templates/personalstats/dc_charge.html:184
+#: personalstats/templates/personalstats/drives.html:125
 msgid "Period"
 msgstr "Periodo"
 
 #: personalstats/templates/personalstats/_carstats_body.html:13
-#: personalstats/templates/personalstats/dc_charge.html:185
-#: personalstats/templates/personalstats/drives.html:126
+#: personalstats/templates/personalstats/dc_charge.html:186
+#: personalstats/templates/personalstats/drives.html:127
 msgid "1 Week"
 msgstr "1 semana"
 
 #: personalstats/templates/personalstats/_carstats_body.html:14
-#: personalstats/templates/personalstats/dc_charge.html:186
-#: personalstats/templates/personalstats/drives.html:127
+#: personalstats/templates/personalstats/dc_charge.html:187
+#: personalstats/templates/personalstats/drives.html:128
 msgid "2 Weeks"
 msgstr "2 semanas"
 
 #: personalstats/templates/personalstats/_carstats_body.html:15
-#: personalstats/templates/personalstats/dc_charge.html:187
-#: personalstats/templates/personalstats/drives.html:128
+#: personalstats/templates/personalstats/dc_charge.html:188
+#: personalstats/templates/personalstats/drives.html:129
 msgid "1 Month"
 msgstr "1 mes"
 
 #: personalstats/templates/personalstats/_carstats_body.html:16
-#: personalstats/templates/personalstats/dc_charge.html:188
-#: personalstats/templates/personalstats/drives.html:129
+#: personalstats/templates/personalstats/dc_charge.html:189
+#: personalstats/templates/personalstats/drives.html:130
 msgid "3 Months"
 msgstr "3 meses"
 
 #: personalstats/templates/personalstats/_carstats_body.html:17
-#: personalstats/templates/personalstats/dc_charge.html:189
-#: personalstats/templates/personalstats/drives.html:130
+#: personalstats/templates/personalstats/dc_charge.html:190
+#: personalstats/templates/personalstats/drives.html:131
 msgid "6 Months"
 msgstr "6 meses"
 
 #: personalstats/templates/personalstats/_carstats_body.html:18
-#: personalstats/templates/personalstats/dc_charge.html:190
-#: personalstats/templates/personalstats/drives.html:131
+#: personalstats/templates/personalstats/dc_charge.html:191
+#: personalstats/templates/personalstats/drives.html:132
 msgid "1 Year"
 msgstr "1 año"
 
 #: personalstats/templates/personalstats/_carstats_body.html:19
-#: personalstats/templates/personalstats/dc_charge.html:191
-#: personalstats/templates/personalstats/drives.html:132
+#: personalstats/templates/personalstats/dc_charge.html:192
+#: personalstats/templates/personalstats/drives.html:133
 msgid "2 Years"
 msgstr "2 años"
 
 #: personalstats/templates/personalstats/_carstats_body.html:20
-#: personalstats/templates/personalstats/dc_charge.html:192
-#: personalstats/templates/personalstats/drives.html:133
+#: personalstats/templates/personalstats/dc_charge.html:193
+#: personalstats/templates/personalstats/drives.html:134
 msgid "5 Years"
 msgstr "5 años"
 
 #: personalstats/templates/personalstats/_carstats_body.html:21
-#: personalstats/templates/personalstats/dc_charge.html:193
-#: personalstats/templates/personalstats/drives.html:134
+#: personalstats/templates/personalstats/dc_charge.html:194
+#: personalstats/templates/personalstats/drives.html:135
 msgid "10 Years"
 msgstr "10 años"
 
@@ -1507,8 +1506,8 @@ msgstr "Gráficos de degradación de batería"
 #: personalstats/templates/personalstats/_carstats_body.html:117
 #: personalstats/templates/personalstats/_carstats_body.html:143
 #: personalstats/templates/personalstats/_carstats_body.html:177
-#: personalstats/templates/personalstats/dc_charge.html:249
-#: personalstats/templates/personalstats/dc_charge.html:273
+#: personalstats/templates/personalstats/dc_charge.html:250
+#: personalstats/templates/personalstats/dc_charge.html:274
 msgid "Expand"
 msgstr "Ampliar"
 
@@ -1518,8 +1517,8 @@ msgstr "Ampliar"
 #: personalstats/templates/personalstats/_carstats_body.html:117
 #: personalstats/templates/personalstats/_carstats_body.html:143
 #: personalstats/templates/personalstats/_carstats_body.html:177
-#: personalstats/templates/personalstats/dc_charge.html:249
-#: personalstats/templates/personalstats/dc_charge.html:273
+#: personalstats/templates/personalstats/dc_charge.html:250
+#: personalstats/templates/personalstats/dc_charge.html:274
 msgid "Expand chart"
 msgstr "Ampliar el gráfico"
 
@@ -1605,8 +1604,8 @@ msgid "Fleet poll cost"
 msgstr "Coste del polling Fleet"
 
 #: personalstats/templates/personalstats/_carstats_body.html:174
-#: personalstats/templates/personalstats/poll_details.html:5
-#: personalstats/templates/personalstats/poll_details.html:229
+#: personalstats/templates/personalstats/poll_details.html:6
+#: personalstats/templates/personalstats/poll_details.html:230
 msgid "Query spacing details"
 msgstr "Detalles de consulta"
 
@@ -1623,112 +1622,110 @@ msgstr ""
 " y el plan en reposo."
 
 #: personalstats/templates/personalstats/_carstats_body.html:198
-#: personalstats/templates/personalstats/_carstats_body.html:207
+#: personalstats/templates/personalstats/_carstats_body.html:211
 msgid "Lifetime map"
 msgstr "Mapa lifetime"
 
-#: personalstats/templates/personalstats/_carstats_body.html:206
+#: personalstats/templates/personalstats/_carstats_body.html:210
 msgid "07 · MAP"
 msgstr "07 · MAPA"
 
-#: personalstats/templates/personalstats/_carstats_body.html:208
+#: personalstats/templates/personalstats/_carstats_body.html:212
 msgid "GPS tracks and trip totals for the selected period."
 msgstr "Trazas GPS y totales de viajes del período seleccionado."
 
-#: personalstats/templates/personalstats/_carstats_body.html:211
-#: personalstats/templates/personalstats/_carstats_body.html:212
-#: personalstats/templates/personalstats/_carstats_js.html:470
-#: personalstats/templates/personalstats/daymap.html:744
+#: personalstats/templates/personalstats/_carstats_body.html:215
+#: personalstats/templates/personalstats/_carstats_body.html:216
+#: personalstats/templates/personalstats/_carstats_js.html:494
+#: personalstats/templates/personalstats/daymap.html:733
 msgid "Fullscreen map"
 msgstr "Mapa a pantalla completa"
 
-#: personalstats/templates/personalstats/_carstats_body.html:225
-msgid "Kilometers driven"
-msgstr "Kilómetros recorridos"
-
 #: personalstats/templates/personalstats/_carstats_body.html:229
-msgid "Rated km used"
-msgstr "Km de autonomía usados"
+#, python-format
+msgid "Distance driven (%(u)s)"
+msgstr "Distancia recorrida (%(u)s)"
 
 #: personalstats/templates/personalstats/_carstats_body.html:233
-msgid "Wh/km"
-msgstr "Wh/km"
+#, python-format
+msgid "Rated %(u)s used"
+msgstr "Autonomía nominal usada (%(u)s)"
 
-#: personalstats/templates/personalstats/_carstats_body.html:237
-#: personalstats/views.py:2185
+#: personalstats/templates/personalstats/_carstats_body.html:241
+#: personalstats/views.py:2257
 msgid "Efficiency"
 msgstr "Eficiencia"
 
-#: personalstats/templates/personalstats/_carstats_body.html:241
+#: personalstats/templates/personalstats/_carstats_body.html:245
 msgid "kWh used"
 msgstr "kWh usados"
 
-#: personalstats/templates/personalstats/_carstats_body.html:245
-#: personalstats/templates/personalstats/daymap.html:338
-#: personalstats/templates/personalstats/daymap.html:384
-#: personalstats/templates/personalstats/drives.html:183
+#: personalstats/templates/personalstats/_carstats_body.html:249
+#: personalstats/templates/personalstats/daymap.html:339
+#: personalstats/templates/personalstats/daymap.html:379
+#: personalstats/templates/personalstats/drives.html:184
 msgid "Avg speed"
 msgstr "Velocidad media"
 
-#: personalstats/templates/personalstats/_carstats_body.html:249
+#: personalstats/templates/personalstats/_carstats_body.html:253
 msgid "Avg temp"
 msgstr "Temp. media"
 
-#: personalstats/templates/personalstats/_carstats_body.html:253
+#: personalstats/templates/personalstats/_carstats_body.html:257
 msgid "Time driving"
 msgstr "Tiempo de conducción"
 
-#: personalstats/templates/personalstats/_carstats_body.html:260
+#: personalstats/templates/personalstats/_carstats_body.html:264
 msgid "Lifetime GPS map"
 msgstr "Mapa GPS lifetime"
 
-#: personalstats/templates/personalstats/_carstats_body.html:263
-#: personalstats/templates/personalstats/_carstats_js.html:332
+#: personalstats/templates/personalstats/_carstats_body.html:267
+#: personalstats/templates/personalstats/_carstats_js.html:341
 msgid "Loading map…"
 msgstr "Cargando mapa…"
 
-#: personalstats/templates/personalstats/_carstats_body.html:278
-#: personalstats/templates/personalstats/daymap.html:505
-#: personalstats/templates/personalstats/dc_charge.html:396
+#: personalstats/templates/personalstats/_carstats_body.html:282
+#: personalstats/templates/personalstats/daymap.html:494
+#: personalstats/templates/personalstats/dc_charge.html:397
 msgid "Close"
 msgstr "Cerrar"
 
-#: personalstats/templates/personalstats/_carstats_body.html:283
-#: personalstats/templates/personalstats/dc_charge.html:401
+#: personalstats/templates/personalstats/_carstats_body.html:287
+#: personalstats/templates/personalstats/dc_charge.html:402
 msgid "Press Esc or click outside to close."
 msgstr "Pulsa Esc o haz clic fuera para cerrar."
 
-#: personalstats/templates/personalstats/_carstats_js.html:333
+#: personalstats/templates/personalstats/_carstats_js.html:342
 msgid "No GPS track for this period."
 msgstr "Sin traza GPS para este período."
 
-#: personalstats/templates/personalstats/_carstats_js.html:334
+#: personalstats/templates/personalstats/_carstats_js.html:343
 msgid "Could not load the map."
 msgstr "No se pudo cargar el mapa."
 
-#: personalstats/templates/personalstats/_carstats_js.html:335
+#: personalstats/templates/personalstats/_carstats_js.html:344
 msgid "d"
 msgstr "d"
 
-#: personalstats/templates/personalstats/_carstats_js.html:336
+#: personalstats/templates/personalstats/_carstats_js.html:345
 msgid "h"
 msgstr "h"
 
-#: personalstats/templates/personalstats/_carstats_js.html:337
-#: personalstats/templates/personalstats/poll_details.html:268
-#: personalstats/templates/personalstats/poll_details.html:274
-#: personalstats/templates/personalstats/poll_details.html:291
-#: personalstats/templates/personalstats/poll_details.html:297
-#: personalstats/templates/personalstats/poll_details.html:343
+#: personalstats/templates/personalstats/_carstats_js.html:346
+#: personalstats/templates/personalstats/poll_details.html:269
+#: personalstats/templates/personalstats/poll_details.html:275
+#: personalstats/templates/personalstats/poll_details.html:292
+#: personalstats/templates/personalstats/poll_details.html:298
 #: personalstats/templates/personalstats/poll_details.html:344
 #: personalstats/templates/personalstats/poll_details.html:345
-#: personalstats/templates/personalstats/poll_details.html:362
-#: personalstats/templates/personalstats/poll_details.html:396
+#: personalstats/templates/personalstats/poll_details.html:346
+#: personalstats/templates/personalstats/poll_details.html:363
+#: personalstats/templates/personalstats/poll_details.html:397
 msgid "min"
 msgstr "min"
 
-#: personalstats/templates/personalstats/_carstats_js.html:471
-#: personalstats/templates/personalstats/daymap.html:745
+#: personalstats/templates/personalstats/_carstats_js.html:495
+#: personalstats/templates/personalstats/daymap.html:734
 msgid "Exit fullscreen"
 msgstr "Salir de pantalla completa"
 
@@ -1749,112 +1746,112 @@ msgstr ""
 "Comprende la evolución de tu coche a través de batería, carga, clima y "
 "conducción."
 
-#: personalstats/templates/personalstats/daymap.html:272
+#: personalstats/templates/personalstats/daymap.html:273
 msgid "Journey replay"
 msgstr "Repetición del trayecto"
 
-#: personalstats/templates/personalstats/daymap.html:273
+#: personalstats/templates/personalstats/daymap.html:274
 msgid "Where was the car"
 msgstr "Dónde estaba el coche"
 
-#: personalstats/templates/personalstats/daymap.html:274
+#: personalstats/templates/personalstats/daymap.html:275
 msgid "drives, charges and GPS points"
 msgstr "trayectos, cargas y puntos GPS"
 
-#: personalstats/templates/personalstats/daymap.html:281
+#: personalstats/templates/personalstats/daymap.html:282
 msgid "Previous day"
 msgstr "Día anterior"
 
-#: personalstats/templates/personalstats/daymap.html:282
-#: personalstats/templates/personalstats/drives.html:190
+#: personalstats/templates/personalstats/daymap.html:283
+#: personalstats/templates/personalstats/drives.html:191
 msgid "Date"
 msgstr "Fecha"
 
-#: personalstats/templates/personalstats/daymap.html:285
+#: personalstats/templates/personalstats/daymap.html:286
 msgid "Pick a date"
 msgstr "Elegir una fecha"
 
-#: personalstats/templates/personalstats/daymap.html:286
+#: personalstats/templates/personalstats/daymap.html:287
 msgid "Go"
 msgstr "Ir"
 
-#: personalstats/templates/personalstats/daymap.html:287
+#: personalstats/templates/personalstats/daymap.html:288
 msgid "Next day"
 msgstr "Día siguiente"
 
-#: personalstats/templates/personalstats/daymap.html:301
+#: personalstats/templates/personalstats/daymap.html:302
 msgid "No GPS points for this day (telemetry only)."
 msgstr "No hay puntos GPS para este día (solo telemetría)."
 
-#: personalstats/templates/personalstats/daymap.html:305
+#: personalstats/templates/personalstats/daymap.html:306
 msgid "GPS points"
 msgstr "Puntos GPS"
 
-#: personalstats/templates/personalstats/daymap.html:307
+#: personalstats/templates/personalstats/daymap.html:308
 #, python-format
 msgid "%(n)s drawn on map"
 msgstr "%(n)s dibujados en el mapa"
 
-#: personalstats/templates/personalstats/daymap.html:310
+#: personalstats/templates/personalstats/daymap.html:311
 msgid "Track"
 msgstr "Recorrido"
 
-#: personalstats/templates/personalstats/daymap.html:313
+#: personalstats/templates/personalstats/daymap.html:314
 msgid "Charges"
 msgstr "Cargas"
 
-#: personalstats/templates/personalstats/daymap.html:316
-#: personalstats/templates/personalstats/daymap.html:430
-#: personalstats/templates/personalstats/daymap.html:735
+#: personalstats/templates/personalstats/daymap.html:317
+#: personalstats/templates/personalstats/daymap.html:419
+#: personalstats/templates/personalstats/daymap.html:724
 msgid "Start"
 msgstr "Inicio"
 
-#: personalstats/templates/personalstats/daymap.html:321
-#: personalstats/templates/personalstats/daymap.html:431
-#: personalstats/templates/personalstats/daymap.html:737
+#: personalstats/templates/personalstats/daymap.html:322
+#: personalstats/templates/personalstats/daymap.html:420
+#: personalstats/templates/personalstats/daymap.html:726
 msgid "End"
 msgstr "Fin"
 
-#: personalstats/templates/personalstats/daymap.html:336
-#: personalstats/templates/personalstats/daymap.html:382
-#: personalstats/templates/personalstats/daymap.html:432
-#: personalstats/templates/personalstats/drives.html:182
+#: personalstats/templates/personalstats/daymap.html:337
+#: personalstats/templates/personalstats/daymap.html:377
+#: personalstats/templates/personalstats/daymap.html:421
+#: personalstats/templates/personalstats/drives.html:183
 msgid "Duration"
 msgstr "Duración"
 
-#: personalstats/templates/personalstats/daymap.html:337
-#: personalstats/templates/personalstats/daymap.html:383
-#: personalstats/templates/personalstats/drives.html:181
-#: personalstats/views.py:3511
+#: personalstats/templates/personalstats/daymap.html:338
+#: personalstats/templates/personalstats/daymap.html:378
+#: personalstats/templates/personalstats/drives.html:182
+#: personalstats/views.py:3614
 msgid "Distance"
 msgstr "Distancia"
 
-#: personalstats/templates/personalstats/daymap.html:339
-#: personalstats/templates/personalstats/daymap.html:385
-#: personalstats/templates/personalstats/daymap.html:433
-#: personalstats/templates/personalstats/drives.html:185
+#: personalstats/templates/personalstats/daymap.html:340
+#: personalstats/templates/personalstats/daymap.html:380
+#: personalstats/templates/personalstats/daymap.html:422
+#: personalstats/templates/personalstats/drives.html:186
 msgid "SoC start"
 msgstr "SoC inicial"
 
-#: personalstats/templates/personalstats/daymap.html:340
-#: personalstats/templates/personalstats/daymap.html:386
-#: personalstats/templates/personalstats/daymap.html:434
-#: personalstats/templates/personalstats/drives.html:186
-#: personalstats/views.py:3516
+#: personalstats/templates/personalstats/daymap.html:341
+#: personalstats/templates/personalstats/daymap.html:381
+#: personalstats/templates/personalstats/daymap.html:423
+#: personalstats/templates/personalstats/drives.html:187
+#: personalstats/views.py:3619
 msgid "SoC end"
 msgstr "SoC final"
 
-#: personalstats/templates/personalstats/daymap.html:341
+#: personalstats/templates/personalstats/daymap.html:342
 msgid "Sum of SoC used on drives only"
 msgstr "Suma del SoC utilizado solo en conducción"
 
-#: personalstats/templates/personalstats/daymap.html:341
-#: personalstats/templates/personalstats/daymap.html:387
-#: personalstats/templates/personalstats/drives.html:187
+#: personalstats/templates/personalstats/daymap.html:342
+#: personalstats/templates/personalstats/daymap.html:382
+#: personalstats/templates/personalstats/drives.html:188
 msgid "SoC used"
 msgstr "SoC consumido"
 
-#: personalstats/templates/personalstats/daymap.html:342
+#: personalstats/templates/personalstats/daymap.html:343
 msgid ""
 "SoC drop not explained by drives (park climate, dog/camp, sentry, "
 "preconditioning, vampire drain), after accounting for charges"
@@ -1863,114 +1860,108 @@ msgstr ""
 "dog/camp, sentry, preacondicionamiento, drenaje vampiro), después de tener "
 "en cuenta las cargas"
 
-#: personalstats/templates/personalstats/daymap.html:342
+#: personalstats/templates/personalstats/daymap.html:343
 msgid "SoC outside driving"
 msgstr "SoC fuera de conducción"
 
-#: personalstats/templates/personalstats/daymap.html:343
-#: personalstats/templates/personalstats/daymap.html:388
-#: personalstats/templates/personalstats/drives.html:188
-msgid "kWh/100 km"
-msgstr "kWh/100 km"
-
-#: personalstats/templates/personalstats/daymap.html:368
+#: personalstats/templates/personalstats/daymap.html:363
 #, python-format
 msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range)."
 msgstr ""
 "Las estimaciones en kWh usan un pack de ~%(kwh)s kWh (según autonomía EPA)."
 
-#: personalstats/templates/personalstats/daymap.html:369
+#: personalstats/templates/personalstats/daymap.html:364
 msgid "SoC outside driving = (start − end) − drive SoC + charged."
 msgstr "SoC fuera de conducción = (inicio − fin) − SoC de trayectos + cargado"
 
-#: personalstats/templates/personalstats/daymap.html:380
+#: personalstats/templates/personalstats/daymap.html:375
 msgid "Departure"
 msgstr "Salida"
 
-#: personalstats/templates/personalstats/daymap.html:381
+#: personalstats/templates/personalstats/daymap.html:376
 msgid "Arrival"
 msgstr "Llegada"
 
-#: personalstats/templates/personalstats/daymap.html:389
-#: personalstats/templates/personalstats/drives.html:189
+#: personalstats/templates/personalstats/daymap.html:384
+#: personalstats/templates/personalstats/drives.html:190
 msgid "From → to"
 msgstr "De → a"
 
-#: personalstats/templates/personalstats/daymap.html:425
+#: personalstats/templates/personalstats/daymap.html:414
 msgid "Charging stops"
 msgstr "Paradas de carga"
 
-#: personalstats/templates/personalstats/daymap.html:435
+#: personalstats/templates/personalstats/daymap.html:424
 msgid "SoC added"
 msgstr "SoC añadido"
 
-#: personalstats/templates/personalstats/daymap.html:436
+#: personalstats/templates/personalstats/daymap.html:425
 msgid "kWh added"
 msgstr "kWh añadidos"
 
-#: personalstats/templates/personalstats/daymap.html:437
+#: personalstats/templates/personalstats/daymap.html:426
 msgid "Min power"
 msgstr "Potencia mín."
 
-#: personalstats/templates/personalstats/daymap.html:438
+#: personalstats/templates/personalstats/daymap.html:427
 msgid "Max power"
 msgstr "Potencia máx."
 
-#: personalstats/templates/personalstats/daymap.html:439
+#: personalstats/templates/personalstats/daymap.html:428
 msgid "Address"
 msgstr "Dirección"
 
-#: personalstats/templates/personalstats/daymap.html:462
+#: personalstats/templates/personalstats/daymap.html:451
 #, python-format
 msgid "%(start)s–%(end)s · charge curve"
 msgstr "%(start)s–%(end)s · curva de carga"
 
-#: personalstats/templates/personalstats/daymap.html:463
+#: personalstats/templates/personalstats/daymap.html:452
 msgid "Open charge speed curves (power vs time, power vs SoC)"
 msgstr "Abrir curvas de velocidad de carga (potencia vs tiempo y vs SoC)"
 
-#: personalstats/templates/personalstats/daymap.html:464
+#: personalstats/templates/personalstats/daymap.html:453
 msgid "Curve"
 msgstr "Curva"
 
-#: personalstats/templates/personalstats/daymap.html:484
+#: personalstats/templates/personalstats/daymap.html:473
 msgid "No drive or charge segments detected for this day."
 msgstr "No se detectaron trayectos ni cargas este día."
 
-#: personalstats/templates/personalstats/daymap.html:490
+#: personalstats/templates/personalstats/daymap.html:479
 msgid "No data for this day."
 msgstr "No hay datos para este día."
 
-#: personalstats/templates/personalstats/daymap.html:491
+#: personalstats/templates/personalstats/daymap.html:480
 msgid "Try another date with the arrows or the date picker."
 msgstr "Prueba otra fecha con las flechas o el selector de fecha."
 
-#: personalstats/templates/personalstats/daymap.html:501
+#: personalstats/templates/personalstats/daymap.html:490
 msgid "Fast charge"
 msgstr "Carga rápida"
 
-#: personalstats/templates/personalstats/daymap.html:510
+#: personalstats/templates/personalstats/daymap.html:499
 msgid "Power vs time"
 msgstr "Potencia vs tiempo"
 
-#: personalstats/templates/personalstats/daymap.html:512
-#: personalstats/templates/personalstats/daymap.html:522
+#: personalstats/templates/personalstats/daymap.html:501
+#: personalstats/templates/personalstats/daymap.html:511
 msgid "Open PNG"
 msgstr "Abrir PNG"
 
-#: personalstats/templates/personalstats/daymap.html:515
+#: personalstats/templates/personalstats/daymap.html:504
 msgid "Charge power versus elapsed time"
 msgstr "Potencia de carga versus tiempo transcurrido"
 
-#: personalstats/templates/personalstats/daymap.html:520
+#: personalstats/templates/personalstats/daymap.html:509
 msgid "Power vs SoC"
 msgstr "Potencia vs SoC"
 
-#: personalstats/templates/personalstats/daymap.html:525
+#: personalstats/templates/personalstats/daymap.html:514
 msgid "Charge power versus battery SoC"
 msgstr "Potencia de carga versus SoC de batería"
 
-#: personalstats/templates/personalstats/daymap.html:529
+#: personalstats/templates/personalstats/daymap.html:518
 msgid ""
 "Two separate images — open PNG to save or print one curve. Press Esc or "
 "click outside to close."
@@ -1978,25 +1969,25 @@ msgstr ""
 "Dos imágenes separadas: abre el PNG para guardar o imprimir una curva. Esc o"
 " clic fuera para cerrar."
 
-#: personalstats/templates/personalstats/daymap.html:591
+#: personalstats/templates/personalstats/daymap.html:580
 msgid "Supercharger"
 msgstr "Supercharger"
 
-#: personalstats/templates/personalstats/dc_charge.html:197
+#: personalstats/templates/personalstats/dc_charge.html:198
 msgid "Sessions"
 msgstr "Sesiones"
 
-#: personalstats/templates/personalstats/dc_charge.html:205
+#: personalstats/templates/personalstats/dc_charge.html:206
 msgid "Envelope"
 msgstr "Envolvente"
 
-#: personalstats/templates/personalstats/dc_charge.html:212
-#: personalstats/templates/personalstats/drives.html:154
+#: personalstats/templates/personalstats/dc_charge.html:213
 #: personalstats/templates/personalstats/drives.html:155
+#: personalstats/templates/personalstats/drives.html:156
 msgid "Apply"
 msgstr "Aplicar"
 
-#: personalstats/templates/personalstats/dc_charge.html:217
+#: personalstats/templates/personalstats/dc_charge.html:218
 #, python-format
 msgid ""
 "\n"
@@ -2007,31 +1998,31 @@ msgstr ""
 "    Perfiles de Supercharge DC para este vehículo. Filtro: %(filter)s. Envolvente: %(envelope)s.\n"
 "    "
 
-#: personalstats/templates/personalstats/dc_charge.html:224
+#: personalstats/templates/personalstats/dc_charge.html:225
 msgid "DC sessions kept"
 msgstr "Sesiones DC conservadas"
 
-#: personalstats/templates/personalstats/dc_charge.html:228
+#: personalstats/templates/personalstats/dc_charge.html:229
 msgid "Filtered out"
 msgstr "Filtradas"
 
-#: personalstats/templates/personalstats/dc_charge.html:232
+#: personalstats/templates/personalstats/dc_charge.html:233
 msgid "Median peak"
 msgstr "Pico mediano"
 
-#: personalstats/templates/personalstats/dc_charge.html:236
+#: personalstats/templates/personalstats/dc_charge.html:237
 msgid "Max peak"
 msgstr "Pico máx."
 
-#: personalstats/templates/personalstats/dc_charge.html:245
+#: personalstats/templates/personalstats/dc_charge.html:246
 msgid "01 · POWER"
 msgstr "01 · POTENCIA"
 
-#: personalstats/templates/personalstats/dc_charge.html:246
+#: personalstats/templates/personalstats/dc_charge.html:247
 msgid "Power vs battery SoC"
 msgstr "Potencia vs SoC de batería"
 
-#: personalstats/templates/personalstats/dc_charge.html:255
+#: personalstats/templates/personalstats/dc_charge.html:256
 msgid ""
 "Median charger power at each state of charge. Band shows typical spread (or "
 "min/max)."
@@ -2039,19 +2030,19 @@ msgstr ""
 "Potencia de carga mediana en cada nivel de batería. La banda muestra la "
 "dispersión típica (o mín/máx)."
 
-#: personalstats/templates/personalstats/dc_charge.html:259
+#: personalstats/templates/personalstats/dc_charge.html:260
 msgid "DC charge power versus battery SoC"
 msgstr "Potencia de carga DC frente al SoC de batería"
 
-#: personalstats/templates/personalstats/dc_charge.html:269
+#: personalstats/templates/personalstats/dc_charge.html:270
 msgid "02 · TIME"
 msgstr "02 · TIEMPO"
 
-#: personalstats/templates/personalstats/dc_charge.html:270
+#: personalstats/templates/personalstats/dc_charge.html:271
 msgid "SoC vs time by start SoC"
 msgstr "SoC vs tiempo según SoC de inicio"
 
-#: personalstats/templates/personalstats/dc_charge.html:279
+#: personalstats/templates/personalstats/dc_charge.html:280
 #, python-format
 msgid ""
 "How fast the pack climbs when a DC session starts near 10%%, 20%%, … One "
@@ -2060,15 +2051,15 @@ msgstr ""
 "Qué tan rápido sube la batería cuando una sesión DC empieza cerca del 10%%, "
 "20%%, … Una curva mediana por tramo de llegada."
 
-#: personalstats/templates/personalstats/dc_charge.html:283
+#: personalstats/templates/personalstats/dc_charge.html:284
 msgid "DC charge SoC versus time by start SoC"
 msgstr "SoC de carga DC frente al tiempo según SoC de inicio"
 
-#: personalstats/templates/personalstats/dc_charge.html:293
+#: personalstats/templates/personalstats/dc_charge.html:294
 msgid "Min / max samples → day map"
 msgstr "Muestras mín / máx → mapa del día"
 
-#: personalstats/templates/personalstats/dc_charge.html:295
+#: personalstats/templates/personalstats/dc_charge.html:296
 msgid ""
 "\n"
 "        Each edge of the min–max envelope is one real sample. Open the day map for that day\n"
@@ -2080,88 +2071,90 @@ msgstr ""
 "        para ver toda la carga (y el resto del día).\n"
 "        "
 
-#: personalstats/templates/personalstats/dc_charge.html:304
+#: personalstats/templates/personalstats/dc_charge.html:305
 msgid "Edge"
 msgstr "Borde"
 
-#: personalstats/templates/personalstats/dc_charge.html:305
+#: personalstats/templates/personalstats/dc_charge.html:306
 msgid "SoC bin"
 msgstr "Tramo SoC"
 
-#: personalstats/templates/personalstats/dc_charge.html:306
+#: personalstats/templates/personalstats/dc_charge.html:307
 msgid "Power"
 msgstr "Potencia"
 
-#: personalstats/templates/personalstats/dc_charge.html:307
+#: personalstats/templates/personalstats/dc_charge.html:308
 msgid "Rated range added per hour at this power (EPA energy intensity)"
 msgstr ""
 "Autonomía homologada añadida por hora a esta potencia (intensidad energética"
 " EPA)"
 
-#: personalstats/templates/personalstats/dc_charge.html:307
-msgid "EPA km/h"
-msgstr "km/h EPA"
-
 #: personalstats/templates/personalstats/dc_charge.html:308
+#, python-format
+msgid "EPA %(u)s"
+msgstr "EPA %(u)s"
+
+#: personalstats/templates/personalstats/dc_charge.html:309
 msgid "Driving range added per hour at this power (your average consumption)"
 msgstr "Autonomía real añadida por hora a esta potencia (tu consumo medio)"
 
-#: personalstats/templates/personalstats/dc_charge.html:308
-msgid "Real km/h"
-msgstr "km/h reales"
+#: personalstats/templates/personalstats/dc_charge.html:309
+#, python-format
+msgid "Real %(u)s"
+msgstr "Real %(u)s"
 
-#: personalstats/templates/personalstats/dc_charge.html:310
+#: personalstats/templates/personalstats/dc_charge.html:311
 msgid "n in bin"
 msgstr "n en el tramo"
 
-#: personalstats/templates/personalstats/dc_charge.html:318
+#: personalstats/templates/personalstats/dc_charge.html:319
 msgid "Min"
 msgstr "Mín"
 
-#: personalstats/templates/personalstats/dc_charge.html:320
+#: personalstats/templates/personalstats/dc_charge.html:321
 msgid "Max"
 msgstr "Máx"
 
-#: personalstats/templates/personalstats/dc_charge.html:337
+#: personalstats/templates/personalstats/dc_charge.html:338
 msgid "Open day map for this charge day"
 msgstr "Abrir el mapa del día de esta carga"
 
-#: personalstats/templates/personalstats/dc_charge.html:349
+#: personalstats/templates/personalstats/dc_charge.html:350
 #, python-format
 msgid ""
 "\n"
-"        Range rates convert power to km/h using EPA ≈ %(epa)s kWh/100 km and your\n"
-"        recent driving average ≈ %(real)s kWh/100 km (distance-weighted).\n"
+"        Range rates convert power to %(rate)s using EPA ≈ %(epa)s %(unit)s and your\n"
+"        recent driving average ≈ %(real)s %(unit)s (distance-weighted).\n"
 "        "
 msgstr ""
 "\n"
-"        Las tasas de autonomía convierten la potencia en km/h con EPA ≈ %(epa)s kWh/100 km y tu\n"
-"        consumo de conducción reciente ≈ %(real)s kWh/100 km (ponderado por distancia).\n"
+"        Las tasas de autonomía convierten la potencia en %(rate)s con EPA ≈ %(epa)s %(unit)s y tu\n"
+"        consumo medio reciente ≈ %(real)s %(unit)s (ponderado por distancia).\n"
 "        "
 
-#: personalstats/templates/personalstats/dc_charge.html:356
+#: personalstats/templates/personalstats/dc_charge.html:357
 #, python-format
 msgid ""
 "\n"
-"        Range rates use EPA ≈ %(epa)s kWh/100 km. Real km/h needs more driving data.\n"
+"        Range rates use EPA ≈ %(epa)s %(unit)s. Real %(rate)s needs more driving data.\n"
 "        "
 msgstr ""
 "\n"
-"        Las tasas de autonomía usan EPA ≈ %(epa)s kWh/100 km. Los km/h reales necesitan más trayectos.\n"
+"        Las tasas de autonomía usan EPA ≈ %(epa)s %(unit)s. Los %(rate)s reales necesitan más datos de conducción.\n"
 "        "
 
-#: personalstats/templates/personalstats/dc_charge.html:362
+#: personalstats/templates/personalstats/dc_charge.html:363
 #, python-format
 msgid ""
 "\n"
-"        Real range rates use your driving average ≈ %(real)s kWh/100 km. EPA km/h needs a catalog range.\n"
+"        Real range rates use your driving average ≈ %(real)s %(unit)s. EPA %(rate)s needs a catalog range.\n"
 "        "
 msgstr ""
 "\n"
-"        Los km/h reales usan tu consumo medio ≈ %(real)s kWh/100 km. Los km/h EPA necesitan autonomía de catálogo.\n"
+"        Las tasas reales usan tu consumo medio ≈ %(real)s %(unit)s. Los %(rate)s EPA necesitan una autonomía de catálogo.\n"
 "        "
 
-#: personalstats/templates/personalstats/dc_charge.html:370
+#: personalstats/templates/personalstats/dc_charge.html:371
 msgid ""
 "Tip: switch Envelope to Min / max to get day-map links for the samples that "
 "form the band edges."
@@ -2169,7 +2162,7 @@ msgstr ""
 "Consejo: cambia la envolvente a Mín / máx para enlaces al mapa del día en "
 "los bordes."
 
-#: personalstats/templates/personalstats/dc_charge.html:375
+#: personalstats/templates/personalstats/dc_charge.html:376
 msgid ""
 "\n"
 "    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast charger) are used —\n"
@@ -2188,49 +2181,49 @@ msgstr ""
 "    V3 y V4 no se separan: el coche limita a su potencia máxima.\n"
 "    "
 
-#: personalstats/templates/personalstats/drives.html:110
+#: personalstats/templates/personalstats/drives.html:111
 msgid "Trip rankings"
 msgstr "Clasificación de viajes"
 
-#: personalstats/templates/personalstats/drives.html:114
+#: personalstats/templates/personalstats/drives.html:115
 #, python-format
-msgid "Trips of at least %(n)s km"
-msgstr "Viajes de al menos %(n)s km"
+msgid "Trips of at least %(n)s %(u)s"
+msgstr "Viajes de al menos %(n)s %(u)s"
 
-#: personalstats/templates/personalstats/drives.html:116
+#: personalstats/templates/personalstats/drives.html:117
 #, python-format
 msgid "Top %(n)s longest as ranking pool"
 msgstr "Entre los %(n)s viajes más largos"
 
-#: personalstats/templates/personalstats/drives.html:121
+#: personalstats/templates/personalstats/drives.html:122
 msgid "Drives filters"
 msgstr "Filtros de viajes"
 
-#: personalstats/templates/personalstats/drives.html:138
+#: personalstats/templates/personalstats/drives.html:139
 msgid "Rank by"
 msgstr "Ordenar por"
 
-#: personalstats/templates/personalstats/drives.html:146
+#: personalstats/templates/personalstats/drives.html:147
 msgid "Show"
 msgstr "Mostrar"
 
-#: personalstats/templates/personalstats/drives.html:162
+#: personalstats/templates/personalstats/drives.html:163
 #, python-format
 msgid "%(counter)s trip"
 msgid_plural "%(counter)s trips"
-msgstr[0] "%(counter)s trayecto"
-msgstr[1] "%(counter)s trayectos"
+msgstr[0] "%(counter)s viaje"
+msgstr[1] "%(counter)s viajes"
 
-#: personalstats/templates/personalstats/drives.html:163
-#: personalstats/templates/personalstats/drives.html:247
+#: personalstats/templates/personalstats/drives.html:164
+#: personalstats/templates/personalstats/drives.html:248
 msgid "Page"
 msgstr "Página"
 
-#: personalstats/templates/personalstats/drives.html:165
+#: personalstats/templates/personalstats/drives.html:166
 msgid "No trips match this period and minimum distance."
 msgstr "Ningún viaje coincide con este periodo y distancia mínima."
 
-#: personalstats/templates/personalstats/drives.html:168
+#: personalstats/templates/personalstats/drives.html:169
 #, python-format
 msgid ""
 "kWh estimates use ~%(kwh)s kWh pack (from EPA range). Outside temperature "
@@ -2239,37 +2232,37 @@ msgstr ""
 "Las estimaciones en kWh usan un pack de ~%(kwh)s kWh (según autonomía EPA). "
 "Solo temperatura exterior (no habitáculo)."
 
-#: personalstats/templates/personalstats/drives.html:183
+#: personalstats/templates/personalstats/drives.html:184
 msgid "Average speed over the trip"
 msgstr "Velocidad media del viaje"
 
-#: personalstats/templates/personalstats/drives.html:184
+#: personalstats/templates/personalstats/drives.html:185
 msgid "Average outside temperature during the trip (not cabin)"
 msgstr "Temperatura exterior media durante el viaje (no habitáculo)"
 
-#: personalstats/templates/personalstats/drives.html:184
+#: personalstats/templates/personalstats/drives.html:185
 msgid "Outside temp"
 msgstr "Temp. ext."
 
-#: personalstats/templates/personalstats/drives.html:229
+#: personalstats/templates/personalstats/drives.html:230
 msgid "Open day map"
 msgstr "Abrir mapa del día"
 
-#: personalstats/templates/personalstats/drives.html:240
+#: personalstats/templates/personalstats/drives.html:241
 msgid "Pagination"
 msgstr "Paginación"
 
-#: personalstats/templates/personalstats/drives.html:243
-#: personalstats/templates/personalstats/drives.html:245
+#: personalstats/templates/personalstats/drives.html:244
+#: personalstats/templates/personalstats/drives.html:246
 msgid "Previous"
 msgstr "Anterior"
 
-#: personalstats/templates/personalstats/drives.html:250
-#: personalstats/templates/personalstats/drives.html:252
+#: personalstats/templates/personalstats/drives.html:251
+#: personalstats/templates/personalstats/drives.html:253
 msgid "Next"
 msgstr "Siguiente"
 
-#: personalstats/templates/personalstats/poll_details.html:231
+#: personalstats/templates/personalstats/poll_details.html:232
 #, python-format
 msgid ""
 "\n"
@@ -2280,82 +2273,77 @@ msgstr ""
 "            Espaciado adaptativo de la API Fleet para %(name)s · hora local %(when)s\n"
 "            "
 
-#: personalstats/templates/personalstats/poll_details.html:236
+#: personalstats/templates/personalstats/poll_details.html:237
 msgid "Back to my data"
 msgstr "Volver a mis datos"
 
-#: personalstats/templates/personalstats/poll_details.html:242
+#: personalstats/templates/personalstats/poll_details.html:243
 msgid "Habit-adapted collection frequency: active"
 msgstr "Frecuencia de recogida adaptada a los hábitos: activa."
 
-#: personalstats/templates/personalstats/poll_details.html:244
+#: personalstats/templates/personalstats/poll_details.html:245
 msgid "Habit-adapted collection frequency: inactive"
 msgstr "Frecuencia de recogida adaptada a los hábitos: inactiva."
 
-#: personalstats/templates/personalstats/poll_details.html:255
-#: personalstats/templates/personalstats/poll_details.html:321
+#: personalstats/templates/personalstats/poll_details.html:256
+#: personalstats/templates/personalstats/poll_details.html:322
 msgid "Right now"
 msgstr "Ahora mismo"
 
-#: personalstats/templates/personalstats/poll_details.html:259
+#: personalstats/templates/personalstats/poll_details.html:260
 msgid "List state"
 msgstr "Estado (lista)"
 
-#: personalstats/templates/personalstats/poll_details.html:263
+#: personalstats/templates/personalstats/poll_details.html:264
 msgid "Activity kind"
 msgstr "Tipo de actividad"
 
-#: personalstats/templates/personalstats/poll_details.html:267
+#: personalstats/templates/personalstats/poll_details.html:268
 msgid "Effective interval"
 msgstr "Intervalo efectivo"
 
-#: personalstats/templates/personalstats/poll_details.html:272
+#: personalstats/templates/personalstats/poll_details.html:273
 msgid "Nav ETA"
 msgstr "ETA navegación"
 
-#: personalstats/templates/personalstats/poll_details.html:276
-#| msgid "min"
-msgid "mi"
-msgstr "mi"
-
-#: personalstats/templates/personalstats/poll_details.html:282
+#: personalstats/templates/personalstats/poll_details.html:283
 msgid "Decision source"
 msgstr "Fuente de la decisión"
 
-#: personalstats/templates/personalstats/poll_details.html:284
+#: personalstats/templates/personalstats/poll_details.html:285
 msgid "Live activity"
 msgstr "Actividad en vivo"
 
-#: personalstats/templates/personalstats/poll_details.html:285
-#: personalstats/templates/personalstats/poll_details.html:327
+#: personalstats/templates/personalstats/poll_details.html:286
+#: personalstats/templates/personalstats/poll_details.html:328
 msgid "Habit model"
 msgstr "Modelo de hábitos"
 
-#: personalstats/templates/personalstats/poll_details.html:286
+#: personalstats/templates/personalstats/poll_details.html:287
 msgid "Default spacing"
 msgstr "Espaciado por defecto"
 
-#: personalstats/templates/personalstats/poll_details.html:290
+#: personalstats/templates/personalstats/poll_details.html:291
 msgid "Default for this kind"
 msgstr "Por defecto para este tipo"
 
-#: personalstats/templates/personalstats/poll_details.html:294
+#: personalstats/templates/personalstats/poll_details.html:295
 msgid "Habit for this hour"
 msgstr "Hábito para esta hora"
 
-#: personalstats/templates/personalstats/poll_details.html:304
+#: personalstats/templates/personalstats/poll_details.html:305
 msgid "Last query"
 msgstr "Última consulta"
 
-#: personalstats/templates/personalstats/poll_details.html:310
+#: personalstats/templates/personalstats/poll_details.html:311
 msgid "Next query due"
 msgstr "Próxima consulta"
 
-#: personalstats/templates/personalstats/poll_details.html:312
+#: personalstats/templates/personalstats/poll_details.html:313
 msgid "Due now"
 msgstr "Debido ahora"
 
-#: personalstats/templates/personalstats/poll_details.html:322
+#: personalstats/templates/personalstats/poll_details.html:323
 msgid ""
 "No vehicle row in the account list for this VIN, so list state and last poll"
 " time are unknown. Habit history below still uses telemetry snapshots when "
@@ -2365,7 +2353,7 @@ msgstr ""
 "estado de lista y el último sondeo son desconocidos. El historial de hábitos"
 " de abajo sigue usando snapshots de telemetría si existen."
 
-#: personalstats/templates/personalstats/poll_details.html:329
+#: personalstats/templates/personalstats/poll_details.html:330
 #, python-format
 msgid ""
 "\n"
@@ -2379,60 +2367,60 @@ msgstr ""
 "        El modelo busca como máximo los últimos %(max_days)s días. El entrenamiento solo usa semanas *antes* de los últimos %(recent)s días (control de régimen). Se necesitan ≥ %(min_ref)s semanas de referencia. «Semanas con muestras» cuenta semanas civiles distintas con telemetría en la ventana, no la duración de la captura continua de datos.\n"
 "        "
 
-#: personalstats/templates/personalstats/poll_details.html:337
+#: personalstats/templates/personalstats/poll_details.html:338
 msgid "Trusted"
 msgstr "Fiable"
 
-#: personalstats/templates/personalstats/poll_details.html:337
+#: personalstats/templates/personalstats/poll_details.html:338
 msgid "Yes"
 msgstr "Sí"
 
-#: personalstats/templates/personalstats/poll_details.html:337
+#: personalstats/templates/personalstats/poll_details.html:338
 msgid "No"
 msgstr "No"
 
-#: personalstats/templates/personalstats/poll_details.html:338
+#: personalstats/templates/personalstats/poll_details.html:339
 msgid "Reason"
 msgstr "Motivo"
 
-#: personalstats/templates/personalstats/poll_details.html:339
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "Reference weeks (training)"
 msgstr "Semanas de referencia (entrenamiento)"
 
-#: personalstats/templates/personalstats/poll_details.html:340
+#: personalstats/templates/personalstats/poll_details.html:341
 msgid "Weeks with samples (in search window)"
 msgstr "Semanas con muestras (en la ventana de búsqueda)"
 
-#: personalstats/templates/personalstats/poll_details.html:341
+#: personalstats/templates/personalstats/poll_details.html:342
 msgid "Max search window"
 msgstr "Ventana de búsqueda máx."
 
-#: personalstats/templates/personalstats/poll_details.html:341
 #: personalstats/templates/personalstats/poll_details.html:342
+#: personalstats/templates/personalstats/poll_details.html:343
 msgid "days"
 msgstr "días"
 
-#: personalstats/templates/personalstats/poll_details.html:342
+#: personalstats/templates/personalstats/poll_details.html:343
 msgid "Excluded from training (recent check)"
 msgstr "Excluidas del entrenamiento (control reciente)"
 
-#: personalstats/templates/personalstats/poll_details.html:343
+#: personalstats/templates/personalstats/poll_details.html:344
 msgid "Busy slots"
 msgstr "Franjas ocupadas"
 
-#: personalstats/templates/personalstats/poll_details.html:344
+#: personalstats/templates/personalstats/poll_details.html:345
 msgid "Moderate slots"
 msgstr "Franjas moderadas"
 
-#: personalstats/templates/personalstats/poll_details.html:345
+#: personalstats/templates/personalstats/poll_details.html:346
 msgid "Quiet slots"
 msgstr "Franjas tranquilas"
 
-#: personalstats/templates/personalstats/poll_details.html:350
+#: personalstats/templates/personalstats/poll_details.html:351
 msgid "Idle plan — next 7 days"
 msgstr "Plan en reposo — próximos 7 días"
 
-#: personalstats/templates/personalstats/poll_details.html:351
+#: personalstats/templates/personalstats/poll_details.html:352
 msgid ""
 "What idle/asleep spacing the model would use if the car is not driving or "
 "charging. Segments merge consecutive hours with the same interval."
@@ -2440,15 +2428,15 @@ msgstr ""
 "Qué espaciado reposo/sueño usaría el modelo si el coche no conduce ni carga."
 " Los segmentos fusionan horas consecutivas con el mismo intervalo."
 
-#: personalstats/templates/personalstats/poll_details.html:373
+#: personalstats/templates/personalstats/poll_details.html:374
 msgid "No forecast available."
 msgstr "No hay previsión disponible."
 
-#: personalstats/templates/personalstats/poll_details.html:378
+#: personalstats/templates/personalstats/poll_details.html:379
 msgid "Typical week (idle minutes by weekday and hour)"
 msgstr "Semana típica (minutos en reposo por día y hora)"
 
-#: personalstats/templates/personalstats/poll_details.html:379
+#: personalstats/templates/personalstats/poll_details.html:380
 msgid ""
 "Household local time (Europe/Brussels). When the model is trusted, every "
 "cell is busy, moderate or quiet (no default-spacing holes). Plain cells only"
@@ -2458,151 +2446,155 @@ msgstr ""
 "cada celda es ocupada, moderada o tranquila (sin huecos de espaciado por "
 "defecto). Las celdas planas solo aparecen si los hábitos están inactivos."
 
-#: personalstats/templates/personalstats/poll_details.html:384
+#: personalstats/templates/personalstats/poll_details.html:385
 msgid "Hour"
 msgstr "Hora"
 
-#: personalstats/templates/personalstats/poll_details.html:396
+#: personalstats/templates/personalstats/poll_details.html:397
 msgid "class only; default spacing kept"
 msgstr "solo clase; se mantiene el espaciado por defecto"
 
-#: personalstats/templates/personalstats/poll_details.html:406
+#: personalstats/templates/personalstats/poll_details.html:407
 msgid "Busy (denser idle)"
 msgstr "Ocupado (reposo más denso)"
 
-#: personalstats/templates/personalstats/poll_details.html:407
+#: personalstats/templates/personalstats/poll_details.html:408
 msgid "Moderate"
 msgstr "Moderado"
 
-#: personalstats/templates/personalstats/poll_details.html:408
+#: personalstats/templates/personalstats/poll_details.html:409
 msgid "Quiet (sparser idle)"
 msgstr "Tranquilo (reposo más espaciado)"
 
-#: personalstats/templates/personalstats/poll_details.html:409
+#: personalstats/templates/personalstats/poll_details.html:410
 msgid "Uncoloured = habits inactive (day/night default)"
 msgstr "Sin color = hábitos inactivos (por defecto día/noche)"
 
-#: personalstats/templates/personalstats/poll_details.html:414
+#: personalstats/templates/personalstats/poll_details.html:415
 msgid "How it works"
 msgstr "Cómo funciona"
 
-#: personalstats/views.py:239 personalstats/views.py:1317
+#: personalstats/views.py:242 personalstats/views.py:1370
 msgid "Outside temperature (°C)"
 msgstr "Temperatura exterior (°C)"
 
-#: personalstats/views.py:240
+#: personalstats/views.py:243
 msgid "Driver temperature (°C)"
 msgstr "Temperatura del conductor (°C)"
 
-#: personalstats/views.py:241
+#: personalstats/views.py:244
 msgid "Inside temperature (°C)"
 msgstr "Temperatura interior (°C)"
 
-#: personalstats/views.py:242
+#: personalstats/views.py:245
 msgid "Passenger temperature (°C)"
 msgstr "Temperatura del pasajero (°C)"
 
-#: personalstats/views.py:243
-msgid "Odometer (miles)"
-msgstr "Odómetro (millas)"
+#: personalstats/views.py:246
+#, python-format
+msgid "Odometer (%(u)s)"
+msgstr "Odómetro (%(u)s)"
 
-#: personalstats/views.py:245
+#: personalstats/views.py:248
 msgid "Speed distribution"
 msgstr "Distribución de velocidades"
 
-#: personalstats/views.py:246
+#: personalstats/views.py:249
 msgid "Latitude"
 msgstr "Latitud"
 
-#: personalstats/views.py:247
+#: personalstats/views.py:250
 msgid "Longitude"
 msgstr "Longitud"
 
-#: personalstats/views.py:249
+#: personalstats/views.py:252
 msgid "Power distribution"
 msgstr "Distribución de potencia"
 
-#: personalstats/views.py:251
+#: personalstats/views.py:254
 msgid "SoC at end of charge"
 msgstr "SoC al final de la carga"
 
-#: personalstats/views.py:253 personalstats/views.py:2474
+#: personalstats/views.py:256 personalstats/views.py:2570
 msgid "Daily minimum SoC"
 msgstr "SoC mínimo diario"
 
-#: personalstats/views.py:255
+#: personalstats/views.py:258
 msgid "Charge limit distribution"
 msgstr "Distribución del límite de carga"
 
-#: personalstats/views.py:257
+#: personalstats/views.py:260
 msgid "Charge rate distribution"
 msgstr "Distribución de la velocidad de carga"
 
-#: personalstats/views.py:258
+#: personalstats/views.py:261
 msgid "Charger actual current (A)"
 msgstr "Corriente real del cargador (A)"
 
-#: personalstats/views.py:259
+#: personalstats/views.py:262
 msgid "Charger phases"
 msgstr "Fases del cargador"
 
-#: personalstats/views.py:260
+#: personalstats/views.py:263
 msgid "Charger power distribution"
 msgstr "Distribución de la potencia de carga"
 
-#: personalstats/views.py:261
+#: personalstats/views.py:264
 msgid "Charger voltage (V)"
 msgstr "Tensión del cargador (V)"
 
-#: personalstats/views.py:262
-msgid "Estimated battery range (miles)"
-msgstr "Autonomía estimada de batería (millas)"
+#: personalstats/views.py:265
+#, python-format
+msgid "Estimated battery range (%(u)s)"
+msgstr "Autonomía estimada de la batería (%(u)s)"
 
-#: personalstats/views.py:263
+#: personalstats/views.py:266
 msgid "Usable battery level (%)"
 msgstr "Nivel de batería utilizable (%)"
 
-#: personalstats/views.py:264
+#: personalstats/views.py:267
 msgid "Battery degradation (%)"
 msgstr "Degradación de la batería (%)"
 
-#: personalstats/views.py:267
-msgid "Range at full charge (miles)"
-msgstr "Autonomía a carga completa (millas)"
-
-#: personalstats/views.py:268
-msgid "Range at full charge vs odometer (miles)"
-msgstr "Autonomía a carga completa vs odómetro (millas)"
-
 #: personalstats/views.py:270
+#, python-format
+msgid "Range at full charge (%(u)s)"
+msgstr "Autonomía a carga completa (%(u)s)"
+
+#: personalstats/views.py:271
+#, python-format
+msgid "Range at full charge vs odometer (%(u)s)"
+msgstr "Autonomía a carga completa vs odómetro (%(u)s)"
+
+#: personalstats/views.py:274
 msgid "Efficiency vs average speed"
 msgstr "Eficiencia según la velocidad media"
 
-#: personalstats/views.py:271
+#: personalstats/views.py:275
 msgid "Efficiency vs outside temperature"
 msgstr "Eficiencia según la temperatura exterior"
 
-#: personalstats/views.py:273
+#: personalstats/views.py:277
 msgid "Fleet poll cost (estimate)"
 msgstr "Coste del polling Fleet (estimación)"
 
-#: personalstats/views.py:518
+#: personalstats/views.py:544
 msgid "Estimated cost (EUR)"
 msgstr "Coste estimado (EUR)"
 
-#: personalstats/views.py:520
+#: personalstats/views.py:546
 msgid "Estimated cost (USD)"
 msgstr "Coste estimado (USD)"
 
-#: personalstats/views.py:521
+#: personalstats/views.py:547
 msgid "Day"
 msgstr "Día"
 
-#: personalstats/views.py:529
+#: personalstats/views.py:555
 msgid "Data requests"
 msgstr "Peticiones Data"
 
-#: personalstats/views.py:538
+#: personalstats/views.py:564
 #, python-format
 msgid ""
 "n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car ·"
@@ -2611,49 +2603,49 @@ msgstr ""
 "n=%(n)s vehicle_data facturables · est. %(money)s (@ %(rate)s/req) · este "
 "coche · registro de peticiones · máx. %(days)s días"
 
-#: personalstats/views.py:564
+#: personalstats/views.py:590
 msgid "No logged vehicle_data calls in this period"
 msgstr "No hay llamadas vehicle_data registradas en este período"
 
-#: personalstats/views.py:596
+#: personalstats/views.py:622
 msgid "Minimum"
 msgstr "Mínimo"
 
-#: personalstats/views.py:605
+#: personalstats/views.py:631
 msgid "Average"
 msgstr "Media"
 
-#: personalstats/views.py:614
+#: personalstats/views.py:640
 msgid "Maximum"
 msgstr "Máximo"
 
-#: personalstats/views.py:850
+#: personalstats/views.py:885
 msgid "Monthly range (min–max)"
 msgstr "Rango mensual (mín–máx)"
 
-#: personalstats/views.py:851
+#: personalstats/views.py:886
 msgid "Monthly minimum"
 msgstr "Mínimo mensual"
 
-#: personalstats/views.py:852
+#: personalstats/views.py:887
 msgid "Monthly average"
 msgstr "Media mensual"
 
-#: personalstats/views.py:853
+#: personalstats/views.py:888
 msgid "Monthly maximum"
 msgstr "Máximo mensual"
 
-#: personalstats/views.py:974
+#: personalstats/views.py:1009
 #, python-format
 msgid "Record min %(t).1f °C · %(when)s"
 msgstr "Récord mín. %(t).1f °C · %(when)s"
 
-#: personalstats/views.py:978
+#: personalstats/views.py:1013
 #, python-format
 msgid "Record max %(t).1f °C · %(when)s"
 msgstr "Récord máx. %(t).1f °C · %(when)s"
 
-#: personalstats/views.py:1081
+#: personalstats/views.py:1116
 msgid ""
 "One min / avg / max per calendar month · band = monthly range · gaps = no "
 "data"
@@ -2661,69 +2653,77 @@ msgstr ""
 "Un mín / media / máx por mes civil · banda = rango mensual · huecos = sin "
 "datos"
 
-#: personalstats/views.py:1309
-msgid "Average speed (km/h)"
-msgstr "Velocidad media (km/h)"
+#: personalstats/views.py:1360
+#, python-format
+msgid "Average speed (%(u)s)"
+msgstr "Velocidad media (%(u)s)"
 
-#: personalstats/views.py:2019
+#: personalstats/views.py:2086
 msgid "Charge limit"
 msgstr "Límite de carga"
 
-#: personalstats/views.py:2103
+#: personalstats/views.py:2170
 msgid "Charge sessions"
 msgstr "Sesiones de carga"
 
-#: personalstats/views.py:2111
+#: personalstats/views.py:2178
 #, python-format
 msgid "n=%(n)s sessions (≥%(min)s min) · bars = peak kW · kWh added"
 msgstr "n=%(n)s sesiones (≥%(min)s min) · barras = pico kW · kWh añadidos"
 
-#: personalstats/views.py:2118
+#: personalstats/views.py:2185
 #, python-format
 msgid "n=%(n)s sessions (≥%(min)s min) · bars = peak · mi = range added"
 msgstr ""
 "n=%(n)s sesiones (≥%(min)s min) · barras = pico · mi = autonomía añadida"
 
-#: personalstats/views.py:2124
+#: personalstats/views.py:2191
 #, python-format
 msgid "n=%(n)s"
 msgstr "n=%(n)s"
 
-#: personalstats/views.py:2126
+#: personalstats/views.py:2193
 #, python-format
 msgid "n=%(n)s sessions (≥%(min)s min)"
 msgstr "n=%(n)s sesiones (≥%(min)s min)"
 
-#: personalstats/views.py:2171
-msgid "Distance recorded (km)"
-msgstr "Distancia registrada (km)"
+#: personalstats/views.py:2243
+#, python-format
+msgid "Distance recorded (%(u)s)"
+msgstr "Distancia registrada (%(u)s)"
 
-#: personalstats/views.py:2202
+#: personalstats/views.py:2274
 msgid "Efficiency (%)"
 msgstr "Eficiencia (%)"
 
-#: personalstats/views.py:2203
-msgid "Distance (km)"
-msgstr "Distancia (km)"
+#: personalstats/views.py:2275
+#, python-format
+msgid "Distance (%(u)s)"
+msgstr "Distancia (%(u)s)"
 
-#: personalstats/views.py:2233
+#: personalstats/views.py:2305
 msgid "Trips ≥ 10 km · 100% = matched rated range use"
 msgstr "Viajes ≥ 10 km · 100 % = consumo igual a la autonomía nominal"
 
-#: personalstats/views.py:2335 personalstats/views.py:2366
-#: personalstats/views.py:2414
+#: personalstats/views.py:2424 personalstats/views.py:2462
+#: personalstats/views.py:2510
 msgid "Samples"
 msgstr "Muestras"
 
-#: personalstats/views.py:2363
-msgid "Speed (km/h)"
-msgstr "Velocidad (km/h)"
-
-#: personalstats/views.py:2367
+#: personalstats/views.py:2449
 msgid "drive samples only · Tesla speed converted mph→km/h"
 msgstr "solo muestras en marcha · velocidad Tesla convertida mi/h→km/h"
 
-#: personalstats/views.py:2382
+#: personalstats/views.py:2451
+msgid "drive samples only · Tesla speed in mph"
+msgstr "solo muestras en conducción · velocidad Tesla en mph"
+
+#: personalstats/views.py:2459
+#, python-format
+msgid "Speed (%(u)s)"
+msgstr "Velocidad (%(u)s)"
+
+#: personalstats/views.py:2478
 #, python-format
 msgid ""
 "n=%(n)s · regen %(regen).1f kWh / traction %(trac).1f kWh = %(pct).1f%% "
@@ -2732,7 +2732,7 @@ msgstr ""
 "n=%(n)s · regen. %(regen).1f kWh / tracción %(trac).1f kWh = %(pct).1f%% "
 "recuperados"
 
-#: personalstats/views.py:2393
+#: personalstats/views.py:2489
 #, python-format
 msgid ""
 "n=%(n)s · regen vs traction = %(pct).1f%% (sample power ratio · green = "
@@ -2741,54 +2741,54 @@ msgstr ""
 "n=%(n)s · regen. vs tracción = %(pct).1f%% (ratio de muestras · verde = "
 "regen.)"
 
-#: personalstats/views.py:2401
+#: personalstats/views.py:2497
 #, python-format
 msgid "n=%(n)s drive samples · green = regen · blue/red = traction"
 msgstr "n=%(n)s muestras · verde = regen. · azul/rojo = tracción"
 
-#: personalstats/views.py:2404
+#: personalstats/views.py:2500
 msgid "No drive power samples in this period"
 msgstr "Sin muestras de potencia en este período"
 
-#: personalstats/views.py:2411
+#: personalstats/views.py:2507
 msgid "Power (kW) · negative = regen"
 msgstr "Potencia (kW) · negativo = regeneración"
 
-#: personalstats/views.py:2433
+#: personalstats/views.py:2529
 msgid "Peak charger power"
 msgstr "Potencia máxima alcanzada"
 
-#: personalstats/views.py:2435
+#: personalstats/views.py:2531
 msgid "Peak charge rate"
 msgstr "Velocidad de carga máxima alcanzada"
 
-#: personalstats/views.py:2458
+#: personalstats/views.py:2554
 msgid "Peak SoC during charge"
 msgstr "SoC máx. durante la carga"
 
-#: personalstats/views.py:2461
+#: personalstats/views.py:2557
 msgid "sessions classified by max SoC while charging"
 msgstr "sesiones clasificadas por SoC máx. en carga"
 
-#: personalstats/views.py:2477
+#: personalstats/views.py:2573
 msgid "one value per calendar day"
 msgstr "un valor por día civil"
 
-#: personalstats/views.py:2478
+#: personalstats/views.py:2574
 msgid "Days"
 msgstr "Días"
 
-#: personalstats/views.py:2673
+#: personalstats/views.py:2776
 #, python-format
 msgid "%(n)s m"
 msgstr "%(n)s m"
 
-#: personalstats/views.py:2674
+#: personalstats/views.py:2777
 #, python-format
 msgid "%(n)s km"
 msgstr "%(n)s km"
 
-#: personalstats/views.py:2707
+#: personalstats/views.py:2810
 #, python-format
 msgid ""
 "The last trip was not recorded — it was likely too short for the capture "
@@ -2799,7 +2799,7 @@ msgstr ""
 " intervalo de captura (unos %(dist)s entre la última llegada registrada y la"
 " posición final del coche)."
 
-#: personalstats/views.py:2714
+#: personalstats/views.py:2817
 #, python-format
 msgid ""
 "The last trip was not recorded — missing telemetry between the last logged "
@@ -2810,117 +2810,117 @@ msgstr ""
 "registrada y la posición final del coche (unos %(dist)s). Puede deberse a un"
 " hueco de captura o a un problema técnico."
 
-#: personalstats/views.py:3299 personalstats/views.py:3964
+#: personalstats/views.py:3402 personalstats/views.py:4136
 #, python-format
 msgid "%(h)s h %(m)s min"
 msgstr "%(h)s h %(m)s min"
 
-#: personalstats/views.py:3301 personalstats/views.py:3966
+#: personalstats/views.py:3404 personalstats/views.py:4138
 #, python-format
 msgid "%(m)s min"
 msgstr "%(m)s min"
 
-#: personalstats/views.py:3499
+#: personalstats/views.py:3602
 msgid "Longest"
 msgstr "Más largos"
 
-#: personalstats/views.py:3500
+#: personalstats/views.py:3603
 msgid "Most elevation gain"
 msgstr "Más desnivel positivo"
 
-#: personalstats/views.py:3501
+#: personalstats/views.py:3604
 msgid "Most elevation loss"
 msgstr "Más desnivel negativo"
 
-#: personalstats/views.py:3502
+#: personalstats/views.py:3605
 msgid "Hottest"
 msgstr "Más caluroso"
 
-#: personalstats/views.py:3503
+#: personalstats/views.py:3606
 msgid "Coldest"
 msgstr "Más frío"
 
-#: personalstats/views.py:3504
+#: personalstats/views.py:3607
 msgid "Lowest end SoC"
 msgstr "SoC final más bajo"
 
-#: personalstats/views.py:3512
+#: personalstats/views.py:3615
 msgid "Elevation gain"
 msgstr "Desnivel positivo"
 
-#: personalstats/views.py:3513
+#: personalstats/views.py:3616
 msgid "Elevation loss"
 msgstr "Desnivel negativo"
 
-#: personalstats/views.py:3514
+#: personalstats/views.py:3617
 msgid "Max outside temp"
 msgstr "Temp. ext. máx."
 
-#: personalstats/views.py:3515
+#: personalstats/views.py:3618
 msgid "Min outside temp"
 msgstr "Temp. ext. mín."
 
-#: personalstats/views.py:3802
+#: personalstats/views.py:3974
 msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
 msgstr "Fecha no válida. Usa DD/MM/AAAA o AAAA-MM-DD."
 
-#: personalstats/views.py:4596
+#: personalstats/views.py:4818
 msgid "No DC charge samples in this period"
 msgstr "No hay muestras de carga DC en este período"
 
-#: personalstats/views.py:4611
+#: personalstats/views.py:4833
 msgid "Min–max"
 msgstr "Mín–máx"
 
-#: personalstats/views.py:4615
+#: personalstats/views.py:4837
 msgid "P10–P90"
 msgstr "P10–P90"
 
-#: personalstats/views.py:4625
+#: personalstats/views.py:4847
 msgid "Median kW"
 msgstr "Mediana kW"
 
-#: personalstats/views.py:4627 personalstats/views.py:4671
-#: personalstats/views.py:4827
+#: personalstats/views.py:4849 personalstats/views.py:4893
+#: personalstats/views.py:5049
 msgid "Battery SoC (%)"
 msgstr "SoC de batería (%)"
 
-#: personalstats/views.py:4628 personalstats/views.py:4842
+#: personalstats/views.py:4850 personalstats/views.py:5064
 msgid "Charger power (kW)"
 msgstr "Potencia del cargador (kW)"
 
-#: personalstats/views.py:4644
+#: personalstats/views.py:4866
 msgid "Not enough DC sessions for start-SoC curves"
 msgstr "No hay suficientes sesiones DC para curvas por SoC de inicio"
 
-#: personalstats/views.py:4659
+#: personalstats/views.py:4881
 #, python-format
 msgid "%(start)s%% start · n=%(n)s"
 msgstr "Inicio %(start)s%% · n=%(n)s"
 
-#: personalstats/views.py:4670 personalstats/views.py:4839
+#: personalstats/views.py:4892 personalstats/views.py:5061
 msgid "Minutes since charge start"
 msgstr "Minutos desde el inicio de la carga"
 
-#: personalstats/views.py:4797
+#: personalstats/views.py:5019
 msgid "No charge samples for this stop"
 msgstr "No hay muestras de carga para esta parada"
 
-#: personalstats/views.py:4892
+#: personalstats/views.py:5114
 #, python-format
 msgid "Charge power vs SoC — %(day)s"
 msgstr "Potencia de carga vs SoC — %(day)s"
 
-#: personalstats/views.py:4894
+#: personalstats/views.py:5116
 #, python-format
 msgid "Charge power vs time — %(day)s"
 msgstr "Potencia de carga vs tiempo — %(day)s"
 
-#: personalstats/views.py:4993
+#: personalstats/views.py:5215
 msgid "DC charge power vs battery SoC"
 msgstr "Potencia de carga DC vs SoC de batería"
 
-#: personalstats/views.py:5001
+#: personalstats/views.py:5223
 msgid "DC charge: SoC vs time by start SoC"
 msgstr "Carga DC: SoC vs tiempo según SoC de inicio"
 
@@ -2936,25 +2936,71 @@ msgstr "Compañero de vehículo de código abierto"
 msgid "Main navigation"
 msgstr "Navegación principal"
 
-#: templates/base.html:53 templates/base.html:69
+#: templates/base.html:54 templates/base.html:70
 msgid "logout"
 msgstr "Cerrar sesión"
 
-#: templates/base.html:61
+#: templates/base.html:62
 msgid "Open navigation"
 msgstr "Abrir navegación"
 
-#: templates/base.html:62
+#: templates/base.html:63
 msgid "Mobile navigation"
 msgstr "Navegación móvil"
 
-#: templates/base.html:98
+#: templates/base.html:100
 msgid "Private by design · Open source"
 msgstr "Privado por diseño · Código abierto"
 
-#: templates/base.html:99
+#: templates/base.html:103
 msgid "Source"
 msgstr "Código fuente"
+
+#: templates/includes/unit_toggle.html:5
+msgid "Distance units"
+msgstr "Unidades de distancia"
+
+#: templates/includes/unit_toggle.html:6
+msgid ""
+"Choose kilometres or miles for distances, speeds and consumption across the "
+"site"
+msgstr ""
+"Elige kilómetros o millas para distancias, velocidades y consumos en todo el"
+" sitio"
+
+#: templates/includes/unit_toggle.html:7
+msgid "Units"
+msgstr "Unidades"
+
+#: templates/includes/unit_toggle.html:9
+#: templates/includes/unit_toggle.html:20
+msgid "km"
+msgstr "km"
+
+#: templates/includes/unit_toggle.html:14
+msgid "Show distances in miles"
+msgstr "Mostrar distancias en millas"
+
+#: templates/includes/unit_toggle.html:14
+#: templates/includes/unit_toggle.html:21
+msgid "mi"
+msgstr "mi"
+
+#: templates/includes/unit_toggle.html:20
+msgid "Show distances in kilometres"
+msgstr "Mostrar distancias en kilómetros"
+
+#: templates/registration/login.html:13
+msgid "Your car. Your data."
+msgstr "Tu coche. Tus datos."
+
+#: templates/registration/login.html:14
+msgid "The quiet"
+msgstr "El copiloto"
+
+#: templates/registration/login.html:14
+msgid "co-pilot."
+msgstr "discreto."
 
 #: templates/registration/login.html:16
 msgid ""
@@ -2968,9 +3014,17 @@ msgstr ""
 " carga, la temperatura, etc. También hay estadísticas de actualizaciones de "
 "firmware."
 
+#: templates/registration/login.html:18
+msgid "Open source · your telemetry stays under your control"
+msgstr "Código abierto · tu telemetría sigue bajo tu control"
+
 #: templates/registration/login.html:24
 msgid "Private space"
 msgstr "Espacio privado"
+
+#: templates/registration/login.html:26
+msgid "Find your vehicle and its history."
+msgstr "Encuentra tu vehículo y su historial."
 
 #: templates/registration/login.html:49
 msgid "Forgotten password?"
@@ -2980,14 +3034,50 @@ msgstr "¿Contraseña olvidada?"
 msgid "Signup"
 msgstr "Crear cuenta"
 
+#: templates/registration/login.html:58
+msgid "One dashboard, the full story"
+msgstr "Un panel, toda la historia"
+
+#: templates/registration/login.html:59
+msgid "Beyond a status screen."
+msgstr "Más que una pantalla de estado."
+
+#: templates/registration/login.html:60
+msgid ""
+"Follow battery health, trips and software versions without getting lost in "
+"menus."
+msgstr ""
+"Sigue la salud de la batería, los viajes y las versiones de software sin "
+"perderte en menús."
+
+#: templates/registration/login.html:67
+msgid "A clear view of how your real range evolves."
+msgstr "Una lectura clara de cómo evoluciona tu autonomía real."
+
+#: templates/registration/login.html:74
+msgid "Trips & location"
+msgstr "Viajes y ubicación"
+
+#: templates/registration/login.html:75
+msgid "Find kilometres, cycles and driving days."
+msgstr "Encuentra kilómetros, ciclos y días de conducción."
+
 #: templates/registration/login.html:77
 msgid "Your tesla odometer graph in function of time. Who drives the most?"
 msgstr "Gráfico del odómetro Tesla en función del tiempo. ¿Quién conduce más?"
+
+#: templates/registration/login.html:83
+msgid "Every update, placed back in time."
+msgstr "Cada actualización, situada en el tiempo."
 
 #: templates/registration/password_reset_complete.html:4
 #: templates/registration/password_reset_complete.html:10
 msgid "Password updated"
 msgstr "Contraseña actualizada"
+
+#: templates/registration/password_reset_complete.html:9
+msgid "Ready to drive"
+msgstr "Listo para conducir"
 
 #: templates/registration/password_reset_complete.html:11
 msgid "Your password has been set. You may go ahead and sign in."
@@ -3002,6 +3092,22 @@ msgstr "iniciar sesión"
 #: templates/registration/password_reset_confirm.html:23
 msgid "Change password"
 msgstr "Cambiar contraseña"
+
+#: templates/registration/password_reset_confirm.html:10
+msgid "Secure account"
+msgstr "Cuenta segura"
+
+#: templates/registration/password_reset_confirm.html:12
+msgid "Choose a new password to get back into your space."
+msgstr "Elige una nueva contraseña para volver a tu espacio."
+
+#: templates/registration/password_reset_confirm.html:26
+msgid "Expired link"
+msgstr "Enlace caducado"
+
+#: templates/registration/password_reset_confirm.html:27
+msgid "Invalid link"
+msgstr "Enlace no válido"
 
 #: templates/registration/password_reset_confirm.html:28
 msgid ""
@@ -3021,6 +3127,10 @@ msgstr "Restablecer contraseña"
 #: templates/registration/password_reset_done.html:10
 msgid "Password reset mail sent"
 msgstr "Correo de restablecimiento enviado"
+
+#: templates/registration/password_reset_done.html:9
+msgid "Check your inbox"
+msgstr "Revisa tu bandeja de entrada"
 
 #: templates/registration/password_reset_done.html:11
 msgid ""
@@ -3063,9 +3173,34 @@ msgstr ""
 msgid "Sincerely, The MaTesla Team"
 msgstr "Atentamente, el equipo MaTesla"
 
+#: templates/registration/password_reset_form.html:10
+msgid "Account recovery"
+msgstr "Recuperación de cuenta"
+
+#: templates/registration/password_reset_form.html:12
+msgid ""
+"Enter the address linked to your account. We will send you a secure link."
+msgstr ""
+"Indica la dirección asociada a tu cuenta. Te enviaremos un enlace seguro."
+
 #: templates/registration/password_reset_form.html:25
 msgid "Send e-mail"
 msgstr "Enviar correo"
+
+#~ msgid "Kilometers driven"
+#~ msgstr "Kilómetros recorridos"
+
+#~ msgid "Wh/km"
+#~ msgstr "Wh/km"
+
+#~ msgid "kWh/100 km"
+#~ msgstr "kWh/100 km"
+
+#~ msgid "EPA km/h"
+#~ msgstr "km/h EPA"
+
+#~ msgid "Real km/h"
+#~ msgstr "km/h reales"
 
 #~ msgid "Baseline"
 #~ msgstr "Línea base"
@@ -3243,9 +3378,6 @@ msgstr "Enviar correo"
 
 #~ msgid "Has rear seat heaters"
 #~ msgstr "Asientos traseros calefactados"
-
-#~ msgid "Right hand drive"
-#~ msgstr "Conducción a la derecha"
 
 #~ msgid "Roof color"
 #~ msgstr "Color del techo"

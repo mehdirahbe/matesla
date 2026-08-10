@@ -9,7 +9,7 @@
         <div class="page-heading__copy">
             <p class="eyebrow">MaTesla</p>
             <h1 class="page-title page-title--compact">{% trans 'Sign up' %}</h1>
-            <p class="page-subtitle">Créez votre espace privé, puis reliez votre compte Tesla en quelques étapes.</p>
+            <p class="page-subtitle">{% trans 'Create your private space, then link your Tesla account in a few steps.' %}</p>
         </div>
     </div>
 
@@ -27,7 +27,7 @@
             <button type="submit" class="app-button app-button--primary">{% trans 'Sign up' %} <span aria-hidden="true">→</span></button>
         </form>
         <div class="auth-card__meta">
-            <span>Déjà inscrit ?</span>
+            <span>{% trans 'Already registered?' %}</span>
             <a href="{% url 'login' %}">{% trans 'Login' %}</a>
         </div>
     </div>
