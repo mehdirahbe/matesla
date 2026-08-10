@@ -186,12 +186,17 @@ def FormatDouble2Decimals(value):
     return "{:.2e}".format(value).replace("e+00", "")
 
 
-def GenerateScatterGraph(x_values, y_values, title, size="full"):
+def GenerateScatterGraph(x_values, y_values, title, size="full", unit=None):
     """
-    Degradation scatter with a linear trend line (R² + slope per 10k miles).
+    Degradation scatter with a linear trend line (R² + slope per 10k distance).
 
     Quadratic fits misled on long histories, so we only show a linear polyfit.
+    `unit` is the active distance unit (km/mi) for the slope legend; x/y must
+    already be scaled to that unit by the caller.
     """
+    from matesla.units import unit_labels
+
+    dist_u = unit_labels(unit)["distance"]
     figure, style_config = make_figure(size)
     axes = figure.subplots()
     if x_values is not None and y_values is not None and len(x_values) > 0:
@@ -222,12 +227,12 @@ def GenerateScatterGraph(x_values, y_values, title, size="full"):
                 if total_sum_squares > 0
                 else float("nan")
             )
-            slope_per_10k_miles = float(linear_coefficients[0]) * 10000.0
+            slope_per_10k = float(linear_coefficients[0]) * 10000.0
             r_squared_text = (
                 f"{r_squared:.2f}" if r_squared == r_squared else "—"
             )
             trend_label = (
-                f"R²={r_squared_text}  ·  {slope_per_10k_miles:+.2f} pt/10k mi\n"
+                f"R²={r_squared_text}  ·  {slope_per_10k:+.2f} pt/10k {dist_u}\n"
                 f"{FormatDouble2Decimals(linear_coefficients[0])}x+"
                 f"{FormatDouble2Decimals(linear_coefficients[1])}"
             )

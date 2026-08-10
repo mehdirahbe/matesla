@@ -489,10 +489,15 @@ def ParamsConnectedTesla(user, request=None):
     vehicle_state = context.get("vehicle_state") or {}
     drive_state = context.get("drive_state") or {}
 
+    from matesla.units import MILES_TO_KM
+
     battery_range = charge_state.get("battery_range")
     if battery_range is not None:
-        ret.batteryrange = battery_range * 1.609344
+        ret.batteryrange_miles = float(battery_range)
+        # batteryrange kept as km for any legacy caller
+        ret.batteryrange = float(battery_range) * MILES_TO_KM
     else:
+        ret.batteryrange_miles = None
         ret.batteryrange = 0.0
 
     odometer = vehicle_state.get("odometer")
@@ -512,8 +517,10 @@ def ParamsConnectedTesla(user, request=None):
         ret.batterydegradation, ret.NumberCycles, ret.EPARangeMiles = None, None, None
 
     if odometer is not None:
-        ret.OdometerInKm = odometer * 1.609344
+        ret.odometer_miles = float(odometer)
+        ret.OdometerInKm = float(odometer) * MILES_TO_KM
     else:
+        ret.odometer_miles = None
         ret.OdometerInKm = 0.0
 
     lat = drive_state.get("latitude")

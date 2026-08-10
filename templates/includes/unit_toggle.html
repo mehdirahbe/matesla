@@ -1,0 +1,23 @@
+{# Segmented unit picker: click the unit you want (not a flip-toggle). #}
+{% load i18n %}
+<div class="unit-toggle{% if modifier %} unit-toggle--{{ modifier }}{% endif %}"
+     role="radiogroup"
+     aria-label="{% trans 'Distance units' %}"
+     title="{% trans 'Choose kilometres or miles for distances, speeds and consumption across the site' %}">
+    <span class="unit-toggle__label">{% trans 'Units' %}</span>
+    {% if is_unit_km %}
+    <span class="unit-toggle__btn is-active" role="radio" aria-checked="true">{% trans 'km' %}</span>
+    <a class="unit-toggle__btn"
+       role="radio"
+       aria-checked="false"
+       href="{% url 'set_distance_unit' %}?unit=mi&amp;next={{ request.get_full_path|urlencode }}"
+       title="{% trans 'Show distances in miles' %}">{% trans 'mi' %}</a>
+    {% else %}
+    <a class="unit-toggle__btn"
+       role="radio"
+       aria-checked="false"
+       href="{% url 'set_distance_unit' %}?unit=km&amp;next={{ request.get_full_path|urlencode }}"
+       title="{% trans 'Show distances in kilometres' %}">{% trans 'km' %}</a>
+    <span class="unit-toggle__btn is-active" role="radio" aria-checked="true">{% trans 'mi' %}</span>
+    {% endif %}
+</div>

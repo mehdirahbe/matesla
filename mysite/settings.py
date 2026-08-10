@@ -124,6 +124,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Cookie preference for km/mi display (safe after CommonMiddleware).
+    "mysite.middleware.DistanceUnitMiddleware",
 ]
 
 # Read-only for Tailscale / remote Host (same pattern as PicturesDjango).
@@ -143,6 +145,7 @@ READONLY_SAFE_POST_URL_NAMES = [
     "login",
     "logout",
     "select_vehicle",
+    "set_distance_unit",
     "password_reset",
     "password_reset_confirm",
     "password_change",
@@ -168,6 +171,7 @@ READONLY_ALLOWED_URL_NAMES = [
     "ConnectionError",
     "select_vehicle",
     "CarImageFromTesla",
+    "set_distance_unit",
     # Personal stats / maps / graphs
     "PersoStats",
     "PersoDayMap",
@@ -209,6 +213,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "mysite.context_processors.writable_access",
+                "mysite.context_processors.distance_unit",
             ],
         },
     },

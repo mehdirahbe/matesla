@@ -9,6 +9,7 @@ urlpatterns = [
     path('matesla/AddTeslaAccount', views.view_AddTeslaAccount, name='AddTeslaAccount'),
     path('matesla/oauth/start', views.view_tesla_oauth_start, name='tesla_oauth_start'),
     path('matesla/select_vehicle', views.view_select_vehicle, name='select_vehicle'),
+    path('matesla/set-distance-unit', views.view_set_distance_unit, name='set_distance_unit'),
     path('matesla/TeslaServerError', views.view_TeslaServerError, name='TeslaServerError'),
     path('matesla/NoTeslaVehicules', views.view_NoTeslaVehicules, name='NoTeslaVehicules'),
     path('matesla/ConnectionError', views.view_ConnectionError, name='ConnectionError'),

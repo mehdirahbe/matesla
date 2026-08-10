@@ -43,6 +43,7 @@
             </nav>
 
             <div class="app-header__actions">
+                {% include 'includes/unit_toggle.html' %}
                 <a class="header-link" href="https://github.com/mehdirahbe/matesla" target="_blank" rel="noopener noreferrer">
                     GitHub <span aria-hidden="true">↗</span>
                 </a>
@@ -72,6 +73,7 @@
                     <a href="{% url 'login' %}">{% trans 'Login' %}</a>
                     {% endif %}
                     <a href="https://github.com/mehdirahbe/matesla" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+                    {% include 'includes/unit_toggle.html' with modifier='mobile' %}
                 </nav>
             </details>
         </div>
@@ -96,6 +98,8 @@
         <span>MaTesla</span>
         <span class="app-footer__dot" aria-hidden="true"></span>
         <span>{% trans 'Private by design · Open source' %}</span>
+        <span class="app-footer__dot" aria-hidden="true"></span>
+        {% include 'includes/unit_toggle.html' with modifier='footer' %}
         <a href="https://github.com/mehdirahbe/matesla" target="_blank" rel="noopener noreferrer">{% trans 'Source' %} ↗</a>
     </footer>
 

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load static %}
+{% load units_tags %}
 
 {% block title %}{% trans 'Query spacing details' %}{% endblock %}
 
@@ -273,7 +274,7 @@
             <span class="poll-kpi__value">
                 {{ current.route_minutes_to_arrival|floatformat:0 }} {% trans 'min' %}
                 {% if current.route_miles_to_arrival != None %}
-                    · {{ current.route_miles_to_arrival|floatformat:0 }} {% trans 'mi' %}
+                    · {{ current.route_miles_to_arrival|as_distance_from_miles:distance_unit|floatformat:0 }} {{ u_dist }}
                 {% endif %}
             </span>
         </div>

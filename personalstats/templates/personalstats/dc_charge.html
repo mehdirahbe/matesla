@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load static %}
+{% load units_tags %}
 
 {% block title %}{% trans 'DC charge' %}{% endblock %}
 
@@ -304,8 +305,8 @@
                     <th>{% trans 'Edge' %}</th>
                     <th>{% trans 'SoC bin' %}</th>
                     <th>{% trans 'Power' %}</th>
-                    <th title="{% trans 'Rated range added per hour at this power (EPA energy intensity)' %}">{% trans 'EPA km/h' %}</th>
-                    <th title="{% trans 'Driving range added per hour at this power (your average consumption)' %}">{% trans 'Real km/h' %}</th>
+                    <th title="{% trans 'Rated range added per hour at this power (EPA energy intensity)' %}">{% blocktrans with u=u_range_rate %}EPA {{ u }}{% endblocktrans %}</th>
+                    <th title="{% trans 'Driving range added per hour at this power (your average consumption)' %}">{% blocktrans with u=u_range_rate %}Real {{ u }}{% endblocktrans %}</th>
                     <th>{% trans 'Day map' %}</th>
                     <th>{% trans 'n in bin' %}</th>
                 </tr>
@@ -324,12 +325,12 @@
                     <td>{{ row.power_kw|floatformat:0 }} kW</td>
                     <td>
                         {% if row.kmh_epa is not None %}
-                        {{ row.kmh_epa|floatformat:0 }}
+                        {{ row.kmh_epa|as_speed_from_kmh:distance_unit|floatformat:0 }}
                         {% else %}—{% endif %}
                     </td>
                     <td>
                         {% if row.kmh_real is not None %}
-                        {{ row.kmh_real|floatformat:0 }}
+                        {{ row.kmh_real|as_speed_from_kmh:distance_unit|floatformat:0 }}
                         {% else %}—{% endif %}
                     </td>
                     <td>
@@ -346,21 +347,21 @@
     </div>
     {% if epa_kwh_per_100km and real_kwh_per_100km %}
     <p class="dc-note">
-        {% blocktrans with epa=epa_kwh_per_100km|floatformat:1 real=real_kwh_per_100km|floatformat:1 %}
-        Range rates convert power to km/h using EPA ≈ {{ epa }} kWh/100 km and your
-        recent driving average ≈ {{ real }} kWh/100 km (distance-weighted).
+        {% blocktrans with epa=epa_kwh_per_100km|as_energy_from_kwh100:distance_unit|floatformat:1 real=real_kwh_per_100km|as_energy_from_kwh100:distance_unit|floatformat:1 unit=u_energy rate=u_range_rate %}
+        Range rates convert power to {{ rate }} using EPA ≈ {{ epa }} {{ unit }} and your
+        recent driving average ≈ {{ real }} {{ unit }} (distance-weighted).
         {% endblocktrans %}
     </p>
     {% elif epa_kwh_per_100km %}
     <p class="dc-note">
-        {% blocktrans with epa=epa_kwh_per_100km|floatformat:1 %}
-        Range rates use EPA ≈ {{ epa }} kWh/100 km. Real km/h needs more driving data.
+        {% blocktrans with epa=epa_kwh_per_100km|as_energy_from_kwh100:distance_unit|floatformat:1 unit=u_energy rate=u_range_rate %}
+        Range rates use EPA ≈ {{ epa }} {{ unit }}. Real {{ rate }} needs more driving data.
         {% endblocktrans %}
     </p>
     {% elif real_kwh_per_100km %}
     <p class="dc-note">
-        {% blocktrans with real=real_kwh_per_100km|floatformat:1 %}
-        Real range rates use your driving average ≈ {{ real }} kWh/100 km. EPA km/h needs a catalog range.
+        {% blocktrans with real=real_kwh_per_100km|as_energy_from_kwh100:distance_unit|floatformat:1 unit=u_energy rate=u_range_rate %}
+        Real range rates use your driving average ≈ {{ real }} {{ unit }}. EPA {{ rate }} needs a catalog range.
         {% endblocktrans %}
     </p>
     {% endif %}

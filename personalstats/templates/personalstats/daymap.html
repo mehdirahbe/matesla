@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load l10n %}
 {% load static %}
+{% load units_tags %}
 
 {% block title %}{% trans 'Day map' %} — {{ day_display }}{% endblock %}
 
@@ -340,25 +341,19 @@
             <th>{% trans 'SoC end' %}</th>
             <th title="{% trans 'Sum of SoC used on drives only' %}">{% trans 'SoC used' %}</th>
             <th title="{% trans 'SoC drop not explained by drives (park climate, dog/camp, sentry, preconditioning, vampire drain), after accounting for charges' %}">{% trans 'SoC outside driving' %}</th>
-            <th>{% trans 'kWh/100 km' %}</th>
+            <th>{{ u_energy }}</th>
         </tr>
         </thead>
         <tbody>
         <tr>
             <td>{% if day_duration_label %}{{ day_duration_label }}{% else %}—{% endif %}</td>
-            <td>
-                {% if miles_driven_km is not None %}{{ miles_driven_km|floatformat:1 }} km{% else %}—{% endif %}
-                {% if miles_driven is not None %}<span class="text-muted small">({{ miles_driven|floatformat:1 }} mi)</span>{% endif %}
-            </td>
-            <td>
-                {% if day_avg_kmh is not None %}{{ day_avg_kmh|floatformat:0 }} km/h{% else %}—{% endif %}
-                {% if day_avg_mph is not None %}<span class="text-muted small">({{ day_avg_mph|floatformat:0 }} mi/h)</span>{% endif %}
-            </td>
+            <td>{% dist_mi miles_driven decimals=1 %}</td>
+            <td>{% speed_mph day_avg_mph decimals=0 %}</td>
             <td>{% if day_soc_start is not None %}{{ day_soc_start|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if day_soc_end is not None %}{{ day_soc_end|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if day_soc_used is not None %}{{ day_soc_used|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if day_soc_non_drive is not None %}{{ day_soc_non_drive|floatformat:1 }} %{% else %}—{% endif %}</td>
-            <td>{% if day_kwh_per_100km is not None %}{{ day_kwh_per_100km|floatformat:1 }}{% else %}—{% endif %}</td>
+            <td>{% energy_kwh100 day_kwh_per_100km decimals=1 with_unit=False %}</td>
         </tr>
         </tbody>
     </table>
@@ -385,7 +380,7 @@
             <th>{% trans 'SoC start' %}</th>
             <th>{% trans 'SoC end' %}</th>
             <th>{% trans 'SoC used' %}</th>
-            <th>{% trans 'kWh/100 km' %}</th>
+            <th>{{ u_energy }}</th>
             <th>{% trans 'From → to' %}</th>
         </tr>
         </thead>
@@ -395,18 +390,12 @@
             <td>{{ d.start_local }}</td>
             <td>{{ d.end_local }}</td>
             <td>{{ d.minutes }} min</td>
-            <td>
-                {% if d.km is not None %}{{ d.km|floatformat:1 }} km{% else %}—{% endif %}
-                {% if d.miles is not None %}<span class="text-muted small">({{ d.miles|floatformat:1 }} mi)</span>{% endif %}
-            </td>
-            <td>
-                {% if d.avg_kmh is not None %}{{ d.avg_kmh|floatformat:0 }} km/h{% else %}—{% endif %}
-                {% if d.avg_mph is not None %}<span class="text-muted small">({{ d.avg_mph|floatformat:0 }} mi/h)</span>{% endif %}
-            </td>
+            <td>{% dist_mi d.miles decimals=1 %}</td>
+            <td>{% speed_mph d.avg_mph decimals=0 %}</td>
             <td>{% if d.soc_start is not None %}{{ d.soc_start|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if d.soc_end is not None %}{{ d.soc_end|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if d.soc_used is not None %}{{ d.soc_used|floatformat:1 }} %{% else %}—{% endif %}</td>
-            <td>{% if d.kwh_per_100km is not None %}{{ d.kwh_per_100km|floatformat:1 }}{% else %}—{% endif %}</td>
+            <td>{% energy_kwh100 d.kwh_per_100km decimals=1 with_unit=False %}</td>
             <td class="small">
                 {% include 'personalstats/_gmaps_link.html' with lat=d.lat lon=d.lon label=d.start_address %}
                 →

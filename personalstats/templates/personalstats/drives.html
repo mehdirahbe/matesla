@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% load static %}
+{% load units_tags %}
 
 {% block title %}{% trans 'Drives' %} — {{ sort_label }}{% endblock %}
 
@@ -111,7 +112,7 @@
         <h1 class="page-title">{% trans 'Drives' %}</h1>
         <p class="page-subtitle text-muted small mb-0">
             {{ sort_label }} ·
-            {% blocktrans with n=min_km|floatformat:0 %}Trips of at least {{ n }} km{% endblocktrans %}
+            {% blocktrans with n=min_distance_display|floatformat:0 u=u_dist %}Trips of at least {{ n }} {{ u }}{% endblocktrans %}
             ·
             {% blocktrans with n=max_trips %}Top {{ n }} longest as ranking pool{% endblocktrans %}
         </p>
@@ -185,7 +186,7 @@
             <th>{% trans 'SoC start' %}</th>
             <th>{% trans 'SoC end' %}</th>
             <th>{% trans 'SoC used' %}</th>
-            <th>{% trans 'kWh/100 km' %}</th>
+            <th>{{ u_energy }}</th>
             <th>{% trans 'From → to' %}</th>
             <th>{% trans 'Date' %}</th>
         </tr>
@@ -198,7 +199,7 @@
             <td class="drives-score">{{ d.score_display }}</td>
             {% endif %}
             <td{% if sort_key == 'longest' %} class="drives-score"{% endif %}>
-                {% if d.km is not None %}{{ d.km|floatformat:1 }} km{% else %}—{% endif %}
+                {% dist_mi d.miles decimals=1 %}
             </td>
             <td>
                 {% if d.duration_label %}{{ d.duration_label }}
@@ -206,7 +207,7 @@
                 {% else %}—{% endif %}
             </td>
             <td>
-                {% if d.avg_kmh is not None %}{{ d.avg_kmh|floatformat:0 }} km/h{% else %}—{% endif %}
+                {% speed_mph d.avg_mph decimals=0 %}
             </td>
             <td>
                 {% if d.temp_avg_c is not None %}
@@ -219,7 +220,7 @@
             <td>{% if d.soc_start is not None %}{{ d.soc_start|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td{% if sort_key == 'soc_end' %} class="drives-score"{% endif %}>{% if d.soc_end is not None %}{{ d.soc_end|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if d.soc_used is not None %}{{ d.soc_used|floatformat:1 }} %{% else %}—{% endif %}</td>
-            <td>{% if d.kwh_per_100km is not None %}{{ d.kwh_per_100km|floatformat:1 }}{% else %}—{% endif %}</td>
+            <td>{% energy_kwh100 d.kwh_per_100km decimals=1 with_unit=False %}</td>
             <td class="drives-route small">
                 {% include 'personalstats/_gmaps_link.html' with lat=d.lat lon=d.lon label=d.start_address %}
                 →

@@ -8,10 +8,24 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.template import loader
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods
+
+from matesla.units import (
+    KM_TO_MILES,
+    format_distance,
+    format_epa_range,
+    format_number,
+    format_speed_from_mph,
+    get_distance_unit,
+    miles_to_display,
+    normalize_unit,
+    redirect_url_for_unit,
+    set_distance_unit_cookie,
+)
 
 from matesla.TeslaConnect import *  # noqa: F403
 # SESSION_ACTIVE_VEHICLE_KEY, list_user_vehicles, resolve_active_vehicle, set_active_vehicle via *
@@ -36,6 +50,36 @@ from .models.TeslaAppSettings import TeslaAppSettings
 from .models.TeslaOAuthPending import TeslaOAuthPending
 from .models.TeslaToken import TeslaToken, TeslaVehicle
 from .models.VinHash import HashTheVin
+
+
+@require_http_methods(["GET", "POST"])
+@never_cache
+def view_set_distance_unit(request):
+    """
+    Persist km/mi preference in a cookie and redirect back.
+
+    GET ?unit=km|mi&next=/path  (also accepts POST unit=)
+
+    Redirect URL is cache-busted (`_du=mi`) so the browser cannot serve an HTML
+    page still rendered in the previous unit.
+    """
+    raw = request.POST.get("unit") or request.GET.get("unit")
+    unit = normalize_unit(raw)
+    next_url = request.POST.get("next") or request.GET.get("next") or "/"
+    # Relative paths are fine; block open redirects to other hosts.
+    if not url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = "/"
+    target = redirect_url_for_unit(next_url, unit)
+    response = redirect(target)
+    # Never let intermediaries or the browser keep the redirect/page pair stale.
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response["Pragma"] = "no-cache"
+    set_distance_unit_cookie(response, unit, secure=request.is_secure())
+    return response
 
 
 @csrf_exempt
@@ -207,7 +251,21 @@ def PreparestatusDictionary(request, user):
         if isinstance(nested, dict):
             context.update(nested)
 
-    context["batteryrange"] = "{:.0f}".format(params.batteryrange or 0)
+    unit = get_distance_unit(request)
+    # Tesla API distances are miles; TeslaConnect may already convert to km.
+    # Prefer raw miles when available so unit preference is applied once.
+    range_miles = getattr(params, "batteryrange_miles", None)
+    if range_miles is None and params.batteryrange:
+        # Legacy: batteryrange was always km after TeslaConnect conversion
+        range_miles = float(params.batteryrange) * KM_TO_MILES
+    odo_miles = getattr(params, "odometer_miles", None)
+    if odo_miles is None and params.OdometerInKm:
+        odo_miles = float(params.OdometerInKm) * KM_TO_MILES
+
+    context["batteryrange"] = format_number(miles_to_display(range_miles, unit), 0) or "0"
+    context["batteryrange_display"] = format_distance(
+        range_miles, unit, decimals=0, with_unit=True
+    )
     context["batterydegradation"] = (
         "{:.1f}".format(params.batterydegradation)
         if params.batterydegradation is not None
@@ -219,13 +277,26 @@ def PreparestatusDictionary(request, user):
     context["EPARangeMiles"] = (
         "{:.0f}".format(params.EPARangeMiles) if params.EPARangeMiles is not None else None
     )
+    context["EPARange_display"] = format_epa_range(params.EPARangeMiles, unit, decimals=0)
     vin = context.get("vin") or ""
     context["hashedVin"] = HashTheVin(vin) if vin else ""
     from matesla.VinAnalysis import GetVinDecoderUrl
 
     context["vin_decoder_url"] = GetVinDecoderUrl(vin)
     context["location"] = params.location or ""
-    context["OdometerInKm"] = "{:.0f}".format(params.OdometerInKm or 0)
+    context["OdometerInKm"] = format_number(miles_to_display(odo_miles, unit), 0) or "0"
+    context["Odometer_display"] = format_distance(
+        odo_miles, unit, decimals=0, with_unit=True
+    )
+    # Tesla speed is mph
+    speed_raw = context.get("speed")
+    try:
+        speed_mph = float(speed_raw) if speed_raw is not None else None
+    except (TypeError, ValueError):
+        speed_mph = None
+    context["speed_display"] = format_speed_from_mph(
+        speed_mph, unit, decimals=0, with_unit=True
+    )
 
     try:
         context["colorcode"] = returnColorFronContext(context)

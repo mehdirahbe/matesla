@@ -234,14 +234,17 @@ DRIVES_SORT_SPECS = {
 DRIVES_SORT_DEFAULT = "longest"
 
 
-def GetTitleForFieldDico():
-    dico = {
+def GetTitleForFieldDico(unit=None):
+    from matesla.units import unit_labels
+
+    dist = unit_labels(unit)["distance"]
+    return {
         "outside_temp": _("Outside temperature (°C)"),
         "driver_temp_setting": _("Driver temperature (°C)"),
         "inside_temp": _("Inside temperature (°C)"),
         "passenger_temp_setting": _("Passenger temperature (°C)"),
-        "odometer": _("Odometer (miles)"),
-        # Drive samples histogram (API stores mph; axis in km/h)
+        "odometer": _("Odometer (%(u)s)") % {"u": dist},
+        # Drive samples histogram (API stores mph; converted at bin time)
         "speed": _("Speed distribution"),
         "latitude": _("Latitude"),
         "longitude": _("Longitude"),
@@ -259,31 +262,54 @@ def GetTitleForFieldDico():
         "charger_phases": _("Charger phases"),
         "charger_power": _("Charger power distribution"),
         "charger_voltage": _("Charger voltage (V)"),
-        "est_battery_range": _("Estimated battery range (miles)"),
+        "est_battery_range": _("Estimated battery range (%(u)s)") % {"u": dist},
         "usable_battery_level": _("Usable battery level (%)"),
         "battery_degradation": _("Battery degradation (%)"),
         # Extrapolated full-charge range: battery_range / soc * 100
         # (wording avoids bare "%" — breaks gettext python-format matching)
-        "range_at_100": _("Range at full charge (miles)"),
-        "range_at_100_odometer": _("Range at full charge vs odometer (miles)"),
+        "range_at_100": _("Range at full charge (%(u)s)") % {"u": dist},
+        "range_at_100_odometer": _("Range at full charge vs odometer (%(u)s)")
+        % {"u": dist},
         # Trip efficiency vs rated range drop (100% = matched EPA-rated prediction)
         "efficiency_by_speed": _("Efficiency vs average speed"),
         "efficiency_by_temp": _("Efficiency vs outside temperature"),
         # Local estimate of Fleet Data $ from stored vehicle_data samples
         "fleet_poll_cost": _("Fleet poll cost (estimate)"),
     }
-    return dico
 
 
 # Return a nice title for field
-def GetTitleForField(field):
+def GetTitleForField(field, unit=None):
     if field is None:
         return field
-    dico = GetTitleForFieldDico()
+    dico = GetTitleForFieldDico(unit)
     if field in dico:
         return dico[field]
     # not found, return as is
     return field
+
+
+# Snapshot fields stored in miles that should convert for km display
+_MILES_VALUE_FIELDS = frozenset(
+    {
+        "odometer",
+        "battery_range",
+        "est_battery_range",
+        "ideal_battery_range",
+        "range_at_100",
+    }
+)
+
+
+def _scale_miles_series(values, unit):
+    """Convert a list of mile values to the active display unit (km or mi)."""
+    from matesla.units import is_km, MILES_TO_KM
+
+    if values is None:
+        return values
+    if not is_km(unit):
+        return values
+    return [v * MILES_TO_KM if v is not None else None for v in values]
 
 
 def _range_at_100_from_entry(entry):
@@ -697,19 +723,28 @@ def _monthly_temp_series(queryset, field_name):
 
 
 def _graph_png_cache_key(
-    hashed_vin, desired_field, desired_period_weeks, size, *, kind="stats"
+    hashed_vin,
+    desired_field,
+    desired_period_weeks,
+    size,
+    *,
+    kind="stats",
+    unit=None,
 ):
     """
     Cache key for generated graph PNGs.
 
     `kind` separates endpoints that share a field name (e.g. odometer time-series
     on StatsOnCarGraph vs odometer scatter on BatteryDegradationGraph).
-    Language is included because axis titles are translated.
+    Language and distance unit are included because axis titles / scales differ.
     """
+    from matesla.units import normalize_unit
+
     language = get_language() or "en"
+    dist_unit = normalize_unit(unit)
     return (
-        f"matesla:png:v2:{kind}:{hashed_vin}:{desired_field}:"
-        f"{desired_period_weeks}:{size}:{language}"
+        f"matesla:png:v3:{kind}:{hashed_vin}:{desired_field}:"
+        f"{desired_period_weeks}:{size}:{language}:{dist_unit}"
     )
 
 
@@ -1296,8 +1331,10 @@ def _load_efficiency_trips(queryset):
     return _extract_efficiency_trips_from_drive_rows(rows)
 
 
-def _efficiency_bins_for_queryset(queryset, *, by_speed: bool):
+def _efficiency_bins_for_queryset(queryset, *, by_speed: bool, unit=None):
     """1D histograms: efficiency vs speed or temperature."""
+    from matesla.units import is_km, km_to_display, unit_labels
+
     trips = _load_efficiency_trips(queryset)
     if by_speed:
         labels, eff, kms = _bin_trips(
@@ -1306,7 +1343,21 @@ def _efficiency_bins_for_queryset(queryset, *, by_speed: bool):
             bin_width=EFFICIENCY_SPEED_BIN_KMH,
             label_fmt=lambda lo, hi: f"{int(lo)}–{int(hi)}",
         )
-        xlabel = _("Average speed (km/h)")
+        # Convert bin labels + distance totals when displaying miles
+        if not is_km(unit):
+            converted = []
+            for label in labels:
+                try:
+                    lo_s, hi_s = label.split("–")
+                    lo = km_to_display(float(lo_s), unit)
+                    hi = km_to_display(float(hi_s), unit)
+                    converted.append(f"{int(lo)}–{int(hi)}")
+                except Exception:
+                    converted.append(label)
+            labels = converted
+            kms = [km_to_display(k, unit) or 0 for k in kms]
+        speed_u = unit_labels(unit)["speed"]
+        xlabel = _("Average speed (%(u)s)") % {"u": speed_u}
     else:
         labels, eff, kms = _bin_trips(
             trips,
@@ -1314,6 +1365,8 @@ def _efficiency_bins_for_queryset(queryset, *, by_speed: bool):
             bin_width=EFFICIENCY_TEMP_BIN_C,
             label_fmt=lambda lo, hi: f"{int(lo)}–{int(hi)}",
         )
+        if not is_km(unit):
+            kms = [km_to_display(k, unit) or 0 for k in kms]
         xlabel = _("Outside temperature (°C)")
     return labels, eff, kms, xlabel
 
@@ -1385,14 +1438,28 @@ def _iter_drive_sensor(queryset, *extra_fields, extra_q=None):
             break
 
 
-def _drive_speed_histogram(queryset):
-    """
-    Histogram of driving speed in km/h.
+# mph buckets roughly aligned with km/h chart (≈ same road-speed bands)
+DRIVE_SPEED_BUCKETS_MPH = (
+    ("0–12", 0, 12),
+    ("12–25", 12, 25),
+    ("25–37", 25, 37),
+    ("37–56", 37, 56),
+    ("56–68", 56, 68),
+    ("68–81", 68, 81),
+    ("≥ 81", 81, None),
+)
 
-    Tesla API stores speed in mi/h; we convert before bucketing so charts match
-    European-facing labels used elsewhere on the personal stats page.
+
+def _drive_speed_histogram(queryset, unit=None):
     """
-    bucket_counts = [0] * len(DRIVE_SPEED_BUCKETS_KMH)
+    Histogram of driving speed in the active unit (km/h or mph).
+
+    Tesla API stores speed in mi/h.
+    """
+    from matesla.units import is_km, MILES_TO_KM
+
+    buckets = DRIVE_SPEED_BUCKETS_KMH if is_km(unit) else DRIVE_SPEED_BUCKETS_MPH
+    bucket_counts = [0] * len(buckets)
     for sample_row in _iter_drive_sensor(
         queryset,
         "speed",
@@ -1409,15 +1476,15 @@ def _drive_speed_histogram(queryset):
             continue
         if speed_mph <= DAY_MAP_STOP_SPEED:
             continue
-        speed_kmh = speed_mph * 1.609344
-        bucket_counts[_range_bucket_index(speed_kmh, DRIVE_SPEED_BUCKETS_KMH)] += 1
+        speed_display = speed_mph * MILES_TO_KM if is_km(unit) else speed_mph
+        bucket_counts[_range_bucket_index(speed_display, buckets)] += 1
 
     sample_total = sum(bucket_counts)
     percentages = [
         (100.0 * count / sample_total) if sample_total else 0.0
         for count in bucket_counts
     ]
-    labels = [bucket[0] for bucket in DRIVE_SPEED_BUCKETS_KMH]
+    labels = [bucket[0] for bucket in buckets]
     return labels, bucket_counts, percentages
 
 
@@ -2147,11 +2214,16 @@ def GenerateChargeSessionHistogram(
     return GeneratePngFromGraph(figure, size=size)
 
 
-def GenerateEfficiencyBinGraph(labels, efficiency, km_totals, title, xlabel, size="full"):
+def GenerateEfficiencyBinGraph(
+    labels, efficiency, km_totals, title, xlabel, size="full", unit=None
+):
     """
-    Dual-axis chart: bars = km recorded in bin, line = mean efficiency %.
+    Dual-axis chart: bars = distance recorded in bin, line = mean efficiency %.
     Dark MaTesla style (not a TeslaFi clone).
     """
+    from matesla.units import unit_labels
+
+    dist_u = unit_labels(unit)["distance"]
     figure, style_config = make_figure(size)
     axes = figure.subplots()
     if labels and efficiency and len(labels) > 0:
@@ -2168,7 +2240,7 @@ def GenerateEfficiencyBinGraph(labels, efficiency, km_totals, title, xlabel, siz
             edgecolor=ACCENT,
             linewidth=0.4,
             zorder=1,
-            label=_("Distance recorded (km)"),
+            label=_("Distance recorded (%(u)s)") % {"u": dist_u},
         )
         axes.plot(
             x,
@@ -2200,7 +2272,7 @@ def GenerateEfficiencyBinGraph(labels, efficiency, km_totals, title, xlabel, siz
         axes.set_xticks(x)
         axes.set_xticklabels(labels, rotation=35, ha="right")
         axes.set_ylabel(_("Efficiency (%)"), color=MUTED)
-        axes_secondary.set_ylabel(_("Distance (km)"), color=MUTED)
+        axes_secondary.set_ylabel(_("Distance (%(u)s)") % {"u": dist_u}, color=MUTED)
         axes.set_xlabel(xlabel, color=MUTED)
         axes.set_ylim(bottom=max(0, min(efficiency) - 12), top=min(145, max(efficiency) + 12))
         axes_secondary.set_ylim(bottom=0, top=max(km_totals) * 1.25 if km_totals else 1)
@@ -2279,13 +2351,24 @@ def _period_filter(queryset, desiredperiod):
 # desiredperiod is expressed in weeks, 0 means all.
 # allow to disable cache when improving graphs and you want a constant reload
 # @never_cache
+def _distance_unit_from_request(request):
+    """Prefer explicit ?unit= on graph URLs (cache-bust), else cookie preference."""
+    from matesla.units import get_distance_unit, normalize_unit
+
+    raw = request.GET.get("unit")
+    if raw:
+        return normalize_unit(raw)
+    return get_distance_unit(request)
+
+
 def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
     response, isValid = SecurityChecks(hashedVin, desiredfield)
     if isValid is False:
         return response
+    unit = _distance_unit_from_request(request)
     size = graph_size_from_request(request)
     cache_key = _graph_png_cache_key(
-        hashedVin, desiredfield, desiredperiod, size
+        hashedVin, desiredfield, desiredperiod, size, unit=unit
     )
     try:
         hit = cache.get(cache_key)
@@ -2295,14 +2378,20 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
         return _png_response_from_bytes(hit, size, cache_status="HIT")
 
     response = _stats_on_car_graph_uncached(
-        request, hashedVin, desiredfield, desiredperiod, size
+        request, hashedVin, desiredfield, desiredperiod, size, unit=unit
     )
     return _cache_graph_png(cache_key, response, size)
 
 
-def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod, size):
+def _stats_on_car_graph_uncached(
+    request, hashedVin, desiredfield, desiredperiod, size, unit=None
+):
     """Actual PNG generation (no cache). Called by StatsOnCarGraph."""
-    title = GetTitleForField(desiredfield)
+    from matesla.units import get_distance_unit, is_km, unit_labels
+
+    unit = unit or get_distance_unit(request)
+    labels = unit_labels(unit)
+    title = GetTitleForField(desiredfield, unit=unit)
     # Fleet cost uses request log — works even with zero snapshots for this VIN
     if desiredfield == "fleet_poll_cost":
         days = _fleet_poll_window_days(desiredperiod)
@@ -2343,28 +2432,35 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
     # Trip efficiency histograms (not a raw time series field)
     if desiredfield in ("efficiency_by_speed", "efficiency_by_temp"):
         queryset = _period_filter(base, desiredperiod)
-        labels, eff, kms, xlabel = _efficiency_bins_for_queryset(
-            queryset, by_speed=(desiredfield == "efficiency_by_speed")
+        eff_labels, eff, kms, xlabel = _efficiency_bins_for_queryset(
+            queryset,
+            by_speed=(desiredfield == "efficiency_by_speed"),
+            unit=unit,
         )
         return GenerateEfficiencyBinGraph(
-            labels, eff, kms, title, xlabel, size=size
+            eff_labels, eff, kms, title, xlabel, size=size, unit=unit
         )
 
     # Drive speed distribution (replaces noisy min/avg/max time series)
     if desiredfield == "speed":
         queryset = _period_filter(base, desiredperiod)
-        labels, counts, pcts = _drive_speed_histogram(queryset)
+        speed_labels, counts, pcts = _drive_speed_histogram(queryset, unit=unit)
+        foot = (
+            _("drive samples only · Tesla speed converted mph→km/h")
+            if is_km(unit)
+            else _("drive samples only · Tesla speed in mph")
+        )
         return GenerateChargeSessionHistogram(
-            labels,
+            speed_labels,
             counts,
             pcts,
             title,
             size=size,
-            xlabel=_("Speed (km/h)"),
+            xlabel=_("Speed (%(u)s)") % {"u": labels["speed"]},
             amount_per_bucket=None,
             amount_unit=None,
             count_ylabel=_("Samples"),
-            foot_extra=_("drive samples only · Tesla speed converted mph→km/h"),
+            foot_extra=foot,
         )
 
     # Drive power distribution + regen vs traction energy estimate
@@ -2513,6 +2609,10 @@ def _stats_on_car_graph_uncached(request, hashedVin, desiredfield, desiredperiod
     dates, maxvalues, minvalues, avgvalues = GetDatesAndValuesFromGroupByDateResult(
         results
     )
+    if desiredfield in _MILES_VALUE_FIELDS:
+        maxvalues = _scale_miles_series(maxvalues, unit)
+        minvalues = _scale_miles_series(minvalues, unit)
+        avgvalues = _scale_miles_series(avgvalues, unit)
     return GenerateDateGraph(dates, maxvalues, minvalues, avgvalues, title, size=size)
 
 # Weeks values offered in the personal-stats period dropdown (1 Month = 4, 10 Years = 520).
@@ -2583,9 +2683,12 @@ def Stats(request, hashedVin):
     if not IsValidHash(hashedVin):
         # means invalid hashedVin field was passed
         return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    from matesla.units import get_distance_unit
+
     template = loader.get_template('personalstats/carstats.html')
     context = _vehicle_chrome_context(request, hashedVin)
-    context.update(GetTitleForFieldDico())
+    # Dropdown titles must follow km/mi preference (default was always km).
+    context.update(GetTitleForFieldDico(get_distance_unit(request)))
     return HttpResponse(template.render(context, request))
 
 
@@ -3518,14 +3621,22 @@ def _drives_score_label(sort_key):
     return labels.get(sort_key, labels[DRIVES_SORT_DEFAULT])
 
 
-def _format_drive_score(sort_key, trip):
+def _format_drive_score(sort_key, trip, unit=None):
     """Human score for the active ranking criterion."""
+    from matesla.units import format_distance, get_distance_unit
+
     field, _ = DRIVES_SORT_SPECS.get(sort_key, DRIVES_SORT_SPECS[DRIVES_SORT_DEFAULT])
     value = trip.get(field)
     if value is None:
         return "—"
     if sort_key == "longest":
-        return f"{value:.1f} km"
+        # Prefer raw miles when present so unit preference is applied once
+        miles = trip.get("miles")
+        if miles is not None:
+            return format_distance(miles, unit or get_distance_unit(), decimals=1)
+        return format_distance(
+            float(value) / 1.609344, unit or get_distance_unit(), decimals=1
+        )
     if sort_key in ("elev_up", "elev_down"):
         return f"{value:.0f} m"
     if sort_key in ("hot", "cold"):
@@ -4183,22 +4294,25 @@ def Drives(request, hashedVin):
         except Exception:
             return None
 
+    from matesla.units import get_distance_unit, km_to_display
+
+    unit = get_distance_unit(request)
     for rank_offset, drive in enumerate(page_drives, start=start_index + 1):
         drive["rank"] = rank_offset
-        drive["score_display"] = _format_drive_score(sort_key, drive)
+        drive["score_display"] = _format_drive_score(sort_key, drive, unit=unit)
         drive["start_address"] = addr_cached(drive.get("lat"), drive.get("lon"))
         drive["end_address"] = addr_cached(drive.get("end_lat"), drive.get("end_lon"))
 
     sort_choices = [
         {"key": key, "label": _drives_sort_label(key)} for key in DRIVES_SORT_SPECS
     ]
-
     context = _vehicle_chrome_context(request, hashedVin)
     context.update(
         {
             "drives": page_drives,
             "total_drives": total,
             "min_km": DRIVES_MIN_KM,
+            "min_distance_display": km_to_display(DRIVES_MIN_KM, unit),
             "max_trips": DRIVES_MAX_TRIPS,
             "sort_key": sort_key,
             "sort_label": _drives_sort_label(sort_key),
@@ -4247,24 +4361,64 @@ def LifetimeMapData(request, hashedVin):
         except (TypeError, ValueError):
             pass
 
+    from matesla.units import (
+        get_distance_unit,
+        is_km,
+        km_to_display,
+        unit_labels,
+        wh_per_km_to_display,
+    )
+
+    unit = get_distance_unit(request)
+    # Cache metric (km) payload only; convert per request for unit preference
     cache_key = f"lifetime_map_v1:{hashedVin}:{weeks}"
     cache_backend = None
+    payload = None
     try:
         from django.core.cache import cache as cache_backend
 
-        cached = cache_backend.get(cache_key)
-        if cached is not None:
-            return JsonResponse(cached)
+        payload = cache_backend.get(cache_key)
     except Exception:
         cache_backend = None
 
-    payload = _build_lifetime_map_payload(hashedVin, weeks)
-    if cache_backend is not None:
-        try:
-            cache_backend.set(cache_key, payload, LIFETIME_MAP_CACHE_SECONDS)
-        except Exception:
-            pass
-    return JsonResponse(payload)
+    if payload is None:
+        payload = _build_lifetime_map_payload(hashedVin, weeks)
+        if cache_backend is not None:
+            try:
+                cache_backend.set(cache_key, payload, LIFETIME_MAP_CACHE_SECONDS)
+            except Exception:
+                pass
+
+    # Shallow copy + unit-aware KPI fields (paths stay lat/lon)
+    out = dict(payload) if isinstance(payload, dict) else payload
+    if isinstance(out, dict) and out.get("ok"):
+        labels = unit_labels(unit)
+        km_driven = out.get("km_driven")
+        rated_km = out.get("rated_km_used")
+        wh_km = out.get("wh_per_km")
+        avg_kmh = out.get("avg_kmh")
+        dist = km_to_display(km_driven, unit)
+        rated = km_to_display(rated_km, unit)
+        wh = wh_per_km_to_display(wh_km, unit)
+        avg_speed = km_to_display(avg_kmh, unit)
+        out = {
+            **out,
+            "distance_unit": unit,
+            "u_dist": labels["distance"],
+            "u_speed": labels["speed"],
+            "u_wh_dist": labels["wh_dist"],
+            "distance_driven": round(dist, 1) if dist is not None else dist,
+            "rated_distance_used": round(rated, 1) if rated is not None else rated,
+            "wh_per_distance": round(wh) if wh is not None else wh,
+            "avg_speed": round(avg_speed, 1) if avg_speed is not None else avg_speed,
+            # Keep legacy keys for older clients, already in display unit
+            "km_driven": round(dist, 1) if dist is not None else dist,
+            "rated_km_used": round(rated, 1) if rated is not None else rated,
+            "wh_per_km": round(wh) if wh is not None else wh,
+            "avg_kmh": round(avg_speed, 1) if avg_speed is not None else avg_speed,
+            "is_metric": is_km(unit),
+        }
+    return JsonResponse(out)
 
 
 @require_GET
@@ -4378,14 +4532,15 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield, desiredperiod=0):
     Scatter graphs for battery health tab.
 
     - odometer: X=odometer, Y=battery_degradation (%)
-    - range_at_100_odometer: X=odometer, Y=extrapolated range at 100% SoC (miles)
+    - range_at_100_odometer: X=odometer, Y=extrapolated range at 100% SoC
 
     desiredperiod is weeks (0 = all), same meaning as StatsOnCarGraph / #DesiredPeriod.
     Optional query ?size=thumb|full (default full).
     """
+    unit = _distance_unit_from_request(request)
     size = graph_size_from_request(request)
     cache_key = _graph_png_cache_key(
-        hashedVin, desiredfield, desiredperiod, size, kind="degrad"
+        hashedVin, desiredfield, desiredperiod, size, kind="degrad", unit=unit
     )
     try:
         hit = cache.get(cache_key)
@@ -4395,21 +4550,23 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield, desiredperiod=0):
         return _png_response_from_bytes(hit, size, cache_status="HIT")
 
     response = _battery_degradation_graph_uncached(
-        hashedVin, desiredfield, desiredperiod, size
+        hashedVin, desiredfield, desiredperiod, size, unit=unit
     )
     return _cache_graph_png(cache_key, response, size)
 
 
-def _battery_degradation_graph_uncached(hashedVin, desiredfield, desiredperiod, size):
+def _battery_degradation_graph_uncached(
+    hashedVin, desiredfield, desiredperiod, size, unit=None
+):
     # Computed scatter (Y = range at 100%), not a real model field on X axis alone
     if desiredfield == "range_at_100_odometer":
         if not IsValidHash(hashedVin):
             return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
-        title = GetTitleForField(desiredfield)
+        title = GetTitleForField(desiredfield, unit=unit)
         base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
         queryset = _period_filter(degradation_scatter_queryset(base), desiredperiod)
         if not queryset.exists():
-            return GenerateScatterGraph(None, None, title, size=size)
+            return GenerateScatterGraph(None, None, title, size=size, unit=unit)
         # Full period (no row cap — [:N] by Date only kept early history).
         # Daily median collapses same-day BMS jitter (~1k days max for 10y).
         results = queryset.order_by("Date").values(
@@ -4421,17 +4578,19 @@ def _battery_degradation_graph_uncached(hashedVin, desiredfield, desiredperiod, 
             "charging_state",
         )
         xvalues, yvalues = GetXandYRangeAt100(results, "odometer")
-        return GenerateScatterGraph(xvalues, yvalues, title, size=size)
+        xvalues = _scale_miles_series(xvalues, unit)
+        yvalues = _scale_miles_series(yvalues, unit)
+        return GenerateScatterGraph(xvalues, yvalues, title, size=size, unit=unit)
 
     response, isValid = SecurityChecks(hashedVin, desiredfield)
     if isValid is False:
         return response
 
-    title = GetTitleForField(desiredfield)
+    title = GetTitleForField(desiredfield, unit=unit)
     base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
     queryset = _period_filter(degradation_scatter_queryset(base), desiredperiod)
     if not queryset.exists():
-        return GenerateScatterGraph(None, None, title, size=size)
+        return GenerateScatterGraph(None, None, title, size=size, unit=unit)
 
     # Must cover the whole period: capping by Date truncated high-mileage history
     # (e.g. 8000 dense TeslaFi rows ≈ only the first few 10k miles).
@@ -4444,7 +4603,9 @@ def _battery_degradation_graph_uncached(hashedVin, desiredfield, desiredperiod, 
         "charging_state",
     )
     xvalues, yvalues = GetXandYFromBatteryDegradResult(results, desiredfield)
-    return GenerateScatterGraph(xvalues, yvalues, title, size=size)
+    if desiredfield in _MILES_VALUE_FIELDS:
+        xvalues = _scale_miles_series(xvalues, unit)
+    return GenerateScatterGraph(xvalues, yvalues, title, size=size, unit=unit)
 
 # returns page with firmware history for the car
 class FirmwareHistoryView(SingleTableView):

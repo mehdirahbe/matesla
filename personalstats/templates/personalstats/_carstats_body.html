@@ -48,7 +48,7 @@
         </div>
         <div class="graph-card__media" data-graph-media>
             <img id="degradationGraphImg" class="lazyload" alt="{% trans 'Battery degradation graphs' %}"
-                 data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer' period %}?size=thumb" width="700" height="305">
+                 data-src="{% url 'PersoStatsBatteryDegradationGraph' hashedVin 'odometer' period %}?size=thumb&amp;unit={{ distance_unit }}" width="700" height="305">
         </div>
     </article>
 
@@ -77,7 +77,7 @@
         </div>
         <div class="graph-card__media" data-graph-media>
             <img id="chargeGraphImg" class="lazyload" alt="{% trans 'Charge related graphs' %}"
-                 data-src="{% url 'StatsOnCarGraph' hashedVin 'charger_power' period %}?size=thumb" width="700" height="305">
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'charger_power' period %}?size=thumb&amp;unit={{ distance_unit }}" width="700" height="305">
         </div>
     </article>
 
@@ -103,7 +103,7 @@
         </div>
         <div class="graph-card__media" data-graph-media>
             <img id="usageGraphImg" class="lazyload" alt="{% trans 'Trip efficiency graphs' %}"
-                 data-src="{% url 'StatsOnCarGraph' hashedVin 'efficiency_by_speed' period %}?size=thumb" width="700" height="305">
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'efficiency_by_speed' period %}?size=thumb&amp;unit={{ distance_unit }}" width="700" height="305">
         </div>
     </article>
 
@@ -129,7 +129,7 @@
         </div>
         <div class="graph-card__media" data-graph-media>
             <img id="temperatureGraphImg" class="lazyload" alt="{% trans 'Temperature related graphs' %}"
-                 data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' period %}?size=thumb" width="700" height="305">
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'outside_temp' period %}?size=thumb&amp;unit={{ distance_unit }}" width="700" height="305">
         </div>
     </article>
 
@@ -156,7 +156,7 @@
         </div>
         <div class="graph-card__media" data-graph-media>
             <img id="driveGraphImg" class="lazyload" alt="{% trans 'Drive related graphs' %}"
-                 data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' period %}?size=thumb" width="700" height="305">
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'odometer' period %}?size=thumb&amp;unit={{ distance_unit }}" width="700" height="305">
         </div>
     </article>
 
@@ -189,7 +189,7 @@
         </div>
         <div class="graph-card__media" data-graph-media>
             <img id="fleetPollGraphImg" class="lazyload" alt="{% trans 'Fleet poll cost' %}"
-                 data-src="{% url 'StatsOnCarGraph' hashedVin 'fleet_poll_cost' period %}?size=thumb" width="700" height="305">
+                 data-src="{% url 'StatsOnCarGraph' hashedVin 'fleet_poll_cost' period %}?size=thumb&amp;unit={{ distance_unit }}" width="700" height="305">
         </div>
     </article>
 </section>
@@ -198,6 +198,10 @@
 <section class="lifetime-map-card" aria-label="{% trans 'Lifetime map' %}"
          data-lifetime-map
          data-url="{% url 'PersoLifetimeMapData' hashedVin %}"
+         data-distance-unit="{{ distance_unit }}"
+         data-u-dist="{{ u_dist }}"
+         data-u-speed="{{ u_speed }}"
+         data-u-wh-dist="{{ u_wh_dist }}"
          data-leaflet-css="{% static 'leaflet/leaflet.css' %}"
          data-leaflet-js="{% static 'leaflet/leaflet.js' %}"
          data-leaflet-icon-base="{% static 'leaflet/images/' %}">
@@ -222,15 +226,15 @@
             <strong class="lifetime-kpi__value" data-k="drives">—</strong>
         </div>
         <div class="lifetime-kpi">
-            <span class="lifetime-kpi__label">{% trans 'Kilometers driven' %}</span>
+            <span class="lifetime-kpi__label">{% blocktrans with u=u_dist %}Distance driven ({{ u }}){% endblocktrans %}</span>
             <strong class="lifetime-kpi__value" data-k="km_driven">—</strong>
         </div>
         <div class="lifetime-kpi">
-            <span class="lifetime-kpi__label">{% trans 'Rated km used' %}</span>
+            <span class="lifetime-kpi__label">{% blocktrans with u=u_dist %}Rated {{ u }} used{% endblocktrans %}</span>
             <strong class="lifetime-kpi__value" data-k="rated_km_used">—</strong>
         </div>
         <div class="lifetime-kpi">
-            <span class="lifetime-kpi__label">{% trans 'Wh/km' %}</span>
+            <span class="lifetime-kpi__label">{{ u_wh_dist }}</span>
             <strong class="lifetime-kpi__value" data-k="wh_per_km">—</strong>
         </div>
         <div class="lifetime-kpi">

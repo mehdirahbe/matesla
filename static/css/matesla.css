@@ -244,6 +244,71 @@ img {
     gap: 9px;
 }
 
+/* Segmented control: pick km or mi (active option is not a link). */
+.unit-toggle {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 2px 2px 8px;
+    border: 1px solid var(--app-line);
+    border-radius: 999px;
+    background: rgba(16, 26, 43, 0.72);
+    gap: 4px;
+}
+
+.unit-toggle__label {
+    color: var(--app-subtle);
+    font-size: 0.68rem;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.unit-toggle__btn {
+    min-width: 2.15rem;
+    padding: 4px 9px;
+    border-radius: 999px;
+    color: var(--app-subtle);
+    font-size: 0.72rem;
+    font-weight: 720;
+    letter-spacing: 0.04em;
+    text-align: center;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+a.unit-toggle__btn:hover {
+    color: var(--app-text);
+    background: rgba(150, 195, 255, 0.08);
+}
+
+.unit-toggle__btn.is-active {
+    background: var(--app-surface-3);
+    color: var(--app-text);
+    box-shadow: inset 0 0 0 1px var(--app-line-strong);
+    cursor: default;
+    pointer-events: none;
+}
+
+.unit-toggle--footer {
+    margin: 0;
+}
+
+.unit-toggle--mobile {
+    margin-top: 6px;
+    width: 100%;
+    justify-content: stretch;
+    padding-left: 10px;
+}
+
+.unit-toggle--mobile .unit-toggle__btn {
+    flex: 1;
+    min-height: 36px;
+    display: grid;
+    place-items: center;
+}
+
 .header-link,
 .header-logout {
     border: 0;

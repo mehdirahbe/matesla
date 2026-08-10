@@ -1,3 +1,4 @@
+from matesla.units import attach_distance_unit
 from mysite.writable_access import (
     is_readonly_safe_post,
     is_writable_request,
@@ -6,6 +7,17 @@ from mysite.writable_access import (
 )
 
 _MUTATING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+
+
+class DistanceUnitMiddleware:
+    """Attach request.distance_unit from cookie (default km)."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        attach_distance_unit(request)
+        return self.get_response(request)
 
 
 class ReadOnlyRemoteMiddleware:

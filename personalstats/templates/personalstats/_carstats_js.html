@@ -4,12 +4,16 @@
 /*also inspired from stackoverflow*/
 // Placeholder 123456789 in URLs is replaced by #DesiredPeriod (weeks).
 // ?size=thumb for grid cards, ?size=full when expanded in lightbox.
+// ?unit=km|mi keeps graph PNG cache (browser + server) aligned with preference.
+
+var MATESLA_DISTANCE_UNIT = "{{ distance_unit|default:'km' }}";
 
 function withGraphSize(url, size) {
     if (!url) return url;
     try {
         var u = new URL(url, window.location.origin);
         u.searchParams.set("size", size);
+        u.searchParams.set("unit", MATESLA_DISTANCE_UNIT);
         return u.pathname + u.search + u.hash;
     } catch (e) {
         var hash = "";
@@ -23,6 +27,11 @@ function withGraphSize(url, size) {
             base = base.replace(/([?&])size=[^&]*/, "$1size=" + size);
         } else {
             base += (base.indexOf("?") >= 0 ? "&" : "?") + "size=" + size;
+        }
+        if (/([?&])unit=/.test(base)) {
+            base = base.replace(/([?&])unit=[^&]*/, "$1unit=" + MATESLA_DISTANCE_UNIT);
+        } else {
+            base += (base.indexOf("?") >= 0 ? "&" : "?") + "unit=" + MATESLA_DISTANCE_UNIT;
         }
         return base + hash;
     }
@@ -397,22 +406,37 @@ function fmtNum(v, digits) {
     });
 }
 
+function lifetimeUnitLabels() {
+    var root = document.querySelector("[data-lifetime-map]");
+    return {
+        dist: (root && root.getAttribute("data-u-dist")) || "km",
+        speed: (root && root.getAttribute("data-u-speed")) || "km/h",
+        wh: (root && root.getAttribute("data-u-wh-dist")) || "Wh/km"
+    };
+}
+
 function fillLifetimeKpis(data) {
     var root = document.getElementById("lifetime-kpis");
     if (!root || !data) return;
     root.hidden = false;
     var i18n = lifetimeMapI18n();
+    var units = lifetimeUnitLabels();
     var set = function (key, text) {
         var el = root.querySelector('[data-k="' + key + '"]');
         if (el) el.textContent = text;
     };
+    // Server returns values already converted to the active distance unit
+    var dist = data.distance_driven != null ? data.distance_driven : data.km_driven;
+    var rated = data.rated_distance_used != null ? data.rated_distance_used : data.rated_km_used;
+    var wh = data.wh_per_distance != null ? data.wh_per_distance : data.wh_per_km;
+    var avgSpeed = data.avg_speed != null ? data.avg_speed : data.avg_kmh;
     set("drives", fmtNum(data.drives, 0));
-    set("km_driven", data.km_driven != null ? fmtNum(data.km_driven, 0) + "\u00a0km" : "—");
-    set("rated_km_used", data.rated_km_used != null ? fmtNum(data.rated_km_used, 0) + "\u00a0km" : "—");
-    set("wh_per_km", data.wh_per_km != null ? fmtNum(data.wh_per_km, 0) + "\u00a0Wh/km" : "—");
+    set("km_driven", dist != null ? fmtNum(dist, 0) + "\u00a0" + units.dist : "—");
+    set("rated_km_used", rated != null ? fmtNum(rated, 0) + "\u00a0" + units.dist : "—");
+    set("wh_per_km", wh != null ? fmtNum(wh, 0) + "\u00a0" + units.wh : "—");
     set("efficiency_pct", data.efficiency_pct != null ? fmtNum(data.efficiency_pct, 1) + "\u00a0%" : "—");
     set("kwh_used", data.kwh_used != null ? fmtNum(data.kwh_used, 1) + "\u00a0kWh" : "—");
-    set("avg_kmh", data.avg_kmh != null ? fmtNum(data.avg_kmh, 1) + "\u00a0km/h" : "—");
+    set("avg_kmh", avgSpeed != null ? fmtNum(avgSpeed, 1) + "\u00a0" + units.speed : "—");
     set("avg_temp_c", data.avg_temp_c != null ? fmtNum(data.avg_temp_c, 1) + "\u00a0°C" : "—");
     set("drive_time", formatDriveTime(data.drive_time, i18n));
 }
