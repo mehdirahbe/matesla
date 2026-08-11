@@ -700,6 +700,7 @@ def capture_all_online_vehicles() -> dict:
 
     if not user_ids:
         _summarize_tesla_access(stats, messages, any_due=False, no_vehicles=True)
+        _run_geo_enrichment(stats, messages)
         return stats
 
     any_due = False
@@ -807,4 +808,29 @@ def capture_all_online_vehicles() -> dict:
                 _log(messages, f"  {label}: ERREUR inattendue — {type(exc).__name__}: {exc}")
 
     _summarize_tesla_access(stats, messages, any_due=any_due)
+    _run_geo_enrichment(stats, messages)
     return stats
+
+
+def _run_geo_enrichment(stats: dict, messages: list[str]) -> None:
+    """
+    Gentle geo backfill (Open-Meteo elev + Nominatim addresses).
+    Runs every capture tick, even when no Fleet poll was due.
+    """
+    try:
+        from matesla.geo_enrich import geo_enrichment_tick
+
+        geo = geo_enrichment_tick()
+        stats["geo"] = geo
+        elev_n = geo.get("elev_grids_filled") or 0
+        elev_snap = geo.get("elev_snapshots_updated") or 0
+        addr_n = geo.get("addr_resolved") or 0
+        if elev_n or elev_snap or addr_n or geo.get("elev_grids_requested"):
+            _log(
+                messages,
+                f"  Géo: elev {elev_n} grille(s) → {elev_snap} snapshot(s)"
+                f", adresses {addr_n}/{geo.get('addr_attempted') or 0}",
+            )
+    except Exception:
+        traceback.print_exc()
+        _log(messages, "  Géo: enrichissement en échec (voir traceback)")

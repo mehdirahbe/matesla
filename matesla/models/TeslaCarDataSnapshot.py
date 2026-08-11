@@ -447,6 +447,14 @@ class TeslaCarDataSnapshot(models.Model):
         # Defaults for NOT NULL legacy columns if somehow still required
         if self.charging_state is None:
             self.charging_state = "Unknown"
+        # Fleet rarely sends altitude; reuse DEM/TeslaFi grid cache when present.
+        if self.elevation is None and self.latitude is not None and self.longitude is not None:
+            try:
+                from matesla.geo_enrich import apply_cached_elevation_to_snapshot
+
+                apply_cached_elevation_to_snapshot(self)
+            except Exception:
+                pass
         self.save()
         return self
 

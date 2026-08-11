@@ -1,9 +1,11 @@
 """
-Reverse geocoding (lat/lon → address) via OpenStreetMap Nominatim.
+Geo cache: lat/lon → address (Nominatim) and/or elevation (Open-Meteo DEM).
 
 - Results are cached in the local DB (empty after a fresh install → real HTTP calls).
 - Nominatim usage policy: identify the app, max ~1 request/second, no bulk abuse.
   We enforce a min interval + a daily cap so a personal matesla instance is not blocked.
+- Elevation is filled by matesla.geo_enrich (capture cron); address may stay empty
+  until reverse-geocode is needed or the address backfill queue picks the grid.
 """
 
 from __future__ import annotations
@@ -18,10 +20,16 @@ from geopy.geocoders import Nominatim
 
 
 class AddressFromLatLong(models.Model):
-    latitude = models.FloatField()  # IE 50.79621
-    longitude = models.FloatField()  # IE 4.335445
-    address = models.TextField()
+    """Grid cache (~11 m at 4 decimals). Address and elevation are independent."""
+
+    latitude = models.FloatField()  # IE 50.7962 (typically round 4)
+    longitude = models.FloatField()  # IE 4.3354
+    # Empty until Nominatim succeeds; elev-only rows are allowed.
+    address = models.TextField(blank=True, default="")
     date = models.DateField()
+    # Metres above sea level (Open-Meteo DEM or legacy TeslaFi). Null = unknown.
+    elevation = models.FloatField(null=True, blank=True)
+    elevation_fetched_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         indexes = [
@@ -300,7 +308,7 @@ def LookupCachedAddress(latitude, longitude):
     ).first()
     if not row:
         return None
-    cleaned = CleanAddressDisplay(row.address)
+    cleaned = CleanAddressDisplay(row.address or "")
     if not cleaned or cleaned == "Unknown":
         return None
     return cleaned
@@ -313,6 +321,8 @@ def GetAddressFromLatLong(latitude, longitude):
     Empty DB after project revive → real HTTP calls until the point is cached.
     Daily cap + 1 req/s so we stay within public Nominatim politeness rules.
     Prefer LookupCachedAddress() on hot page renders; call this from async API.
+
+    Preserves an existing elevation cache row when only the address was missing.
     """
     cached = LookupCachedAddress(latitude, longitude)
     if cached is not None:
@@ -339,12 +349,24 @@ def GetAddressFromLatLong(latitude, longitude):
         if not display:
             return "Unknown"
 
-        add = AddressFromLatLong()
-        add.latitude = latitude
-        add.longitude = longitude
-        add.address = display
-        add.date = now().date()
-        add.save()
+        row, created = AddressFromLatLong.objects.get_or_create(
+            latitude=latitude,
+            longitude=longitude,
+            defaults={
+                "address": display,
+                "date": now().date(),
+            },
+        )
+        if not created:
+            # Elev-only or previous Unknown — fill address without wiping elevation.
+            if not (row.address or "").strip() or CleanAddressDisplay(row.address) in (
+                "",
+                "Unknown",
+                None,
+            ):
+                row.address = display
+                row.date = now().date()
+                row.save(update_fields=["address", "date"])
         return display
     except Exception:
         return "Unknown"
