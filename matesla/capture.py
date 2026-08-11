@@ -14,6 +14,7 @@ cron logs / the Django console show whether Tesla access worked and why not.
 from __future__ import annotations
 
 import json
+import threading
 import traceback
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -37,6 +38,10 @@ from matesla.TeslaOAuth import TeslaOAuthError, ensure_fresh_access_token
 from matesla.TeslaState import TeslaState
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaToken import TeslaToken, TeslaVehicle
+
+# One capture at a time per process (gunicorn --threads N). Cron may fire every
+# minute; a slow Fleet/geo tick must not start a second run in parallel.
+_capture_lock = threading.Lock()
 
 # Civil clock for night/day windows (household local time).
 CAPTURE_TZ = ZoneInfo("Europe/Brussels")
@@ -670,7 +675,39 @@ def capture_all_online_vehicles() -> dict:
     """
     Walk vehicles; only call Fleet when at least one car is due under adaptive policy.
     One /vehicles list per user token, then vehicle_data only for due + online cars.
+
+    Concurrent calls (cron overlap with multi-threaded gunicorn) return immediately
+    with skipped_already_running=True — robustness lives in the app, not the crontab.
     """
+    if not _capture_lock.acquire(blocking=False):
+        messages = [
+            "Capture ignorée: une autre capture est déjà en cours "
+            "(protection anti-chevauchement)."
+        ]
+        return {
+            "saved": 0,
+            "skipped_offline": 0,
+            "skipped_error": 0,
+            "skipped_wait": 0,
+            "token_error": 0,
+            "fleet_limit": 0,
+            "fleet_calls": 0,
+            "list_ok": False,
+            "list_error": None,
+            "messages": messages,
+            "skipped_already_running": True,
+            "tesla_access": "not_called",
+            "tesla_access_ok": None,
+            "tesla_access_detail": "capture déjà en cours",
+        }
+    try:
+        return _capture_all_online_vehicles_locked()
+    finally:
+        _capture_lock.release()
+
+
+def _capture_all_online_vehicles_locked() -> dict:
+    """Body of capture_all_online_vehicles; caller holds _capture_lock."""
     messages: list[str] = []
     stats: dict = {
         "saved": 0,
@@ -683,6 +720,7 @@ def capture_all_online_vehicles() -> dict:
         "list_ok": False,
         "list_error": None,
         "messages": messages,
+        "skipped_already_running": False,
     }
     now = timezone.now()
     local = now.astimezone(CAPTURE_TZ)

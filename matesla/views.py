@@ -87,10 +87,13 @@ def view_set_distance_unit(request):
 @require_http_methods(["GET", "POST"])
 def view_internal_capture(request):
     """
-    Run TeslaFi capture inside the web process (same SQLite connection).
+    Run Tesla capture inside the web process (same SQLite connection).
 
     Prefer this from cron instead of `manage.py TakeTeslaCarDataSnapshot`, which
     starts a second Python process and can lock SQLite while gunicorn serves.
+
+    If a capture is already running (multi-threaded gunicorn + cron overlap),
+    returns immediately with skipped_already_running=true (HTTP 200).
 
     No auth: intended for localhost-only installs (not exposed to the internet).
     """

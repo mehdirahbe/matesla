@@ -9,9 +9,11 @@ User=@MATESLA_USER@
 Group=@MATESLA_GROUP@
 WorkingDirectory=@MATESLA_ROOT@
 EnvironmentFile=-@MATESLA_ROOT@/.env
-# One worker: SQLite + in-process capture (/matesla/internal/capture).
+# One worker + several threads: SQLite stays single-process; threads let the UI
+# answer while capture waits on Tesla I/O. Capture itself is serialized in-app
+# (matesla.capture._capture_lock) so cron cannot stack concurrent Fleet polls.
 # Bind localhost only — use Tailscale Serve (or similar) if you need remote access.
-ExecStart=@MATESLA_ROOT@/.venv/bin/gunicorn mysite.wsgi:application --bind 127.0.0.1:8001 --reload --timeout 200 --workers 1
+ExecStart=@MATESLA_ROOT@/.venv/bin/gunicorn mysite.wsgi:application --bind 127.0.0.1:8001 --reload --timeout 200 --workers 1 --threads 4
 # Start at boot, but do NOT restart if killed (so you can free the port for runserver).
 Restart=no
 

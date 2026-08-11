@@ -354,8 +354,10 @@ SQLite does not like two Django processes writing at once (web on port 8001
 **plus** a second `python manage.py …`). Prefer:
 
 1. **One** web process only, bound to localhost, e.g.  
-   `gunicorn mysite.wsgi --bind 127.0.0.1:8001 --workers 1`  
-   (or `runserver 8001` for dev)
+   `gunicorn mysite.wsgi --bind 127.0.0.1:8001 --workers 1 --threads 4`  
+   (or `runserver 8001` for dev). Threads keep the UI responsive during Fleet
+   I/O; a process-wide lock refuses a second `/internal/capture` if one is
+   already running (cron overlap).
 2. Cron that only runs **curl** against that process (capture runs *inside*
    the web process → same DB connection)
 

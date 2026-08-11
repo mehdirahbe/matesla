@@ -36,6 +36,9 @@ OPEN_METEO_ELEVATION_URL = "https://api.open-meteo.com/v1/elevation"
 OPEN_METEO_TIMEOUT_SEC = 12
 
 # Per capture tick (override in settings if needed).
+# Aggressive on purpose while the historical null-elev backlog drains
+# (~100 Open-Meteo grids/min + full propagate per cell). UI may hitch during
+# that window; once done, only new GPS points need filling (cheap).
 DEFAULT_ELEV_BATCH = 100
 DEFAULT_ELEV_SCAN = 2500
 DEFAULT_ADDR_PER_TICK = 1
@@ -169,7 +172,8 @@ def fetch_open_meteo_elevations(
 def propagate_elevation_to_snapshots(lat4: float, lon4: float, elev_m: float) -> int:
     """
     Set snapshot.elevation only where NULL for GPS near this grid cell.
-    Does not overwrite TeslaFi / prior values.
+    Does not overwrite TeslaFi / prior values. Unbounded on purpose while
+    the historical backlog drains (one popular cell can update many rows).
     """
     return TeslaCarDataSnapshot.objects.filter(
         elevation__isnull=True,
@@ -205,13 +209,12 @@ def _collect_grids_missing_elevation(max_grids: int) -> list[tuple[float, float]
             continue
         if key in grids:
             continue
-        # Skip grids already cached with elevation (snapshot lag before propagate)
+        # Already in cache: full-propagate remaining null snapshots for this cell
         if (
             AddressFromLatLong.objects.filter(
                 latitude=key[0], longitude=key[1], elevation__isnull=False
             ).exists()
         ):
-            # Propagate stale snapshots for this known elev and continue
             elev = lookup_cached_elevation(key[0], key[1])
             if elev is not None:
                 propagate_elevation_to_snapshots(key[0], key[1], elev)
@@ -226,7 +229,7 @@ def enrich_elevations_once(
     batch_size: int | None = None,
     session: requests.Session | None = None,
 ) -> dict:
-    """One Open-Meteo batch + cache upsert + snapshot propagate."""
+    """One Open-Meteo batch + cache upsert + full snapshot propagate per grid."""
     limit = batch_size if batch_size is not None else _elev_batch_size()
     limit = max(1, min(100, limit))
     stats = {
