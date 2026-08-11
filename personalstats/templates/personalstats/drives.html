@@ -72,10 +72,16 @@
         vertical-align: middle;
         padding: 8px 10px;
     }
+    /* Date before route so the day-map link stays in view when the score
+       column is shown (elev/temp sorts). Route is the wide, scrollable tail. */
+    .drives-table-wrap th.drives-date,
+    .drives-table-wrap td.drives-date {
+        min-width: 7.5rem;
+    }
     .drives-table-wrap td.drives-route {
         white-space: normal;
-        min-width: 16rem;
-        max-width: 28rem;
+        min-width: 14rem;
+        max-width: 22rem;
         overflow-wrap: anywhere;
     }
     .drives-table-wrap a.day-link {
@@ -123,7 +129,7 @@
     <form method="get" action="{% url 'PersoDrives' hashedVin %}" id="drives-form">
         <div>
             <label for="drives-period">{% trans 'Period' %}</label>
-            <select name="period" id="drives-period" class="form-control form-control-sm">
+            <select name="period" id="drives-period" class="form-control form-control-sm" onchange="this.form.submit()">
                 <option value="1" {% if stats_period == 1 %}selected{% endif %}>{% trans '1 Week' %}</option>
                 <option value="2" {% if stats_period == 2 %}selected{% endif %}>{% trans '2 Weeks' %}</option>
                 <option value="4" {% if stats_period == 4 %}selected{% endif %}>{% trans '1 Month' %}</option>
@@ -137,7 +143,7 @@
         </div>
         <div>
             <label for="drives-sort">{% trans 'Rank by' %}</label>
-            <select name="sort" id="drives-sort" class="form-control form-control-sm">
+            <select name="sort" id="drives-sort" class="form-control form-control-sm" onchange="this.form.submit()">
                 {% for choice in sort_choices %}
                 <option value="{{ choice.key }}" {% if sort_key == choice.key %}selected{% endif %}>{{ choice.label }}</option>
                 {% endfor %}
@@ -145,16 +151,13 @@
         </div>
         <div>
             <label for="drives-page-size">{% trans 'Show' %}</label>
-            <select name="page_size" id="drives-page-size" class="form-control form-control-sm">
+            <select name="page_size" id="drives-page-size" class="form-control form-control-sm" onchange="this.form.submit()">
                 {% for size in page_sizes %}
                 <option value="{{ size }}" {% if page_size == size %}selected{% endif %}>{{ size }}</option>
                 {% endfor %}
             </select>
         </div>
-        <div>
-            <label class="sr-only" for="drives-apply">{% trans 'Apply' %}</label>
-            <button type="submit" id="drives-apply" class="btn btn-primary btn-sm">{% trans 'Apply' %}</button>
-        </div>
+        <noscript><button type="submit" class="btn btn-primary btn-sm">{% trans 'Apply' %}</button></noscript>
     </form>
 </div>
 
@@ -187,8 +190,8 @@
             <th>{% trans 'SoC end' %}</th>
             <th>{% trans 'SoC used' %}</th>
             <th>{{ u_energy }}</th>
+            <th class="drives-date">{% trans 'Date' %}</th>
             <th>{% trans 'From → to' %}</th>
-            <th>{% trans 'Date' %}</th>
         </tr>
         </thead>
         <tbody>
@@ -221,16 +224,16 @@
             <td{% if sort_key == 'soc_end' %} class="drives-score"{% endif %}>{% if d.soc_end is not None %}{{ d.soc_end|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if d.soc_used is not None %}{{ d.soc_used|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% energy_kwh100 d.kwh_per_100km decimals=1 with_unit=False %}</td>
-            <td class="drives-route small">
-                {% include 'personalstats/_gmaps_link.html' with lat=d.lat lon=d.lon label=d.start_address %}
-                →
-                {% include 'personalstats/_gmaps_link.html' with lat=d.end_lat lon=d.end_lon label=d.end_address %}
-            </td>
-            <td>
+            <td class="drives-date">
                 <a class="day-link" href="{% url 'PersoDayMapDay' hashedVin d.day_iso %}" title="{% trans 'Open day map' %}">
                     {{ d.date_display }}
                 </a>
                 <span class="text-muted small d-block">{{ d.start_local }}–{{ d.end_local }}</span>
+            </td>
+            <td class="drives-route small">
+                {% include 'personalstats/_gmaps_link.html' with lat=d.lat lon=d.lon label=d.start_address %}
+                →
+                {% include 'personalstats/_gmaps_link.html' with lat=d.end_lat lon=d.end_lon label=d.end_address %}
             </td>
         </tr>
         {% endfor %}

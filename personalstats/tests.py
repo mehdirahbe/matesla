@@ -221,6 +221,16 @@ class PersonalStatsPageTests(TestCase):
                 f"?sort={sort}&period=520"
             )
             self.assertEqual(response.status_code, 200, sort)
+            # Date (day-map link) must stay present for every ranking —
+            # only the optional score column toggles with sort.
+            self.assertContains(response, "drives-date", msg_prefix=sort)
+            self.assertContains(response, "Open day map", msg_prefix=sort)
+            # elev/temp sorts insert an extra dedicated score <th>;
+            # longest/soc_end reuse Distance / SoC end instead.
+            if sort == "elev_up":
+                self.assertContains(response, "Elevation gain", msg_prefix=sort)
+            elif sort == "elev_down":
+                self.assertContains(response, "Elevation loss", msg_prefix=sort)
 
     def test_drives_leaderboard_has_long_trips(self):
         from personalstats.views import _load_ranked_drives, DRIVES_MIN_KM
