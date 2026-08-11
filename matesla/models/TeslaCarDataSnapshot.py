@@ -158,6 +158,11 @@ class TeslaCarDataSnapshot(models.Model):
                 name="matesla_snapshot_drive_hv_date",
                 condition=Q(shift_state__in=["D", "R", "N"]) | Q(speed__gt=1),
             ),
+            # Geo elevation backfill / lat-lon range lookups (Open-Meteo DEM).
+            models.Index(
+                fields=["latitude", "longitude"],
+                name="matesla_snap_lat_lon_idx",
+            ),
         ]
         constraints = [
             models.UniqueConstraint(

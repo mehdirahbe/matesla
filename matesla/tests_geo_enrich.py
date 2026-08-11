@@ -13,6 +13,7 @@ from matesla.geo_enrich import (
     enrich_elevations_once,
     fetch_open_meteo_elevations,
     lookup_cached_elevation,
+    propagate_elevation_to_ids,
     propagate_elevation_to_snapshots,
     round_grid,
     upsert_grid_elevation,
@@ -111,6 +112,71 @@ class ElevationCacheTests(TestCase):
         s_keep.refresh_from_db()
         self.assertEqual(s_null.elevation, 77.0)
         self.assertEqual(s_keep.elevation, 999.0)
+
+    def test_propagate_by_ids_only_null(self):
+        vin = "LRWYGCEK0NC000003"
+        hv = HashTheVin(vin)
+        base = timezone.now()
+        a = TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=hv,
+            Date=base,
+            DateOnlyDay=base.date(),
+            latitude=50.0,
+            longitude=4.0,
+            elevation=None,
+            charging_state="Disconnected",
+            randomNr=0.4,
+        )
+        b = TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=hv,
+            Date=base + timedelta(minutes=1),
+            DateOnlyDay=base.date(),
+            latitude=50.0,
+            longitude=4.0,
+            elevation=10.0,
+            charging_state="Disconnected",
+            randomNr=0.5,
+        )
+        n = propagate_elevation_to_ids([a.id, b.id], 55.0)
+        self.assertEqual(n, 1)
+        a.refresh_from_db()
+        b.refresh_from_db()
+        self.assertEqual(a.elevation, 55.0)
+        self.assertEqual(b.elevation, 10.0)
+
+    def test_enrich_noop_when_no_null_elev(self):
+        stats = enrich_elevations_once()
+        self.assertTrue(stats.get("elev_noop"))
+        self.assertEqual(stats.get("elev_snapshots_updated"), 0)
+
+    def test_enrich_uses_cache_without_http(self):
+        vin = "LRWYGCEK0NC000004"
+        hv = HashTheVin(vin)
+        base = timezone.now()
+        lat, lon = 51.0, 5.0
+        lat4, lon4 = round_grid(lat, lon)
+        upsert_grid_elevation(lat4, lon4, 123.0)
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=hv,
+            Date=base,
+            DateOnlyDay=base.date(),
+            latitude=lat,
+            longitude=lon,
+            elevation=None,
+            charging_state="Disconnected",
+            randomNr=0.6,
+        )
+        session = MagicMock()
+        stats = enrich_elevations_once(session=session)
+        session.get.assert_not_called()
+        self.assertEqual(stats["elev_grids_requested"], 0)
+        self.assertGreaterEqual(stats["elev_snapshots_updated"], 1)
+        self.assertEqual(
+            TeslaCarDataSnapshot.objects.get(vin=vin).elevation, 123.0
+        )
 
     def test_apply_cached_on_snapshot_object(self):
         lat, lon = 46.18805, 6.133777
