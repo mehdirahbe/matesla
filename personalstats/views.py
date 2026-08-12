@@ -40,6 +40,7 @@ from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.VinHash import IsValidHash
 from django.core.cache import cache
+from django.db import connection
 from django.utils import timezone
 from django.utils.translation import get_language, gettext as _
 from datetime import date, datetime, timedelta, timezone as dt_timezone
@@ -1290,52 +1291,70 @@ def _downsample_rows_inplace(rows, max_rows):
     return rows[::step][:max_rows]
 
 
-def _load_efficiency_trips(queryset):
+def _load_efficiency_trips(hashed_vin, desiredperiod=None):
     """
     Shared trip list for 1D/2D efficiency charts.
-    SQL drive filter + single scan thin to EFFICIENCY_MAX_DRIVE_ROWS.
-    """
-    drive_qs = (
-        queryset.filter(_drive_filter_q())
-        .order_by("Date")
-        .values(
-            "Date",
-            "speed",
-            "odometer",
-            "battery_range",
-            "ideal_battery_range",
-            "outside_temp",
-        )
-    )
 
-    rows = []
+    Drive-only samples, thinned to EFFICIENCY_MAX_DRIVE_ROWS with the same
+    progressive even subsample as before — but via raw SQL tuples (not ORM
+    .values().iterator()), which dominates cold efficiency_by_* PNG time.
+    """
+    where = [
+        "hashedVin = %s",
+        "(shift_state IN ('D', 'R', 'N') OR speed > %s)",
+    ]
+    params: list = [hashed_vin, DAY_MAP_STOP_SPEED]
+    mindate = _lifetime_map_period_mindate(desiredperiod)
+    if mindate is not None:
+        where.append("DateOnlyDay >= %s")
+        params.append(mindate.date() if hasattr(mindate, "date") else mindate)
+
+    where_sql = " AND ".join(where)
+    table = TeslaCarDataSnapshot._meta.db_table
+    # speed unused for trip KPIs; keep columns minimal for the scan
+    cols = "Date, odometer, battery_range, ideal_battery_range, outside_temp"
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            f"SELECT {cols} FROM {table} WHERE {where_sql} ORDER BY Date",
+            params,
+        )
+        raw_rows = cursor.fetchall()
+
     cap = EFFICIENCY_MAX_DRIVE_ROWS
-    for sample in drive_qs.iterator(chunk_size=4000):
-        sample_time = sample.get("Date")
+    # Progressive even thin on tuples (same semantics as the old dict path)
+    kept: list = []
+    for sample_time, odometer, battery_range, ideal_battery_range, outside_temp in raw_rows:
         if sample_time is None:
             continue
-        rows.append(
-            {
-                "t": sample_time,
-                "speed": sample.get("speed"),
-                "odometer": sample.get("odometer"),
-                "battery_range": sample.get("battery_range"),
-                "ideal_battery_range": sample.get("ideal_battery_range"),
-                "outside_temp": sample.get("outside_temp"),
-            }
+        kept.append(
+            (sample_time, odometer, battery_range, ideal_battery_range, outside_temp)
         )
-        if len(rows) >= cap * 2:
-            rows = rows[::2]
+        if len(kept) >= cap * 2:
+            kept = kept[::2]
 
-    rows = _downsample_rows_inplace(rows, cap)
+    if len(kept) > cap:
+        step = max(1, (len(kept) + cap - 1) // cap)
+        kept = kept[::step][:cap]
+
+    rows = [
+        {
+            "t": sample_time,
+            "odometer": odometer,
+            "battery_range": battery_range,
+            "ideal_battery_range": ideal_battery_range,
+            "outside_temp": outside_temp,
+        }
+        for sample_time, odometer, battery_range, ideal_battery_range, outside_temp in kept
+    ]
     return _extract_efficiency_trips_from_drive_rows(rows)
 
 
-def _efficiency_bins_for_queryset(queryset, *, by_speed: bool, unit=None):
+def _efficiency_bins_for_car(hashed_vin, desiredperiod, *, by_speed: bool, unit=None):
     """1D histograms: efficiency vs speed or temperature."""
     from matesla.units import is_km, km_to_display, unit_labels
 
-    trips = _load_efficiency_trips(queryset)
+    trips = _load_efficiency_trips(hashed_vin, desiredperiod)
     if by_speed:
         labels, eff, kms = _bin_trips(
             trips,
@@ -2431,9 +2450,9 @@ def _stats_on_car_graph_uncached(
 
     # Trip efficiency histograms (not a raw time series field)
     if desiredfield in ("efficiency_by_speed", "efficiency_by_temp"):
-        queryset = _period_filter(base, desiredperiod)
-        eff_labels, eff, kms, xlabel = _efficiency_bins_for_queryset(
-            queryset,
+        eff_labels, eff, kms, xlabel = _efficiency_bins_for_car(
+            hashedVin,
+            desiredperiod,
             by_speed=(desiredfield == "efficiency_by_speed"),
             unit=unit,
         )
@@ -2907,43 +2926,71 @@ def _thin_segments_to_cap(segments, max_points):
     return thinned
 
 
+def _lifetime_map_period_mindate(desired_period_weeks):
+    """Match _period_filter: weeks → lower bound, or None for all history."""
+    if desired_period_weeks is not None and desired_period_weeks > 0:
+        return datetime.now() - timedelta(weeks=int(desired_period_weeks))
+    return None
+
+
+def _fetch_lifetime_drive_gps_rows(hashed_vin, desired_period_weeks):
+    """
+    All drive-GPS rows for the lifetime map as plain tuples (not ORM dicts).
+
+    Avoid Django .values().iterator() over 100k+ rows — raw SQL + tuples is
+    ~2–3× faster cold and keeps trip KPIs exact (every sample).
+    """
+    where = [
+        "hashedVin = %s",
+        "(shift_state IN ('D', 'R', 'N') OR speed > %s)",
+        "latitude IS NOT NULL",
+        "longitude IS NOT NULL",
+    ]
+    params: list = [hashed_vin, DAY_MAP_STOP_SPEED]
+    mindate = _lifetime_map_period_mindate(desired_period_weeks)
+    if mindate is not None:
+        # Same field as _period_filter (DateOnlyDay index on hashedVin).
+        where.append("DateOnlyDay >= %s")
+        params.append(mindate.date() if hasattr(mindate, "date") else mindate)
+
+    where_sql = " AND ".join(where)
+    table = TeslaCarDataSnapshot._meta.db_table
+    cols = (
+        "Date, latitude, longitude, odometer, battery_range, "
+        "ideal_battery_range, outside_temp"
+    )
+    with connection.cursor() as cursor:
+        cursor.execute(
+            f"SELECT {cols} FROM {table} WHERE {where_sql} ORDER BY Date",
+            params,
+        )
+        return cursor.fetchall()
+
+
 def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
     """
     Build lifetime-map JSON: drive GPS polylines + summary KPIs for a period.
 
     Performance strategy:
-    - KPIs (km, energy, trips...) are computed on almost every sample → accurate.
-    - Map path uses stride + distance thinning → stays fast even with 500k+ rows.
+    - Raw SQL tuples (not ORM iterator) for the full drive-GPS stream → KPIs exact.
+    - Path uses even stride + distance thinning (LIFETIME_MAP_MAX_SCAN / POINTS).
     """
-    base_queryset = TeslaCarDataSnapshot.objects.filter(hashedVin=hashed_vin)
-    period_queryset = _period_filter(base_queryset, desired_period_weeks)
-    drive_gps_queryset = (
-        period_queryset.filter(_drive_filter_q())
-        .filter(latitude__isnull=False, longitude__isnull=False)
-        .order_by("Date")
-        .values(
-            "Date",
-            "latitude",
-            "longitude",
-            "odometer",
-            "battery_range",
-            "ideal_battery_range",
-            "outside_temp",
-            "speed",
-            "vin",
-        )
+    sample_rows = _fetch_lifetime_drive_gps_rows(
+        hashed_vin, desired_period_weeks
     )
-
-    try:
-        total_drive_gps_samples = drive_gps_queryset.count()
-    except Exception:
-        total_drive_gps_samples = 0
-
+    total_drive_gps_samples = len(sample_rows)
     sample_stride = (
-        max(1, (total_drive_gps_samples + LIFETIME_MAP_MAX_SCAN - 1) // LIFETIME_MAP_MAX_SCAN)
-        if total_drive_gps_samples else 1
+        max(
+            1,
+            (total_drive_gps_samples + LIFETIME_MAP_MAX_SCAN - 1)
+            // LIFETIME_MAP_MAX_SCAN,
+        )
+        if total_drive_gps_samples
+        else 1
     )
-    minimum_move_meters = LIFETIME_MAP_MIN_MOVE_M * (1.0 + 0.5 * (sample_stride - 1))
+    minimum_move_meters = LIFETIME_MAP_MIN_MOVE_M * (
+        1.0 + 0.5 * (sample_stride - 1)
+    )
 
     # ---------- Map path ----------
     path_segments = []
@@ -2964,7 +3011,6 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
     trip_end_time = trip_end_odometer = trip_end_rated_range = None
 
     last_sample_time = None
-    vehicle_vin = None
     raw_gps_sample_count = 0
     scan_row_index = 0
 
@@ -2978,23 +3024,33 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
             trip_end_time = trip_end_odometer = trip_end_rated_range = None
             return
 
-        if (trip_start_odometer is not None and trip_end_odometer is not None
-                and trip_end_odometer >= trip_start_odometer):
+        if (
+            trip_start_odometer is not None
+            and trip_end_odometer is not None
+            and trip_end_odometer >= trip_start_odometer
+        ):
             miles_driven = float(trip_end_odometer) - float(trip_start_odometer)
             kilometers = miles_driven * 1.609344
         else:
             kilometers = 0.0
 
-        duration_seconds = max(0.0, (trip_end_time - trip_start_time).total_seconds())
+        duration_seconds = max(
+            0.0, (trip_end_time - trip_start_time).total_seconds()
+        )
 
         if kilometers >= LIFETIME_MAP_MIN_TRIP_KM and duration_seconds >= 60:
             drive_count += 1
             kilometers_driven += kilometers
             driving_hours_total += duration_seconds / 3600.0
 
-            if (trip_start_rated_range is not None and trip_end_rated_range is not None
-                    and trip_start_rated_range > trip_end_rated_range):
-                rated_range_drop = float(trip_start_rated_range) - float(trip_end_rated_range)
+            if (
+                trip_start_rated_range is not None
+                and trip_end_rated_range is not None
+                and trip_start_rated_range > trip_end_rated_range
+            ):
+                rated_range_drop = float(trip_start_rated_range) - float(
+                    trip_end_rated_range
+                )
                 if rated_range_drop > 0.25:
                     rated_miles_used += rated_range_drop
 
@@ -3009,12 +3065,17 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
         last_kept_latitude = last_kept_longitude = None
 
     # ---------- Main loop ----------
-    for sample_row in drive_gps_queryset.iterator(chunk_size=5000):
+    for sample_row in sample_rows:
         scan_row_index += 1
-
-        sample_time = sample_row.get("Date")
-        latitude_raw = sample_row.get("latitude")
-        longitude_raw = sample_row.get("longitude")
+        (
+            sample_time,
+            latitude_raw,
+            longitude_raw,
+            odometer_raw,
+            battery_range_raw,
+            ideal_battery_range_raw,
+            outside_temp_raw,
+        ) = sample_row
 
         if sample_time is None or latitude_raw is None or longitude_raw is None:
             continue
@@ -3031,26 +3092,27 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
             continue
 
         raw_gps_sample_count += 1
-        if vehicle_vin is None and sample_row.get("vin"):
-            vehicle_vin = sample_row["vin"]
 
-        # ----- Trip detection (NO stride here → accurate energy) -----
-        if last_sample_time is not None and (sample_time - last_sample_time) > LIFETIME_MAP_GAP:
+        # ----- Trip KPIs on every sample (odometer / rated range) -----
+        if (
+            last_sample_time is not None
+            and (sample_time - last_sample_time) > LIFETIME_MAP_GAP
+        ):
             finalize_trip()
             flush_current_path()
 
-        odometer_raw = sample_row.get("odometer")
         try:
-            odometer_miles = float(odometer_raw) if odometer_raw is not None else None
+            odometer_miles = (
+                float(odometer_raw) if odometer_raw is not None else None
+            )
         except (TypeError, ValueError):
             odometer_miles = None
 
         rated_range_miles = _rated_range_miles(
-            sample_row.get("battery_range"),
-            sample_row.get("ideal_battery_range"),
+            battery_range_raw,
+            ideal_battery_range_raw,
         )
 
-        outside_temp_raw = sample_row.get("outside_temp")
         if outside_temp_raw is not None:
             try:
                 outside_temp_sum += float(outside_temp_raw)
@@ -3069,16 +3131,20 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
         if rated_range_miles is not None:
             trip_end_rated_range = rated_range_miles
 
-        # ----- Path building (stride + distance thinning) -----
-        is_stride_sample = (sample_stride == 1) or (scan_row_index % sample_stride == 0)
-
+        # ----- Path: even stride + distance thinning -----
+        is_stride_sample = (sample_stride == 1) or (
+            scan_row_index % sample_stride == 0
+        )
         if is_stride_sample:
             keep_path_point = False
             if last_kept_latitude is None:
                 keep_path_point = True
             else:
                 distance_meters = _haversine_m(
-                    last_kept_latitude, last_kept_longitude, latitude, longitude
+                    last_kept_latitude,
+                    last_kept_longitude,
+                    latitude,
+                    longitude,
                 )
                 if distance_meters >= minimum_move_meters:
                     keep_path_point = True
@@ -3094,13 +3160,14 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
                         path_segments.append(current_path)
                         current_path = []
                         last_kept_latitude = last_kept_longitude = None
-                    path_segments = _thin_segments_to_cap(path_segments, LIFETIME_MAP_MAX_POINTS)
+                    path_segments = _thin_segments_to_cap(
+                        path_segments, LIFETIME_MAP_MAX_POINTS
+                    )
                     path_point_count = sum(len(s) for s in path_segments)
                     progressive_point_cap = LIFETIME_MAP_MAX_POINTS * 2
 
         last_sample_time = sample_time
 
-    # Fin
     finalize_trip()
     flush_current_path()
     path_segments = _thin_segments_to_cap(path_segments, LIFETIME_MAP_MAX_POINTS)
@@ -3111,7 +3178,9 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
 
     # ---------- Final KPIs ----------
     path_points = sum(len(s) for s in path_segments)
-    rated_kilometers_used = rated_miles_used * 1.609344 if rated_miles_used > 0 else 0.0
+    rated_kilometers_used = (
+        rated_miles_used * 1.609344 if rated_miles_used > 0 else 0.0
+    )
 
     efficiency_percent = None
     if rated_kilometers_used > 1.0 and kilometers_driven > 1.0:
@@ -3125,10 +3194,14 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
         watt_hours_per_km = (energy_used_kwh * 1000.0) / kilometers_driven
 
     average_speed_kmh = (
-        (kilometers_driven / driving_hours_total) if driving_hours_total > 0.05 else None
+        (kilometers_driven / driving_hours_total)
+        if driving_hours_total > 0.05
+        else None
     )
     average_outside_temp_c = (
-        (outside_temp_sum / outside_temp_sample_count) if outside_temp_sample_count else None
+        (outside_temp_sum / outside_temp_sample_count)
+        if outside_temp_sample_count
+        else None
     )
 
     total_minutes = int(round(driving_hours_total * 60.0))
@@ -3143,14 +3216,29 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
         "segments": path_segments,
         "path_points": path_points,
         "raw_gps_samples": raw_gps_sample_count,
+        "sample_stride": sample_stride,
         "drives": drive_count,
         "km_driven": round(kilometers_driven, 1) if kilometers_driven > 0 else 0.0,
-        "rated_km_used": round(rated_kilometers_used, 1) if rated_kilometers_used > 0 else 0.0,
-        "wh_per_km": round(watt_hours_per_km) if watt_hours_per_km is not None else None,
-        "efficiency_pct": round(efficiency_percent, 2) if efficiency_percent is not None else None,
-        "kwh_used": round(energy_used_kwh, 1) if energy_used_kwh is not None else None,
-        "avg_kmh": round(average_speed_kmh, 1) if average_speed_kmh is not None else None,
-        "avg_temp_c": round(average_outside_temp_c, 1) if average_outside_temp_c is not None else None,
+        "rated_km_used": (
+            round(rated_kilometers_used, 1) if rated_kilometers_used > 0 else 0.0
+        ),
+        "wh_per_km": (
+            round(watt_hours_per_km) if watt_hours_per_km is not None else None
+        ),
+        "efficiency_pct": (
+            round(efficiency_percent, 2) if efficiency_percent is not None else None
+        ),
+        "kwh_used": (
+            round(energy_used_kwh, 1) if energy_used_kwh is not None else None
+        ),
+        "avg_kmh": (
+            round(average_speed_kmh, 1) if average_speed_kmh is not None else None
+        ),
+        "avg_temp_c": (
+            round(average_outside_temp_c, 1)
+            if average_outside_temp_c is not None
+            else None
+        ),
         "drive_time": {
             "days": drive_days,
             "hours": drive_hours,
@@ -4371,7 +4459,7 @@ def LifetimeMapData(request, hashedVin):
 
     unit = get_distance_unit(request)
     # Cache metric (km) payload only; convert per request for unit preference
-    cache_key = f"lifetime_map_v1:{hashedVin}:{weeks}"
+    cache_key = f"lifetime_map_v2:{hashedVin}:{weeks}"
     cache_backend = None
     payload = None
     try:
