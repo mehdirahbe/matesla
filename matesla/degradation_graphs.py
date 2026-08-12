@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 from collections import defaultdict
+from datetime import datetime, timedelta
 
 import numpy as np
 from django.db import connection
@@ -31,6 +32,146 @@ DEGRADATION_SCATTER_MIN_SOC = 80.0
 # If a car rarely reaches 80 %, fall back so the graph is not empty.
 DEGRADATION_SCATTER_FALLBACK_SOC = 75.0
 DEGRADATION_SCATTER_MIN_POINTS = 15
+
+# Snapshot table name (avoid importing the model here for a lighter dependency).
+_SNAPSHOT_TABLE = "matesla_teslacardatasnapshot"
+
+
+def _scatter_period_mindate(desired_period_weeks):
+    """Weeks window → lower bound datetime, or None for all history."""
+    if desired_period_weeks is not None and int(desired_period_weeks) > 0:
+        return datetime.now() - timedelta(weeks=int(desired_period_weeks))
+    return None
+
+
+def _high_soc_sql(min_soc: float) -> str:
+    """SQL fragment matching high_soc_scatter_q (usable preferred, else battery_level)."""
+    soc = float(min_soc)
+    return (
+        "("
+        f"(usable_battery_level IS NOT NULL AND usable_battery_level >= {soc}) "
+        "OR "
+        "(usable_battery_level IS NULL AND battery_level IS NOT NULL "
+        f"AND battery_level >= {soc})"
+        ") "
+        "AND (charging_state IS NULL OR charging_state != 'Charging')"
+    )
+
+
+def choose_degradation_min_soc(hashed_vin, desired_period_weeks=None) -> float:
+    """
+    Prefer 80 % SoC when enough points exist; else 75 % fallback.
+
+    Uses LIMIT probe instead of a full COUNT on large histories.
+    """
+    where = ["hashedVin = %s", _high_soc_sql(DEGRADATION_SCATTER_MIN_SOC)]
+    params: list = [hashed_vin]
+    mindate = _scatter_period_mindate(desired_period_weeks)
+    if mindate is not None:
+        where.append("DateOnlyDay >= %s")
+        params.append(mindate.date() if hasattr(mindate, "date") else mindate)
+    where_sql = " AND ".join(where)
+    with connection.cursor() as cursor:
+        cursor.execute(
+            f"SELECT 1 FROM {_SNAPSHOT_TABLE} WHERE {where_sql} "
+            f"LIMIT {int(DEGRADATION_SCATTER_MIN_POINTS)}",
+            params,
+        )
+        found = len(cursor.fetchall())
+    if found >= DEGRADATION_SCATTER_MIN_POINTS:
+        return DEGRADATION_SCATTER_MIN_SOC
+    return DEGRADATION_SCATTER_FALLBACK_SOC
+
+
+def load_degradation_scatter_xy(
+    hashed_vin,
+    x_field: str,
+    desired_period_weeks=None,
+    *,
+    y_mode: str = "battery_degradation",
+    daily_median: bool = True,
+):
+    """
+    Build (x_values, y_values) for personal degradation scatters.
+
+    y_mode:
+      - battery_degradation: Y = stored degradation %
+      - range_at_100: Y = battery_range / SoC * 100 (miles)
+
+    Raw SQL + tuples (not ORM .values()) — cold path for 100k+ high-SoC rows
+    was dominated by Django dict materialization.
+    """
+    if x_field not in ("odometer",):
+        # Only odometer X is used today; keep the gate explicit.
+        raise ValueError(f"unsupported scatter x_field: {x_field}")
+    if y_mode not in ("battery_degradation", "range_at_100"):
+        raise ValueError(f"unsupported y_mode: {y_mode}")
+
+    min_soc = choose_degradation_min_soc(hashed_vin, desired_period_weeks)
+    where = [
+        "hashedVin = %s",
+        _high_soc_sql(min_soc),
+        f"{x_field} IS NOT NULL",
+    ]
+    params: list = [hashed_vin]
+    mindate = _scatter_period_mindate(desired_period_weeks)
+    if mindate is not None:
+        where.append("DateOnlyDay >= %s")
+        params.append(mindate.date() if hasattr(mindate, "date") else mindate)
+
+    if y_mode == "battery_degradation":
+        where.append("battery_degradation IS NOT NULL")
+        select_cols = f"Date, {x_field}, battery_degradation"
+    else:
+        where.append("battery_range IS NOT NULL")
+        select_cols = (
+            f"Date, {x_field}, battery_range, usable_battery_level, battery_level"
+        )
+
+    where_sql = " AND ".join(where)
+    with connection.cursor() as cursor:
+        cursor.execute(
+            f"SELECT {select_cols} FROM {_SNAPSHOT_TABLE} "
+            f"WHERE {where_sql} ORDER BY Date",
+            params,
+        )
+        raw_rows = cursor.fetchall()
+
+    x_values: list = []
+    y_values: list = []
+    sample_dates: list = []
+
+    if y_mode == "battery_degradation":
+        for sample_date, x_raw, y_raw in raw_rows:
+            if sample_date is None or x_raw is None or y_raw is None:
+                continue
+            try:
+                x_values.append(float(x_raw))
+                y_values.append(float(y_raw))
+            except (TypeError, ValueError):
+                continue
+            sample_dates.append(sample_date)
+    else:
+        for sample_date, x_raw, battery_range, usable, battery_level in raw_rows:
+            if sample_date is None or x_raw is None or battery_range is None:
+                continue
+            level = usable if usable is not None else battery_level
+            if level is None:
+                continue
+            try:
+                level_f = float(level)
+                if level_f <= 0 or level_f < min_soc:
+                    continue
+                range_at_100 = float(battery_range) / level_f * 100.0
+                x_values.append(float(x_raw))
+                y_values.append(range_at_100)
+            except (TypeError, ValueError, ZeroDivisionError):
+                continue
+            sample_dates.append(sample_date)
+
+    if daily_median:
+        return aggregate_scatter_daily_median(x_values, y_values, sample_dates)
+    return x_values, y_values
 
 
 def GeneratePngFromGraph(figure, size="full"):

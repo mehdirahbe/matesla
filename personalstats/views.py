@@ -15,6 +15,7 @@ from matesla.degradation_graphs import (
     GeneratePngFromGraph,
     degradation_scatter_queryset,
     aggregate_scatter_daily_median,
+    load_degradation_scatter_xy,
     DEGRADATION_SCATTER_FALLBACK_SOC,
 )
 from matesla.graphstyle import (
@@ -4651,21 +4652,15 @@ def _battery_degradation_graph_uncached(
         if not IsValidHash(hashedVin):
             return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
         title = GetTitleForField(desiredfield, unit=unit)
-        base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
-        queryset = _period_filter(degradation_scatter_queryset(base), desiredperiod)
-        if not queryset.exists():
-            return GenerateScatterGraph(None, None, title, size=size, unit=unit)
-        # Full period (no row cap — [:N] by Date only kept early history).
-        # Daily median collapses same-day BMS jitter (~1k days max for 10y).
-        results = queryset.order_by("Date").values(
+        # Full period via raw SQL (no ORM dict walk / no early-history row cap).
+        xvalues, yvalues = load_degradation_scatter_xy(
+            hashedVin,
             "odometer",
-            "battery_range",
-            "Date",
-            "usable_battery_level",
-            "battery_level",
-            "charging_state",
+            desiredperiod,
+            y_mode="range_at_100",
         )
-        xvalues, yvalues = GetXandYRangeAt100(results, "odometer")
+        if not xvalues:
+            return GenerateScatterGraph(None, None, title, size=size, unit=unit)
         xvalues = _scale_miles_series(xvalues, unit)
         yvalues = _scale_miles_series(yvalues, unit)
         return GenerateScatterGraph(xvalues, yvalues, title, size=size, unit=unit)
@@ -4675,13 +4670,26 @@ def _battery_degradation_graph_uncached(
         return response
 
     title = GetTitleForField(desiredfield, unit=unit)
+    # odometer (and any future X field mapped in load_degradation_scatter_xy)
+    if desiredfield == "odometer":
+        xvalues, yvalues = load_degradation_scatter_xy(
+            hashedVin,
+            desiredfield,
+            desiredperiod,
+            y_mode="battery_degradation",
+        )
+        if not xvalues:
+            return GenerateScatterGraph(None, None, title, size=size, unit=unit)
+        if desiredfield in _MILES_VALUE_FIELDS:
+            xvalues = _scale_miles_series(xvalues, unit)
+        return GenerateScatterGraph(xvalues, yvalues, title, size=size, unit=unit)
+
+    # Fallback ORM path for any other scatter X still routed here
     base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
     queryset = _period_filter(degradation_scatter_queryset(base), desiredperiod)
     if not queryset.exists():
         return GenerateScatterGraph(None, None, title, size=size, unit=unit)
 
-    # Must cover the whole period: capping by Date truncated high-mileage history
-    # (e.g. 8000 dense TeslaFi rows ≈ only the first few 10k miles).
     results = queryset.order_by("Date").values(
         desiredfield,
         "battery_degradation",
