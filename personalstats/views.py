@@ -655,72 +655,76 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
     return GeneratePngFromGraph(figure, size=size)
 
 
-def _monthly_temp_series(queryset, field_name):
+# Only real snapshot columns allowed in raw monthly-temp SQL (injection-safe).
+_MONTHLY_TEMP_FIELDS = frozenset({"outside_temp", "inside_temp"})
+
+
+def _monthly_temp_series(hashed_vin, field_name, desiredperiod=None):
     """
     Build one min / average / max temperature (°C) per calendar month.
 
-    Why daily SQL first: multi-year cars have hundreds of thousands of samples.
-    Aggregating per DateOnlyDay (indexed) yields ~1 row per day, then we roll
-    those daily stats into months in Python. That is far cheaper than scanning
-    every raw sample or running TruncMonth over the full table.
+    Daily aggregates first (DateOnlyDay index), then roll into months so the
+    monthly average is the mean of *daily* averages (not sample-weighted).
+    Raw SQL avoids ORM annotate overhead on multi-year cars (~500k samples).
     """
-    daily_stats = (
-        queryset.filter(**{f"{field_name}__isnull": False})
-        .exclude(DateOnlyDay__isnull=True)
-        .values("DateOnlyDay")
-        .annotate(
-            daily_minimum=Min(field_name),
-            daily_maximum=Max(field_name),
-            daily_average=Avg(field_name),
+    if field_name not in _MONTHLY_TEMP_FIELDS:
+        raise ValueError(f"unsupported temp field: {field_name}")
+
+    where = [
+        "hashedVin = %s",
+        f"{field_name} IS NOT NULL",
+        "DateOnlyDay IS NOT NULL",
+    ]
+    params: list = [hashed_vin]
+    mindate = _lifetime_map_period_mindate(desiredperiod)
+    if mindate is not None:
+        where.append("DateOnlyDay >= %s")
+        params.append(mindate.date() if hasattr(mindate, "date") else mindate)
+
+    where_sql = " AND ".join(where)
+    table = TeslaCarDataSnapshot._meta.db_table
+    # Nested: daily min/max/avg → monthly min/max and AVG(daily avg).
+    # HAVING drops sensor glitches (same clamps as the former Python path).
+    sql = f"""
+        SELECT y, m, MIN(dmin), MAX(dmax), AVG(davg)
+        FROM (
+            SELECT CAST(strftime('%%Y', DateOnlyDay) AS INTEGER) AS y,
+                   CAST(strftime('%%m', DateOnlyDay) AS INTEGER) AS m,
+                   MIN({field_name}) AS dmin,
+                   MAX({field_name}) AS dmax,
+                   AVG({field_name}) AS davg
+            FROM {table}
+            WHERE {where_sql}
+            GROUP BY DateOnlyDay
+            HAVING MIN({field_name}) >= -50
+               AND MAX({field_name}) <= 90
+               AND MIN({field_name}) <= MAX({field_name})
         )
-        .order_by("DateOnlyDay")
-    )
-
-    # year_month_key -> [month_min, month_max, sum_of_daily_averages, day_count]
-    monthly_buckets: dict[tuple[int, int], list] = {}
-    for daily_row in daily_stats:
-        calendar_day = daily_row.get("DateOnlyDay")
-        if calendar_day is None:
-            continue
-        try:
-            day_minimum = float(daily_row["daily_minimum"])
-            day_maximum = float(daily_row["daily_maximum"])
-            day_average = float(daily_row["daily_average"])
-        except (TypeError, ValueError, KeyError):
-            continue
-        # Drop impossible sensor glitches (cabin can be very hot; clamp extremes)
-        if day_minimum < -50 or day_maximum > 90 or day_minimum > day_maximum:
-            continue
-
-        year_month_key = (calendar_day.year, calendar_day.month)
-        bucket = monthly_buckets.get(year_month_key)
-        if bucket is None:
-            monthly_buckets[year_month_key] = [
-                day_minimum,
-                day_maximum,
-                day_average,
-                1,
-            ]
-        else:
-            if day_minimum < bucket[0]:
-                bucket[0] = day_minimum
-            if day_maximum > bucket[1]:
-                bucket[1] = day_maximum
-            bucket[2] += day_average
-            bucket[3] += 1
+        GROUP BY y, m
+        ORDER BY y, m
+    """
+    with connection.cursor() as cursor:
+        cursor.execute(sql, params)
+        rows = cursor.fetchall()
 
     month_dates = []
     monthly_minimums = []
     monthly_maximums = []
     monthly_averages = []
-    for year, month in sorted(monthly_buckets.keys()):
-        month_min, month_max, average_sum, day_count = monthly_buckets[(year, month)]
-        if day_count <= 0 or month_min > month_max:
+    for year, month, month_min, month_max, month_avg in rows:
+        if year is None or month is None:
             continue
-        month_dates.append(date(year, month, 1))
-        monthly_minimums.append(month_min)
-        monthly_maximums.append(month_max)
-        monthly_averages.append(average_sum / day_count)
+        if month_min is None or month_max is None or month_avg is None:
+            continue
+        if month_min > month_max:
+            continue
+        try:
+            month_dates.append(date(int(year), int(month), 1))
+            monthly_minimums.append(float(month_min))
+            monthly_maximums.append(float(month_max))
+            monthly_averages.append(float(month_avg))
+        except (TypeError, ValueError):
+            continue
     return month_dates, monthly_minimums, monthly_maximums, monthly_averages
 
 
@@ -2651,8 +2655,9 @@ def _stats_on_car_graph_uncached(
 
     # Temperature: monthly min–max ribbon (seasonal + extremes), not noisy daily lines
     if desiredfield in ("outside_temp", "inside_temp"):
-        queryset = _period_filter(base, desiredperiod)
-        months, mins, maxs, avgs = _monthly_temp_series(queryset, desiredfield)
+        months, mins, maxs, avgs = _monthly_temp_series(
+            hashedVin, desiredfield, desiredperiod
+        )
         return GenerateMonthlyTempRibbonGraph(
             months, mins, maxs, avgs, title, size=size
         )
