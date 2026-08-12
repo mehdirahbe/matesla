@@ -3575,17 +3575,19 @@ def _acc_add_sample(acc, sample):
 
 def _load_ranked_drives(hashed_vin, weeks, *, min_km=DRIVES_MIN_KM):
     """
-    Segment drives ≥ min_km for the period (streaming, drive samples only).
+    Segment drives ≥ min_km for the period (drive samples only).
 
-    Performance: SQL filter to motion rows only (~¼ of history), values() dicts,
-    O(1) memory per open trip (running accumulators, no point lists).
-    Period uses Date (not DateOnlyDay) so SQLite can use index (hashedVin, Date)
-    for both the range filter and ORDER BY — no temp B-tree sort.
-    Multi-day trips stay one segment while drive samples stay within DRIVES_TRIP_GAP.
-    Cached list is sort-agnostic; the view re-orders and caps to DRIVES_MAX_TRIPS.
+    Two-pass strategy (cold ~2–3× faster on dense TeslaFi histories):
+      1. Stream Date + odometer only → trip windows + km, keep longest N.
+      2. Per-window detail query (elev / GPS / SoC / temp) for those N only.
+
+    SQLite uses partial drive index matesla_snapshot_drive_hv_date when the OR
+    condition is *literals* (not bound parameters). Multi-day trips stay one
+    segment while samples stay within DRIVES_TRIP_GAP. Cache is sort-agnostic;
+    the view re-orders among the capped list.
     """
     cache_key = (
-        f"drives_list_v6:{hashed_vin}:{int(weeks) if weeks else 0}:{min_km}"
+        f"drives_list_v7:{hashed_vin}:{int(weeks) if weeks else 0}:{min_km}"
     )
     try:
         cached = cache.get(cache_key)
@@ -3595,50 +3597,92 @@ def _load_ranked_drives(hashed_vin, weeks, *, min_km=DRIVES_MIN_KM):
         return cached
 
     pack_kwh = _pack_kwh_for_hashed_vin(hashed_vin)
-    # Raw SQL (not ORM values()): SQLite only uses the partial drive index
-    # matesla_snapshot_drive_hv_date when the OR condition is *literals*.
-    # ORM binds speed > %s and then the planner falls back to the full
-    # (hashedVin, Date) index + filter — much more I/O.
-    from django.db import connection
 
-    sql = (
+    period_sql = ""
+    period_params: list = [hashed_vin]
+    if weeks is not None and weeks > 0:
+        period_sql = 'AND "Date" >= %s '
+        period_params.append(timezone.now() - timedelta(weeks=weeks))
+
+    drive_sql = (
+        "AND (shift_state IN ('D', 'R', 'N') OR speed > 1.0) "
+    )
+
+    # ----- Pass 1: cheap odometer stream → candidate windows -----
+    sql_odo = (
+        'SELECT "Date", odometer FROM matesla_teslacardatasnapshot '
+        f"WHERE hashedVin = %s {period_sql}{drive_sql}"
+        'ORDER BY "Date" ASC'
+    )
+    windows = []  # (start_t, end_t, km)
+    seg_start_t = seg_end_t = None
+    seg_odo0 = seg_odo1 = None
+    last_t = None
+
+    def flush_window():
+        nonlocal seg_start_t, seg_end_t, seg_odo0, seg_odo1
+        if (
+            seg_start_t is not None
+            and seg_end_t is not None
+            and seg_odo0 is not None
+            and seg_odo1 is not None
+            and seg_odo1 >= seg_odo0
+        ):
+            miles = float(seg_odo1) - float(seg_odo0)
+            km = miles * 1.609344
+            if km >= min_km:
+                windows.append((seg_start_t, seg_end_t, km))
+        seg_start_t = seg_end_t = None
+        seg_odo0 = seg_odo1 = None
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql_odo, period_params)
+        while True:
+            batch = cursor.fetchmany(8000)
+            if not batch:
+                break
+            for sample_t, odometer in batch:
+                if sample_t is None:
+                    continue
+                if last_t is not None and (sample_t - last_t) > DRIVES_TRIP_GAP:
+                    flush_window()
+                if seg_start_t is None:
+                    seg_start_t = sample_t
+                    seg_odo0 = odometer
+                seg_end_t = sample_t
+                if odometer is not None:
+                    seg_odo1 = odometer
+                last_t = sample_t
+    flush_window()
+
+    # Longest first; secondary rankings (elev/temp) only among these.
+    if len(windows) > DRIVES_MAX_TRIPS:
+        windows.sort(key=lambda item: item[2], reverse=True)
+        windows = windows[:DRIVES_MAX_TRIPS]
+    else:
+        windows.sort(key=lambda item: item[2], reverse=True)
+
+    # ----- Pass 2: full metrics only inside the kept windows -----
+    detail_sql = (
         'SELECT "Date", latitude, longitude, odometer, '
         "battery_level, usable_battery_level, battery_range, "
         "elevation, outside_temp "
         "FROM matesla_teslacardatasnapshot "
-        "WHERE hashedVin = %s "
-    )
-    params = [hashed_vin]
-    if weeks is not None and weeks > 0:
-        sql += 'AND "Date" >= %s '
-        params.append(timezone.now() - timedelta(weeks=weeks))
-    sql += (
-        "AND (shift_state IN ('D', 'R', 'N') OR speed > 1.0) "
+        "WHERE hashedVin = %s AND \"Date\" >= %s AND \"Date\" <= %s "
+        f"{drive_sql}"
         'ORDER BY "Date" ASC'
     )
 
     result = []
-    start_pt = end_pt = None
-    acc = _new_drive_acc()
-    last_t = None
-
-    def flush():
-        nonlocal start_pt, end_pt, acc
-        trip = _finalize_drive_segment(
-            start_pt, end_pt, acc, min_km=min_km, pack_kwh=pack_kwh
-        )
-        if trip is not None:
-            result.append(trip)
-        start_pt = end_pt = None
-        acc = _new_drive_acc()
-
     with connection.cursor() as cursor:
-        cursor.execute(sql, params)
-        while True:
-            batch = cursor.fetchmany(5000)
-            if not batch:
-                break
-            for sample in batch:
+        for start_t, end_t, _km in windows:
+            cursor.execute(detail_sql, [hashed_vin, start_t, end_t])
+            samples = cursor.fetchall()
+            if not samples:
+                continue
+            start_pt = end_pt = None
+            acc = _new_drive_acc()
+            for sample in samples:
                 (
                     sample_t,
                     lat,
@@ -3652,32 +3696,45 @@ def _load_ranked_drives(hashed_vin, weeks, *, min_km=DRIVES_MIN_KM):
                 ) = sample
                 if sample_t is None:
                     continue
+                # SQLite already returns floats for real columns; keep None-safe.
                 row = {
                     "t": sample_t,
-                    "lat": _as_float_or_none(lat),
-                    "lon": _as_float_or_none(lon),
-                    "odometer": _as_float_or_none(odometer),
-                    "battery_level": _as_float_or_none(battery_level),
-                    "usable_battery_level": _as_float_or_none(usable_battery_level),
-                    "battery_range": _as_float_or_none(battery_range),
-                    "elevation": _as_float_or_none(elevation),
-                    "outside_temp": _as_float_or_none(outside_temp),
+                    "lat": lat if lat is None else float(lat),
+                    "lon": lon if lon is None else float(lon),
+                    "odometer": odometer if odometer is None else float(odometer),
+                    "battery_level": (
+                        battery_level
+                        if battery_level is None
+                        else float(battery_level)
+                    ),
+                    "usable_battery_level": (
+                        usable_battery_level
+                        if usable_battery_level is None
+                        else float(usable_battery_level)
+                    ),
+                    "battery_range": (
+                        battery_range
+                        if battery_range is None
+                        else float(battery_range)
+                    ),
+                    "elevation": (
+                        elevation if elevation is None else float(elevation)
+                    ),
+                    "outside_temp": (
+                        outside_temp
+                        if outside_temp is None
+                        else float(outside_temp)
+                    ),
                 }
-                if last_t is not None and (sample_t - last_t) > DRIVES_TRIP_GAP:
-                    flush()
                 if start_pt is None:
                     start_pt = row
                 end_pt = row
                 _acc_add_sample(acc, row)
-                last_t = sample_t
-    flush()
-
-    # Keep only the longest DRIVES_MAX_TRIPS so secondary rankings stay cheap
-    # to re-sort and the cache payload stays small. Extremes of elev/temp among
-    # short 20–40 km trips are dropped — acceptable product tradeoff for speed.
-    if len(result) > DRIVES_MAX_TRIPS:
-        result.sort(key=lambda trip: trip.get("km") or 0.0, reverse=True)
-        result = result[:DRIVES_MAX_TRIPS]
+            trip = _finalize_drive_segment(
+                start_pt, end_pt, acc, min_km=min_km, pack_kwh=pack_kwh
+            )
+            if trip is not None:
+                result.append(trip)
 
     try:
         cache.set(cache_key, result, DRIVES_CACHE_SECONDS)
