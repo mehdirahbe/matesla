@@ -163,6 +163,13 @@ class TeslaCarDataSnapshot(models.Model):
                 fields=["latitude", "longitude"],
                 name="matesla_snap_lat_lon_idx",
             ),
+            # TeslaFi charge_number session histograms (charger_power, etc.).
+            models.Index(
+                fields=["hashedVin", "charge_number"],
+                name="matesla_snap_charge_sess_idx",
+                condition=Q(charging_state__in=["Charging", "Starting"])
+                & Q(charge_number__isnull=False),
+            ),
         ]
         constraints = [
             models.UniqueConstraint(

@@ -1683,10 +1683,9 @@ def _iter_charge_sessions(queryset, extra_fields=()):
         "battery_range",
     }
     fields.update(extra_fields)
-    charge_q = Q(charging_state__iexact="Charging") | Q(
-        charging_state__iexact="Starting"
-    ) | Q(charger_power__gt=0.5)
-    base = queryset.filter(charge_q).order_by("Date").values(*fields)
+    base = (
+        queryset.filter(_charge_filter_q()).order_by("Date").values(*fields)
+    )
     try:
         total = base.count()
     except Exception:
@@ -1737,77 +1736,127 @@ def _charge_session_ok(session_points) -> bool:
 
 def _charge_filter_q():
     """SQL filter: rows that look like an active charge (state or power)."""
-    return Q(charging_state__iexact="Charging") | Q(
-        charging_state__iexact="Starting"
-    ) | Q(charger_power__gt=0.5)
+    # Exact match (not iexact/LIKE) so SQLite can use partial charge indexes.
+    return Q(charging_state__in=["Charging", "Starting"]) | Q(charger_power__gt=0.5)
 
 
-def _charge_sessions_sql_by_number(queryset):
+def _charge_sessions_sql_by_number(hashed_vin, desiredperiod=None):
     """
     Fast path for TeslaFi history: each session has a stable charge_number.
 
-    One SQL GROUP BY replaces walking every charging sample in Python. That is
-    why multi-year charge histograms stay interactive.
+    One SQL GROUP BY replaces walking every charging sample in Python. Uses the
+    partial index matesla_snap_charge_sess_idx when present.
 
     Returns a list of session summary dicts, or None when charge_number is
     missing (typical pure Fleet capture) so callers fall back to streaming.
     """
-    charging_rows = queryset.filter(_charge_filter_q()).exclude(
-        charge_number__isnull=True
-    )
-    # Cheap probe: if the first matching row has no charge_number, skip this path
-    if not charging_rows[:1].exists():
-        return None
+    table = TeslaCarDataSnapshot._meta.db_table
+    where = [
+        "hashedVin = %s",
+        "charge_number IS NOT NULL",
+        "charging_state IN ('Charging', 'Starting')",
+    ]
+    params: list = [hashed_vin]
+    mindate = _lifetime_map_period_mindate(desiredperiod)
+    if mindate is not None:
+        # Date (not DateOnlyDay) pairs with partial charge index on hashedVin.
+        where.append('"Date" >= %s')
+        params.append(mindate)
 
-    # Annotate aliases are full English names (result dict keys match these).
-    session_aggregates = charging_rows.values("charge_number").annotate(
-        peak_charger_power_kw=Max("charger_power"),
-        peak_charge_rate_mi_per_h=Max("charge_rate"),
-        charge_limit_soc_max=Max("charge_limit_soc"),
-        charge_energy_added_min=Min("charge_energy_added"),
-        charge_energy_added_max=Max("charge_energy_added"),
-        charge_miles_added_rated_min=Min("charge_miles_added_rated"),
-        charge_miles_added_rated_max=Max("charge_miles_added_rated"),
-        battery_range_min=Min("battery_range"),
-        battery_range_max=Max("battery_range"),
-        usable_battery_level_max=Max("usable_battery_level"),
-        battery_level_max=Max("battery_level"),
-        session_start_time=Min("Date"),
-        session_end_time=Max("Date"),
-        sample_count=Count("id"),
-    )
+    where_sql = " AND ".join(where)
+
+    with connection.cursor() as cursor:
+        # Probe: any TeslaFi session id in this window?
+        cursor.execute(
+            f"SELECT 1 FROM {table} WHERE {where_sql} LIMIT 1",
+            params,
+        )
+        if cursor.fetchone() is None:
+            return None
+
+        cursor.execute(
+            f"""
+            SELECT charge_number,
+                   MAX(charger_power),
+                   MAX(charge_rate),
+                   MAX(charge_limit_soc),
+                   MIN(charge_energy_added),
+                   MAX(charge_energy_added),
+                   MIN(charge_miles_added_rated),
+                   MAX(charge_miles_added_rated),
+                   MIN(battery_range),
+                   MAX(battery_range),
+                   MAX(usable_battery_level),
+                   MAX(battery_level),
+                   MIN("Date"),
+                   MAX("Date"),
+                   COUNT(*)
+            FROM {table}
+            WHERE {where_sql}
+            GROUP BY charge_number
+            """,
+            params,
+        )
+        raw_sessions = cursor.fetchall()
+
+    def _as_dt(value):
+        """SQLite may return ISO text for Date columns on raw queries."""
+        if value is None or hasattr(value, "total_seconds"):
+            return value
+        if isinstance(value, str):
+            # "YYYY-MM-DD HH:MM:SS[.ffffff]" or with T
+            normalized = value.replace("T", " ", 1)
+            try:
+                return datetime.fromisoformat(normalized)
+            except ValueError:
+                return None
+        return value
 
     session_summaries = []
-    for session_row in session_aggregates:
-        session_start_time = session_row.get("session_start_time")
-        session_end_time = session_row.get("session_end_time")
+    for row in raw_sessions:
+        (
+            _charge_number,
+            peak_power,
+            peak_rate,
+            charge_limit,
+            energy_min,
+            energy_max,
+            miles_min,
+            miles_max,
+            range_min,
+            range_max,
+            usable_max,
+            battery_max,
+            session_start_time,
+            session_end_time,
+            sample_count,
+        ) = row
+        session_start_time = _as_dt(session_start_time)
+        session_end_time = _as_dt(session_end_time)
         if session_start_time is None or session_end_time is None:
             continue
 
         duration_minutes = (
-            max(0.0, (session_end_time - session_start_time).total_seconds()) / 60.0
+            max(0.0, (session_end_time - session_start_time).total_seconds())
+            / 60.0
         )
-        sample_count = session_row.get("sample_count") or 0
+        sample_count = sample_count or 0
         # Drop very short plug glitches (same rule as the streaming path)
         if duration_minutes < CHARGE_SESSION_MIN_MINUTES and sample_count < 3:
             continue
 
-        # Energy added during the session = max counter − min counter
         energy_added_kwh = None
-        energy_min = session_row.get("charge_energy_added_min")
-        energy_max = session_row.get("charge_energy_added_max")
-        if energy_min is not None and energy_max is not None and energy_max > energy_min:
+        if (
+            energy_min is not None
+            and energy_max is not None
+            and energy_max > energy_min
+        ):
             energy_added_kwh = float(energy_max) - float(energy_min)
 
-        # Rated miles restored (Tesla units); fallback to battery_range rise
         miles_added_rated = None
-        miles_min = session_row.get("charge_miles_added_rated_min")
-        miles_max = session_row.get("charge_miles_added_rated_max")
         if miles_min is not None and miles_max is not None and miles_max > miles_min:
             miles_added_rated = float(miles_max) - float(miles_min)
         if miles_added_rated is None:
-            range_min = session_row.get("battery_range_min")
-            range_max = session_row.get("battery_range_max")
             if (
                 range_min is not None
                 and range_max is not None
@@ -1815,18 +1864,13 @@ def _charge_sessions_sql_by_number(queryset):
             ):
                 miles_added_rated = float(range_max) - float(range_min)
 
-        # Prefer usable SoC when the API provides it
-        peak_soc = session_row.get("usable_battery_level_max")
-        if peak_soc is None:
-            peak_soc = session_row.get("battery_level_max")
+        peak_soc = usable_max if usable_max is not None else battery_max
 
         session_summaries.append(
             {
-                "peak_charger_power_kw": session_row.get("peak_charger_power_kw"),
-                "peak_charge_rate_mi_per_h": session_row.get(
-                    "peak_charge_rate_mi_per_h"
-                ),
-                "charge_limit_soc": session_row.get("charge_limit_soc_max"),
+                "peak_charger_power_kw": peak_power,
+                "peak_charge_rate_mi_per_h": peak_rate,
+                "charge_limit_soc": charge_limit,
                 "energy_added_kwh": energy_added_kwh,
                 "miles_added_rated": miles_added_rated,
                 "peak_soc_percent": (
@@ -1837,7 +1881,7 @@ def _charge_sessions_sql_by_number(queryset):
     return session_summaries
 
 
-def _charge_limit_session_histogram(queryset):
+def _charge_limit_session_histogram(hashed_vin, desiredperiod=None):
     """
     How often charge sessions used each SoC limit band (100%, 80–89%, …).
 
@@ -1845,7 +1889,7 @@ def _charge_limit_session_histogram(queryset):
     when TeslaFi session ids are absent.
     """
     bucket_counts = [0] * len(CHARGE_LIMIT_BUCKET_LABELS)
-    session_summaries = _charge_sessions_sql_by_number(queryset)
+    session_summaries = _charge_sessions_sql_by_number(hashed_vin, desiredperiod)
     if session_summaries is not None:
         for session in session_summaries:
             charge_limit = session.get("charge_limit_soc")
@@ -1857,6 +1901,10 @@ def _charge_limit_session_histogram(queryset):
                 continue
             bucket_counts[bucket_index] += 1
     else:
+        queryset = _period_filter(
+            TeslaCarDataSnapshot.objects.filter(hashedVin=hashed_vin),
+            desiredperiod,
+        )
         for session_points in _iter_charge_sessions(queryset):
             charge_limit = _session_charge_limit(session_points)
             if charge_limit is None:
@@ -1871,7 +1919,7 @@ def _charge_limit_session_histogram(queryset):
     return list(CHARGE_LIMIT_BUCKET_LABELS), bucket_counts, bucket_percentages
 
 
-def _charge_peak_histogram(queryset, *, metric: str):
+def _charge_peak_histogram(hashed_vin, desiredperiod=None, *, metric: str):
     """
     Bin charge sessions by peak charger power (kW) or peak charge rate (mi/h).
 
@@ -1891,7 +1939,7 @@ def _charge_peak_histogram(queryset, *, metric: str):
     session_counts = [0] * bucket_count
     amount_per_bucket = [0.0] * bucket_count
 
-    session_summaries = _charge_sessions_sql_by_number(queryset)
+    session_summaries = _charge_sessions_sql_by_number(hashed_vin, desiredperiod)
     if session_summaries is not None:
         for session in session_summaries:
             if peak_field_key == "charger_power":
@@ -1929,6 +1977,10 @@ def _charge_peak_histogram(queryset, *, metric: str):
                 amount_per_bucket[bucket_index] += float(amount)
     else:
         # Streaming fallback (no TeslaFi charge_number)
+        queryset = _period_filter(
+            TeslaCarDataSnapshot.objects.filter(hashedVin=hashed_vin),
+            desiredperiod,
+        )
         for session_points in _iter_charge_sessions(queryset):
             peak_value = _session_float_max(session_points, peak_field_key)
             if (
@@ -2022,14 +2074,14 @@ def _sample_soc(sample) -> float | None:
     return None
 
 
-def _charge_end_soc_histogram(queryset):
+def _charge_end_soc_histogram(hashed_vin, desiredperiod=None):
     """
     Sessions classified by peak SoC reached while charging (end-of-charge habit).
 
     Uses charge_number SQL summaries when available; otherwise streams samples.
     """
     bucket_counts = [0] * len(CHARGE_END_SOC_BUCKET_LABELS)
-    session_summaries = _charge_sessions_sql_by_number(queryset)
+    session_summaries = _charge_sessions_sql_by_number(hashed_vin, desiredperiod)
     if session_summaries is not None:
         for session in session_summaries:
             peak_soc = session.get("peak_soc_percent")
@@ -2037,6 +2089,10 @@ def _charge_end_soc_histogram(queryset):
                 continue
             bucket_counts[_end_soc_bucket_index(peak_soc)] += 1
     else:
+        queryset = _period_filter(
+            TeslaCarDataSnapshot.objects.filter(hashedVin=hashed_vin),
+            desiredperiod,
+        )
         for session_points in _iter_charge_sessions(queryset):
             peak_soc = None
             for sample in session_points:
@@ -2535,15 +2591,15 @@ def _stats_on_car_graph_uncached(
 
     # Charge limit: session histogram (how often set to 100% / 80% / …)
     if desiredfield == "charge_limit_soc":
-        queryset = _period_filter(base, desiredperiod)
-        labels, counts, pcts = _charge_limit_session_histogram(queryset)
+        labels, counts, pcts = _charge_limit_session_histogram(
+            hashedVin, desiredperiod
+        )
         return GenerateChargeLimitHistogram(labels, counts, pcts, title, size=size)
 
     # Peak power / charge-rate session histograms (DC vs AC, Supercharge peaks)
     if desiredfield in ("charger_power", "charge_rate"):
-        queryset = _period_filter(base, desiredperiod)
         labels, counts, amounts, pcts, amount_unit = _charge_peak_histogram(
-            queryset, metric=desiredfield
+            hashedVin, desiredperiod, metric=desiredfield
         )
         xlabel = (
             _("Peak charger power")
@@ -2563,8 +2619,7 @@ def _stats_on_car_graph_uncached(
 
     # End-of-charge SoC (replaces noisy battery_level time series)
     if desiredfield == "battery_level":
-        queryset = _period_filter(base, desiredperiod)
-        labels, counts, pcts = _charge_end_soc_histogram(queryset)
+        labels, counts, pcts = _charge_end_soc_histogram(hashedVin, desiredperiod)
         return GenerateChargeSessionHistogram(
             labels,
             counts,
