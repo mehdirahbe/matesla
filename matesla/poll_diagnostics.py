@@ -39,12 +39,20 @@ from matesla.capture import (
     INTERVAL_DRIVING_FAR_MIN,
     INTERVAL_DRIVING_MID_MIN,
     INTERVAL_DRIVING_MIN,
+    INTERVAL_LONG_IDLE_HARD_MIN,
+    INTERVAL_LONG_IDLE_SOFT_MIN,
     INTERVAL_NIGHT_DEFAULT_MIN,
     INTERVAL_ONLINE_IDLE_MIN,
     LIVE_ACTIVITY_KINDS,
+    LONG_IDLE_HARD_HOURS,
+    LONG_IDLE_SOFT_HOURS,
     activity_kind,
     base_poll_interval_minutes,
     is_night,
+    long_idle_hours,
+    long_idle_hours_for_vin,
+    long_idle_poll_floor_for_hours,
+    long_idle_poll_floor_minutes,
     poll_interval_minutes,
 )
 from matesla.models.VinHash import HashTheVin
@@ -388,9 +396,21 @@ def _decision_source(
     habit_interval_minutes: int | None,
     effective_interval_minutes: int,
     baseline_interval_minutes: int,
+    long_idle_floor_minutes: int | None = None,
 ) -> str:
     if activity in LIVE_ACTIVITY_KINDS:
         return "live_activity"
+    pre_floor = (
+        habit_interval_minutes
+        if habit_interval_minutes is not None
+        else baseline_interval_minutes
+    )
+    if (
+        long_idle_floor_minutes is not None
+        and long_idle_floor_minutes > pre_floor
+        and effective_interval_minutes == long_idle_floor_minutes
+    ):
+        return "long_idle"
     if (
         habit_interval_minutes is not None
         and effective_interval_minutes == habit_interval_minutes
@@ -411,6 +431,7 @@ def _decision_summary(
     effective_interval_minutes: int,
     is_night_now: bool,
     route_minutes_to_arrival: float | None = None,
+    long_idle_floor_minutes: int | None = None,
 ) -> str:
     night_label = _("night") if is_night_now else _("day")
     activity_label = label_activity_kind(activity)
@@ -443,7 +464,25 @@ def _decision_summary(
             "minutes": effective_interval_minutes,
             "day_or_night": night_label,
         }
+    if decision_source == "long_idle":
+        return _(
+            "Idle/asleep policy: no drive and no charge for a long stretch → "
+            "minimum spacing %(minutes)s min (10 min after 24 h, 15 min after 48 h). "
+            "Baseline would be %(baseline)s min."
+        ) % {
+            "minutes": effective_interval_minutes,
+            "baseline": baseline_interval_minutes,
+        }
     if decision_source == "habit":
+        extra = ""
+        if (
+            long_idle_floor_minutes is not None
+            and effective_interval_minutes >= long_idle_floor_minutes
+        ):
+            extra = " " + _(
+                "(long-idle floor %(floor)s min also applies but habit is already "
+                "as sparse or sparser.)"
+            ) % {"floor": long_idle_floor_minutes}
         return _(
             "Idle/asleep policy: habit class “%(habit_class)s” sets %(minutes)s min "
             "for this weekday+hour (default would be %(baseline)s min, %(day_or_night)s)."
@@ -452,7 +491,7 @@ def _decision_summary(
             "minutes": habit_interval_minutes or effective_interval_minutes,
             "baseline": baseline_interval_minutes,
             "day_or_night": night_label,
-        }
+        } + extra
     if habit_class == "moderate" and is_night_now:
         return _(
             "Idle/asleep policy: slot is historically moderate, but at night "
@@ -497,40 +536,59 @@ def idle_interval_for_slot(
     *,
     isoweekday: int,
     hour: int,
+    long_idle_floor_minutes: int | None = None,
 ) -> tuple[str | None, int, bool]:
     """
     Idle spacing for one civil (weekday, hour) if the car is not live-active.
 
     Returns (habit_class, idle_interval_minutes, habit_overrides_baseline).
+    ``long_idle_floor_minutes`` (vacation parked stretch) raises the interval
+    via max() so the UI matches capture.
     """
     night = hour in NIGHT_HOURS
     baseline = (
         INTERVAL_NIGHT_DEFAULT_MIN if night else INTERVAL_ONLINE_IDLE_MIN
     )
     if not model.trusted or model.regime_break:
-        return None, baseline, False
+        minutes = baseline
+        habit_class = None
+        overrides = False
+    else:
+        # Synthetic local time on a fixed week (only weekday+hour matter).
+        # 2024-01-01 is Monday → isoweekday 1.
+        from datetime import date, time as time_cls
 
-    # Synthetic local time on a fixed week (only weekday+hour matter).
-    # 2024-01-01 is Monday → isoweekday 1.
-    from datetime import date, time as time_cls
+        monday = date(2024, 1, 1)
+        day = monday + timedelta(days=isoweekday - 1)
+        local_when = datetime.combine(day, time_cls(hour=hour), tzinfo=HABIT_TZ)
+        habit_class = model.habit_class_for_local_time(local_when)
+        habit_interval = model.suggested_idle_interval_minutes(local_when)
+        if habit_interval is None:
+            minutes = baseline
+            overrides = False
+        else:
+            minutes = habit_interval
+            overrides = True
 
-    monday = date(2024, 1, 1)
-    day = monday + timedelta(days=isoweekday - 1)
-    local_when = datetime.combine(day, time_cls(hour=hour), tzinfo=HABIT_TZ)
-    habit_class = model.habit_class_for_local_time(local_when)
-    habit_interval = model.suggested_idle_interval_minutes(local_when)
-    if habit_interval is None:
-        return habit_class, baseline, False
-    return habit_class, habit_interval, True
+    if long_idle_floor_minutes is not None:
+        minutes = max(minutes, long_idle_floor_minutes)
+    return habit_class, minutes, overrides
 
 
-def build_week_grid(model: HabitModel) -> list[IdleScheduleCell]:
+def build_week_grid(
+    model: HabitModel,
+    *,
+    long_idle_floor_minutes: int | None = None,
+) -> list[IdleScheduleCell]:
     """7×24 idle policy grid (Monday first)."""
     cells: list[IdleScheduleCell] = []
     for isoweekday in range(1, 8):
         for hour in range(24):
             habit_class, idle_minutes, overrides = idle_interval_for_slot(
-                model, isoweekday=isoweekday, hour=hour
+                model,
+                isoweekday=isoweekday,
+                hour=hour,
+                long_idle_floor_minutes=long_idle_floor_minutes,
             )
             cells.append(
                 IdleScheduleCell(
@@ -549,15 +607,21 @@ def build_idle_forecast(
     *,
     now_local: datetime,
     days: int = 7,
+    idle_hours_so_far: float | None = None,
 ) -> list[list[IdleForecastSegment]]:
     """
     Compact idle-interval segments for the next ``days`` local calendar days.
 
     Each day is a list of consecutive hour bands with the same interval.
     Live activity is *not* simulated — this is the idle plan only.
+
+    If ``idle_hours_so_far`` is set (hours since last drive/charge), each
+    future hour applies the long-idle floor as if the car stays parked
+    (duration grows over the forecast window).
     """
     days = max(1, min(int(days), 14))
-    start_date = now_local.astimezone(HABIT_TZ).date()
+    local_now = now_local.astimezone(HABIT_TZ)
+    start_date = local_now.date()
     result: list[list[IdleForecastSegment]] = []
 
     for day_offset in range(days):
@@ -587,8 +651,25 @@ def build_idle_forecast(
             )
 
         for hour in range(24):
+            floor = None
+            if idle_hours_so_far is not None:
+                # Project idle duration at the start of this local hour.
+                from datetime import time as time_cls
+
+                slot_start = datetime.combine(
+                    day, time_cls(hour=hour), tzinfo=HABIT_TZ
+                )
+                hours_ahead = max(
+                    0.0, (slot_start - local_now).total_seconds() / 3600.0
+                )
+                floor = long_idle_poll_floor_for_hours(
+                    idle_hours_so_far + hours_ahead
+                )
             habit_class, idle_minutes, _overrides = idle_interval_for_slot(
-                model, isoweekday=isoweekday, hour=hour
+                model,
+                isoweekday=isoweekday,
+                hour=hour,
+                long_idle_floor_minutes=floor,
             )
             if current_minutes is None:
                 segment_start = hour
@@ -628,15 +709,18 @@ def build_current_poll_status(
     local_now = now.astimezone(CAPTURE_TZ)
     habit_class = None
     habit_interval = None
+    long_idle_floor = None
     if kind not in LIVE_ACTIVITY_KINDS:
         habit_class = model.habit_class_for_local_time(local_now)
         habit_interval = model.suggested_idle_interval_minutes(local_now)
+        long_idle_floor = long_idle_poll_floor_minutes(vehicle, now=now)
     effective = poll_interval_minutes(vehicle, now=now, snap=snap)
     source = _decision_source(
         activity=kind,
         habit_interval_minutes=habit_interval,
         effective_interval_minutes=effective,
         baseline_interval_minutes=baseline,
+        long_idle_floor_minutes=long_idle_floor,
     )
     last_polled = vehicle.last_polled_at
     if last_polled is not None and timezone.is_naive(last_polled):
@@ -689,6 +773,7 @@ def build_current_poll_status(
             effective_interval_minutes=effective,
             is_night_now=night,
             route_minutes_to_arrival=route_eta,
+            long_idle_floor_minutes=long_idle_floor,
         ),
         route_minutes_to_arrival=route_eta,
         route_miles_to_arrival=route_miles,
@@ -739,9 +824,18 @@ def build_poll_diagnostic_report(
     )
     habits = build_habit_model_status(model)
     local_now = now.astimezone(HABIT_TZ)
-    week_grid = build_week_grid(model)
+
+    # Vacation floor: hours since last drive/charge (None if unknown).
+    idle_h = long_idle_hours_for_vin(resolved_vin, now=now)
+    long_idle_floor = long_idle_poll_floor_for_hours(idle_h)
+    week_grid = build_week_grid(
+        model, long_idle_floor_minutes=long_idle_floor
+    )
     forecast = build_idle_forecast(
-        model, now_local=local_now, days=forecast_days
+        model,
+        now_local=local_now,
+        days=forecast_days,
+        idle_hours_so_far=idle_h,
     )
 
     current = None
@@ -754,6 +848,19 @@ def build_poll_diagnostic_report(
             "If the car drives, DC/AC charges or has cabin activity, capture "
             "switches to the short reactive default until that ends."
         ),
+        _(
+            "After %(soft_h)s h with no drive and no charge, idle spacing is "
+            "at least %(soft_m)s min; after %(hard_h)s h at least %(hard_m)s min "
+            "(even if the day default or a busy habit would be denser). "
+            "Night default %(night)s min is already sparser."
+        )
+        % {
+            "soft_h": LONG_IDLE_SOFT_HOURS,
+            "soft_m": INTERVAL_LONG_IDLE_SOFT_MIN,
+            "hard_h": LONG_IDLE_HARD_HOURS,
+            "hard_m": INTERVAL_LONG_IDLE_HARD_MIN,
+            "night": INTERVAL_NIGHT_DEFAULT_MIN,
+        },
         _(
             "Habits use at most the last %(lookback)s days, require "
             "%(min_weeks)s reference weeks before the last %(recent)s days, "

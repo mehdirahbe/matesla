@@ -283,6 +283,7 @@
             <span class="poll-kpi__label">{% trans 'Decision source' %}</span>
             <span class="poll-kpi__value">
                 {% if current.decision_source == 'live_activity' %}{% trans 'Live activity' %}
+                {% elif current.decision_source == 'long_idle' %}{% trans 'Long idle (parked)' %}
                 {% elif current.decision_source == 'habit' %}{% trans 'Habit model' %}
                 {% else %}{% trans 'Default spacing' %}{% endif %}
             </span>
@@ -349,7 +350,7 @@
 
 <section class="poll-section" aria-labelledby="poll-forecast-title">
     <h2 id="poll-forecast-title">{% trans 'Idle plan — next 7 days' %}</h2>
-    <p>{% trans 'What idle/asleep spacing the model would use if the car is not driving or charging. Segments merge consecutive hours with the same interval.' %}</p>
+    <p>{% trans 'What idle/asleep spacing would apply if the car stays parked (no drive, no charge). Includes habit model when trusted, day/night defaults, and the long-idle floor (10 min after 24 h, 15 min after 48 h). Segments merge consecutive hours with the same interval.' %}</p>
     {% for day_segments in forecast_days %}
         {% if day_segments %}
         <div class="poll-forecast-day">

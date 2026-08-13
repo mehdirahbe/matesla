@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import requests
+from django.db.models import Q
 from django.utils import timezone
 
 from matesla.TeslaConnect import (
@@ -67,6 +68,12 @@ INTERVAL_SENTRY_MIN = 10  # sentry only (no cabin activity)
 INTERVAL_ONLINE_IDLE_MIN = 5  # online but no cabin / sentry signal
 INTERVAL_ASLEEP_DAY_MIN = 5
 INTERVAL_NIGHT_DEFAULT_MIN = 30  # idle/AC/etc. at night; not drive/DC
+# Parked for a long time (holiday / unused car): raise day idle floor.
+# Night is already 30; this only prevents burning 5 min polls for days.
+LONG_IDLE_SOFT_HOURS = 24
+LONG_IDLE_HARD_HOURS = 48
+INTERVAL_LONG_IDLE_SOFT_MIN = 10  # ≥24 h no drive & no charge
+INTERVAL_LONG_IDLE_HARD_MIN = 15  # ≥48 h no drive & no charge
 
 # DC heuristic: Supercharger / fast pack, or power well above typical AC.
 #Mehdi 2/8/2026: was 20, but all tesla are limited in AC to 11 kW
@@ -317,6 +324,8 @@ def base_poll_interval_minutes(
     Night (22h–6h local), other kinds: 30 min (incl. AC wall charge).
 
     Day: AC 15, cabin 2, dog/camp 15, sentry 10, online idle/asleep 5.
+    Long parked (no drive/charge 24h/48h) is applied later as a floor in
+    ``poll_interval_minutes`` (not here).
     """
     if kind == "driving":
         return driving_poll_interval_minutes(snap)
@@ -339,6 +348,96 @@ def base_poll_interval_minutes(
     return INTERVAL_ONLINE_IDLE_MIN
 
 
+def _last_drive_or_charge_at(vin: str) -> datetime | None:
+    """
+    Timestamp of the latest sample that was driving or charging.
+
+    Used only for long-idle vacation spacing — not for live activity_kind
+    (that still needs a *fresh* snapshot).
+    """
+    vin = (vin or "").strip()
+    if not vin:
+        return None
+    when = (
+        TeslaCarDataSnapshot.objects.filter(vin=vin)
+        .filter(
+            Q(speed__gte=DRIVING_SPEED_MPH_MIN)
+            | Q(shift_state__in=["D", "R", "N"])
+            | Q(charging_state__in=["Charging", "Starting"])
+        )
+        .order_by("-Date")
+        .values_list("Date", flat=True)
+        .first()
+    )
+    if when is None:
+        return None
+    if timezone.is_naive(when):
+        when = timezone.make_aware(when, timezone.utc)
+    return when
+
+
+def long_idle_hours_for_vin(
+    vin: str,
+    *,
+    now: datetime | None = None,
+) -> float | None:
+    """
+    Hours since last drive or charge for this VIN.
+
+    None if we have never seen drive/charge (do not invent a vacation floor).
+    """
+    now = now or timezone.now()
+    vin = (vin or "").strip()
+    if not vin:
+        return None
+    last_active = _last_drive_or_charge_at(vin)
+    if last_active is None:
+        return None
+    return max(0.0, (now - last_active).total_seconds() / 3600.0)
+
+
+def long_idle_hours(
+    vehicle: TeslaVehicle,
+    *,
+    now: datetime | None = None,
+) -> float | None:
+    """Hours since last drive/charge for ``vehicle.vin`` (see long_idle_hours_for_vin)."""
+    return long_idle_hours_for_vin(getattr(vehicle, "vin", None) or "", now=now)
+
+
+def long_idle_poll_floor_for_hours(hours: float | None) -> int | None:
+    """
+    Map idle duration (hours since last drive/charge) → poll floor minutes.
+
+    ≥48 h → 15 min; ≥24 h → 10 min; else None.
+    """
+    if hours is None:
+        return None
+    if hours >= LONG_IDLE_HARD_HOURS:
+        return INTERVAL_LONG_IDLE_HARD_MIN
+    if hours >= LONG_IDLE_SOFT_HOURS:
+        return INTERVAL_LONG_IDLE_SOFT_MIN
+    return None
+
+
+def long_idle_poll_floor_minutes(
+    vehicle: TeslaVehicle,
+    *,
+    now: datetime | None = None,
+) -> int | None:
+    """
+    Minimum idle poll spacing after a long parked stretch.
+
+    ≥48 h no drive & no charge → 15 min
+    ≥24 h → 10 min
+    else → None (no floor)
+
+    Applied as max(interval, floor) so habit “busy = 5 min” cannot keep
+    polling every 5 min while the car is on holiday for days.
+    """
+    return long_idle_poll_floor_for_hours(long_idle_hours(vehicle, now=now))
+
+
 def poll_interval_minutes(
     vehicle: TeslaVehicle,
     *,
@@ -352,6 +451,9 @@ def poll_interval_minutes(
     For idle/asleep/sentry only, a *recent* habit model may set 5 / 15 / 30 min
     when the current weekday+hour is historically classified and no regime break
     is active. See ``matesla.poll_habits`` and ``matesla.poll_diagnostics``.
+
+    After ≥24 h / ≥48 h with no drive and no charge, idle spacing is floored
+    at 10 / 15 min so unused cars do not stay on the 5 min day baseline.
     """
     now = now or timezone.now()
     if snap is None:
@@ -360,31 +462,34 @@ def poll_interval_minutes(
     night = is_night(now)
     base = base_poll_interval_minutes(kind, night=night, snap=snap)
 
-    # Never slow down with habits while something is happening.
+    # Never slow down with habits / long-idle while something is happening.
     if kind in LIVE_ACTIVITY_KINDS:
         return base
 
+    interval = base
     vin = (getattr(vehicle, "vin", None) or "").strip()
-    if not vin:
-        return base
+    if vin:
+        try:
+            from matesla.poll_habits import get_habit_model
 
-    try:
-        from matesla.poll_habits import get_habit_model
+            # Evaluate habits in household local time (same TZ as night window).
+            local_now = now.astimezone(CAPTURE_TZ)
+            model = get_habit_model(vin, now=now)
+            habit_interval = model.suggested_idle_interval_minutes(local_now)
+            if habit_interval is not None:
+                # Habit replaces idle baseline (not max): busy nights can go
+                # 30→5 min, quiet days can go 5→15/30.
+                interval = habit_interval
+        except Exception:
+            # Habits must never break capture.
+            traceback.print_exc()
 
-        # Evaluate habits in household local time (same TZ as night window).
-        local_now = now.astimezone(CAPTURE_TZ)
-        model = get_habit_model(vin, now=now)
-        habit_interval = model.suggested_idle_interval_minutes(local_now)
-        if habit_interval is None:
-            return base
-        # Habit replaces idle baseline (not max): busy nights can go 30→5 min,
-        # quiet days can go 5→15/30. Live drive/charge still use short base above.
-        return habit_interval
-
-    except Exception:
-        # Habits must never break capture.
-        traceback.print_exc()
-        return base
+    # Vacation / unused: raise floor after long parked stretch (day or night
+    # habit-busy 5 → at least 10/15; night baseline 30 stays 30).
+    floor = long_idle_poll_floor_minutes(vehicle, now=now)
+    if floor is not None:
+        interval = max(interval, floor)
+    return interval
 
 
 def _snap_was_driving(snap: TeslaCarDataSnapshot | None) -> bool:
