@@ -100,7 +100,16 @@
         <span>{% trans 'Private by design · Open source' %}</span>
         <span class="app-footer__dot" aria-hidden="true"></span>
         {% include 'includes/unit_toggle.html' with modifier='footer' %}
-        <a href="https://github.com/mehdirahbe/matesla" target="_blank" rel="noopener noreferrer">{% trans 'Source' %} ↗</a>
+        <span class="app-footer__spacer" aria-hidden="true"></span>
+        {% if use_geoapify %}
+        {# Free plan: visible Geoapify + OpenStreetMap attribution (ToS). #}
+        <span class="app-footer__geo">
+            <a href="https://www.geoapify.com/" target="_blank" rel="noopener">Powered by Geoapify</a>
+            <span class="app-footer__dot" aria-hidden="true"></span>
+            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a>
+        </span>
+        {% endif %}
+        <a class="app-footer__source" href="https://github.com/mehdirahbe/matesla" target="_blank" rel="noopener noreferrer">{% trans 'Source' %} ↗</a>
     </footer>
 
     <script src="{% static 'jquery-3.5.1.slim.min.js' %}" crossorigin="anonymous"></script>

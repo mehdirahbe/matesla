@@ -97,6 +97,65 @@ The systemd unit is **generated for your user and install path**. Re-run
 Tesla Fleet credentials (`.env` or in-app setup) still require a Tesla Developer
 account — matesla cannot skip that step.
 
+Reverse geocoding (addresses on day map / drives) — optional Geoapify
+---------------------------------------------------------------------
+
+By default, matesla reverse-geocodes lat/lon via **public Nominatim**
+(~1 request/s, self-imposed daily cap). That works with **no API key**.
+
+For **faster** label fill-in and a quicker address backlog, you can use
+**[Geoapify](https://www.geoapify.com/)** (free tier: 3 000 credits/day,
+~5 req/s, no credit card for the free plan). Reverse geocode = 1 credit.
+
+### Setup (optional)
+
+1. Create a free account at [geoapify.com](https://www.geoapify.com/) → API key.
+2. Put the key in a **local** `.env` at the project root (gitignored; **never commit**):
+
+   ```bash
+   # .env  (same file as Tesla credentials is fine)
+   GEOAPIFY_API_KEY=your_key_here
+   ```
+
+   Alias `GEOAPIFY_KEY` is also accepted.
+3. Restart the app so gunicorn reloads env:
+
+   ```bash
+   sudo systemctl restart matesla-gunicorn.service
+   # or restart runserver
+   ```
+
+4. Check:
+
+   ```bash
+   .venv/bin/python -c "
+   import django, os
+   os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
+   django.setup()
+   from matesla.models.AddressFromLatLong import active_geocoder
+   print(active_geocoder())  # expect: geoapify
+   "
+   ```
+
+Without a key, behaviour falls back to Nominatim automatically.
+
+On the free plan, the site footer shows **Powered by Geoapify** and
+**© OpenStreetMap** when Geoapify is active (provider ToS).
+
+### Backup the key **outside** the project tree
+
+`.env` is not in git. Treat the key like Tesla secrets:
+
+- Keep the live `.env` on the machine that runs matesla.
+- **Copy a backup off-site** (USB, password manager, or next to your DB
+  archives in Dropbox/cloud — **not** inside the git working tree, and not
+  committed). Example: same Dropbox folder as `matesla-db-*.sqlite3.zst`
+  backups, e.g. `matesla-secrets.env`.
+- Do **not** put secrets only inside `db-backups/` if that folder is ever
+  shared or published; prefer a dedicated private backup location.
+
+Do **not** backup `.venv` (reinstall with `pip install -r requirements.txt`).
+
 For developers (manual run, no install script)
 ----------------------------------------------
 
@@ -104,7 +163,8 @@ Python 3.12+, Django 5.2 LTS:
 
 1. `python3 -m venv .venv && source .venv/bin/activate`
 2. `pip install -U pip && pip install -r requirements.txt`
-3. Optional: Tesla Fleet credentials in a `.env` file (see `settings.py`)
+3. Optional: Tesla Fleet + Geoapify keys in a `.env` file (see above and
+   `settings.py`) — backup `.env` off-site, never commit it
 4. `python manage.py migrate`   # SQLite by default (`db.sqlite3`)
 5. `python manage.py createsuperuser`  # optional
 6. `python manage.py test`
@@ -161,7 +221,9 @@ python manage.py runserver 127.0.0.1:8001
 Minute-level history (TeslaFi + capture) is irreplaceable — backups are **full
 SQLite snapshots**, not thinned exports. Archives live **next to the live DB**
 in `db-backups/` (gitignored). **MaTesla never uploads backups**; copy those
-files yourself to USB / cloud storage.
+files yourself to USB / cloud storage. Also back up your **`.env`** (Tesla +
+optional Geoapify keys) to a private off-site place — see reverse-geocoding
+section above.
 
 | | |
 |--|--|

@@ -51,7 +51,9 @@ DEFAULT_ELEV_SCAN = 20000
 # SQLite variable limit comfort for WHERE id IN (...)
 _ID_UPDATE_CHUNK = 500
 
+# 1 was for Nominatim 1 req/s; Geoapify can do several per capture tick.
 DEFAULT_ADDR_PER_TICK = 1
+DEFAULT_ADDR_PER_TICK_GEOAPIFY = 5
 DEFAULT_ADDR_CANDIDATE_SCAN = 400
 DEFAULT_ADDR_LOOKBACK_DAYS = 30
 
@@ -69,7 +71,24 @@ def _elev_scan_limit() -> int:
 
 
 def _addr_per_tick() -> int:
-    return int(getattr(settings, "GEO_ADDR_PER_TICK", DEFAULT_ADDR_PER_TICK))
+    # Explicit override wins (including 0 to disable address backfill).
+    if hasattr(settings, "GEO_ADDR_PER_TICK"):
+        return int(settings.GEO_ADDR_PER_TICK)
+    # Auto: more addresses per capture tick when Geoapify is configured.
+    try:
+        from matesla.models.AddressFromLatLong import active_geocoder
+
+        if active_geocoder() == "geoapify":
+            return int(
+                getattr(
+                    settings,
+                    "GEO_ADDR_PER_TICK_GEOAPIFY",
+                    DEFAULT_ADDR_PER_TICK_GEOAPIFY,
+                )
+            )
+    except Exception:
+        pass
+    return DEFAULT_ADDR_PER_TICK
 
 
 def lookup_cached_elevation(lat, lon) -> float | None:

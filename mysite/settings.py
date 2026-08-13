@@ -216,6 +216,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "mysite.context_processors.writable_access",
                 "mysite.context_processors.distance_unit",
+                "mysite.context_processors.geocoder_attribution",
             ],
         },
     },
@@ -332,6 +333,25 @@ if SENDGRID_API_KEY:
     SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# ---------------------------------------------------------------------------
+# Reverse-geocode (addresses for day-map / drives / status)
+# Prefer Geoapify when GEOAPIFY_API_KEY is set; else public Nominatim.
+# ---------------------------------------------------------------------------
+GEOAPIFY_API_KEY = (
+    os.getenv("GEOAPIFY_API_KEY", "").strip()
+    or os.getenv("GEOAPIFY_KEY", "").strip()
+    or ""
+)
+# Free tier ~3000/day, 5 req/s — stay under the cap.
+GEOAPIFY_MAX_PER_DAY = int(os.getenv("GEOAPIFY_MAX_PER_DAY", "2500"))
+GEOAPIFY_BACKFILL_MAX_PER_DAY = int(os.getenv("GEOAPIFY_BACKFILL_MAX_PER_DAY", "2000"))
+GEOAPIFY_MIN_INTERVAL_SEC = float(os.getenv("GEOAPIFY_MIN_INTERVAL_SEC", "0.25"))
+# Nominatim (fallback): self-imposed daily cap; still ~1 req/s.
+# Raised from 300/200 — personal use + cache, User-Agent set.
+NOMINATIM_MAX_PER_DAY = int(os.getenv("NOMINATIM_MAX_PER_DAY", "1000"))
+NOMINATIM_BACKFILL_MAX_PER_DAY = int(os.getenv("NOMINATIM_BACKFILL_MAX_PER_DAY", "800"))
+NOMINATIM_MIN_INTERVAL_SEC = float(os.getenv("NOMINATIM_MIN_INTERVAL_SEC", "1.1"))
 
 # ---------------------------------------------------------------------------
 # Tesla Fleet API (MyRobotCar) — set in .env, never commit secrets

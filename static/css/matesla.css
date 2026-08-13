@@ -438,8 +438,26 @@ a.unit-toggle__btn:hover {
 }
 
 .app-footer a {
-    margin-left: auto;
     color: var(--app-muted);
+}
+
+.app-footer__spacer {
+    flex: 1 1 auto;
+    min-width: 8px;
+}
+
+.app-footer__geo {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    font-weight: 560;
+    letter-spacing: 0.02em;
+}
+
+.app-footer__geo a:hover,
+.app-footer__source:hover {
+    color: var(--app-text);
 }
 
 .app-footer__dot {
@@ -2840,9 +2858,13 @@ pre.key-box {
         flex-wrap: wrap;
     }
 
-    .app-footer a {
+    .app-footer__spacer {
+        display: none;
+    }
+
+    .app-footer__geo,
+    .app-footer__source {
         width: 100%;
-        margin-left: 0;
     }
 }
 

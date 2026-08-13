@@ -34,7 +34,7 @@ path('PollDetails/<str:hashedVin>', views.PollDetails, name='PersoPollDetails'),
 
 # Lifetime map JSON (path + KPIs) for the personal stats card
 path('LifetimeMapData/<str:hashedVin>', views.LifetimeMapData, name='PersoLifetimeMapData'),
-# Async reverse-geocode (cache miss → Nominatim, rate-limited)
+# Async reverse-geocode (cache miss → Geoapify or Nominatim, rate-limited)
 path('ResolveAddress', views.ResolveAddress, name='PersoResolveAddress'),
 # Async Supercharger match for day-map DC stops (cached directory)
 path('MatchSupercharger', views.MatchSupercharger, name='PersoMatchSupercharger'),

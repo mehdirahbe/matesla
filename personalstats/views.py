@@ -4634,7 +4634,7 @@ def ResolveAddress(request):
 
     Query: ?lat=50.7868&lon=4.3517
     Returns JSON: {ok, lat, lon, address, cached, error?}
-    Cache hits are instant; misses call Nominatim under the daily/1-req-s quota.
+    Cache hits are instant; misses call Geoapify (if key) or Nominatim under quota.
     """
     try:
         lat = float(request.GET.get("lat", ""))

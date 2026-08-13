@@ -336,3 +336,105 @@ class NominatimQuotaPurposeTests(TestCase):
         get_mock.assert_called_once_with(
             50.2, 4.2, purpose=NOMINATIM_PURPOSE_BACKFILL
         )
+
+
+class CarRoadsFormatTests(TestCase):
+    def test_prefers_road_over_footway(self):
+        from matesla.models.AddressFromLatLong import _format_from_components
+
+        # Only footway → no car road → may still use place/locality only
+        only_path = _format_from_components(
+            {
+                "footway": "Allée Jacques Brel",
+                "city": "Uccle",
+                "postcode": "1180",
+                "country": "Belgique",
+            },
+            car_roads_only=True,
+        )
+        self.assertIsNotNone(only_path)
+        self.assertNotIn("Jacques Brel", only_path or "")
+
+        with_road = _format_from_components(
+            {
+                "house_number": "45",
+                "road": "Rue Rouge",
+                "footway": "Allée Jacques Brel",
+                "city": "Uccle",
+                "postcode": "1180",
+                "country": "Belgique",
+            },
+            car_roads_only=True,
+        )
+        self.assertIn("Rue Rouge", with_road or "")
+        self.assertNotIn("Jacques Brel", with_road or "")
+
+
+class GeoapifyProviderTests(TestCase):
+    @override_settings(GEOAPIFY_API_KEY="test-key-xyz", GEOAPIFY_MIN_INTERVAL_SEC=0)
+    def test_active_geocoder_geoapify(self):
+        from matesla.models.AddressFromLatLong import active_geocoder
+
+        self.assertEqual(active_geocoder(), "geoapify")
+
+    @override_settings(GEOAPIFY_API_KEY="")
+    def test_active_geocoder_nominatim_without_key(self):
+        from matesla.models.AddressFromLatLong import active_geocoder
+
+        # Clear env leakage for this process if any
+        with patch.dict("os.environ", {"GEOAPIFY_API_KEY": "", "GEOAPIFY_KEY": ""}, clear=False):
+            self.assertEqual(active_geocoder(), "nominatim")
+
+    @override_settings(
+        GEOAPIFY_API_KEY="test-key-xyz",
+        GEOAPIFY_MIN_INTERVAL_SEC=0,
+        GEOAPIFY_MAX_PER_DAY=50,
+        GEOAPIFY_BACKFILL_MAX_PER_DAY=40,
+    )
+    def test_get_address_uses_geoapify(self):
+        from matesla.models.AddressFromLatLong import GetAddressFromLatLong
+
+        fake_json = {
+            "features": [
+                {
+                    "properties": {
+                        "housenumber": "45",
+                        "street": "Rue Rouge",
+                        "city": "Uccle",
+                        "postcode": "1180",
+                        "country": "Belgique",
+                        "formatted": "Rue Rouge 45, 1180 Uccle, Belgique",
+                    }
+                }
+            ]
+        }
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status = MagicMock()
+        mock_resp.json.return_value = fake_json
+
+        with patch(
+            "matesla.models.AddressFromLatLong.requests.get", return_value=mock_resp
+        ) as get_mock:
+            result = GetAddressFromLatLong(50.801154, 4.34285)
+
+        self.assertIn("Rue Rouge", result)
+        self.assertIn("Uccle", result)
+        get_mock.assert_called_once()
+        self.assertIn("geoapify.com", get_mock.call_args[0][0])
+        # Cached for second call
+        with patch(
+            "matesla.models.AddressFromLatLong.requests.get"
+        ) as get_again:
+            again = GetAddressFromLatLong(50.801154, 4.34285)
+        self.assertEqual(again, result)
+        get_again.assert_not_called()
+
+    @override_settings(
+        GEOAPIFY_API_KEY="test-key-xyz",
+        GEOAPIFY_MIN_INTERVAL_SEC=0,
+        GEOAPIFY_MAX_PER_DAY=2500,
+    )
+    def test_geoapify_quota_defaults_higher(self):
+        from matesla.models.AddressFromLatLong import _geocode_max_per_day
+
+        self.assertEqual(_geocode_max_per_day(), 2500)

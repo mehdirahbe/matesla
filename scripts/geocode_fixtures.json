@@ -1,0 +1,40 @@
+{
+  "comment": "Points de vérité terrain (matesla). expected = ce que l'utilisateur sait du lieu. Comparer reverse-geocoders avec compare_geocoders.py.",
+  "points": [
+    {
+      "id": "uccle-rue-rouge-cc",
+      "lat": 50.801154,
+      "lon": 4.34285,
+      "note": "Rue Rouge, Uccle — ~10 m avant l'entrée du centre culturel d'Uccle",
+      "expected": "Rue Rouge, Uccle (près centre culturel)"
+    },
+    {
+      "id": "sc-westland-anderlecht",
+      "lat": 50.837858,
+      "lon": 4.288409,
+      "note": "Tesla Supercharger — Westland Shopping Center, Anderlecht",
+      "expected": "Supercharger Westland / Anderlecht (shopping center)"
+    },
+    {
+      "id": "sc-gent",
+      "lat": 51.018221,
+      "lon": 3.737095,
+      "note": "Tesla Supercharger — Gent (Gand)",
+      "expected": "Supercharger Gent / Gand"
+    },
+    {
+      "id": "la-ciotat-civade-verde",
+      "lat": 43.200285,
+      "lon": 5.648128,
+      "note": "509 Chemin de la Civade Verde, La Ciotat (FR)",
+      "expected": "509, Chemin de la Civade Verde, La Ciotat"
+    },
+    {
+      "id": "verdon-camping-naturiste",
+      "lat": 43.75485,
+      "lon": 5.949377,
+      "note": "Parking du camping naturiste Verdon Provence",
+      "expected": "Camping naturiste Verdon Provence (parking)"
+    }
+  ]
+}
