@@ -28,6 +28,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from matesla.models.AddressFromLatLong import (
+    NOMINATIM_PURPOSE_BACKFILL,
     AddressFromLatLong,
     GetAddressFromLatLong,
     LookupCachedAddress,
@@ -375,7 +376,10 @@ def _collect_grids_missing_address(max_candidates: int) -> list[tuple[float, flo
 
 def enrich_addresses_once(max_calls: int | None = None) -> dict:
     """
-    Fill a few missing addresses via Nominatim (existing daily quota + interval).
+    Fill a few missing addresses via Nominatim (backfill budget only).
+
+    Uses purpose=backfill so capture cannot exhaust the hard daily cap that
+    day-map ResolveAddress needs for on-demand reverse-geocode.
     """
     n = max_calls if max_calls is not None else _addr_per_tick()
     n = max(0, n)
@@ -389,7 +393,9 @@ def enrich_addresses_once(max_calls: int | None = None) -> dict:
             break
         stats["addr_attempted"] += 1
         try:
-            result = GetAddressFromLatLong(lat4, lon4)
+            result = GetAddressFromLatLong(
+                lat4, lon4, purpose=NOMINATIM_PURPOSE_BACKFILL
+            )
         except Exception as exc:
             logger.warning("Address enrich failed for %s,%s: %s", lat4, lon4, exc)
             continue

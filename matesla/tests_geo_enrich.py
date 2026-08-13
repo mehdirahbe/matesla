@@ -236,3 +236,103 @@ class AddressLookupPreservesElevationTests(TestCase):
         )
         self.assertIsNone(LookupCachedAddress(50.0, 4.0))
         self.assertEqual(lookup_cached_elevation(50.0, 4.0), 12.0)
+
+
+class NominatimQuotaPurposeTests(TestCase):
+    """Backfill must not exhaust the hard daily cap used by day-map AJAX."""
+
+    @override_settings(
+        NOMINATIM_MAX_PER_DAY=10,
+        NOMINATIM_BACKFILL_MAX_PER_DAY=6,
+        NOMINATIM_MIN_INTERVAL_SEC=0,
+    )
+    def test_backfill_stops_before_interactive_budget(self):
+        from datetime import date
+
+        from matesla.models.AddressFromLatLong import (
+            NOMINATIM_PURPOSE_BACKFILL,
+            NOMINATIM_PURPOSE_INTERACTIVE,
+            NominatimDailyQuota,
+            _acquire_nominatim_slot,
+        )
+
+        today = date.today()
+        NominatimDailyQuota.objects.create(
+            day=today, call_count=6, last_call_at=timezone.now()
+        )
+        self.assertFalse(
+            _acquire_nominatim_slot(purpose=NOMINATIM_PURPOSE_BACKFILL)
+        )
+        self.assertTrue(
+            _acquire_nominatim_slot(purpose=NOMINATIM_PURPOSE_INTERACTIVE)
+        )
+        row = NominatimDailyQuota.objects.get(day=today)
+        self.assertEqual(row.call_count, 7)
+
+    @override_settings(
+        NOMINATIM_MAX_PER_DAY=5,
+        NOMINATIM_BACKFILL_MAX_PER_DAY=5,
+        NOMINATIM_MIN_INTERVAL_SEC=0,
+    )
+    def test_interactive_hard_cap(self):
+        from datetime import date
+
+        from matesla.models.AddressFromLatLong import (
+            NOMINATIM_PURPOSE_INTERACTIVE,
+            NominatimDailyQuota,
+            _acquire_nominatim_slot,
+        )
+
+        today = date.today()
+        NominatimDailyQuota.objects.create(
+            day=today, call_count=5, last_call_at=timezone.now()
+        )
+        self.assertFalse(
+            _acquire_nominatim_slot(purpose=NOMINATIM_PURPOSE_INTERACTIVE)
+        )
+
+    @override_settings(
+        NOMINATIM_MAX_PER_DAY=20,
+        NOMINATIM_BACKFILL_MAX_PER_DAY=10,
+        NOMINATIM_MIN_INTERVAL_SEC=0,
+    )
+    def test_backfill_get_address_uses_backfill_purpose(self):
+        """enrich path must not consume interactive-only headroom."""
+        from datetime import date
+        from unittest.mock import patch
+
+        from matesla.models.AddressFromLatLong import (
+            NOMINATIM_PURPOSE_BACKFILL,
+            NominatimDailyQuota,
+            GetAddressFromLatLong,
+        )
+
+        today = date.today()
+        NominatimDailyQuota.objects.create(
+            day=today, call_count=10, last_call_at=timezone.now()
+        )
+        with patch(
+            "matesla.models.AddressFromLatLong._nominatim_reverse",
+            return_value=None,
+        ) as reverse_mock:
+            result = GetAddressFromLatLong(
+                50.1, 4.1, purpose=NOMINATIM_PURPOSE_BACKFILL
+            )
+        self.assertEqual(result, "Unknown")
+        # reverse is still called once; slot denied inside → returns None
+        reverse_mock.assert_called()
+        # call_count unchanged if reverse mocks and skips acquire — mock replaces
+        # whole reverse. Check enrich_addresses_once wires purpose instead:
+        from matesla.geo_enrich import enrich_addresses_once
+
+        with patch(
+            "matesla.geo_enrich.GetAddressFromLatLong", return_value="Unknown"
+        ) as get_mock:
+            with patch(
+                "matesla.geo_enrich._collect_grids_missing_address",
+                return_value=[(50.2, 4.2)],
+            ):
+                enrich_addresses_once(max_calls=1)
+        get_mock.assert_called_once_with(
+            50.2, 4.2, purpose=NOMINATIM_PURPOSE_BACKFILL
+        )

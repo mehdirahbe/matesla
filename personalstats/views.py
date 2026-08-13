@@ -4664,6 +4664,8 @@ def ResolveAddress(request):
             }
         )
 
+    # Interactive (day-map / drives AJAX): may use the full hard daily cap.
+    # Capture backfill uses a softer budget so this path still works daytime.
     address = GetAddressFromLatLong(lat_rounded, lon_rounded)
     if not address or address == "Unknown":
         return JsonResponse(
@@ -4673,6 +4675,8 @@ def ResolveAddress(request):
                 "lon": lon_rounded,
                 "address": None,
                 "cached": False,
+                # Usually Nominatim daily budget exhausted (or network failure).
+                # Not blocked by Tailscale read-only (GET is whitelisted).
                 "error": "unresolved_or_quota",
             }
         )
