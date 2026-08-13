@@ -131,6 +131,10 @@
         border-color: rgba(255, 140, 100, 0.5);
         background: rgba(180, 70, 40, 0.22);
     }
+    .poll-seg--busy-near {
+        border-color: rgba(230, 120, 50, 0.5);
+        background: rgba(150, 80, 30, 0.22);
+    }
     .poll-seg--moderate {
         border-color: rgba(240, 180, 41, 0.45);
         background: rgba(120, 90, 20, 0.2);
@@ -179,6 +183,11 @@
         color: #ffc4a8;
         font-weight: 600;
     }
+    .poll-grid td.poll-cell--busy-near {
+        background: rgba(150, 80, 30, 0.26);
+        color: #ffd0a0;
+        font-weight: 600;
+    }
     .poll-grid td.poll-cell--moderate {
         background: rgba(120, 90, 20, 0.28);
         color: #ffe0a0;
@@ -209,6 +218,7 @@
         vertical-align: -1px;
     }
     .poll-legend .lg-busy { background: rgba(180, 70, 40, 0.7); }
+    .poll-legend .lg-busy-near { background: rgba(200, 110, 40, 0.7); }
     .poll-legend .lg-mod { background: rgba(180, 140, 30, 0.7); }
     .poll-legend .lg-quiet { background: rgba(40, 120, 180, 0.7); }
     .poll-notes ul {
@@ -343,6 +353,7 @@
         <div><span>{% trans 'Max search window' %}:</span> {{ habits.max_lookback_days }} {% trans 'days' %}</div>
         <div><span>{% trans 'Excluded from training (recent check)' %}:</span> {{ habits.recent_check_days }} {% trans 'days' %}</div>
         <div><span>{% trans 'Busy slots' %}:</span> {{ habits.busy_slot_count }} → {{ habits.busy_interval_minutes }} {% trans 'min' %}</div>
+        <div><span>{% trans 'Near-busy slots' %}:</span> {{ habits.busy_near_slot_count }} → {{ habits.busy_near_interval_minutes }} {% trans 'min' %}</div>
         <div><span>{% trans 'Moderate slots' %}:</span> {{ habits.moderate_slot_count }} → {{ habits.moderate_interval_minutes }} {% trans 'min' %}</div>
         <div><span>{% trans 'Quiet slots' %}:</span> {{ habits.quiet_slot_count }} → {{ habits.quiet_interval_minutes }} {% trans 'min' %}</div>
     </div>
@@ -359,10 +370,11 @@
             </div>
             <div class="poll-segments">
                 {% for segment in day_segments %}
-                <span class="poll-seg {% if segment.habit_class == 'busy' %}poll-seg--busy{% elif segment.habit_class == 'moderate' %}poll-seg--moderate{% elif segment.habit_class == 'quiet' %}poll-seg--quiet{% endif %}">
+                <span class="poll-seg {% if segment.habit_class == 'busy' %}poll-seg--busy{% elif segment.habit_class == 'busy_near' %}poll-seg--busy-near{% elif segment.habit_class == 'moderate' %}poll-seg--moderate{% elif segment.habit_class == 'quiet' %}poll-seg--quiet{% endif %}">
                     {{ segment.start_hour|stringformat:"02d" }}–{{ segment.end_hour_exclusive|stringformat:"02d" }}h
                     · {{ segment.idle_interval_minutes }} {% trans 'min' %}
                     {% if segment.habit_class == 'busy' %}· {% trans 'busy' %}
+                    {% elif segment.habit_class == 'busy_near' %}· {% trans 'near busy' %}
                     {% elif segment.habit_class == 'moderate' %}· {% trans 'moderate' %}
                     {% elif segment.habit_class == 'quiet' %}· {% trans 'quiet' %}
                     {% endif %}
@@ -378,7 +390,7 @@
 
 <section class="poll-section" aria-labelledby="poll-grid-title">
     <h2 id="poll-grid-title">{% trans 'Typical week (idle minutes by weekday and hour)' %}</h2>
-    <p>{% trans 'Household local time (Europe/Brussels). When the model is trusted, every cell is busy, moderate or quiet (no default-spacing holes). Plain cells only appear if habits are inactive.' %}</p>
+    <p>{% trans 'Household local time (Europe/Brussels). When the model is trusted, every cell is busy (5 min), near-busy (10 min, ±1 h around busy), moderate or quiet (no default-spacing holes). Plain cells only appear if habits are inactive.' %}</p>
     <div class="poll-grid-wrap">
         <table class="poll-grid">
             <thead>
@@ -394,8 +406,8 @@
                 <tr class="{% if row.hour in night_hours %}poll-row--night{% endif %}">
                     <td class="poll-grid__hour">{{ row.hour|stringformat:"02d" }}h</td>
                     {% for cell in row.cells %}
-                    <td class="poll-cell {% if cell.habit_overrides_baseline and cell.habit_class == 'busy' %}poll-cell--busy{% elif cell.habit_overrides_baseline and cell.habit_class == 'moderate' %}poll-cell--moderate{% elif cell.habit_overrides_baseline and cell.habit_class == 'quiet' %}poll-cell--quiet{% endif %}"
-                        title="{% if cell.habit_class == 'busy' %}{% trans 'busy' %}{% elif cell.habit_class == 'moderate' %}{% trans 'moderate' %}{% elif cell.habit_class == 'quiet' %}{% trans 'quiet' %}{% endif %}{% if cell.habit_class and not cell.habit_overrides_baseline %} ({% trans 'class only; default spacing kept' %}){% endif %}{% if cell.habit_class %} · {% endif %}{{ cell.idle_interval_minutes }} {% trans 'min' %}">
+                    <td class="poll-cell {% if cell.habit_overrides_baseline and cell.habit_class == 'busy' %}poll-cell--busy{% elif cell.habit_overrides_baseline and cell.habit_class == 'busy_near' %}poll-cell--busy-near{% elif cell.habit_overrides_baseline and cell.habit_class == 'moderate' %}poll-cell--moderate{% elif cell.habit_overrides_baseline and cell.habit_class == 'quiet' %}poll-cell--quiet{% endif %}"
+                        title="{% if cell.habit_class == 'busy' %}{% trans 'busy' %}{% elif cell.habit_class == 'busy_near' %}{% trans 'near busy' %}{% elif cell.habit_class == 'moderate' %}{% trans 'moderate' %}{% elif cell.habit_class == 'quiet' %}{% trans 'quiet' %}{% endif %}{% if cell.habit_class and not cell.habit_overrides_baseline %} ({% trans 'class only; default spacing kept' %}){% endif %}{% if cell.habit_class %} · {% endif %}{{ cell.idle_interval_minutes }} {% trans 'min' %}">
                         {{ cell.idle_interval_minutes }}
                     </td>
                     {% endfor %}
@@ -405,7 +417,8 @@
         </table>
     </div>
     <div class="poll-legend">
-        <span><i class="lg-busy" aria-hidden="true"></i>{% trans 'Busy (denser idle)' %}</span>
+        <span><i class="lg-busy" aria-hidden="true"></i>{% trans 'Busy (5 min)' %}</span>
+        <span><i class="lg-busy-near" aria-hidden="true"></i>{% trans 'Near busy (10 min, ±1 h)' %}</span>
         <span><i class="lg-mod" aria-hidden="true"></i>{% trans 'Moderate' %}</span>
         <span><i class="lg-quiet" aria-hidden="true"></i>{% trans 'Quiet (sparser idle)' %}</span>
         <span>{% trans 'Uncoloured = habits inactive (day/night default)' %}</span>

@@ -62,6 +62,7 @@ from matesla.poll_habits import (
     HABIT_TZ,
     HABIT_WINDOW_DAYS,
     INTERVAL_HABIT_BUSY_MIN,
+    INTERVAL_HABIT_BUSY_NEAR_MIN,
     INTERVAL_HABIT_MODERATE_MIN,
     INTERVAL_HABIT_QUIET_MIN,
     NIGHT_HOURS,
@@ -75,6 +76,7 @@ if TYPE_CHECKING:
 # Habit class → idle minutes when the class actually replaces the baseline.
 HABIT_CLASS_INTERVAL_MINUTES = {
     "busy": INTERVAL_HABIT_BUSY_MIN,
+    "busy_near": INTERVAL_HABIT_BUSY_NEAR_MIN,
     "moderate": INTERVAL_HABIT_MODERATE_MIN,
     "quiet": INTERVAL_HABIT_QUIET_MIN,
 }
@@ -143,11 +145,12 @@ def label_activity_kind(kind: str) -> str:
 
 
 def label_habit_class(habit_class: str | None) -> str:
-    """Human label for busy / moderate / quiet (or none)."""
+    """Human label for busy / busy_near / moderate / quiet (or none)."""
     if not habit_class:
         return _("None")
     mapping = {
         "busy": _("busy"),
+        "busy_near": _("near busy"),
         "moderate": _("moderate"),
         "quiet": _("quiet"),
     }
@@ -229,7 +232,9 @@ class HabitModelStatus:
     quiet_slot_count: int
     moderate_slot_count: int
     busy_slot_count: int
+    busy_near_slot_count: int
     busy_interval_minutes: int
+    busy_near_interval_minutes: int
     moderate_interval_minutes: int
     quiet_interval_minutes: int
     computed_at: datetime | None
@@ -524,7 +529,9 @@ def build_habit_model_status(model: HabitModel) -> HabitModelStatus:
         quiet_slot_count=len(model.quiet_hours),
         moderate_slot_count=len(model.moderate_hours),
         busy_slot_count=len(model.busy_hours),
+        busy_near_slot_count=len(model.busy_near_hours),
         busy_interval_minutes=INTERVAL_HABIT_BUSY_MIN,
+        busy_near_interval_minutes=INTERVAL_HABIT_BUSY_NEAR_MIN,
         moderate_interval_minutes=INTERVAL_HABIT_MODERATE_MIN,
         quiet_interval_minutes=INTERVAL_HABIT_QUIET_MIN,
         computed_at=model.computed_at,
@@ -873,13 +880,15 @@ def build_poll_diagnostic_report(
         },
         _(
             "When habits are trusted, every weekday+hour is busy (%(busy)s min), "
-            "quiet (%(quiet)s min), or moderate (%(moderate)s min by day; night "
+            "near-busy (%(near)s min, ±1 h around a busy core), quiet "
+            "(%(quiet)s min), or moderate (%(moderate)s min by day; night "
             "moderate keeps the %(night)s min night default). There is no "
             "idle “default hole” in the grid — only untrusted models fall "
             "back to day %(day)s / night %(night)s everywhere."
         )
         % {
             "busy": INTERVAL_HABIT_BUSY_MIN,
+            "near": INTERVAL_HABIT_BUSY_NEAR_MIN,
             "moderate": INTERVAL_HABIT_MODERATE_MIN,
             "quiet": INTERVAL_HABIT_QUIET_MIN,
             "night": INTERVAL_NIGHT_DEFAULT_MIN,
@@ -926,6 +935,7 @@ def format_report_for_cli(report: PollDiagnosticReport) -> list[str]:
         lines.append(f"  REGIME BREAK: {habits.regime_summary}")
     lines.append(
         f"  slots busy={habits.busy_slot_count} (→ {habits.busy_interval_minutes} min)  "
+        f"near={habits.busy_near_slot_count} (→ {habits.busy_near_interval_minutes} min)  "
         f"moderate={habits.moderate_slot_count} (→ {habits.moderate_interval_minutes} min)  "
         f"quiet={habits.quiet_slot_count} (→ {habits.quiet_interval_minutes} min)"
     )
@@ -953,6 +963,7 @@ def format_report_for_cli(report: PollDiagnosticReport) -> list[str]:
             continue
         tag = {
             "busy": "B",
+            "busy_near": "N",
             "quiet": "Q",
             "moderate": "M",
         }.get(cell.habit_class or "", "?")

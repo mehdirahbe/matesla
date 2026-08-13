@@ -10,6 +10,7 @@ from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.poll_habits import (
     HABIT_MIN_WEEKS,
     INTERVAL_HABIT_BUSY_MIN,
+    INTERVAL_HABIT_BUSY_NEAR_MIN,
     INTERVAL_HABIT_QUIET_MIN,
     binomial_ci_upper,
     compute_habit_model,
@@ -177,6 +178,50 @@ class HabitModelIntegrationTests(TestCase):
         self.assertEqual(night, INTERVAL_HABIT_BUSY_MIN)
         self.assertLess(night, 30)  # denser than night baseline
 
+    def test_busy_near_is_softer_than_core(self):
+        """
+        Morning drive hour is core busy (5 min); ±1 h neighbours are busy_near
+        (10 min), not full busy.
+        """
+        now_local = datetime(2025, 6, 23, 12, 0, tzinfo=TZ)
+        now = now_local.astimezone(dt_timezone.utc)
+        monday = datetime(2025, 4, 21, tzinfo=TZ)
+        for _ in range(10):
+            self._seed_week(monday=monday, morning_drive=True)
+            monday = monday + timedelta(days=7)
+
+        model = compute_habit_model(VIN, now=now)
+        self.assertTrue(
+            model.trusted,
+            f"expected trusted, got reason={model.reason} regime={model.regime_detail}",
+        )
+        # Tuesday 08:00 = seed morning drive hour
+        self.assertIn((2, 8), model.busy_hours)
+        self.assertNotIn((2, 8), model.busy_near_hours)
+        self.assertIn((2, 7), model.busy_near_hours)
+        self.assertIn((2, 9), model.busy_near_hours)
+        self.assertNotIn((2, 7), model.busy_hours)
+        self.assertEqual(
+            model.suggested_idle_interval_minutes(
+                datetime(2025, 6, 24, 8, 0, tzinfo=TZ)
+            ),
+            INTERVAL_HABIT_BUSY_MIN,
+        )
+        self.assertEqual(
+            model.suggested_idle_interval_minutes(
+                datetime(2025, 6, 24, 7, 0, tzinfo=TZ)
+            ),
+            INTERVAL_HABIT_BUSY_NEAR_MIN,
+        )
+        self.assertEqual(
+            model.suggested_idle_interval_minutes(
+                datetime(2025, 6, 24, 9, 0, tzinfo=TZ)
+            ),
+            INTERVAL_HABIT_BUSY_NEAR_MIN,
+        )
+        # Two hours away should not be full busy either
+        self.assertNotIn((2, 6), model.busy_hours)
+
     def test_regime_break_on_vacation_after_school(self):
         """School weeks then 2 weeks calm mornings → quiet_mismatch / break."""
         now_local = datetime(2025, 7, 14, 12, 0, tzinfo=TZ)  # mid-July vacation
@@ -243,29 +288,36 @@ class HabitModelIntegrationTests(TestCase):
 
         model = compute_habit_model(VIN, now=now)
         self.assertTrue(model.trusted, model.reason)
-        # Full 7×24 partition
+        # Full 7×24 partition (busy | busy_near | moderate | quiet)
         all_slots = {
             (dow, hour) for dow in range(1, 8) for hour in range(24)
         }
-        classified = model.busy_hours | model.moderate_hours | model.quiet_hours
-        self.assertEqual(classified, all_slots)
-        self.assertEqual(
-            len(model.busy_hours & model.moderate_hours),
-            0,
+        classified = (
+            model.busy_hours
+            | model.busy_near_hours
+            | model.moderate_hours
+            | model.quiet_hours
         )
+        self.assertEqual(classified, all_slots)
+        self.assertEqual(len(model.busy_hours & model.busy_near_hours), 0)
+        self.assertEqual(len(model.busy_hours & model.moderate_hours), 0)
         self.assertEqual(len(model.busy_hours & model.quiet_hours), 0)
+        self.assertEqual(len(model.busy_near_hours & model.moderate_hours), 0)
         self.assertEqual(len(model.moderate_hours & model.quiet_hours), 0)
         # Tuesday late morning (after 08:00 school seed) should not be a hole
         self.assertIn(
             (2, 11),
-            model.moderate_hours | model.quiet_hours | model.busy_hours,
+            model.moderate_hours
+            | model.quiet_hours
+            | model.busy_hours
+            | model.busy_near_hours,
         )
         midday = model.suggested_idle_interval_minutes(
             datetime(2025, 6, 24, 11, 0, tzinfo=TZ)
         )
-        # Moderate day → 15; quiet → 30; busy → 5 — never None when trusted
+        # Moderate day → 15; quiet → 30; busy → 5; near → 10 — never None
         self.assertIsNotNone(midday)
-        self.assertIn(midday, (5, 15, 30))
+        self.assertIn(midday, (5, 10, 15, 30))
 
 
 class PollDiagnosticsTests(TestCase):
