@@ -163,6 +163,7 @@ READONLY_ALLOWED_URL_NAMES = [
     "password_change",
     "password_change_done",
     # Status / browse (no commands)
+    "home",
     "tesla_status",
     "teslastatusJson",
     "teslaasleep",
@@ -172,6 +173,7 @@ READONLY_ALLOWED_URL_NAMES = [
     "select_vehicle",
     "CarImageFromTesla",
     "set_distance_unit",
+
     # Personal stats / maps / graphs
     "PersoStats",
     "PersoDayMap",
@@ -220,7 +222,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "mysite.wsgi.application"
-LOGIN_REDIRECT_URL = "tesla_status"
+# Day map landing (no Fleet cost); status is opt-in via nav.
+LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "login"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

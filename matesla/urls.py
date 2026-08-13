@@ -3,7 +3,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.status, name='tesla_status'),
+    # Landing: day map (DB only — no Fleet vehicle_data). Status is opt-in.
+    path('', views.home, name='home'),
+    path('matesla/status', views.status, name='tesla_status'),
     path('matesla/statusJson', views.statusJson, name='teslastatusJson'),
     path('matesla/asleep', views.asleep, name='teslaasleep'),
     path('matesla/AddTeslaAccount', views.view_AddTeslaAccount, name='AddTeslaAccount'),

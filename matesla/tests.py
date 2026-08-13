@@ -25,8 +25,10 @@ from mysite.test_helpers import configured_language_codes
 # URLs that require login (or redirect when anonymous). Status/read-only only —
 # vehicle command endpoints were removed (Fleet Vehicle Command Protocol).
 # Endpoints that hit live Tesla OAuth / vehicle_data are intentionally omitted.
+# Root "" is home → day map (DB only); status lives at matesla/status.
 allURLs = {
     "",
+    "matesla/status",
     "matesla/asleep",
     "matesla/AddTeslaAccount",
     "matesla/TeslaServerError",
@@ -44,6 +46,29 @@ class MaTeslaTestCase(TestCase):
         color = returnColorFronContext({})
         self.assertIsNotNone(color)
         self.assertIn(color, ValidColorCodes)
+
+    def test_home_redirects_to_day_map_without_fleet(self):
+        """Landing is day map for primary vehicle — no vehicle_data cost."""
+        from django.contrib.auth import get_user_model
+
+        from matesla.models.TeslaToken import TeslaVehicle
+        from matesla.models.VinHash import HashTheVin
+
+        User = get_user_model()
+        user = User.objects.create_user("home_user", password="x")
+        vin = "5YJ3E7EB1KF000001"
+        TeslaVehicle.objects.create(
+            user=user,
+            api_id="12345",
+            vin=vin,
+            display_name="Testcar",
+            is_primary=True,
+        )
+        client = Client()
+        self.assertTrue(client.login(username="home_user", password="x"))
+        response = client.get("/en/", follow=False)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(f"/personalstats/DayMap/{HashTheVin(vin)}", response["Location"])
 
     def test_UrlRedirectWithoutLoggedUser(self):
         client = Client()

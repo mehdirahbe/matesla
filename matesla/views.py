@@ -110,6 +110,35 @@ def view_teslacss(request):
         loader.get_template('matesla/tesla.css').render({}, request))
 
 
+@never_cache
+def home(request):
+    """
+    Site landing: day map for the active vehicle.
+
+    Uses only local DB (session / primary vehicle / VIN hash) — never Fleet
+    vehicle_data. Live status remains at matesla/status when the user opts in.
+    """
+    user = _acting_user_or_login(request)
+    if user is None:
+        return redirect("login")
+
+    vehicle = resolve_active_vehicle(user, request)
+    if vehicle is None or not (vehicle.vin or "").strip():
+        if not TeslaToken.objects.filter(user_id=user.id).exists():
+            # Local setup: send to Tesla account. Read-only hosts block this URL;
+            # NoTeslaVehicules stays reachable for guests.
+            from mysite.writable_access import is_writable_request
+
+            if is_writable_request(request):
+                return redirect("AddTeslaAccount")
+        return redirect("NoTeslaVehicules")
+
+    hashed = HashTheVin(vehicle.vin)
+    if not hashed:
+        return redirect("NoTeslaVehicules")
+    return redirect("PersoDayMap", hashedVin=hashed)
+
+
 # Vehicle is sleeping — matesla never wakes (no billable wake_up).
 @never_cache
 def asleep(request):
@@ -904,7 +933,7 @@ def view_select_vehicle(request):
     )
     if not vehicle:
         messages.error(request, _("Unknown vehicle."))
-        return redirect("tesla_status")
+        return redirect("home")
 
     next_kind = (request.POST.get("next") or "").strip().lower()
     # Whitelist only — never open-redirect on user-supplied URLs
