@@ -27,6 +27,7 @@ Design rules
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
@@ -372,27 +373,91 @@ def explain_habit_reason(model: HabitModel) -> str:
     }
 
 
+_VOLUME_MEAN_RE = re.compile(
+    r"ref_mean=(?P<ref>[\d.]+)\s+recent_mean=(?P<recent>[\d.]+)"
+)
+_ACTIVE_MISMATCH_RE = re.compile(r"active_mismatch=(?P<n>\d+)")
+
+
+def _parse_volume_means(detail: str) -> tuple[float, float] | None:
+    match = _VOLUME_MEAN_RE.search(detail or "")
+    if not match:
+        return None
+    try:
+        return float(match.group("ref")), float(match.group("recent"))
+    except ValueError:
+        return None
+
+
 def explain_regime_detail(regime_detail: str) -> str:
-    """Translate machine regime_detail into a short human sentence."""
+    """
+    Turn machine ``regime_detail`` into a human sentence (no raw codes).
+
+    Volume metrics are mean *hours with mobility* (driving, not mere AC charge)
+    per calendar day — reference training weeks vs the last HABIT_RECENT_DAYS.
+    """
     detail = (regime_detail or "").strip()
     if not detail:
         return ""
+
+    means = _parse_volume_means(detail)
     if detail.startswith("volume_drop"):
+        if means is not None:
+            ref_mean, recent_mean = means
+            return _(
+                "Driving activity fell sharply: about %(recent).1f h of "
+                "mobility per day over the last %(recent_days)s days, versus "
+                "%(ref).1f h/day during the training weeks (often school → "
+                "holidays). Habits stay off until patterns re-align."
+            ) % {
+                "recent": recent_mean,
+                "ref": ref_mean,
+                "recent_days": HABIT_RECENT_DAYS,
+            }
         return _(
-            "Recent mobile hours per day dropped sharply versus the reference "
-            "period (typical of school → holiday). Detail: %(detail)s"
-        ) % {"detail": detail}
+            "Driving activity fell sharply versus the training weeks "
+            "(often school → holidays). Habits stay off until patterns re-align."
+        )
+
     if detail.startswith("volume_rise"):
+        if means is not None:
+            ref_mean, recent_mean = means
+            return _(
+                "Driving activity rose sharply: about %(recent).1f h of "
+                "mobility per day over the last %(recent_days)s days, versus "
+                "%(ref).1f h/day during the training weeks (often holidays → "
+                "school, or a trip). Habits stay off until patterns re-align."
+            ) % {
+                "recent": recent_mean,
+                "ref": ref_mean,
+                "recent_days": HABIT_RECENT_DAYS,
+            }
         return _(
-            "Recent mobile hours per day rose sharply versus the reference "
-            "period (typical of holiday → school or a trip). Detail: %(detail)s"
-        ) % {"detail": detail}
+            "Driving activity rose sharply versus the training weeks "
+            "(often holidays → school, or a trip). Habits stay off until "
+            "patterns re-align."
+        )
+
     if detail.startswith("active_mismatch"):
+        match = _ACTIVE_MISMATCH_RE.search(detail)
+        count = int(match.group("n")) if match else None
+        if count is not None:
+            return _(
+                "Several recent drives (%(count)s hour-slots) happened at "
+                "weekday+hour times that were almost never mobile in the "
+                "training weeks. Habits stay off until patterns re-align."
+            ) % {"count": count}
         return _(
-            "Several recent drives occurred in weekday+hour slots that were "
-            "historically almost never mobile. Detail: %(detail)s"
-        ) % {"detail": detail}
-    return detail
+            "Several recent drives happened at weekday+hour times that were "
+            "almost never mobile in the training weeks. Habits stay off until "
+            "patterns re-align."
+        )
+
+    # Unknown machine code — do not dump it on the UI.
+    return _(
+        "Recent driving does not match the training weeks (regime change). "
+        "Habits stay off until patterns re-align."
+    )
 
 
 def _decision_source(
@@ -621,11 +686,14 @@ def build_idle_forecast(
 
     Each day is a list of consecutive hour bands with the same interval.
     Live activity is *not* simulated — this is the idle plan only.
+    ``days <= 0`` returns an empty list (UI no longer shows this plan).
 
     If ``idle_hours_so_far`` is set (hours since last drive/charge), each
     future hour applies the long-idle floor as if the car stays parked
     (duration grows over the forecast window).
     """
+    if int(days) <= 0:
+        return []
     days = max(1, min(int(days), 14))
     local_now = now_local.astimezone(HABIT_TZ)
     start_date = local_now.date()
@@ -795,14 +863,17 @@ def build_poll_diagnostic_report(
     hashed_vin: str | None = None,
     now: datetime | None = None,
     force_recompute: bool = False,
-    forecast_days: int = 7,
+    forecast_days: int = 0,
 ) -> PollDiagnosticReport:
     """
     Build a full diagnostic report for a vehicle and/or VIN.
 
     Prefer passing ``vehicle`` (has list state + last_polled_at). If only
-    ``vin`` / ``hashed_vin`` is known, habit status and the idle forecast still
+    ``vin`` / ``hashed_vin`` is known, habit status and the week grid still
     work; current poll status is omitted.
+
+    ``forecast_days`` is optional (default 0): the multi-day idle plan is
+    no longer shown on the web UI; pass >0 for CLI/debug only.
     """
     now = now or timezone.now()
     if timezone.is_naive(now):
@@ -851,7 +922,7 @@ def build_poll_diagnostic_report(
 
     notes = [
         _(
-            "Forecast and week grid describe idle/asleep/sentry spacing only. "
+            "The week grid describes idle/asleep/sentry spacing only. "
             "If the car drives, DC/AC charges or has cabin activity, capture "
             "switches to the short reactive default until that ends."
         ),

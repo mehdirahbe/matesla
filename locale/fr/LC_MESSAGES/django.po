@@ -400,32 +400,79 @@ msgstr ""
 "Le modèle d’habitudes n’est pas fiable (%(reason)s). Espacement par défaut "
 "uniquement."
 
-#: matesla/poll_diagnostics.py:382
+#: matesla/poll_diagnostics.py:explain_regime_detail
 #, python-format
 msgid ""
-"Recent mobile hours per day dropped sharply versus the reference period "
-"(typical of school → holiday). Detail: %(detail)s"
+"Driving activity fell sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"weeks (often school → holidays). Habits stay off until patterns re-align."
 msgstr ""
-"Les heures mobiles par jour ont chuté nettement par rapport à la période de "
-"référence (typique école → vacances). Détail : %(detail)s"
+"L’activité de conduite a nettement chuté : environ %(recent).1f h de "
+"déplacement par jour sur les %(recent_days)s derniers jours, contre "
+"%(ref).1f h/jour pendant les semaines d’apprentissage (souvent école → "
+"vacances). Les habitudes restent désactivées tant que le rythme ne se "
+"réaligne pas."
 
-#: matesla/poll_diagnostics.py:387
-#, python-format
+#: matesla/poll_diagnostics.py:explain_regime_detail
 msgid ""
-"Recent mobile hours per day rose sharply versus the reference period "
-"(typical of holiday → school or a trip). Detail: %(detail)s"
+"Driving activity fell sharply versus the training weeks (often school → "
+"holidays). Habits stay off until patterns re-align."
 msgstr ""
-"Les heures mobiles par jour ont fortement augmenté par rapport à la période "
-"de référence (typique vacances → école ou voyage). Détail : %(detail)s"
+"L’activité de conduite a nettement chuté par rapport aux semaines "
+"d’apprentissage (souvent école → vacances). Les habitudes restent "
+"désactivées tant que le rythme ne se réaligne pas."
 
-#: matesla/poll_diagnostics.py:392
+#: matesla/poll_diagnostics.py:explain_regime_detail
 #, python-format
 msgid ""
-"Several recent drives occurred in weekday+hour slots that were historically "
-"almost never mobile. Detail: %(detail)s"
+"Driving activity rose sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"weeks (often holidays → school, or a trip). Habits stay off until patterns "
+"re-align."
 msgstr ""
-"Plusieurs trajets récents ont eu lieu dans des créneaux jour+heure "
-"historiquement presque jamais mobiles. Détail : %(detail)s"
+"L’activité de conduite a fortement augmenté : environ %(recent).1f h de "
+"déplacement par jour sur les %(recent_days)s derniers jours, contre "
+"%(ref).1f h/jour pendant les semaines d’apprentissage (souvent vacances → "
+"école, ou un voyage). Les habitudes restent désactivées tant que le rythme "
+"ne se réaligne pas."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Driving activity rose sharply versus the training weeks (often holidays → "
+"school, or a trip). Habits stay off until patterns re-align."
+msgstr ""
+"L’activité de conduite a fortement augmenté par rapport aux semaines "
+"d’apprentissage (souvent vacances → école, ou un voyage). Les habitudes "
+"restent désactivées tant que le rythme ne se réaligne pas."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+#, python-format
+msgid ""
+"Several recent drives (%(count)s hour-slots) happened at weekday+hour times "
+"that were almost never mobile in the training weeks. Habits stay off until "
+"patterns re-align."
+msgstr ""
+"Plusieurs trajets récents (%(count)s créneaux d’une heure) ont eu lieu à des "
+"jours/heures presque jamais mobiles pendant les semaines d’apprentissage. "
+"Les habitudes restent désactivées tant que le rythme ne se réaligne pas."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Several recent drives happened at weekday+hour times that were almost never "
+"mobile in the training weeks. Habits stay off until patterns re-align."
+msgstr ""
+"Plusieurs trajets récents ont eu lieu à des jours/heures presque jamais "
+"mobiles pendant les semaines d’apprentissage. Les habitudes restent "
+"désactivées tant que le rythme ne se réaligne pas."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Recent driving does not match the training weeks (regime change). Habits "
+"stay off until patterns re-align."
+msgstr ""
+"La conduite récente ne correspond pas aux semaines d’apprentissage "
+"(changement de rythme). Les habitudes restent désactivées tant que le rythme "
+"ne se réaligne pas."
 
 #: matesla/poll_diagnostics.py:441
 msgid "night"
@@ -517,14 +564,13 @@ msgstr ""
 
 #: matesla/poll_diagnostics.py:854
 msgid ""
-"Forecast and week grid describe idle/asleep/sentry spacing only. If the car "
-"drives, DC/AC charges or has cabin activity, capture switches to the short "
-"reactive default until that ends."
+"The week grid describes idle/asleep/sentry spacing only. If the car drives, "
+"DC/AC charges or has cabin activity, capture switches to the short reactive "
+"default until that ends."
 msgstr ""
-"La prévision et la grille ne décrivent que l’espacement "
-"ralenti/sommeil/Sentinelle. Si la voiture roule, charge (DC/AC) ou a de "
-"l’activité habitacle, la capture repasse à l’espacement de base réactif "
-"court jusqu’à la fin."
+"La grille ne décrit que l’espacement ralenti/sommeil/Sentinelle. Si la "
+"voiture roule, charge (DC/AC) ou a de l’activité habitacle, la capture "
+"repasse à l’espacement de base réactif court jusqu’à la fin."
 
 #: matesla/poll_diagnostics.py:859
 #, python-format
@@ -1672,11 +1718,11 @@ msgstr "Vrais appels HTTP vehicle_data, jour par jour, max 30 jours."
 
 #: personalstats/templates/personalstats/_carstats_body.html:187
 msgid ""
-"Open query spacing details for the current interval, habit model, and idle "
-"plan."
+"Open query spacing details for the current interval, habit model, and "
+"typical week grid."
 msgstr ""
 "Ouvrez les détails d’interrogation pour l’intervalle actuel, le modèle "
-"d’habitudes et le plan au ralenti."
+"d’habitudes et la semaine type."
 
 #: personalstats/templates/personalstats/_carstats_body.html:198
 #: personalstats/templates/personalstats/_carstats_body.html:211

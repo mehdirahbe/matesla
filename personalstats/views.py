@@ -5450,7 +5450,7 @@ def DCChargeGraph(request, hashedVin, chart, desiredperiod):
 def PollDetails(request, hashedVin):
     """
     Adaptive Fleet polling diagnostics: current interval, habit trust, and
-    idle forecast. Complements the fleet poll cost graph (counts only).
+    typical-week idle grid. Complements the fleet poll cost graph (counts only).
     """
     if not IsValidHash(hashedVin):
         return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
@@ -5470,7 +5470,7 @@ def PollDetails(request, hashedVin):
         vin=vin,
         hashed_vin=hashedVin,
         force_recompute=False,
-        forecast_days=7,
+        forecast_days=0,
     )
 
     # Reshape week grid for the template: rows = hours 0–23, columns = Mon–Sun.
@@ -5497,7 +5497,6 @@ def PollDetails(request, hashedVin):
             "current": report.current,
             "grid_by_hour": grid_by_hour,
             "weekday_headers": weekday_headers,
-            "forecast_days": report.forecast_days,
             "night_hours": set(NIGHT_HOURS),
             "notes": report.notes,
         }

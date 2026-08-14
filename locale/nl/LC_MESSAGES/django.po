@@ -404,32 +404,76 @@ msgid "Habit model is not trusted (%(reason)s). Default spacing only."
 msgstr ""
 "Gewoonte-model is niet betrouwbaar (%(reason)s). Alleen standaardinterval."
 
-#: matesla/poll_diagnostics.py:382
+#: matesla/poll_diagnostics.py:explain_regime_detail
 #, python-format
 msgid ""
-"Recent mobile hours per day dropped sharply versus the reference period "
-"(typical of school → holiday). Detail: %(detail)s"
-msgstr ""
-"Mobiele uren per dag daalden sterk t.o.v. de referentieperiode (typisch "
-"school → vakantie). Detail: %(detail)s"
+"Driving activity fell sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"weeks (often school → holidays). Habits stay off until patterns re-align."
 
-#: matesla/poll_diagnostics.py:387
-#, python-format
-msgid ""
-"Recent mobile hours per day rose sharply versus the reference period "
-"(typical of holiday → school or a trip). Detail: %(detail)s"
 msgstr ""
-"Mobiele uren per dag stegen sterk t.o.v. de referentieperiode (typisch "
-"vakantie → school of reis). Detail: %(detail)s"
+"Rijactiviteit sterk gedaald: ongeveer %(recent).1f uur mobiliteit per dag in "
+"de laatste %(recent_days)s dagen, tegen %(ref).1f u/dag in de trainingsweken "
+"(vaak school → vakantie). Gewoontes blijven uit tot het patroon weer "
+"aansluit."
 
-#: matesla/poll_diagnostics.py:392
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Driving activity fell sharply versus the training weeks (often school → "
+"holidays). Habits stay off until patterns re-align."
+msgstr ""
+"Rijactiviteit sterk gedaald t.o.v. de trainingsweken (vaak school → "
+"vakantie). Gewoontes blijven uit tot het patroon weer aansluit."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
 #, python-format
 msgid ""
-"Several recent drives occurred in weekday+hour slots that were historically "
-"almost never mobile. Detail: %(detail)s"
+"Driving activity rose sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"weeks (often holidays → school, or a trip). Habits stay off until patterns "
+"re-align."
+
 msgstr ""
-"Meerdere recente ritten vielen in weekdag+uur-slots die historisch bijna "
-"nooit mobiel waren. Detail: %(detail)s"
+"Rijactiviteit sterk gestegen: ongeveer %(recent).1f uur mobiliteit per dag "
+"in de laatste %(recent_days)s dagen, tegen %(ref).1f u/dag in de "
+"trainingsweken (vaak vakantie → school, of een reis). Gewoontes blijven uit "
+"tot het patroon weer aansluit."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Driving activity rose sharply versus the training weeks (often holidays → "
+"school, or a trip). Habits stay off until patterns re-align."
+msgstr ""
+"Rijactiviteit sterk gestegen t.o.v. de trainingsweken (vaak vakantie → "
+"school, of een reis). Gewoontes blijven uit tot het patroon weer aansluit."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+#, python-format
+msgid ""
+"Several recent drives (%(count)s hour-slots) happened at weekday+hour times "
+"that were almost never mobile in the training weeks. Habits stay off until "
+"patterns re-align."
+msgstr ""
+"Meerdere recente ritten (%(count)s uurslots) vonden plaats op weekdag+uur "
+"die in de trainingsweken bijna nooit mobiel waren. Gewoontes blijven uit "
+"tot het patroon weer aansluit."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Several recent drives happened at weekday+hour times that were almost never "
+"mobile in the training weeks. Habits stay off until patterns re-align."
+msgstr ""
+"Meerdere recente ritten vonden plaats op weekdag+uur die in de trainingsweken "
+"bijna nooit mobiel waren. Gewoontes blijven uit tot het patroon weer "
+"aansluit."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Recent driving does not match the training weeks (regime change). Habits "
+"stay off until patterns re-align."
+msgstr ""
+"Recent rijden past niet bij de trainingsweken (ritmewisseling). Gewoontes "
+"blijven uit tot het patroon weer aansluit."
 
 #: matesla/poll_diagnostics.py:441
 msgid "night"
@@ -518,13 +562,13 @@ msgstr ""
 
 #: matesla/poll_diagnostics.py:854
 msgid ""
-"Forecast and week grid describe idle/asleep/sentry spacing only. If the car "
-"drives, DC/AC charges or has cabin activity, capture switches to the short "
-"reactive default until that ends."
+"The week grid describes idle/asleep/sentry spacing only. If the car drives, "
+"DC/AC charges or has cabin activity, capture switches to the short reactive "
+"default until that ends."
 msgstr ""
-"Voorspelling en weekraster beschrijven alleen idle/slaap/sentry-afstand. Als"
-" de auto rijdt, (DC/AC) laadt of cabine-activiteit heeft, schakelt capture "
-"naar de korte reactieve standaard tot dat stopt."
+"Het weekraster beschrijft alleen idle/slaap/sentry-afstand. Als de auto "
+"rijdt, (DC/AC) laadt of cabine-activiteit heeft, schakelt capture naar de "
+"korte reactieve standaard tot dat stopt."
 
 #: matesla/poll_diagnostics.py:859
 #, python-format
@@ -1659,11 +1703,11 @@ msgstr "Vehicle_data HTTP-calls, dag per dag, max. 30 dagen."
 
 #: personalstats/templates/personalstats/_carstats_body.html:187
 msgid ""
-"Open query spacing details for the current interval, habit model, and idle "
-"plan."
+"Open query spacing details for the current interval, habit model, and "
+"typical week grid."
 msgstr ""
-"Open de query-details voor het huidige interval, gewoonte-model en idle-"
-"plan."
+"Open de query-details voor het huidige interval, gewoonte-model en typische "
+"weekraster."
 
 #: personalstats/templates/personalstats/_carstats_body.html:198
 #: personalstats/templates/personalstats/_carstats_body.html:211

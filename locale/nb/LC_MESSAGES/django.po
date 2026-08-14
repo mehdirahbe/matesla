@@ -400,32 +400,73 @@ msgstr ""
 msgid "Habit model is not trusted (%(reason)s). Default spacing only."
 msgstr "Vanemodellen er ikke pålitelig (%(reason)s). Kun standardavstand."
 
-#: matesla/poll_diagnostics.py:382
+#: matesla/poll_diagnostics.py:explain_regime_detail
 #, python-format
 msgid ""
-"Recent mobile hours per day dropped sharply versus the reference period "
-"(typical of school → holiday). Detail: %(detail)s"
-msgstr ""
-"Mobile timer per dag falt kraftig mot referanseperioden (typisk skole → "
-"ferie). Detalj: %(detail)s"
+"Driving activity fell sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"weeks (often school → holidays). Habits stay off until patterns re-align."
 
-#: matesla/poll_diagnostics.py:387
-#, python-format
-msgid ""
-"Recent mobile hours per day rose sharply versus the reference period "
-"(typical of holiday → school or a trip). Detail: %(detail)s"
 msgstr ""
-"Mobile timer per dag steg kraftig mot referanseperioden (typisk ferie → "
-"skole eller tur). Detalj: %(detail)s"
+"Kjøreaktivitet falt kraftig: omtrent %(recent).1f timer mobilitet per dag de "
+"siste %(recent_days)s dagene, mot %(ref).1f t/dag i treningsukene (ofte skole "
+"→ ferie). Vaner holdes av til mønsteret stemmer igjen."
 
-#: matesla/poll_diagnostics.py:392
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Driving activity fell sharply versus the training weeks (often school → "
+"holidays). Habits stay off until patterns re-align."
+msgstr ""
+"Kjøreaktivitet falt kraftig mot treningsukene (ofte skole → ferie). Vaner "
+"holdes av til mønsteret stemmer igjen."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
 #, python-format
 msgid ""
-"Several recent drives occurred in weekday+hour slots that were historically "
-"almost never mobile. Detail: %(detail)s"
+"Driving activity rose sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"weeks (often holidays → school, or a trip). Habits stay off until patterns "
+"re-align."
+
 msgstr ""
-"Flere nylige turer skjedde i ukedag+time-luker som historisk nesten aldri "
-"var mobile. Detalj: %(detail)s"
+"Kjøreaktivitet steg kraftig: omtrent %(recent).1f timer mobilitet per dag de "
+"siste %(recent_days)s dagene, mot %(ref).1f t/dag i treningsukene (ofte ferie "
+"→ skole, eller en tur). Vaner holdes av til mønsteret stemmer igjen."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Driving activity rose sharply versus the training weeks (often holidays → "
+"school, or a trip). Habits stay off until patterns re-align."
+msgstr ""
+"Kjøreaktivitet steg kraftig mot treningsukene (ofte ferie → skole, eller en "
+"tur). Vaner holdes av til mønsteret stemmer igjen."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+#, python-format
+msgid ""
+"Several recent drives (%(count)s hour-slots) happened at weekday+hour times "
+"that were almost never mobile in the training weeks. Habits stay off until "
+"patterns re-align."
+msgstr ""
+"Flere nylige turer (%(count)s timespor) skjedde på ukedag+time som nesten "
+"aldri var mobile i treningsukene. Vaner holdes av til mønsteret stemmer "
+"igjen."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Several recent drives happened at weekday+hour times that were almost never "
+"mobile in the training weeks. Habits stay off until patterns re-align."
+msgstr ""
+"Flere nylige turer skjedde på ukedag+time som nesten aldri var mobile i "
+"treningsukene. Vaner holdes av til mønsteret stemmer igjen."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Recent driving does not match the training weeks (regime change). Habits "
+"stay off until patterns re-align."
+msgstr ""
+"Nylig kjøring matcher ikke treningsukene (rytmeendring). Vaner holdes av til "
+"mønsteret stemmer igjen."
 
 #: matesla/poll_diagnostics.py:441
 msgid "night"
@@ -514,13 +555,13 @@ msgstr ""
 
 #: matesla/poll_diagnostics.py:854
 msgid ""
-"Forecast and week grid describe idle/asleep/sentry spacing only. If the car "
-"drives, DC/AC charges or has cabin activity, capture switches to the short "
-"reactive default until that ends."
+"The week grid describes idle/asleep/sentry spacing only. If the car drives, "
+"DC/AC charges or has cabin activity, capture switches to the short reactive "
+"default until that ends."
 msgstr ""
-"Prognose og uke-rutenett beskriver bare hvile/søvn/sentry-avstand. Hvis "
-"bilen kjører, lader (DC/AC) eller har kupeaktivitet, bytter capture til kort"
-" reaktiv standard til det er over."
+"Uke-rutenettet beskriver bare hvile/søvn/sentry-avstand. Hvis bilen kjører, "
+"lader (DC/AC) eller har kupeaktivitet, bytter capture til kort reaktiv "
+"standard til det er over."
 
 #: matesla/poll_diagnostics.py:859
 #, python-format
@@ -1644,10 +1685,11 @@ msgstr "Vehicle_data HTTP-kall, dag for dag, maks. 30 dager."
 
 #: personalstats/templates/personalstats/_carstats_body.html:187
 msgid ""
-"Open query spacing details for the current interval, habit model, and idle "
-"plan."
+"Open query spacing details for the current interval, habit model, and "
+"typical week grid."
 msgstr ""
-"Åpne forespørselsdetaljene for nåværende intervall, vanemodell og hvileplan."
+"Åpne forespørselsdetaljene for nåværende intervall, vanemodell og typisk "
+"uke-rutenett."
 
 #: personalstats/templates/personalstats/_carstats_body.html:198
 #: personalstats/templates/personalstats/_carstats_body.html:211

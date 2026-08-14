@@ -401,32 +401,78 @@ msgstr ""
 "El modelo de hábitos no es de confianza (%(reason)s). Solo espaciado por "
 "defecto."
 
-#: matesla/poll_diagnostics.py:382
+#: matesla/poll_diagnostics.py:explain_regime_detail
 #, python-format
 msgid ""
-"Recent mobile hours per day dropped sharply versus the reference period "
-"(typical of school → holiday). Detail: %(detail)s"
-msgstr ""
-"Las horas móviles por día cayeron bruscamente frente al periodo de "
-"referencia (típico colegio → vacaciones). Detalle: %(detail)s"
+"Driving activity fell sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"weeks (often school → holidays). Habits stay off until patterns re-align."
 
-#: matesla/poll_diagnostics.py:387
-#, python-format
-msgid ""
-"Recent mobile hours per day rose sharply versus the reference period "
-"(typical of holiday → school or a trip). Detail: %(detail)s"
 msgstr ""
-"Las horas móviles por día subieron bruscamente frente al periodo de "
-"referencia (típico vacaciones → colegio o viaje). Detalle: %(detail)s"
+"La actividad de conducción bajó mucho: unas %(recent).1f horas de movilidad "
+"al día en los últimos %(recent_days)s días, frente a %(ref).1f h/día en las "
+"semanas de aprendizaje (a menudo colegio → vacaciones). Los hábitos siguen "
+"desactivados hasta que el ritmo se realinee."
 
-#: matesla/poll_diagnostics.py:392
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Driving activity fell sharply versus the training weeks (often school → "
+"holidays). Habits stay off until patterns re-align."
+msgstr ""
+"La actividad de conducción bajó mucho respecto a las semanas de aprendizaje "
+"(a menudo colegio → vacaciones). Los hábitos siguen desactivados hasta que "
+"el ritmo se realinee."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
 #, python-format
 msgid ""
-"Several recent drives occurred in weekday+hour slots that were historically "
-"almost never mobile. Detail: %(detail)s"
+"Driving activity rose sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"weeks (often holidays → school, or a trip). Habits stay off until patterns "
+"re-align."
+
 msgstr ""
-"Varios trayectos recientes ocurrieron en franjas día+hora que históricamente"
-" casi nunca eran móviles. Detalle: %(detail)s"
+"La actividad de conducción subió mucho: unas %(recent).1f horas de movilidad "
+"al día en los últimos %(recent_days)s días, frente a %(ref).1f h/día en las "
+"semanas de aprendizaje (a menudo vacaciones → colegio, o un viaje). Los "
+"hábitos siguen desactivados hasta que el ritmo se realinee."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Driving activity rose sharply versus the training weeks (often holidays → "
+"school, or a trip). Habits stay off until patterns re-align."
+msgstr ""
+"La actividad de conducción subió mucho respecto a las semanas de aprendizaje "
+"(a menudo vacaciones → colegio, o un viaje). Los hábitos siguen desactivados "
+"hasta que el ritmo se realinee."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+#, python-format
+msgid ""
+"Several recent drives (%(count)s hour-slots) happened at weekday+hour times "
+"that were almost never mobile in the training weeks. Habits stay off until "
+"patterns re-align."
+msgstr ""
+"Varios trayectos recientes (%(count)s franjas de una hora) ocurrieron en "
+"días/horas casi nunca móviles en las semanas de aprendizaje. Los hábitos "
+"siguen desactivados hasta que el ritmo se realinee."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Several recent drives happened at weekday+hour times that were almost never "
+"mobile in the training weeks. Habits stay off until patterns re-align."
+msgstr ""
+"Varios trayectos recientes ocurrieron en días/horas casi nunca móviles en "
+"las semanas de aprendizaje. Los hábitos siguen desactivados hasta que el "
+"ritmo se realinee."
+
+#: matesla/poll_diagnostics.py:explain_regime_detail
+msgid ""
+"Recent driving does not match the training weeks (regime change). Habits "
+"stay off until patterns re-align."
+msgstr ""
+"La conducción reciente no coincide con las semanas de aprendizaje (cambio de "
+"ritmo). Los hábitos siguen desactivados hasta que el ritmo se realinee."
 
 #: matesla/poll_diagnostics.py:441
 msgid "night"
@@ -518,14 +564,13 @@ msgstr ""
 
 #: matesla/poll_diagnostics.py:854
 msgid ""
-"Forecast and week grid describe idle/asleep/sentry spacing only. If the car "
-"drives, DC/AC charges or has cabin activity, capture switches to the short "
-"reactive default until that ends."
+"The week grid describes idle/asleep/sentry spacing only. If the car drives, "
+"DC/AC charges or has cabin activity, capture switches to the short reactive "
+"default until that ends."
 msgstr ""
-"La previsión y la cuadrícula describen solo el espaciado "
-"reposo/sueño/centinela. Si el coche conduce, carga (DC/AC) o tiene actividad"
-" en habitáculo, la captura vuelve al espaciado por defecto reactivo corto "
-"hasta que termine."
+"La cuadrícula describe solo el espaciado reposo/sueño/centinela. Si el coche"
+" conduce, carga (DC/AC) o tiene actividad en habitáculo, la captura vuelve "
+"al espaciado por defecto reactivo corto hasta que termine."
 
 #: matesla/poll_diagnostics.py:859
 #, python-format
@@ -1662,11 +1707,11 @@ msgstr "Llamadas HTTP vehicle_data reales, día a día, máx. 30 días."
 
 #: personalstats/templates/personalstats/_carstats_body.html:187
 msgid ""
-"Open query spacing details for the current interval, habit model, and idle "
-"plan."
+"Open query spacing details for the current interval, habit model, and "
+"typical week grid."
 msgstr ""
 "Abra los detalles de consulta para el intervalo actual, el modelo de hábitos"
-" y el plan en reposo."
+" y la semana típica."
 
 #: personalstats/templates/personalstats/_carstats_body.html:198
 #: personalstats/templates/personalstats/_carstats_body.html:211

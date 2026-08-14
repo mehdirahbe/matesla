@@ -102,47 +102,6 @@
         margin-bottom: 0.5rem;
     }
     .poll-meta span { color: var(--app-muted, #8b9bb4); }
-    .poll-forecast-day {
-        margin-bottom: 0.75rem;
-    }
-    .poll-forecast-day__title {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--app-text, #eef4ff);
-        margin-bottom: 0.35rem;
-    }
-    .poll-segments {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.35rem;
-    }
-    .poll-seg {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 4px 8px;
-        border-radius: 999px;
-        font-size: 0.78rem;
-        border: 1px solid var(--app-line, #2a3548);
-        background: #162338;
-        color: var(--app-text, #eef4ff);
-    }
-    .poll-seg--busy {
-        border-color: rgba(255, 140, 100, 0.5);
-        background: rgba(180, 70, 40, 0.22);
-    }
-    .poll-seg--busy-near {
-        border-color: rgba(230, 120, 50, 0.5);
-        background: rgba(150, 80, 30, 0.22);
-    }
-    .poll-seg--moderate {
-        border-color: rgba(240, 180, 41, 0.45);
-        background: rgba(120, 90, 20, 0.2);
-    }
-    .poll-seg--quiet {
-        border-color: rgba(80, 180, 255, 0.45);
-        background: rgba(30, 90, 140, 0.22);
-    }
     .poll-grid-wrap {
         overflow-x: auto;
         border-radius: 8px;
@@ -357,35 +316,6 @@
         <div><span>{% trans 'Moderate slots' %}:</span> {{ habits.moderate_slot_count }} → {{ habits.moderate_interval_minutes }} {% trans 'min' %}</div>
         <div><span>{% trans 'Quiet slots' %}:</span> {{ habits.quiet_slot_count }} → {{ habits.quiet_interval_minutes }} {% trans 'min' %}</div>
     </div>
-</section>
-
-<section class="poll-section" aria-labelledby="poll-forecast-title">
-    <h2 id="poll-forecast-title">{% trans 'Idle plan — next 7 days' %}</h2>
-    <p>{% trans 'What idle/asleep spacing would apply if the car stays parked (no drive, no charge). Includes habit model when trusted, day/night defaults, and the long-idle floor (10 min after 24 h, 15 min after 48 h). Segments merge consecutive hours with the same interval.' %}</p>
-    {% for day_segments in forecast_days %}
-        {% if day_segments %}
-        <div class="poll-forecast-day">
-            <div class="poll-forecast-day__title">
-                {{ day_segments.0.weekday_name }} {{ day_segments.0.local_date_label }}
-            </div>
-            <div class="poll-segments">
-                {% for segment in day_segments %}
-                <span class="poll-seg {% if segment.habit_class == 'busy' %}poll-seg--busy{% elif segment.habit_class == 'busy_near' %}poll-seg--busy-near{% elif segment.habit_class == 'moderate' %}poll-seg--moderate{% elif segment.habit_class == 'quiet' %}poll-seg--quiet{% endif %}">
-                    {{ segment.start_hour|stringformat:"02d" }}–{{ segment.end_hour_exclusive|stringformat:"02d" }}h
-                    · {{ segment.idle_interval_minutes }} {% trans 'min' %}
-                    {% if segment.habit_class == 'busy' %}· {% trans 'busy' %}
-                    {% elif segment.habit_class == 'busy_near' %}· {% trans 'near busy' %}
-                    {% elif segment.habit_class == 'moderate' %}· {% trans 'moderate' %}
-                    {% elif segment.habit_class == 'quiet' %}· {% trans 'quiet' %}
-                    {% endif %}
-                </span>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-    {% empty %}
-        <p class="poll-muted">{% trans 'No forecast available.' %}</p>
-    {% endfor %}
 </section>
 
 <section class="poll-section" aria-labelledby="poll-grid-title">

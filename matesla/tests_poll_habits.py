@@ -323,6 +323,30 @@ class HabitModelIntegrationTests(TestCase):
 class PollDiagnosticsTests(TestCase):
     """Shared CLI/web diagnostic report (no Tesla network)."""
 
+    def test_regime_detail_is_human_readable_without_machine_codes(self):
+        from matesla.poll_diagnostics import explain_regime_detail
+
+        drop = explain_regime_detail(
+            "volume_drop ref_mean=3.20 recent_mean=1.00"
+        )
+        self.assertNotIn("volume_drop", drop)
+        self.assertNotIn("ref_mean", drop)
+        self.assertIn("1.0", drop)
+        self.assertIn("3.2", drop)
+        self.assertRegex(drop.lower(), r"hour|h/day|mobility|driving")
+
+        rise = explain_regime_detail(
+            "volume_rise ref_mean=1.00 recent_mean=4.50"
+        )
+        self.assertNotIn("volume_rise", rise)
+        self.assertIn("4.5", rise)
+
+        mismatch = explain_regime_detail(
+            "active_mismatch=5 (mobility in historically calm slots)"
+        )
+        self.assertNotIn("active_mismatch=", mismatch)
+        self.assertIn("5", mismatch)
+
     def test_insufficient_history_report_explains_inactive_habits(self):
         from matesla.poll_diagnostics import (
             build_poll_diagnostic_report,
@@ -346,7 +370,7 @@ class PollDiagnosticsTests(TestCase):
             report.habits.reference_weeks, report.habits.minimum_reference_weeks
         )
         self.assertEqual(len(report.week_grid), 7 * 24)
-        self.assertGreaterEqual(len(report.forecast_days), 1)
+        self.assertEqual(report.forecast_days, [])
         lines = format_report_for_cli(report)
         self.assertTrue(any("trusted=False" in line for line in lines))
 
@@ -368,4 +392,3 @@ class PollDiagnosticsTests(TestCase):
         )
         overrides = [cell for cell in report.week_grid if cell.habit_overrides_baseline]
         self.assertGreater(len(overrides), 0)
-        self.assertTrue(any(day for day in report.forecast_days))
