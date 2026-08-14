@@ -510,7 +510,8 @@ def _decision_summary(
         if route_minutes_to_arrival is not None:
             return _(
                 "Driving with navigation ETA %(eta)s min → query every "
-                "%(minutes)s min (2 min near arrival or when crawling; "
+                "%(minutes)s min (1 min when ETA ≤ 3 min or approaching a "
+                "Supercharger; 2 min near arrival / crawl; "
                 "%(mid)s min mid-trip; %(far)s min when ETA is long). "
                 "Habits do not apply while driving."
             ) % {

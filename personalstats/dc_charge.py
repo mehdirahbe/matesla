@@ -6,8 +6,9 @@ skews in real Supercharging:
 
 - V2 stall sharing (session peak far below this car's usual peaks)
 - Cold / unpreconditioned starts (very low power in the first minutes)
-- Supercharger power ramp in the first tens of seconds (first samples of a
-  session are far below the true curve — drop them for power-vs-SoC)
+- Supercharger power ramp after plug-in (rising edge before session peak) —
+  drop samples *before* the first peak sample for power-vs-SoC and min/max
+  (no fixed time window: the peak may be at 10 s, 30 s or 2 min)
 
 Default mode is robust (MAD on peak + slow-start gate). Use mode ``all`` to
 include every DC session.
@@ -37,14 +38,6 @@ CHARGE_SESSION_MIN_MINUTES = 5.0
 CHARGE_SESSION_GAP = timedelta(minutes=30)
 # Safety cap only — query is pre-filtered to DC-ish rows (~8k for multi-year).
 DC_CHARGE_MAX_SAMPLES = 200000
-
-# Supercharger contactors / power ramp: first tens of seconds are not the
-# steady curve. Session start = first sample we have for that session (we do
-# not get a Tesla "plug-in" event). With ~1 min TeslaFi samples, 120 s drops
-# the first one or two points; the relative rule catches a slow ramp longer.
-DC_RAMP_SKIP_SECONDS = 120.0
-DC_RAMP_RELATIVE_WINDOW_SECONDS = 180.0
-DC_RAMP_PEAK_FRAC = 0.45  # below 45% of session peak → still ramping
 
 SOC_BIN_WIDTH = 2.0  # %
 SOC_BIN_MIN_N = 3
@@ -332,46 +325,43 @@ def _sample_day_iso(sample_time) -> str | None:
         return None
 
 
-def _is_supercharger_ramp_sample(
-    session: DcSession, point: ChargePoint, *, elapsed_s: float
-) -> bool:
+def first_peak_power_index(powers: Sequence[float]) -> int:
     """
-    True if this sample is still in the post-plug power ramp (not steady DC).
+    Index of the first sample at the session peak power.
 
-    We only know session start from our first telemetry sample (no Fleet
-    “charge started” event). Absolute skip + “far below this session’s peak”
-    in the first minutes removes the fake low-kW points that inflate the
-    min envelope and pull the median down at low SoC.
+    Everything *before* this index is the post-plug rising ramp (contactors,
+    current ramp). We measure from the observed max onward — no fixed
+    “skip first N seconds” assumption: the peak may land at 10 s or 2 min.
     """
-    if elapsed_s < DC_RAMP_SKIP_SECONDS:
-        return True
-    peak = float(session.peak_kw or 0.0)
-    if (
-        elapsed_s < DC_RAMP_RELATIVE_WINDOW_SECONDS
-        and peak > 0
-        and point.power_kw is not None
-        and float(point.power_kw) < DC_RAMP_PEAK_FRAC * peak
-    ):
-        return True
-    return False
+    if not powers:
+        return 0
+    peak = max(float(p) for p in powers)
+    for index, power in enumerate(powers):
+        if float(power) >= peak - 1e-9:
+            return index
+    return 0
 
 
 def iter_power_curve_points(session: DcSession):
-    """Yield charge points suitable for power-vs-SoC (skip AC noise + ramp)."""
+    """
+    Yield charge points suitable for power-vs-SoC (skip AC noise + rising ramp).
+
+    Keeps samples from the first peak-power sample through the taper; drops
+    the climbing edge after plug-in.
+    """
     if not session.points:
         return
-    t0 = session.points[0].t
-    for point in session.points:
-        if point.power_kw is None or point.power_kw < DC_POWER_KW_MIN:
-            continue
-        try:
-            elapsed_s = (point.t - t0).total_seconds()
-        except Exception:
-            elapsed_s = 0.0
-        if elapsed_s < 0:
-            elapsed_s = 0.0
-        if _is_supercharger_ramp_sample(session, point, elapsed_s=elapsed_s):
-            continue
+    candidates = [
+        point
+        for point in session.points
+        if point.power_kw is not None and float(point.power_kw) >= DC_POWER_KW_MIN
+    ]
+    if not candidates:
+        return
+    start_index = first_peak_power_index(
+        [float(point.power_kw) for point in candidates]
+    )
+    for point in candidates[start_index:]:
         yield point
 
 
@@ -426,14 +416,15 @@ def charge_power_min_max_excluding_ramp(
     timed_powers: Sequence[tuple[object, float]],
 ) -> tuple[float | None, float | None]:
     """
-    Min/max charger power for a charge segment after Supercharger ramp skip.
+    Min/max charger power for a charge segment after Supercharger ramp trim.
 
     ``timed_powers``: ordered (timestamp, power_kw) samples for one stop
     (already effective kW — see ``effective_charger_power_kw``).
 
     - AC / destination (session peak &lt; DC_SESSION_PEAK_KW_MIN): plain min/max,
       no ramp filter (there is no Supercharger power ramp).
-    - DC: same rules as power-vs-SoC curves (absolute + relative-to-peak windows).
+    - DC: drop samples before the first peak-power sample (rising edge only);
+      min/max are then measured on the peak + taper tail.
     """
     samples: list[tuple[object, float]] = []
     for sample_time, power in timed_powers:
@@ -458,30 +449,20 @@ def charge_power_min_max_excluding_ramp(
             return min(solid), max(solid)
         return min(p for _, p in samples), peak
 
-    # DC Supercharge: drop plug-in ramp
-    t0 = samples[0][0]
-    kept: list[float] = []
-    for sample_time, power_f in samples:
-        try:
-            elapsed_s = (sample_time - t0).total_seconds()
-        except Exception:
-            elapsed_s = 0.0
-        if elapsed_s < 0:
-            elapsed_s = 0.0
-        if elapsed_s < DC_RAMP_SKIP_SECONDS:
-            continue
-        if (
-            elapsed_s < DC_RAMP_RELATIVE_WINDOW_SECONDS
-            and peak > 0
-            and power_f < DC_RAMP_PEAK_FRAC * peak
-        ):
-            continue
-        # Ignore residual AC-scale noise inside a DC session
-        if power_f < DC_POWER_KW_MIN:
-            continue
-        kept.append(power_f)
+    # DC Supercharge: drop rising edge before first peak sample
+    dc_powers = [
+        power_f
+        for _, power_f in samples
+        if power_f >= DC_POWER_KW_MIN
+    ]
+    if not dc_powers:
+        # Only sub-floor samples: fall back to raw peak
+        return None, peak
+    # Align indices with full samples list via DC-only list
+    dc_samples = [(t, p) for t, p in samples if p >= DC_POWER_KW_MIN]
+    start_index = first_peak_power_index([p for _, p in dc_samples])
+    kept = [p for _, p in dc_samples[start_index:]]
     if not kept:
-        # Very short DC stop: fall back to raw peak only
         return None, peak
     return min(kept), max(kept)
 
@@ -499,7 +480,7 @@ def power_vs_soc_curve(
     plus min_day / max_day (ISO YYYY-MM-DD) and min_at / max_at for drill-down
     to the day map when the envelope is min/max.
 
-    Excludes Supercharger ramp samples at the start of each session.
+    Excludes the rising Supercharger ramp (samples before session peak).
 
     ``min_n`` is capped by the number of sessions: a single Supercharge still
     plots across the full SoC range (one sample per bin is enough). With many
@@ -745,9 +726,10 @@ def charge_session_curve_series(points: Sequence[dict]) -> list[dict]:
     """
     Build plot series for one day-map charge stop (power vs time / SoC).
 
-    Each row: elapsed_min, soc, power_kw. Includes the Supercharger ramp —
-    this is a single-session detail curve, not the aggregate envelope.
-    Samples without usable SoC or power are skipped.
+    Each row: elapsed_min, soc, power_kw. For DC / Supercharge sessions,
+    drops the rising ramp before the first peak-power sample and re-zeros
+    elapsed time at that peak so the curve measures the useful power profile.
+    AC stops keep every sample. Samples without usable SoC or power are skipped.
     """
     if not points:
         return []
@@ -785,4 +767,17 @@ def charge_session_curve_series(points: Sequence[dict]) -> list[dict]:
                 "power_kw": float(power),
             }
         )
+    if not series:
+        return series
+    peak = max(row["power_kw"] for row in series)
+    # DC only: trim rising edge before first peak (same rule as min/max / aggregate)
+    if peak >= DC_SESSION_PEAK_KW_MIN:
+        start_index = first_peak_power_index(
+            [row["power_kw"] for row in series]
+        )
+        series = series[start_index:]
+        if series:
+            origin = series[0]["elapsed_min"]
+            for row in series:
+                row["elapsed_min"] = max(0.0, row["elapsed_min"] - origin)
     return series

@@ -52,15 +52,17 @@ NIGHT_START_HOUR = 22
 NIGHT_END_HOUR = 6
 
 # Intervals in minutes (user policy).
-INTERVAL_DRIVING_MIN = 2  # near arrival, no ETA, crawl, or trip-seal
+INTERVAL_DRIVING_ARRIVAL_MIN = 1  # final approach (ETA ≤ 3 min, or SC dest ≤ near)
+INTERVAL_DRIVING_MIN = 2  # near arrival band, no ETA, crawl, or trip-seal default
 INTERVAL_DRIVING_MID_MIN = 5  # navigation ETA in mid range
 INTERVAL_DRIVING_FAR_MIN = 10  # long remaining ETA on an active route
 # Stretch drive polls only when nav ETA is comfortably above these thresholds.
-DRIVING_ETA_NEAR_MINUTES = 12.0  # ≤ this → stay at INTERVAL_DRIVING_MIN
+DRIVING_ETA_ARRIVAL_MINUTES = 3.0  # ≤ this → INTERVAL_DRIVING_ARRIVAL_MIN (1 min)
+DRIVING_ETA_NEAR_MINUTES = 12.0  # ≤ this → INTERVAL_DRIVING_MIN (2 min), unless SC dest
 DRIVING_ETA_MID_MINUTES = 40.0  # ≤ this → mid; above → far
 # Below this road speed (mph), treat as approach/traffic → dense 2 min even if ETA far.
 DRIVING_SLOW_MPH = 20.0
-INTERVAL_DC_CHARGE_MIN = 2  # Supercharge: always 2 min (day and night)
+INTERVAL_DC_CHARGE_MIN = 1  # Supercharge / DC: every minute (day and night)
 INTERVAL_AC_CHARGE_MIN = 15  # wall AC lasts hours; day only (night → 30)
 INTERVAL_CABIN_MIN = 2  # user present, dog/camp/climate keeper
 INTERVAL_DOGCAMP_MIN = 15  # Dog or user sleeping, so longer interval
@@ -267,6 +269,34 @@ LIVE_ACTIVITY_KINDS = frozenset(
 )
 
 
+def _destination_looks_like_charger(snap: TeslaCarDataSnapshot | None) -> bool:
+    """
+    True when nav destination name looks like a public DC / Supercharger stop.
+
+    Used only to densify the last ~12 min of approach (short SC stops need
+    tight samples for day-map duration). AC destination chargers at home are
+    rarely named this way in navigation.
+    """
+    if snap is None:
+        return False
+    dest = (getattr(snap, "active_route_destination", None) or "").strip().lower()
+    if not dest:
+        return False
+    needles = (
+        "supercharg",  # supercharger / superchargeur
+        "super charge",
+        "ionity",
+        "fastned",
+        "electrify",
+        "allego",
+        "chademo",
+        "hpcc",
+        "dc fast",
+        "fast charge",
+    )
+    return any(needle in dest for needle in needles)
+
+
 def driving_poll_interval_minutes(
     snap: TeslaCarDataSnapshot | None,
 ) -> int:
@@ -274,15 +304,18 @@ def driving_poll_interval_minutes(
     Spacing while the car is driving.
 
     Goal: spend fewer Fleet calls mid-trip when navigation exposes a long ETA,
-    without missing the arrival (day-map seal).
+    without missing short Supercharger stops (day-map seal + duration).
 
     Policy:
       - no nav ETA, invalid ETA, or crawling (speed < DRIVING_SLOW_MPH) → 2 min
-      - ETA ≤ DRIVING_ETA_NEAR_MINUTES → 2 min (approach densify)
+      - ETA ≤ DRIVING_ETA_ARRIVAL_MINUTES (3) → 1 min
+      - heading to a Supercharger-like dest and ETA ≤ NEAR (12) → 1 min
+      - ETA ≤ DRIVING_ETA_NEAR_MINUTES (12) → 2 min
       - ETA ≤ DRIVING_ETA_MID_MINUTES → 5 min
       - ETA longer → 10 min
 
-    Trip-seal after a drive sample still forces 2 min in vehicle_is_due.
+    Trip-seal after a drive sample uses this same function in vehicle_is_due
+    (so mid-trip stretch applies; final approach densifies to 1 min).
     """
     if snap is None:
         return INTERVAL_DRIVING_MIN
@@ -302,6 +335,13 @@ def driving_poll_interval_minutes(
         return INTERVAL_DRIVING_MIN
     if eta_min != eta_min or eta_min <= 0:  # NaN or non-positive
         return INTERVAL_DRIVING_MIN
+    if eta_min <= DRIVING_ETA_ARRIVAL_MINUTES:
+        return INTERVAL_DRIVING_ARRIVAL_MIN
+    if (
+        _destination_looks_like_charger(snap)
+        and eta_min <= DRIVING_ETA_NEAR_MINUTES
+    ):
+        return INTERVAL_DRIVING_ARRIVAL_MIN
     if eta_min <= DRIVING_ETA_NEAR_MINUTES:
         return INTERVAL_DRIVING_MIN
     if eta_min <= DRIVING_ETA_MID_MINUTES:
@@ -319,7 +359,7 @@ def base_poll_interval_minutes(
     Hand-tuned baseline interval in minutes (no habit model).
 
     Driving uses navigation ETA when available (see driving_poll_interval_minutes);
-    without ETA it stays at 2 min. DC/Supercharge → 2 min always.
+    without ETA it stays at 2 min. DC/Supercharge → 1 min always.
 
     Night (22h–6h local), other kinds: 30 min (incl. AC wall charge).
 
@@ -529,9 +569,12 @@ def vehicle_is_due(vehicle: TeslaVehicle, *, now: datetime | None = None) -> boo
     age = _snap_age_minutes(snap, now)
     state = (vehicle.state or "").strip().lower()
 
-    # Still driving in last sample → keep the 2 min drive cadence until we seal.
+    # Still driving in last sample → keep drive cadence (ETA-aware, down to 1 min
+    # on final approach) until we capture park/charge and seal the trip.
     if _needs_drive_seal(vehicle, snap, now=now):
-        return now >= last + timedelta(minutes=INTERVAL_DRIVING_MIN)
+        return now >= last + timedelta(
+            minutes=driving_poll_interval_minutes(snap)
+        )
 
     # Online in the list but no fresh vehicle_data: re-poll soon (do not keep
     # trusting an hours-old "Charging" snapshot).

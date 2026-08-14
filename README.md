@@ -364,8 +364,10 @@ Spacing uses Europe/Brussels wall clock + last known activity
 
 | Context | Interval |
 |---------|----------|
-| Driving (day or night) | 2 min |
-| DC / Supercharger (day or night) | 2 min |
+| Driving, final approach (ETA ≤ 3 min) or Supercharger dest ≤ ~12 min | 1 min |
+| Driving (near / no ETA / crawl) | 2 min |
+| Driving mid-trip / long ETA (nav) | 5 / 10 min |
+| DC / Supercharger (day or night) | 1 min |
 | Night 22:00–06:00, not drive/DC | 30 min (incl. AC wall charge) |
 | Day, user present / dog / camp / climate on | 2 min |
 | Day, Sentry only | 5 min |
@@ -386,9 +388,10 @@ Flags from a snapshot older than **20 minutes** are ignored, and list
 
 `matesla/capture.py` still uses a **reactive** baseline (drive 2 min by default,
 or 5–10 min mid-trip when Fleet reports a long navigation ETA;
-DC 2 min, AC 15 min day, night idle 30 min, day idle 5 min). Near arrival
-(ETA ≤ ~12 min), crawl (speed &lt; 20 mph), missing ETA, or trip-seal after a
-drive sample always densify to **2 min** so arrivals are not missed.
+DC **1 min**, AC 15 min day, night idle 30 min, day idle 5 min). Final approach
+(ETA ≤ 3 min) or a Supercharger-like nav destination with ETA ≤ ~12 min densifies
+to **1 min**; near arrival (ETA ≤ ~12 min), crawl (speed &lt; 20 mph), or missing ETA
+uses **2 min**. Trip-seal after a drive sample reuses the same ETA-aware interval.
 
 On top of that, `matesla/poll_habits.py`
 may **set idle/asleep** spacing for the current weekday+hour to:

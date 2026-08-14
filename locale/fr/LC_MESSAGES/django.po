@@ -485,14 +485,15 @@ msgstr "jour"
 #: matesla/poll_diagnostics.py:447
 #, python-format
 msgid ""
-"Driving with navigation ETA %(eta)s min → query every %(minutes)s min (2 min"
-" near arrival or when crawling; %(mid)s min mid-trip; %(far)s min when ETA "
-"is long). Habits do not apply while driving."
+"Driving with navigation ETA %(eta)s min → query every %(minutes)s min (1 min "
+"when ETA ≤ 3 min or approaching a Supercharger; 2 min near arrival / crawl; "
+"%(mid)s min mid-trip; %(far)s min when ETA is long). Habits do not apply "
+"while driving."
 msgstr ""
 "En conduite avec ETA navigation %(eta)s min → interrogation toutes les "
-"%(minutes)s min (2 min près de l’arrivée ou en rampement ; %(mid)s min en "
-"milieu de trajet ; %(far)s min si l’ETA est long). Les habitudes ne "
-"s’appliquent pas en conduite."
+"%(minutes)s min (1 min si ETA ≤ 3 min ou approche d’un Superchargeur ; 2 min "
+"près de l’arrivée / en rampement ; %(mid)s min en milieu de trajet ; "
+"%(far)s min si l’ETA est long). Les habitudes ne s’appliquent pas en conduite."
 
 #: matesla/poll_diagnostics.py:458
 #, python-format
@@ -1908,13 +1909,13 @@ msgstr "Recharges"
 #: personalstats/templates/personalstats/daymap.html:419
 #: personalstats/templates/personalstats/daymap.html:724
 msgid "Start"
-msgstr "Départ"
+msgstr "Début"
 
 #: personalstats/templates/personalstats/daymap.html:322
 #: personalstats/templates/personalstats/daymap.html:420
 #: personalstats/templates/personalstats/daymap.html:726
 msgid "End"
-msgstr "Arrivée"
+msgstr "Fin"
 
 #: personalstats/templates/personalstats/daymap.html:337
 #: personalstats/templates/personalstats/daymap.html:377
@@ -2272,20 +2273,21 @@ msgstr ""
 msgid ""
 "\n"
 "    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast charger) are used —\n"
-"    home AC and destination charging are excluded. The first ~2 minutes of each session (and any\n"
-"    early sample still far below that session’s peak) are dropped so Supercharger power-ramp\n"
-"    samples do not pull the curve down. Robust filter further drops sessions with unusually low\n"
-"    peak power (typical of V2 stall sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls\n"
-"    are not separated: the car caps at its max power either way.\n"
+"    home AC and destination charging are excluded. The rising power edge after plug-in is\n"
+"    dropped by cutting samples before the first peak of each session (whether that peak is at\n"
+"    10 s or 2 min) so the curve and min/max measure the real profile, not a fixed time window.\n"
+"    Robust filter further drops sessions with unusually low peak power (typical of V2 stall\n"
+"    sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls are not separated: the car caps\n"
+"    at its max power either way.\n"
 "    "
 msgstr ""
 "\n"
 "    Seules les sessions Supercharge / CCS (pic ≥ ~40 kW, ou chargeur rapide signalé) sont utilisées —\n"
-"    le AC domicile et la charge destination sont exclus. Les ~2 premières minutes de chaque session\n"
-"    (et tout échantillon encore bien sous le pic de cette session) sont ignorées pour ne pas\n"
-"    tirer la courbe vers le bas avec la montée en puissance Superchargeur. Le filtre robuste exclut\n"
-"    en plus les pics anormalement bas (partage V2) et les démarrages froids. V3 et V4 ne sont pas\n"
-"    séparés : la voiture plafonne de toute façon à sa puissance max.\n"
+"    le AC domicile et la charge destination sont exclus. La montée en puissance juste après le\n"
+"    branchement est coupée en ignorant les échantillons avant le premier pic de chaque session\n"
+"    (que ce pic soit à 10 s ou à 2 min), pour mesurer le vrai profil — pas une fenêtre de temps fixe.\n"
+"    Le filtre robuste exclut en plus les pics anormalement bas (partage V2) et les démarrages froids.\n"
+"    V3 et V4 ne sont pas séparés : la voiture plafonne de toute façon à sa puissance max.\n"
 "    "
 
 #: personalstats/templates/personalstats/drives.html:117

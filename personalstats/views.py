@@ -3313,7 +3313,8 @@ def _point_kind(sample):
     """Classify a sample: charge | drive | park."""
     charging_state = (sample.get("charging_state") or "").strip().lower()
     charger_power = sample.get("charger_power")
-    if charging_state == "charging" or (
+    # Starting: power ramp just after plug; treat as charge so it stays in-session.
+    if charging_state in ("charging", "starting") or (
         charger_power is not None and charger_power > 0.5
     ):
         return "charge"
@@ -3916,6 +3917,13 @@ def _segment_day(rows, pack_kwh):
       - Charge SoC start: if the first charge poll is ≥8 pts above the last
         drive SoC, backfill start from that drive sample (and keep single
         late charge polls instead of dropping them).
+      - Charge clock / kWh (sparse SC stops): Tesla ``charge_energy_added`` is
+        a *session total* (resets on plug-in), not a lifetime counter. Use the
+        max over Charging samples plus the immediate post-charge park/drive
+        sample when it still holds the session total. Extend start time to a
+        prior Stopped park or to the last drive sample when the first charge
+        poll is already mid-session; extend end time to the first sample after
+        unplug so short Supercharges are not truncated to 2 poll ticks.
     """
     if not rows:
         return [], []
@@ -3933,6 +3941,9 @@ def _segment_day(rows, pack_kwh):
             current_kind = kind
             current_points = [sample]
     groups.append((current_kind, current_points))
+
+    # Max gap (minutes) to borrow pre/post samples for charge timing & energy.
+    charge_anchor_gap_min = 8.0
 
     drives = []
     charges = []
@@ -4034,15 +4045,70 @@ def _segment_day(rows, pack_kwh):
                 }
             )
         elif kind == "charge":
-            # Previous drive end (if any): used when the first charge poll is
-            # already mid-session (sparse capture missed plug-in / early kWh).
-            prev_drive_end = None
-            if group_index > 0 and groups[group_index - 1][0] == "drive":
-                prev_drive_pts = groups[group_index - 1][1]
-                if prev_drive_pts:
-                    prev_drive_end = prev_drive_pts[-1]
+            # Previous / next groups: anchors when sparse capture misses plug-in
+            # and unplug edges of short Supercharger stops.
+            prev_kind = groups[group_index - 1][0] if group_index > 0 else None
+            prev_pts = groups[group_index - 1][1] if group_index > 0 else None
+            next_kind = (
+                groups[group_index + 1][0]
+                if group_index + 1 < len(groups)
+                else None
+            )
+            next_pts = (
+                groups[group_index + 1][1]
+                if group_index + 1 < len(groups)
+                else None
+            )
 
-            soc_start, soc_end, soc_added = _charge_soc_metrics(start_pt, end_pt)
+            prev_drive_end = None
+            if prev_kind == "drive" and prev_pts:
+                prev_drive_end = prev_pts[-1]
+
+            time_start_pt = start_pt
+            time_end_pt = end_pt
+            # Samples that may still hold this session's charge_energy_added
+            energy_points = list(points)
+
+            # --- Post-charge anchor (Disconnected / first drive away) ---
+            # charge_energy_added often keeps rising until the sample after
+            # charging_state leaves Charging; SoC too.
+            if next_pts and next_kind in ("park", "drive"):
+                next_first = next_pts[0]
+                gap_post = (
+                    max(0.0, (next_first["t"] - end_pt["t"]).total_seconds()) / 60.0
+                )
+                if gap_post <= charge_anchor_gap_min:
+                    last_e = end_pt.get("charge_energy_added")
+                    next_e = next_first.get("charge_energy_added")
+                    end_soc = _soc(end_pt)
+                    next_soc = _soc(next_first)
+                    # New session reset (counter dropped) → do not extend
+                    energy_reset = (
+                        next_e is not None
+                        and last_e is not None
+                        and next_e < float(last_e) - 1.0
+                        and next_e < float(last_e) * 0.5
+                    )
+                    energy_continues = (
+                        next_e is not None
+                        and float(next_e) > 0.3
+                        and (
+                            last_e is None
+                            or float(next_e) + 0.05 >= float(last_e)
+                        )
+                    )
+                    soc_continues = (
+                        next_soc is not None
+                        and end_soc is not None
+                        and next_soc + 0.5 >= end_soc
+                    )
+                    if not energy_reset and (energy_continues or soc_continues):
+                        time_end_pt = next_first
+                        energy_points = list(points) + [next_first]
+
+            soc_start, soc_end, soc_added = _charge_soc_metrics(
+                start_pt, time_end_pt
+            )
             # Backfill start SoC from last drive when first charge sample is late
             mid_session_backfill = False
             if prev_drive_end is not None:
@@ -4063,6 +4129,32 @@ def _segment_day(rows, pack_kwh):
                         soc_added = first_charge_soc - prev_soc
                         soc_end = first_charge_soc
 
+            # --- Pre-charge anchor (Stopped park or mid-session arrival) ---
+            if prev_pts:
+                prev_last = prev_pts[-1]
+                gap_pre = (
+                    max(0.0, (start_pt["t"] - prev_last["t"]).total_seconds())
+                    / 60.0
+                )
+                if gap_pre <= charge_anchor_gap_min:
+                    prev_state = (prev_last.get("charging_state") or "").strip().lower()
+                    if prev_kind == "park" and prev_state in (
+                        "stopped",
+                        "starting",
+                        "complete",
+                    ):
+                        # Plugged / waiting for power before first Charging row
+                        time_start_pt = prev_last
+                        energy_points = [prev_last] + energy_points
+                    elif prev_kind == "drive" and mid_session_backfill:
+                        # Arrival sample is the best plug-in clock we have
+                        time_start_pt = prev_last
+
+            seconds = max(
+                0.0, (time_end_pt["t"] - time_start_pt["t"]).total_seconds()
+            )
+            minutes = seconds / 60.0
+
             sparse_single = minutes < 1.0 and len(points) < 2
             if sparse_single and not mid_session_backfill:
                 # Single glitchy charge poll with no clear energy gain — skip
@@ -4071,20 +4163,23 @@ def _segment_day(rows, pack_kwh):
                 # Keep the stop visible even with one late poll
                 minutes = max(minutes, 1.0)
 
-            energy_start = start_pt.get("charge_energy_added")
-            energy_end = end_pt.get("charge_energy_added")
+            # kWh: Tesla charge_energy_added is the *session total* since plug-in.
+            # Max over the session window (incl. post-unplug sample) — not a
+            # delta between first and last Charging polls (that misses both
+            # edges on short Supercharges).
+            session_energy_vals = []
+            for point in energy_points:
+                energy = point.get("charge_energy_added")
+                if energy is not None:
+                    try:
+                        energy_f = float(energy)
+                    except (TypeError, ValueError):
+                        continue
+                    if energy_f > 0.05:
+                        session_energy_vals.append(energy_f)
             kwh_added = None
-            if (
-                not mid_session_backfill
-                and energy_start is not None
-                and energy_end is not None
-                and energy_end >= energy_start
-            ):
-                # Same session multi-sample: delta of charge_energy_added
-                kwh_added = energy_end - energy_start
-            elif mid_session_backfill and energy_end is not None and energy_end > 0.3:
-                # Session total reported on the late poll (API counter for this plug-in)
-                kwh_added = float(energy_end)
+            if session_energy_vals:
+                kwh_added = max(session_energy_vals)
             elif soc_added is not None and soc_added > 0:
                 kwh_added = soc_added / 100.0 * pack_kwh
             # Effective kW: charger_power when set, else V×I×phases (AC wall
@@ -4131,19 +4226,19 @@ def _segment_day(rows, pack_kwh):
                     if max_power is None or max_power < float(peak):
                         max_power = float(peak)
             try:
-                start_ts = int(start_pt["t"].timestamp())
+                start_ts = int(time_start_pt["t"].timestamp())
             except Exception:
                 start_ts = None
             charges.append(
                 {
                     "kind": "charge",
-                    "start": start_pt["t"],
-                    "end": end_pt["t"],
+                    "start": time_start_pt["t"],
+                    "end": time_end_pt["t"],
                     "start_ts": start_ts,
-                    "start_local": start_pt["t"]
+                    "start_local": time_start_pt["t"]
                     .astimezone(DAY_MAP_TZ)
                     .strftime("%H:%M"),
-                    "end_local": end_pt["t"]
+                    "end_local": time_end_pt["t"]
                     .astimezone(DAY_MAP_TZ)
                     .strftime("%H:%M"),
                     "minutes": int(round(minutes)),

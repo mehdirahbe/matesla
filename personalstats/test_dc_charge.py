@@ -201,6 +201,34 @@ class DcChargeLogicTests(SimpleTestCase):
         self.assertIsNotNone(min_kw)
         self.assertGreaterEqual(min_kw, 200.0)
         self.assertNotEqual(min_kw, 40.0)
+        # Rising edge dropped; min is taper after peak
+        self.assertEqual(min_kw, 200.0)
+
+    def test_daymap_min_max_peak_at_first_sample(self):
+        """Short SC: first poll already at peak (no fixed 2 min skip of real max)."""
+        t0 = datetime(2026, 8, 13, 10, 37, tzinfo=timezone.utc)
+        timed = [
+            (t0, 141.0),
+            (t0 + timedelta(seconds=180), 107.0),
+        ]
+        min_kw, max_kw = charge_power_min_max_excluding_ramp(timed)
+        self.assertEqual(max_kw, 141.0)
+        self.assertEqual(min_kw, 107.0)
+
+    def test_daymap_min_max_slow_ramp_still_finds_peak(self):
+        """Peak at 3 min must not be discarded by a fixed time window."""
+        t0 = datetime(2024, 5, 4, 12, 0, tzinfo=timezone.utc)
+        timed = [
+            (t0, 30.0),
+            (t0 + timedelta(seconds=60), 80.0),
+            (t0 + timedelta(seconds=120), 150.0),
+            (t0 + timedelta(seconds=180), 220.0),  # peak
+            (t0 + timedelta(seconds=240), 210.0),
+            (t0 + timedelta(seconds=300), 180.0),
+        ]
+        min_kw, max_kw = charge_power_min_max_excluding_ramp(timed)
+        self.assertEqual(max_kw, 220.0)
+        self.assertEqual(min_kw, 180.0)
 
     def test_ac_wall_power_from_current_when_kw_zero(self):
         """TeslaFi AC: charger_power=0 but current ~12–16 A (blue industrial socket)."""
@@ -242,7 +270,7 @@ class DcChargeLogicTests(SimpleTestCase):
         self.assertAlmostEqual(max_kw, 2.99, places=2)
 
     def test_power_curve_skips_supercharger_ramp(self):
-        """First tens of seconds / low-vs-peak early samples must not enter kW vs SoC."""
+        """Rising edge before first peak must not enter kW vs SoC."""
         t0 = datetime(2024, 5, 4, 17, 30, tzinfo=timezone.utc)
         # Minute samples: ramp then steady 250 kW (matches user Supercharge pattern)
         points = [
@@ -262,10 +290,9 @@ class DcChargeLogicTests(SimpleTestCase):
         kept = list(iter_power_curve_points(session))
         powers = [p.power_kw for p in kept]
         self.assertNotIn(40.0, powers)
-        self.assertTrue(all(p >= 120 for p in powers) or 250.0 in powers)
-        # Absolute 120 s skip drops t=0 and t=60; relative would also drop 120 kW at 60 s
-        self.assertNotIn(120.0, powers)
+        self.assertNotIn(120.0, powers)  # still climbing before peak
         self.assertIn(250.0, powers)
+        self.assertIn(240.0, powers)
 
         curve = power_vs_soc_curve([session], min_n=1)
         all_mins = [row["min"] for row in curve]
@@ -273,11 +300,12 @@ class DcChargeLogicTests(SimpleTestCase):
 
     def test_charge_session_curve_series(self):
         t0 = datetime(2024, 6, 1, 12, 0, tzinfo=timezone.utc)
+        # AC-scale powers (< 40 kW peak): full series kept
         points = [
             {
                 "t": t0 + timedelta(minutes=i),
                 "battery_level": 20 + i * 5,
-                "charger_power": 80.0 + i * 20,
+                "charger_power": 8.0 + i * 2,
             }
             for i in range(4)
         ]
@@ -286,7 +314,7 @@ class DcChargeLogicTests(SimpleTestCase):
         self.assertEqual(series[0]["elapsed_min"], 0.0)
         self.assertAlmostEqual(series[1]["elapsed_min"], 1.0)
         self.assertEqual(series[0]["soc"], 20.0)
-        self.assertEqual(series[-1]["power_kw"], 140.0)
+        self.assertEqual(series[-1]["power_kw"], 14.0)
         # No power → skipped
         self.assertEqual(
             charge_session_curve_series(
@@ -294,6 +322,34 @@ class DcChargeLogicTests(SimpleTestCase):
             ),
             [],
         )
+
+    def test_charge_session_curve_series_trims_dc_ramp(self):
+        """Day-map Courbe: DC series starts at first peak, elapsed re-zeroed."""
+        t0 = datetime(2024, 6, 1, 12, 0, tzinfo=timezone.utc)
+        points = [
+            {"t": t0, "battery_level": 20.0, "charger_power": 40.0},
+            {
+                "t": t0 + timedelta(seconds=30),
+                "battery_level": 21.0,
+                "charger_power": 120.0,
+            },
+            {
+                "t": t0 + timedelta(seconds=45),
+                "battery_level": 23.0,
+                "charger_power": 250.0,
+            },
+            {
+                "t": t0 + timedelta(seconds=90),
+                "battery_level": 28.0,
+                "charger_power": 240.0,
+            },
+        ]
+        series = charge_session_curve_series(points)
+        self.assertEqual(len(series), 2)
+        self.assertEqual(series[0]["power_kw"], 250.0)
+        self.assertEqual(series[0]["elapsed_min"], 0.0)
+        self.assertAlmostEqual(series[1]["elapsed_min"], 0.75)
+        self.assertEqual(series[1]["power_kw"], 240.0)
 
     def test_soc_vs_time_curves_by_start_bucket(self):
         sessions = [

@@ -375,11 +375,12 @@
 <p class="dc-note">
     {% blocktrans %}
     Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast charger) are used —
-    home AC and destination charging are excluded. The first ~2 minutes of each session (and any
-    early sample still far below that session’s peak) are dropped so Supercharger power-ramp
-    samples do not pull the curve down. Robust filter further drops sessions with unusually low
-    peak power (typical of V2 stall sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls
-    are not separated: the car caps at its max power either way.
+    home AC and destination charging are excluded. The rising power edge after plug-in is
+    dropped by cutting samples before the first peak of each session (whether that peak is at
+    10 s or 2 min) so the curve and min/max measure the real profile, not a fixed time window.
+    Robust filter further drops sessions with unusually low peak power (typical of V2 stall
+    sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls are not separated: the car caps
+    at its max power either way.
     {% endblocktrans %}
 </p>
 </div>

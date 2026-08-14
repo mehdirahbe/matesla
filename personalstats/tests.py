@@ -644,13 +644,107 @@ class DayMapSegmentSocTests(TestCase):
             ),
             self._row(self._ts(13, 42), kind="park", soc=90.0, odo=2100.0),
         ]
+        # Explicit session energy totals (Tesla resets on plug-in)
+        rows[3]["charge_energy_added"] = 1.0
+        rows[4]["charge_energy_added"] = 28.5
+        rows[5]["charge_energy_added"] = 30.0  # post-unplug still holds session max
         drives, charges = _segment_day(rows, pack_kwh=75.0)
         self.assertEqual(len(drives), 1)
         self.assertAlmostEqual(drives[0]["soc_end"], 41.1, places=1)
         self.assertEqual(len(charges), 1)
         # Start stays on first charge sample (not last drive) — small gap
         self.assertAlmostEqual(charges[0]["soc_start"], 42.7, places=1)
-        self.assertAlmostEqual(charges[0]["soc_end"], 89.6, places=1)
+        # End SoC uses post-charge park when higher
+        self.assertAlmostEqual(charges[0]["soc_end"], 90.0, places=1)
+        # kWh = max session total (incl. post-unplug), not delta of Charging only
+        self.assertAlmostEqual(charges[0]["kwh_added"], 30.0, places=1)
+        self.assertEqual(charges[0]["minutes"], 22)  # 13:20 → 13:42
+
+    def test_short_sc_uses_post_unplug_energy_and_mid_session_start(self):
+        """
+        Sparse short Supercharge (Corentin-style): 2 Charging polls + Disconnected
+        holding the real session kWh; first Charging already mid-session.
+        """
+        from personalstats.views import _segment_day
+
+        rows = [
+            self._row(self._ts(10, 31), kind="drive", soc=44.8, odo=3000.0),
+            self._row(self._ts(10, 34), kind="drive", soc=44.8, odo=3000.1),
+            self._row(
+                self._ts(10, 37), kind="charge", soc=53.3, odo=3000.1, power_kw=141.0
+            ),
+            self._row(
+                self._ts(10, 40), kind="charge", soc=63.2, odo=3000.1, power_kw=107.0
+            ),
+            self._row(self._ts(10, 43), kind="park", soc=69.4, odo=3000.1),
+        ]
+        rows[2]["charge_energy_added"] = 5.1
+        rows[3]["charge_energy_added"] = 10.94
+        rows[4]["charge_energy_added"] = 14.54
+        drives, charges = _segment_day(rows, pack_kwh=75.0)
+        self.assertEqual(len(charges), 1)
+        charge = charges[0]
+        # Mid-session SoC start from last drive; end from post-unplug
+        self.assertAlmostEqual(charge["soc_start"], 44.8, places=1)
+        self.assertAlmostEqual(charge["soc_end"], 69.4, places=1)
+        self.assertAlmostEqual(charge["kwh_added"], 14.54, places=2)
+        # Clock: last drive (mid-session) → first park after charge
+        self.assertEqual(charge["start_local"], "10:34")
+        self.assertEqual(charge["end_local"], "10:43")
+        self.assertEqual(charge["minutes"], 9)
+
+    def test_short_sc_without_mid_session_still_takes_post_energy(self):
+        """First charge poll near arrival SoC: still extend kWh/end via unplug sample."""
+        from personalstats.views import _segment_day
+
+        rows = [
+            self._row(self._ts(15, 43), kind="drive", soc=14.3, odo=4000.0),
+            self._row(
+                self._ts(15, 46), kind="charge", soc=18.6, odo=4000.0, power_kw=250.0
+            ),
+            self._row(
+                self._ts(15, 49), kind="charge", soc=34.8, odo=4000.0, power_kw=180.0
+            ),
+            self._row(self._ts(15, 52), kind="park", soc=47.5, odo=4000.0),
+        ]
+        rows[1]["charge_energy_added"] = 2.6
+        rows[2]["charge_energy_added"] = 11.84
+        rows[3]["charge_energy_added"] = 19.52
+        _drives, charges = _segment_day(rows, pack_kwh=75.0)
+        self.assertEqual(len(charges), 1)
+        charge = charges[0]
+        self.assertAlmostEqual(charge["soc_start"], 18.6, places=1)
+        self.assertAlmostEqual(charge["soc_end"], 47.5, places=1)
+        self.assertAlmostEqual(charge["kwh_added"], 19.52, places=2)
+        self.assertEqual(charge["start_local"], "15:46")
+        self.assertEqual(charge["end_local"], "15:52")
+        self.assertEqual(charge["minutes"], 6)
+
+    def test_stopped_park_extends_charge_start(self):
+        """Plugged Stopped sample before first Charging counts in duration."""
+        from personalstats.views import _segment_day
+
+        rows = [
+            self._row(self._ts(12, 26), kind="drive", soc=20.5, odo=5000.0),
+            self._row(self._ts(12, 29), kind="park", soc=20.3, odo=5000.0),
+            self._row(
+                self._ts(12, 32), kind="charge", soc=21.4, odo=5000.0, power_kw=140.0
+            ),
+            self._row(
+                self._ts(12, 50), kind="charge", soc=80.0, odo=5000.0, power_kw=50.0
+            ),
+            self._row(self._ts(12, 53), kind="park", soc=82.0, odo=5000.0),
+        ]
+        rows[1]["charging_state"] = "Stopped"
+        rows[1]["charge_energy_added"] = 0.0
+        rows[2]["charge_energy_added"] = 0.64
+        rows[3]["charge_energy_added"] = 35.0
+        rows[4]["charge_energy_added"] = 36.5
+        _drives, charges = _segment_day(rows, pack_kwh=75.0)
+        self.assertEqual(len(charges), 1)
+        self.assertEqual(charges[0]["start_local"], "12:29")
+        self.assertEqual(charges[0]["end_local"], "12:53")
+        self.assertAlmostEqual(charges[0]["kwh_added"], 36.5, places=1)
 
 
 class DayMapUnmonitoredTailTests(TestCase):
