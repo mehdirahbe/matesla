@@ -303,6 +303,32 @@ def PreparestatusDictionary(request, user):
         if params.batterydegradation is not None
         else None
     )
+    from matesla.BatteryDegradation import (
+        compute_usable_capacity_and_stored_kwh,
+        pack_kwh_for_vehicle,
+    )
+
+    # Same pack estimate as day map / drives ("~N kWh pack from EPA range").
+    vin_for_pack = context.get("vin") or ""
+    pack_when_new = pack_kwh_for_vehicle(
+        vin=vin_for_pack or None,
+        epa_range_miles=params.EPARangeMiles,
+    )
+    capacity_kwh, stored_kwh = compute_usable_capacity_and_stored_kwh(
+        pack_kwh_when_new=pack_when_new,
+        battery_degradation_percent=params.batterydegradation,
+        battery_level=context.get("battery_level"),
+        usable_battery_level=context.get("usable_battery_level"),
+    )
+    context["battery_pack_kwh_when_new"] = (
+        "{:.1f}".format(pack_when_new) if pack_when_new is not None else None
+    )
+    context["battery_capacity_kwh"] = (
+        "{:.1f}".format(capacity_kwh) if capacity_kwh is not None else None
+    )
+    context["energy_stored_kwh"] = (
+        "{:.1f}".format(stored_kwh) if stored_kwh is not None else None
+    )
     context["NumberCycles"] = (
         "{:.1f}".format(params.NumberCycles) if params.NumberCycles is not None else None
     )

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-13 11:48+0000\n"
+"POT-Creation-Date: 2026-08-14 09:30+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: MaTesla i18n <noreply@matesla.local>\n"
 "Language-Team: Nederlands <LL@li.org>\n"
@@ -28,11 +28,8 @@ msgid "Sign up"
 msgstr "Registreren"
 
 #: accounts/templates/signup.html:12
-msgid ""
-"Create your private space, then link your Tesla account in a few steps."
-msgstr ""
-"Maak je privéruimte aan en koppel daarna je Tesla-account in een paar "
-"stappen."
+msgid "Create your private space, then link your Tesla account in a few steps."
+msgstr "Maak je privéruimte aan en koppel daarna je Tesla-account in een paar stappen."
 
 #: accounts/templates/signup.html:30
 msgid "Already registered?"
@@ -48,9 +45,7 @@ msgstr "Inloggen"
 #: matesla/TeslaPartner.py:121
 #, python-format
 msgid "Partner public key must be served over HTTPS (got %(scheme)s)."
-msgstr ""
-"De openbare partnersleutel moet via HTTPS worden aangeboden (ontvangen: "
-"%(scheme)s)."
+msgstr "De openbare partnersleutel moet via HTTPS worden aangeboden (ontvangen: %(scheme)s)."
 
 #: matesla/TeslaPartner.py:126
 msgid "Could not read a host from that URL."
@@ -58,21 +53,12 @@ msgstr "Kon geen host uit die URL lezen."
 
 #: matesla/TeslaPartner.py:136
 #, python-format
-msgid ""
-"Tesla always fetches the public key at https://%(host)s%(path)s — not at an "
-"arbitrary path. Host the PEM there (any HTTPS server is fine: nginx, S3, "
-"Cloudflare, GitHub Pages, …)."
-msgstr ""
-"Tesla haalt de openbare sleutel altijd op via https://%(host)s%(path)s — "
-"niet via een willekeurig pad. Host de PEM daar (elke HTTPS-server is prima: "
-"nginx, S3, Cloudflare, GitHub Pages, …)."
+msgid "Tesla always fetches the public key at https://%(host)s%(path)s — not at an arbitrary path. Host the PEM there (any HTTPS server is fine: nginx, S3, Cloudflare, GitHub Pages, …)."
+msgstr "Tesla haalt de openbare sleutel altijd op via https://%(host)s%(path)s — niet via een willekeurig pad. Host de PEM daar (elke HTTPS-server is prima: nginx, S3, Cloudflare, GitHub Pages, …)."
 
 #: matesla/TeslaPartner.py:152
-msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
-msgstr ""
-"Tesla weigert localhost als partnerdomein. Gebruik een openbaar HTTPS-"
-"domein."
+msgid "Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
+msgstr "Tesla weigert localhost als partnerdomein. Gebruik een openbaar HTTPS-domein."
 
 #: matesla/TeslaPartner.py:165
 #, python-format
@@ -91,12 +77,8 @@ msgstr "%(url)s bevat geen geldige openbare sleutel (PEM)"
 
 #: matesla/TeslaPartner.py:181
 #, python-format
-msgid ""
-"%(url)s is reachable but does not match the local key (%(path)s). Re-upload "
-"the file."
-msgstr ""
-"%(url)s is bereikbaar maar komt niet overeen met de lokale sleutel "
-"(%(path)s). Upload het bestand opnieuw."
+msgid "%(url)s is reachable but does not match the local key (%(path)s). Re-upload the file."
+msgstr "%(url)s is bereikbaar maar komt niet overeen met de lokale sleutel (%(path)s). Upload het bestand opnieuw."
 
 #: matesla/TeslaPartner.py:186
 #, python-format
@@ -117,12 +99,8 @@ msgid "Missing app settings."
 msgstr "App-instellingen ontbreken."
 
 #: matesla/TeslaPartner.py:229
-msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g."
-" robotcar.example.com)."
-msgstr ""
-"Tesla weigert localhost als partnerdomein. Gebruik een openbaar HTTPS-domein"
-" (bijv. robotcar.example.com)."
+msgid "Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g. robotcar.example.com)."
+msgstr "Tesla weigert localhost als partnerdomein. Gebruik een openbaar HTTPS-domein (bijv. robotcar.example.com)."
 
 #: matesla/TeslaPartner.py:237
 #, python-format
@@ -151,12 +129,8 @@ msgid "Fleet API region"
 msgstr "Fleet API-regio"
 
 #: matesla/forms.py:29
-msgid ""
-"Must match the redirect URI on developer.tesla.com exactly (often "
-"http://localhost:8001/oauth/callback for a local install)."
-msgstr ""
-"Moet exact overeenkomen met de omleidings-URI op developer.tesla.com (vaak "
-"http://localhost:8001/oauth/callback bij lokale installatie)."
+msgid "Must match the redirect URI on developer.tesla.com exactly (often http://localhost:8001/oauth/callback for a local install)."
+msgstr "Moet exact overeenkomen met de omleidings-URI op developer.tesla.com (vaak http://localhost:8001/oauth/callback bij lokale installatie)."
 
 #: matesla/forms.py:42
 msgid "Europe / Middle East / Africa (recommended for Belgium)"
@@ -175,77 +149,66 @@ msgid "Partner domain or public key URL"
 msgstr "Partnerdomein of URL van openbare sleutel"
 
 #: matesla/forms.py:65
-msgid ""
-"Paste a domain (example.com), an origin (https://example.com), or the full "
-"public-key URL. Hosting is free choice (nginx, S3, Cloudflare, GitHub Pages,"
-" …) but Tesla always fetches /.well-known/appspecific/com.tesla.3p.public-"
-"key.pem on that host. Add the same host with https:// as Allowed Origin on "
-"developer.tesla.com. Not localhost."
-msgstr ""
-"Plak een domein (example.com), een origin (https://example.com) of de "
-"volledige URL van de openbare sleutel. Hosting is vrij te kiezen (nginx, S3,"
-" Cloudflare, GitHub Pages, …) maar Tesla haalt altijd /.well-"
-"known/appspecific/com.tesla.3p.public-key.pem op die host op. Voeg dezelfde "
-"host met https:// toe als Allowed Origin op developer.tesla.com. Geen "
-"localhost."
+msgid "Paste a domain (example.com), an origin (https://example.com), or the full public-key URL. Hosting is free choice (nginx, S3, Cloudflare, GitHub Pages, …) but Tesla always fetches /.well-known/appspecific/com.tesla.3p.public-key.pem on that host. Add the same host with https:// as Allowed Origin on developer.tesla.com. Not localhost."
+msgstr "Plak een domein (example.com), een origin (https://example.com) of de volledige URL van de openbare sleutel. Hosting is vrij te kiezen (nginx, S3, Cloudflare, GitHub Pages, …) maar Tesla haalt altijd /.well-known/appspecific/com.tesla.3p.public-key.pem op die host op. Voeg dezelfde host met https:// toe als Allowed Origin op developer.tesla.com. Geen localhost."
 
-#: matesla/poll_diagnostics.py:88
+#: matesla/poll_diagnostics.py:89
 msgid "Mon"
 msgstr "ma"
 
-#: matesla/poll_diagnostics.py:89
+#: matesla/poll_diagnostics.py:90
 msgid "Tue"
 msgstr "di"
 
-#: matesla/poll_diagnostics.py:90
+#: matesla/poll_diagnostics.py:91
 msgid "Wed"
 msgstr "wo"
 
-#: matesla/poll_diagnostics.py:91
+#: matesla/poll_diagnostics.py:92
 msgid "Thu"
 msgstr "do"
 
-#: matesla/poll_diagnostics.py:92
+#: matesla/poll_diagnostics.py:93
 msgid "Fri"
 msgstr "vr"
 
-#: matesla/poll_diagnostics.py:93
+#: matesla/poll_diagnostics.py:94
 msgid "Sat"
 msgstr "za"
 
-#: matesla/poll_diagnostics.py:94
+#: matesla/poll_diagnostics.py:95
 msgid "Sun"
 msgstr "zo"
 
-#: matesla/poll_diagnostics.py:101
+#: matesla/poll_diagnostics.py:102
 msgid "Monday"
 msgstr "maandag"
 
-#: matesla/poll_diagnostics.py:102
+#: matesla/poll_diagnostics.py:103
 msgid "Tuesday"
 msgstr "dinsdag"
 
-#: matesla/poll_diagnostics.py:103
+#: matesla/poll_diagnostics.py:104
 msgid "Wednesday"
 msgstr "woensdag"
 
-#: matesla/poll_diagnostics.py:104
+#: matesla/poll_diagnostics.py:105
 msgid "Thursday"
 msgstr "donderdag"
 
-#: matesla/poll_diagnostics.py:105
+#: matesla/poll_diagnostics.py:106
 msgid "Friday"
 msgstr "vrijdag"
 
-#: matesla/poll_diagnostics.py:106
+#: matesla/poll_diagnostics.py:107
 msgid "Saturday"
 msgstr "zaterdag"
 
-#: matesla/poll_diagnostics.py:107
+#: matesla/poll_diagnostics.py:108
 msgid "Sunday"
 msgstr "zondag"
 
-#: matesla/poll_diagnostics.py:123
+#: matesla/poll_diagnostics.py:124
 #: matesla/templates/matesla/_carstatus_body.html:18
 #: matesla/templates/matesla/_carstatus_body.html:22
 #: matesla/templates/matesla/_carstatus_body.html:96
@@ -253,369 +216,225 @@ msgstr "zondag"
 msgid "online"
 msgstr "online"
 
-#: matesla/poll_diagnostics.py:124 matesla/poll_diagnostics.py:142
+#: matesla/poll_diagnostics.py:125 matesla/poll_diagnostics.py:143
 #: matesla/templates/matesla/_carstatus_body.html:19
 #: matesla/templates/matesla/_carstatus_body.html:97
 #: matesla/templates/matesla/_vehicle_chrome.html:35
 msgid "asleep"
 msgstr "in slaap"
 
-#: matesla/poll_diagnostics.py:125
+#: matesla/poll_diagnostics.py:126
 #: matesla/templates/matesla/_carstatus_body.html:20
 #: matesla/templates/matesla/_carstatus_body.html:98
 #: matesla/templates/matesla/_vehicle_chrome.html:36
 msgid "offline"
 msgstr "offline"
 
-#: matesla/poll_diagnostics.py:126 matesla/poll_diagnostics.py:144
+#: matesla/poll_diagnostics.py:127 matesla/poll_diagnostics.py:145
 msgid "unknown"
 msgstr "onbekend"
 
-#: matesla/poll_diagnostics.py:135
+#: matesla/poll_diagnostics.py:136
 msgid "driving"
 msgstr "rijdend"
 
-#: matesla/poll_diagnostics.py:136
+#: matesla/poll_diagnostics.py:137
 msgid "DC charging"
 msgstr "DC-laden"
 
-#: matesla/poll_diagnostics.py:137
+#: matesla/poll_diagnostics.py:138
 msgid "AC charging"
 msgstr "AC-laden"
 
-#: matesla/poll_diagnostics.py:138
+#: matesla/poll_diagnostics.py:139
 msgid "cabin activity"
 msgstr "cabine-activiteit"
 
-#: matesla/poll_diagnostics.py:139
+#: matesla/poll_diagnostics.py:140
 msgid "dog / camp mode"
 msgstr "hond/camp-modus"
 
-#: matesla/poll_diagnostics.py:140
+#: matesla/poll_diagnostics.py:141
 msgid "sentry mode"
 msgstr "sentry-modus"
 
-#: matesla/poll_diagnostics.py:141
+#: matesla/poll_diagnostics.py:142
 msgid "online, idle"
 msgstr "online, idle"
 
-#: matesla/poll_diagnostics.py:150
-#: personalstats/templates/personalstats/poll_details.html:311
+#: matesla/poll_diagnostics.py:151
+#: personalstats/templates/personalstats/poll_details.html:270
 msgid "None"
 msgstr "Geen"
 
-#: matesla/poll_diagnostics.py:152
-#: personalstats/templates/personalstats/poll_details.html:376
-#: personalstats/templates/personalstats/poll_details.html:410
+#: matesla/poll_diagnostics.py:153
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "busy"
 msgstr "druk"
 
-#: matesla/poll_diagnostics.py:153
-#: personalstats/templates/personalstats/poll_details.html:377
-#: personalstats/templates/personalstats/poll_details.html:410
-#| msgid "busy"
+#: matesla/poll_diagnostics.py:154
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "near busy"
 msgstr "nabij druk"
 
-#: matesla/poll_diagnostics.py:154
-#: personalstats/templates/personalstats/poll_details.html:378
-#: personalstats/templates/personalstats/poll_details.html:410
+#: matesla/poll_diagnostics.py:155
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "moderate"
 msgstr "matig"
 
-#: matesla/poll_diagnostics.py:155
-#: personalstats/templates/personalstats/poll_details.html:379
-#: personalstats/templates/personalstats/poll_details.html:410
+#: matesla/poll_diagnostics.py:156
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "quiet"
 msgstr "stil"
 
-#: matesla/poll_diagnostics.py:163
+#: matesla/poll_diagnostics.py:164
 #: matesla/templates/matesla/_vehicle_chrome.html:42
 msgid "OK"
 msgstr "OK"
 
-#: matesla/poll_diagnostics.py:164
+#: matesla/poll_diagnostics.py:165
 msgid "No VIN"
 msgstr "Geen VIN"
 
-#: matesla/poll_diagnostics.py:165
+#: matesla/poll_diagnostics.py:166
 msgid "Insufficient reference weeks"
 msgstr "Onvoldoende referentieweken"
 
-#: matesla/poll_diagnostics.py:166
+#: matesla/poll_diagnostics.py:167
 msgid "Regime break"
 msgstr "Regime-breuk"
 
-#: matesla/poll_diagnostics.py:167
+#: matesla/poll_diagnostics.py:168
 msgid "No habit slots"
 msgstr "Geen gewoonte-slots"
 
-#: matesla/poll_diagnostics.py:168
+#: matesla/poll_diagnostics.py:169
 msgid "Unknown"
 msgstr "Onbekend"
 
-#: matesla/poll_diagnostics.py:341
-msgid ""
-"Habit model is trusted. For idle/asleep hours it can set 5, 15 or 30 minute "
-"spacing from historical weekday+hour patterns. Live drive, charge and cabin "
-"activity always keep the short reactive intervals."
-msgstr ""
-"Het gewoonte-model is betrouwbaar. Bij idle/slaap kan het 5, 15 of 30 "
-"minuten zetten uit historische weekdag+uur-patronen. Rijden, laden en cabine"
-" houden altijd de korte reactieve intervallen."
+#: matesla/poll_diagnostics.py:342
+msgid "Habit model is trusted. For idle/asleep hours it can set 5, 15 or 30 minute spacing from historical weekday+hour patterns. Live drive, charge and cabin activity always keep the short reactive intervals."
+msgstr "Het gewoonte-model is betrouwbaar. Bij idle/slaap kan het 5, 15 of 30 minuten zetten uit historische weekdag+uur-patronen. Rijden, laden en cabine houden altijd de korte reactieve intervallen."
 
-#: matesla/poll_diagnostics.py:346
+#: matesla/poll_diagnostics.py:347
 msgid "No VIN is available, so habit-based spacing cannot run."
 msgstr "Geen VIN beschikbaar, dus spacing op gewoontes kan niet draaien."
 
-#: matesla/poll_diagnostics.py:349
+#: matesla/poll_diagnostics.py:350
 #, python-format
-msgid ""
-"Not enough reference weeks of telemetry before the last %(recent)s days "
-"(have %(have)s, need at least %(need)s). Capture uses only the default "
-"day/night spacing until history is long enough."
-msgstr ""
-"Niet genoeg referentieweken telemetrie vóór de laatste %(recent)s dagen (heb"
-" %(have)s, minstens %(need)s nodig). Capture gebruikt alleen de standaard "
-"dag/nacht-afstand tot er genoeg historie is."
+msgid "Not enough reference weeks of telemetry before the last %(recent)s days (have %(have)s, need at least %(need)s). Capture uses only the default day/night spacing until history is long enough."
+msgstr "Niet genoeg referentieweken telemetrie vóór de laatste %(recent)s dagen (heb %(have)s, minstens %(need)s nodig). Capture gebruikt alleen de standaard dag/nacht-afstand tot er genoeg historie is."
 
-#: matesla/poll_diagnostics.py:360
-msgid ""
-"Recent mobility does not match the reference weeks (regime break). Habits "
-"are disabled so a school↔holiday or trip change cannot stretch polls "
-"incorrectly. Default day/night spacing is used until patterns look "
-"consistent again."
-msgstr ""
-"Recente mobiliteit komt niet overeen met de referentieweken (regimebreuk). "
-"Gewoonten zijn uitgeschakeld zodat school↔vakantie of een reis polls niet "
-"verkeerd uitrekt. Standaard dag/nacht-interval tot patronen weer kloppen."
+#: matesla/poll_diagnostics.py:361
+msgid "Recent mobility does not match the reference weeks (regime break). Habits are disabled so a school↔holiday or trip change cannot stretch polls incorrectly. Default day/night spacing is used until patterns look consistent again."
+msgstr "Recente mobiliteit komt niet overeen met de referentieweken (regimebreuk). Gewoonten zijn uitgeschakeld zodat school↔vakantie of een reis polls niet verkeerd uitrekt. Standaard dag/nacht-interval tot patronen weer kloppen."
 
-#: matesla/poll_diagnostics.py:367
-msgid ""
-"There are enough reference weeks, but no weekday+hour slot was classified "
-"quiet, moderate or busy. Default spacing only."
-msgstr ""
-"Er zijn genoeg referentieweken, maar geen weekdag+uur-slot is als rustig, "
-"matig of druk geclassificeerd. Alleen standaardinterval."
+#: matesla/poll_diagnostics.py:368
+msgid "There are enough reference weeks, but no weekday+hour slot was classified quiet, moderate or busy. Default spacing only."
+msgstr "Er zijn genoeg referentieweken, maar geen weekdag+uur-slot is als rustig, matig of druk geclassificeerd. Alleen standaardinterval."
 
-#: matesla/poll_diagnostics.py:370
+#: matesla/poll_diagnostics.py:371
 #, python-format
 msgid "Habit model is not trusted (%(reason)s). Default spacing only."
-msgstr ""
-"Gewoonte-model is niet betrouwbaar (%(reason)s). Alleen standaardinterval."
+msgstr "Gewoonte-model is niet betrouwbaar (%(reason)s). Alleen standaardinterval."
 
-#: matesla/poll_diagnostics.py:explain_regime_detail
+#: matesla/poll_diagnostics.py:408
 #, python-format
-msgid ""
-"Driving activity fell sharply: about %(recent).1f h of mobility per day over "
-"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
-"weeks (often school → holidays). Habits stay off until patterns re-align."
+msgid "Driving activity fell sharply: about %(recent).1f h of mobility per day over the last %(recent_days)s days, versus %(ref).1f h/day during the training weeks (often school → holidays). Habits stay off until patterns re-align."
+msgstr "Rijactiviteit sterk gedaald: ongeveer %(recent).1f uur mobiliteit per dag in de laatste %(recent_days)s dagen, tegen %(ref).1f u/dag in de trainingsweken (vaak school → vakantie). Gewoontes blijven uit tot het patroon weer aansluit."
 
-msgstr ""
-"Rijactiviteit sterk gedaald: ongeveer %(recent).1f uur mobiliteit per dag in "
-"de laatste %(recent_days)s dagen, tegen %(ref).1f u/dag in de trainingsweken "
-"(vaak school → vakantie). Gewoontes blijven uit tot het patroon weer "
-"aansluit."
+#: matesla/poll_diagnostics.py:418
+msgid "Driving activity fell sharply versus the training weeks (often school → holidays). Habits stay off until patterns re-align."
+msgstr "Rijactiviteit sterk gedaald t.o.v. de trainingsweken (vaak school → vakantie). Gewoontes blijven uit tot het patroon weer aansluit."
 
-#: matesla/poll_diagnostics.py:explain_regime_detail
-msgid ""
-"Driving activity fell sharply versus the training weeks (often school → "
-"holidays). Habits stay off until patterns re-align."
-msgstr ""
-"Rijactiviteit sterk gedaald t.o.v. de trainingsweken (vaak school → "
-"vakantie). Gewoontes blijven uit tot het patroon weer aansluit."
-
-#: matesla/poll_diagnostics.py:explain_regime_detail
+#: matesla/poll_diagnostics.py:426
 #, python-format
-msgid ""
-"Driving activity rose sharply: about %(recent).1f h of mobility per day over "
-"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
-"weeks (often holidays → school, or a trip). Habits stay off until patterns "
-"re-align."
+msgid "Driving activity rose sharply: about %(recent).1f h of mobility per day over the last %(recent_days)s days, versus %(ref).1f h/day during the training weeks (often holidays → school, or a trip). Habits stay off until patterns re-align."
+msgstr "Rijactiviteit sterk gestegen: ongeveer %(recent).1f uur mobiliteit per dag in de laatste %(recent_days)s dagen, tegen %(ref).1f u/dag in de trainingsweken (vaak vakantie → school, of een reis). Gewoontes blijven uit tot het patroon weer aansluit."
 
-msgstr ""
-"Rijactiviteit sterk gestegen: ongeveer %(recent).1f uur mobiliteit per dag "
-"in de laatste %(recent_days)s dagen, tegen %(ref).1f u/dag in de "
-"trainingsweken (vaak vakantie → school, of een reis). Gewoontes blijven uit "
-"tot het patroon weer aansluit."
+#: matesla/poll_diagnostics.py:436
+msgid "Driving activity rose sharply versus the training weeks (often holidays → school, or a trip). Habits stay off until patterns re-align."
+msgstr "Rijactiviteit sterk gestegen t.o.v. de trainingsweken (vaak vakantie → school, of een reis). Gewoontes blijven uit tot het patroon weer aansluit."
 
-#: matesla/poll_diagnostics.py:explain_regime_detail
-msgid ""
-"Driving activity rose sharply versus the training weeks (often holidays → "
-"school, or a trip). Habits stay off until patterns re-align."
-msgstr ""
-"Rijactiviteit sterk gestegen t.o.v. de trainingsweken (vaak vakantie → "
-"school, of een reis). Gewoontes blijven uit tot het patroon weer aansluit."
-
-#: matesla/poll_diagnostics.py:explain_regime_detail
+#: matesla/poll_diagnostics.py:446
 #, python-format
-msgid ""
-"Several recent drives (%(count)s hour-slots) happened at weekday+hour times "
-"that were almost never mobile in the training weeks. Habits stay off until "
-"patterns re-align."
-msgstr ""
-"Meerdere recente ritten (%(count)s uurslots) vonden plaats op weekdag+uur "
-"die in de trainingsweken bijna nooit mobiel waren. Gewoontes blijven uit "
-"tot het patroon weer aansluit."
+msgid "Several recent drives (%(count)s hour-slots) happened at weekday+hour times that were almost never mobile in the training weeks. Habits stay off until patterns re-align."
+msgstr "Meerdere recente ritten (%(count)s uurslots) vonden plaats op weekdag+uur die in de trainingsweken bijna nooit mobiel waren. Gewoontes blijven uit tot het patroon weer aansluit."
 
-#: matesla/poll_diagnostics.py:explain_regime_detail
-msgid ""
-"Several recent drives happened at weekday+hour times that were almost never "
-"mobile in the training weeks. Habits stay off until patterns re-align."
-msgstr ""
-"Meerdere recente ritten vonden plaats op weekdag+uur die in de trainingsweken "
-"bijna nooit mobiel waren. Gewoontes blijven uit tot het patroon weer "
-"aansluit."
+#: matesla/poll_diagnostics.py:451
+msgid "Several recent drives happened at weekday+hour times that were almost never mobile in the training weeks. Habits stay off until patterns re-align."
+msgstr "Meerdere recente ritten vonden plaats op weekdag+uur die in de trainingsweken bijna nooit mobiel waren. Gewoontes blijven uit tot het patroon weer aansluit."
 
-#: matesla/poll_diagnostics.py:explain_regime_detail
-msgid ""
-"Recent driving does not match the training weeks (regime change). Habits "
-"stay off until patterns re-align."
-msgstr ""
-"Recent rijden past niet bij de trainingsweken (ritmewisseling). Gewoontes "
-"blijven uit tot het patroon weer aansluit."
+#: matesla/poll_diagnostics.py:458
+msgid "Recent driving does not match the training weeks (regime change). Habits stay off until patterns re-align."
+msgstr "Recent rijden past niet bij de trainingsweken (ritmewisseling). Gewoontes blijven uit tot het patroon weer aansluit."
 
-#: matesla/poll_diagnostics.py:441
+#: matesla/poll_diagnostics.py:506
 msgid "night"
 msgstr "nacht"
 
-#: matesla/poll_diagnostics.py:441
+#: matesla/poll_diagnostics.py:506
 msgid "day"
 msgstr "dag"
 
-#: matesla/poll_diagnostics.py:447
+#: matesla/poll_diagnostics.py:512
 #, python-format
-msgid ""
-"Driving with navigation ETA %(eta)s min → query every %(minutes)s min (1 min "
-"when ETA ≤ 3 min or approaching a Supercharger; 2 min near arrival / crawl; "
-"%(mid)s min mid-trip; %(far)s min when ETA is long). Habits do not apply "
-"while driving."
-msgstr ""
-"Rijden met navigatie-ETA %(eta)s min → query elke %(minutes)s min (1 min bij "
-"ETA ≤ 3 min of nadering Supercharger; 2 min dicht bij aankomst / kruipend; "
-"%(mid)s min mid-trip; %(far)s min bij lange ETA). Gewoontes gelden niet "
-"tijdens rijden."
+msgid "Driving with navigation ETA %(eta)s min → query every %(minutes)s min (1 min when ETA ≤ 3 min or approaching a Supercharger; 2 min near arrival / crawl; %(mid)s min mid-trip; %(far)s min when ETA is long). Habits do not apply while driving."
+msgstr "Rijden met navigatie-ETA %(eta)s min → query elke %(minutes)s min (1 min bij ETA ≤ 3 min of nadering Supercharger; 2 min dicht bij aankomst / kruipend; %(mid)s min mid-trip; %(far)s min bij lange ETA). Gewoontes gelden niet tijdens rijden."
 
-#: matesla/poll_diagnostics.py:458
+#: matesla/poll_diagnostics.py:524
 #, python-format
-msgid ""
-"Driving without navigation ETA → dense %(minutes)s min queries (stretch only"
-" when Tesla reports minutes-to-arrival). Habits do not apply while driving."
-msgstr ""
-"Rijden zonder navigatie-ETA → dichte queries elke %(minutes)s min (rekken "
-"alleen als Tesla aankomstminuten geeft). Gewoontes gelden niet tijdens "
-"rijden."
+msgid "Driving without navigation ETA → dense %(minutes)s min queries (stretch only when Tesla reports minutes-to-arrival). Habits do not apply while driving."
+msgstr "Rijden zonder navigatie-ETA → dichte queries elke %(minutes)s min (rekken alleen als Tesla aankomstminuten geeft). Gewoontes gelden niet tijdens rijden."
 
-#: matesla/poll_diagnostics.py:464
+#: matesla/poll_diagnostics.py:530
 #, python-format
-msgid ""
-"Live activity “%(activity)s” → reactive default spacing %(minutes)s min "
-"(%(day_or_night)s). Habits do not apply while the car is active."
-msgstr ""
-"Live-activiteit “%(activity)s” → reactieve standaardafstand %(minutes)s min "
-"(%(day_or_night)s). Gewoontes gelden niet terwijl de auto actief is."
+msgid "Live activity “%(activity)s” → reactive default spacing %(minutes)s min (%(day_or_night)s). Habits do not apply while the car is active."
+msgstr "Live-activiteit “%(activity)s” → reactieve standaardafstand %(minutes)s min (%(day_or_night)s). Gewoontes gelden niet terwijl de auto actief is."
 
-#: matesla/poll_diagnostics.py:474
+#: matesla/poll_diagnostics.py:540
 #, python-format
-msgid ""
-"Idle/asleep policy: no drive and no charge for a long stretch → minimum "
-"spacing %(minutes)s min (10 min after 24 h, 15 min after 48 h). Baseline "
-"would be %(baseline)s min."
-msgstr ""
-"Stilstand/slaap: lang niet gereden en niet geladen → minimale interval "
-"%(minutes)s min (10 min na 24 u, 15 min na 48 u). Basis zou %(baseline)s min"
-" zijn."
+msgid "Idle/asleep policy: no drive and no charge for a long stretch → minimum spacing %(minutes)s min (10 min after 24 h, 15 min after 48 h). Baseline would be %(baseline)s min."
+msgstr "Stilstand/slaap: lang niet gereden en niet geladen → minimale interval %(minutes)s min (10 min na 24 u, 15 min na 48 u). Basis zou %(baseline)s min zijn."
 
-#: matesla/poll_diagnostics.py:488
+#: matesla/poll_diagnostics.py:554
 #, python-format
-msgid ""
-"(long-idle floor %(floor)s min also applies but habit is already as sparse "
-"or sparser.)"
-msgstr ""
-"(de lange-stilstand-bodem %(floor)s min geldt ook, maar de gewoonte is al "
-"even ruim of ruimer.)"
+msgid "(long-idle floor %(floor)s min also applies but habit is already as sparse or sparser.)"
+msgstr "(de lange-stilstand-bodem %(floor)s min geldt ook, maar de gewoonte is al even ruim of ruimer.)"
 
-#: matesla/poll_diagnostics.py:492
+#: matesla/poll_diagnostics.py:558
 #, python-format
-msgid ""
-"Idle/asleep policy: habit class “%(habit_class)s” sets %(minutes)s min for "
-"this weekday+hour (default would be %(baseline)s min, %(day_or_night)s)."
-msgstr ""
-"Idle/slaap-beleid: gewoonteklasse “%(habit_class)s” zet %(minutes)s min voor"
-" deze weekdag+uur (standaard zou %(baseline)s min zijn, %(day_or_night)s)."
+msgid "Idle/asleep policy: habit class “%(habit_class)s” sets %(minutes)s min for this weekday+hour (default would be %(baseline)s min, %(day_or_night)s)."
+msgstr "Idle/slaap-beleid: gewoonteklasse “%(habit_class)s” zet %(minutes)s min voor deze weekdag+uur (standaard zou %(baseline)s min zijn, %(day_or_night)s)."
 
-#: matesla/poll_diagnostics.py:502
+#: matesla/poll_diagnostics.py:568
 #, python-format
-msgid ""
-"Idle/asleep policy: slot is historically moderate, but at night moderate "
-"does not densify — keep night default %(minutes)s min."
-msgstr ""
-"Idle/slaap-beleid: slot is historisch matig, maar ’s nachts verdicht matig "
-"niet — nachtstandaard %(minutes)s min blijft."
+msgid "Idle/asleep policy: slot is historically moderate, but at night moderate does not densify — keep night default %(minutes)s min."
+msgstr "Idle/slaap-beleid: slot is historisch matig, maar ’s nachts verdicht matig niet — nachtstandaard %(minutes)s min blijft."
 
-#: matesla/poll_diagnostics.py:506
+#: matesla/poll_diagnostics.py:572
 #, python-format
-msgid ""
-"Idle/asleep policy: no habit for this weekday+hour → %(day_or_night)s "
-"default %(minutes)s min."
-msgstr ""
-"Idle/slaap-beleid: geen gewoonte voor deze weekdag+uur → "
-"%(day_or_night)s-standaard %(minutes)s min."
+msgid "Idle/asleep policy: no habit for this weekday+hour → %(day_or_night)s default %(minutes)s min."
+msgstr "Idle/slaap-beleid: geen gewoonte voor deze weekdag+uur → %(day_or_night)s-standaard %(minutes)s min."
 
-#: matesla/poll_diagnostics.py:854
-msgid ""
-"The week grid describes idle/asleep/sentry spacing only. If the car drives, "
-"DC/AC charges or has cabin activity, capture switches to the short reactive "
-"default until that ends."
-msgstr ""
-"Het weekraster beschrijft alleen idle/slaap/sentry-afstand. Als de auto "
-"rijdt, (DC/AC) laadt of cabine-activiteit heeft, schakelt capture naar de "
-"korte reactieve standaard tot dat stopt."
+#: matesla/poll_diagnostics.py:926
+msgid "The week grid describes idle/asleep/sentry spacing only. If the car drives, DC/AC charges or has cabin activity, capture switches to the short reactive default until that ends."
+msgstr "Het weekraster beschrijft alleen idle/slaap/sentry-afstand. Als de auto rijdt, (DC/AC) laadt of cabine-activiteit heeft, schakelt capture naar de korte reactieve standaard tot dat stopt."
 
-#: matesla/poll_diagnostics.py:859
+#: matesla/poll_diagnostics.py:931
 #, python-format
-msgid ""
-"After %(soft_h)s h with no drive and no charge, idle spacing is at least "
-"%(soft_m)s min; after %(hard_h)s h at least %(hard_m)s min (even if the day "
-"default or a busy habit would be denser). Night default %(night)s min is "
-"already sparser."
-msgstr ""
-"Na %(soft_h)s u zonder rijden en laden is de stilstand-interval minstens "
-"%(soft_m)s min; na %(hard_h)s u minstens %(hard_m)s min (ook als de "
-"dagstandaard of een drukke gewoonte dichter zou zijn). Nachtstandaard "
-"%(night)s min is al ruimer."
+msgid "After %(soft_h)s h with no drive and no charge, idle spacing is at least %(soft_m)s min; after %(hard_h)s h at least %(hard_m)s min (even if the day default or a busy habit would be denser). Night default %(night)s min is already sparser."
+msgstr "Na %(soft_h)s u zonder rijden en laden is de stilstand-interval minstens %(soft_m)s min; na %(hard_h)s u minstens %(hard_m)s min (ook als de dagstandaard of een drukke gewoonte dichter zou zijn). Nachtstandaard %(night)s min is al ruimer."
 
-#: matesla/poll_diagnostics.py:872
+#: matesla/poll_diagnostics.py:944
 #, python-format
-msgid ""
-"Habits use at most the last %(lookback)s days, require %(min_weeks)s "
-"reference weeks before the last %(recent)s days, and disable themselves on a"
-" regime break."
-msgstr ""
-"Gewoontes gebruiken max. de laatste %(lookback)s dagen, vereisen "
-"%(min_weeks)s referentieweken vóór de laatste %(recent)s dagen, en schakelen"
-" uit bij een regime-breuk."
+msgid "Habits use at most the last %(lookback)s days, require %(min_weeks)s reference weeks before the last %(recent)s days, and disable themselves on a regime break."
+msgstr "Gewoontes gebruiken max. de laatste %(lookback)s dagen, vereisen %(min_weeks)s referentieweken vóór de laatste %(recent)s dagen, en schakelen uit bij een regime-breuk."
 
-#: matesla/poll_diagnostics.py:882
+#: matesla/poll_diagnostics.py:954
 #, python-format
-#| msgid ""
-#| "When habits are trusted, every weekday+hour is busy (%(busy)s min), quiet "
-#| "(%(quiet)s min), or moderate (%(moderate)s min by day; night moderate keeps "
-#| "the %(night)s min night default). There is no idle “default hole” in the "
-#| "grid — only untrusted models fall back to day %(day)s / night %(night)s "
-#| "everywhere."
-msgid ""
-"When habits are trusted, every weekday+hour is busy (%(busy)s min), near-"
-"busy (%(near)s min, ±1 h around a busy core), quiet (%(quiet)s min), or "
-"moderate (%(moderate)s min by day; night moderate keeps the %(night)s min "
-"night default). There is no idle “default hole” in the grid — only untrusted"
-" models fall back to day %(day)s / night %(night)s everywhere."
-msgstr ""
-"Als gewoonten betrouwbaar zijn, is elke weekdag+uur druk (%(busy)s min), "
-"nabij druk (%(near)s min, ±1 u rond een kern), rustig (%(quiet)s min) of "
-"matig (%(moderate)s min overdag; ’s nachts houdt matig de nachtdefault "
-"%(night)s min). Geen «defaultgat» in het raster — alleen onbetrouwbare "
-"modellen vallen overal terug op dag %(day)s / nacht %(night)s."
+msgid "When habits are trusted, every weekday+hour is busy (%(busy)s min), near-busy (%(near)s min, ±1 h around a busy core), quiet (%(quiet)s min), or moderate (%(moderate)s min by day; night moderate keeps the %(night)s min night default). There is no idle “default hole” in the grid — only untrusted models fall back to day %(day)s / night %(night)s everywhere."
+msgstr "Als gewoonten betrouwbaar zijn, is elke weekdag+uur druk (%(busy)s min), nabij druk (%(near)s min, ±1 u rond een kern), rustig (%(quiet)s min) of matig (%(moderate)s min overdag; ’s nachts houdt matig de nachtdefault %(night)s min). Geen «defaultgat» in het raster — alleen onbetrouwbare modellen vallen overal terug op dag %(day)s / nacht %(night)s."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:4
 msgid "Tesla connection"
@@ -631,14 +450,8 @@ msgid "Connect your car."
 msgstr "Koppel je auto."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:14
-msgid ""
-"Configure the app, register the partner domain, then authorize MaTesla. Your"
-" secrets stay stored locally. You can re-open this page anytime — safe "
-"actions will not break a working setup."
-msgstr ""
-"Configureer de app, registreer het partnerdomein en autoriseer daarna "
-"MaTesla. Je geheimen blijven lokaal opgeslagen. Je kunt deze pagina altijd "
-"opnieuw openen — veilige acties breken een werkende setup niet."
+msgid "Configure the app, register the partner domain, then authorize MaTesla. Your secrets stay stored locally. You can re-open this page anytime — safe actions will not break a working setup."
+msgstr "Configureer de app, registreer het partnerdomein en autoriseer daarna MaTesla. Je geheimen blijven lokaal opgeslagen. Je kunt deze pagina altijd opnieuw openen — veilige acties breken een werkende setup niet."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:18
 #: matesla/templates/matesla/AddTeslaAccount.html:95
@@ -686,17 +499,11 @@ msgstr "OAuth-autorisatie is actief."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:51
 msgid "Tokens refresh automatically; re-authorize only if access fails."
-msgstr ""
-"Tokens worden automatisch vernieuwd; alleen opnieuw autoriseren als toegang "
-"mislukt."
+msgstr "Tokens worden automatisch vernieuwd; alleen opnieuw autoriseren als toegang mislukt."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:57
-msgid ""
-"Disconnect this Tesla account? Tokens and vehicle list will be removed from "
-"MaTesla."
-msgstr ""
-"Deze Tesla-account ontkoppelen? Tokens en voertuiglijst worden uit MaTesla "
-"verwijderd."
+msgid "Disconnect this Tesla account? Tokens and vehicle list will be removed from MaTesla."
+msgstr "Deze Tesla-account ontkoppelen? Tokens en voertuiglijst worden uit MaTesla verwijderd."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:57
 msgid "Disconnect"
@@ -712,42 +519,27 @@ msgstr "Onbekende status"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:77
 msgid "No vehicles synchronized. Finish partner registration, then resync."
-msgstr ""
-"Geen voertuigen gesynchroniseerd. Voltooi de partnerregistratie en "
-"synchroniseer opnieuw."
+msgstr "Geen voertuigen gesynchroniseerd. Voltooi de partnerregistratie en synchroniseer opnieuw."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:84
 msgid "Resync vehicles"
 msgstr "Voertuigen opnieuw synchroniseren"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:86
-msgid ""
-"Re-authorize with Tesla? Your current tokens will be replaced after you "
-"confirm on Tesla site."
-msgstr ""
-"Opnieuw autoriseren bij Tesla? Je huidige tokens worden vervangen nadat je "
-"bevestigt op de Tesla-site."
+msgid "Re-authorize with Tesla? Your current tokens will be replaced after you confirm on Tesla site."
+msgstr "Opnieuw autoriseren bij Tesla? Je huidige tokens worden vervangen nadat je bevestigt op de Tesla-site."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:86
 msgid "Re-authorize"
 msgstr "Opnieuw autoriseren"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:97
-msgid ""
-"Copy credentials from <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Saving again only updates what "
-"you change."
-msgstr ""
-"Kopieer de gegevens van <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Opnieuw opslaan werkt alleen bij"
-" wat je wijzigt."
+msgid "Copy credentials from <a class=\"text-link\" href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com ↗</a>. Saving again only updates what you change."
+msgstr "Kopieer de gegevens van <a class=\"text-link\" href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com ↗</a>. Opnieuw opslaan werkt alleen bij wat je wijzigt."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:103
 msgid "Credentials are stored. Save again only if you need to edit them."
-msgstr ""
-"Gegevens zijn opgeslagen. Sla opnieuw op alleen als je ze moet bewerken."
+msgstr "Gegevens zijn opgeslagen. Sla opnieuw op alleen als je ze moet bewerken."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:118
 msgid "Update application"
@@ -758,13 +550,8 @@ msgid "Save application"
 msgstr "Applicatie opslaan"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:129
-msgid ""
-"Tesla fetches an EC public key over HTTPS on a domain you control before "
-"granting vehicle access. Localhost is not allowed."
-msgstr ""
-"Tesla haalt een openbare EC-sleutel via HTTPS op van een domein dat jij "
-"beheert voordat voertuigtoegang wordt verleend. Localhost is niet "
-"toegestaan."
+msgid "Tesla fetches an EC public key over HTTPS on a domain you control before granting vehicle access. Localhost is not allowed."
+msgstr "Tesla haalt een openbare EC-sleutel via HTTPS op van een domein dat jij beheert voordat voertuigtoegang wordt verleend. Localhost is niet toegestaan."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:146
 msgid "Any HTTPS host works — GitHub Pages is only one option among many."
@@ -775,20 +562,12 @@ msgid "Tesla always requests this exact URL (path fixed by Tesla):"
 msgstr "Tesla vraagt altijd precies deze URL (pad vastgelegd door Tesla):"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:154
-msgid ""
-"Add https://&lt;your-domain&gt; to Allowed Origins on the Tesla developer "
-"dashboard."
-msgstr ""
-"Voeg https://&lt;your-domain&gt; toe aan Allowed Origins op het Tesla "
-"developer-dashboard."
+msgid "Add https://&lt;your-domain&gt; to Allowed Origins on the Tesla developer dashboard."
+msgstr "Voeg https://&lt;your-domain&gt; toe aan Allowed Origins op het Tesla developer-dashboard."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:155
-msgid ""
-"Changing the domain later clears partner registration — verify and register "
-"again."
-msgstr ""
-"Het domein later wijzigen wist de partnerregistratie — controleer en "
-"registreer opnieuw."
+msgid "Changing the domain later clears partner registration — verify and register again."
+msgstr "Het domein later wijzigen wist de partnerregistratie — controleer en registreer opnieuw."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:159
 msgid "Canonical public key URL used for verify &amp; register"
@@ -804,32 +583,21 @@ msgstr "Partner-URL opslaan"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:170
 #, python-format
-msgid ""
-"Domain %(domain)s is registered as partner for this region. Re-register is "
-"safe if you need to refresh."
-msgstr ""
-"Domein %(domain)s is als partner voor deze regio geregistreerd. Opnieuw "
-"registreren is veilig als je moet vernieuwen."
+msgid "Domain %(domain)s is registered as partner for this region. Re-register is safe if you need to refresh."
+msgstr "Domein %(domain)s is als partner voor deze regio geregistreerd. Opnieuw registreren is veilig als je moet vernieuwen."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:174
 #, python-format
-msgid ""
-"Domain saved: %(domain)s. Verify the public key, then register the partner."
-msgstr ""
-"Domein opgeslagen: %(domain)s. Controleer de openbare sleutel en registreer "
-"daarna de partner."
+msgid "Domain saved: %(domain)s. Verify the public key, then register the partner."
+msgstr "Domein opgeslagen: %(domain)s. Controleer de openbare sleutel en registreer daarna de partner."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:177
 msgid "Set and save a partner domain first."
 msgstr "Stel eerst een partnerdomein in en sla het op."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:182
-msgid ""
-"Local EC key pair is ready. It will not be overwritten if you click generate"
-" again."
-msgstr ""
-"Lokaal EC-sleutelpaar is klaar. Het wordt niet overschreven als je opnieuw "
-"op genereren klikt."
+msgid "Local EC key pair is ready. It will not be overwritten if you click generate again."
+msgstr "Lokaal EC-sleutelpaar is klaar. Het wordt niet overschreven als je opnieuw op genereren klikt."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:191
 msgid "Generate EC key"
@@ -860,18 +628,12 @@ msgid "Tesla account authorization"
 msgstr "Autorisatie Tesla-account"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:223
-msgid ""
-"Tesla will ask you to confirm access. MaTesla never receives your password."
-msgstr ""
-"Tesla vraagt je toegang te bevestigen. MaTesla ontvangt nooit je wachtwoord."
+msgid "Tesla will ask you to confirm access. MaTesla never receives your password."
+msgstr "Tesla vraagt je toegang te bevestigen. MaTesla ontvangt nooit je wachtwoord."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:229
-msgid ""
-"Already authorized. Use Resync or Re-authorize in the “Account connected” "
-"section above if needed."
-msgstr ""
-"Al geautoriseerd. Gebruik indien nodig Opnieuw synchroniseren of Opnieuw "
-"autoriseren in de sectie „Account verbonden“ hierboven."
+msgid "Already authorized. Use Resync or Re-authorize in the “Account connected” section above if needed."
+msgstr "Al geautoriseerd. Gebruik indien nodig Opnieuw synchroniseren of Opnieuw autoriseren in de sectie „Account verbonden“ hierboven."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:233
 msgid "Redirect URI (must match the Tesla dashboard)"
@@ -917,12 +679,8 @@ msgid "Empty garage"
 msgstr "Lege garage"
 
 #: matesla/templates/matesla/NoTeslaVehicules.html:10
-msgid ""
-"No vehicles are associated to your account. Please retry when your car will "
-"be there."
-msgstr ""
-"Er zijn geen voertuigen gekoppeld aan je account. Probeer opnieuw wanneer je"
-" auto er is."
+msgid "No vehicles are associated to your account. Please retry when your car will be there."
+msgstr "Er zijn geen voertuigen gekoppeld aan je account. Probeer opnieuw wanneer je auto er is."
 
 #: matesla/templates/matesla/TeslaServerError.html:4
 #: matesla/templates/matesla/TeslaServerError.html:9
@@ -963,7 +721,7 @@ msgid "Outside"
 msgstr "Buiten"
 
 #: matesla/templates/matesla/_carstatus_body.html:56
-#: matesla/templates/matesla/_carstatus_body.html:160
+#: matesla/templates/matesla/_carstatus_body.html:169
 msgid "Odometer"
 msgstr "Kilometerteller"
 
@@ -1053,115 +811,127 @@ msgid "Battery degradation (%%)"
 msgstr "Batterijdegradatie (%%)"
 
 #: matesla/templates/matesla/_carstatus_body.html:133
+msgid "Pack when new (kWh)"
+msgstr "Pack als nieuw (kWh)"
+
+#: matesla/templates/matesla/_carstatus_body.html:136
+msgid "Usable battery capacity (kWh)"
+msgstr "Bruikbare batterijcapaciteit (kWh)"
+
+#: matesla/templates/matesla/_carstatus_body.html:139
+msgid "Energy currently stored (kWh)"
+msgstr "Momenteel opgeslagen energie (kWh)"
+
+#: matesla/templates/matesla/_carstatus_body.html:142
 #, python-format
 msgid "Battery charge limit (%%)"
 msgstr "Batterijlaadlimiet (%%)"
 
-#: matesla/templates/matesla/_carstatus_body.html:138
+#: matesla/templates/matesla/_carstatus_body.html:147
 msgid "Charge port"
 msgstr "Laadpoort"
 
-#: matesla/templates/matesla/_carstatus_body.html:140
+#: matesla/templates/matesla/_carstatus_body.html:149
 msgid "Voltage in V"
 msgstr "Spanning in V"
 
-#: matesla/templates/matesla/_carstatus_body.html:141
+#: matesla/templates/matesla/_carstatus_body.html:150
 msgid "Current in A"
 msgstr "Stroom in A"
 
-#: matesla/templates/matesla/_carstatus_body.html:142
+#: matesla/templates/matesla/_carstatus_body.html:151
 msgid "Power in kW"
 msgstr "Vermogen in kW"
 
-#: matesla/templates/matesla/_carstatus_body.html:143
+#: matesla/templates/matesla/_carstatus_body.html:152
 msgid "Number of phases"
 msgstr "Aantal fasen"
 
-#: matesla/templates/matesla/_carstatus_body.html:144
+#: matesla/templates/matesla/_carstatus_body.html:153
 msgid "Time left in minutes"
 msgstr "Resterende tijd in minuten"
 
-#: matesla/templates/matesla/_carstatus_body.html:146
+#: matesla/templates/matesla/_carstatus_body.html:155
 msgid "Vehicle is unplugged"
 msgstr "Voertuig is niet aangesloten"
 
-#: matesla/templates/matesla/_carstatus_body.html:154
+#: matesla/templates/matesla/_carstatus_body.html:163
 msgid "Drive and location"
 msgstr "Rit en locatie"
 
-#: matesla/templates/matesla/_carstatus_body.html:155
+#: matesla/templates/matesla/_carstatus_body.html:164
 msgid "Mobility"
 msgstr "Mobiliteit"
 
-#: matesla/templates/matesla/_carstatus_body.html:158
+#: matesla/templates/matesla/_carstatus_body.html:167
 msgid "Speed"
 msgstr "Snelheid"
 
-#: matesla/templates/matesla/_carstatus_body.html:159
+#: matesla/templates/matesla/_carstatus_body.html:168
 msgid "Location"
 msgstr "Locatie"
 
-#: matesla/templates/matesla/_carstatus_body.html:159
+#: matesla/templates/matesla/_carstatus_body.html:168
 msgid "Map"
 msgstr "Kaart"
 
-#: matesla/templates/matesla/_carstatus_body.html:161
+#: matesla/templates/matesla/_carstatus_body.html:170
 msgid "Estim. number of battery cycles"
 msgstr "Geschat aantal batterijcycli"
 
-#: matesla/templates/matesla/_carstatus_body.html:162
+#: matesla/templates/matesla/_carstatus_body.html:171
 msgid "EPA range"
 msgstr "EPA-actieradius"
 
-#: matesla/templates/matesla/_carstatus_body.html:168
+#: matesla/templates/matesla/_carstatus_body.html:177
 msgid "Climate information"
 msgstr "Klimatinformatie"
 
-#: matesla/templates/matesla/_carstatus_body.html:169
+#: matesla/templates/matesla/_carstatus_body.html:178
 msgid "On"
 msgstr "Aan"
 
-#: matesla/templates/matesla/_carstatus_body.html:169
+#: matesla/templates/matesla/_carstatus_body.html:178
 msgid "Off"
 msgstr "Uit"
 
-#: matesla/templates/matesla/_carstatus_body.html:172
+#: matesla/templates/matesla/_carstatus_body.html:181
 msgid "Inside temperature"
 msgstr "Binnentemperatuur"
 
-#: matesla/templates/matesla/_carstatus_body.html:173
+#: matesla/templates/matesla/_carstatus_body.html:182
 msgid "Outside temperature"
 msgstr "Buitentemperatuur"
 
-#: matesla/templates/matesla/_carstatus_body.html:175
+#: matesla/templates/matesla/_carstatus_body.html:184
 msgid "Driver Temperature setting"
 msgstr "Temperatuurinstelling bestuurder"
 
-#: matesla/templates/matesla/_carstatus_body.html:183
+#: matesla/templates/matesla/_carstatus_body.html:192
 msgid "Software"
 msgstr "Software"
 
-#: matesla/templates/matesla/_carstatus_body.html:187
+#: matesla/templates/matesla/_carstatus_body.html:196
 msgid "Firmware version"
 msgstr "Firmwareversie"
 
-#: matesla/templates/matesla/_carstatus_body.html:189
+#: matesla/templates/matesla/_carstatus_body.html:198
 msgid "Update ready"
 msgstr "Update klaar"
 
-#: matesla/templates/matesla/_carstatus_body.html:192
+#: matesla/templates/matesla/_carstatus_body.html:201
 msgid "Scheduled update"
 msgstr "Geplande update"
 
-#: matesla/templates/matesla/_carstatus_body.html:195
+#: matesla/templates/matesla/_carstatus_body.html:204
 msgid "Installing"
 msgstr "Installeren"
 
-#: matesla/templates/matesla/_carstatus_body.html:198
+#: matesla/templates/matesla/_carstatus_body.html:207
 msgid "History"
 msgstr "Geschiedenis"
 
-#: matesla/templates/matesla/_carstatus_body.html:198
+#: matesla/templates/matesla/_carstatus_body.html:207
 msgid "View history"
 msgstr "Geschiedenis bekijken"
 
@@ -1237,39 +1007,20 @@ msgid "History mode"
 msgstr "Geschiedenismodus"
 
 #: matesla/templates/matesla/vehicle_hub.html:24
-msgid ""
-"MaTesla still shows history. Live status will return when the Tesla Fleet "
-"free credit resets or a payment method is added."
-msgstr ""
-"MaTesla toont nog steeds de geschiedenis. Live-status keert terug wanneer "
-"het gratis Tesla Fleet-krediet wordt gereset of een betaalmethode is "
-"toegevoegd."
+msgid "MaTesla still shows history. Live status will return when the Tesla Fleet free credit resets or a payment method is added."
+msgstr "MaTesla toont nog steeds de geschiedenis. Live-status keert terug wanneer het gratis Tesla Fleet-krediet wordt gereset of een betaalmethode is toegevoegd."
 
 #: matesla/templates/matesla/vehicle_hub.html:26
 msgid "The car is resting. MaTesla shows its history without ever waking it."
-msgstr ""
-"De auto rust. MaTesla toont de geschiedenis zonder hem wakker te maken."
+msgstr "De auto rust. MaTesla toont de geschiedenis zonder hem wakker te maken."
 
 #: matesla/templates/matesla/vehicle_hub.html:38
-msgid ""
-"Tesla disabled this account for usage limits (free monthly credit "
-"exhausted). This is not the car sleeping — the selector may still show "
-"online from the last successful check. Capture is paused until the limit "
-"clears. History graphs below remain available."
-msgstr ""
-"Tesla heeft dit account uitgeschakeld wegens gebruikslimieten (gratis "
-"maandelijks krediet opgebruikt). Dit is niet de auto die slaapt — de "
-"selector kan nog online tonen van de laatste succesvolle check. Opname is "
-"gepauzeerd tot de limiet is opgeheven. Geschiedenisgrafieken hieronder "
-"blijven beschikbaar."
+msgid "Tesla disabled this account for usage limits (free monthly credit exhausted). This is not the car sleeping — the selector may still show online from the last successful check. Capture is paused until the limit clears. History graphs below remain available."
+msgstr "Tesla heeft dit account uitgeschakeld wegens gebruikslimieten (gratis maandelijks krediet opgebruikt). Dit is niet de auto die slaapt — de selector kan nog online tonen van de laatste succesvolle check. Opname is gepauzeerd tot de limiet is opgeheven. Geschiedenisgrafieken hieronder blijven beschikbaar."
 
 #: matesla/templates/matesla/vehicle_hub.html:49
-msgid ""
-"No live data right now. Wake the car from the Tesla app if needed, then "
-"refresh its status here."
-msgstr ""
-"Momenteel geen livedata. Maak de auto indien nodig wakker via de Tesla-app "
-"en ververs hier de status."
+msgid "No live data right now. Wake the car from the Tesla app if needed, then refresh its status here."
+msgstr "Momenteel geen livedata. Maak de auto indien nodig wakker via de Tesla-app en ververs hier de status."
 
 #: matesla/templates/matesla/vehicle_hub.html:60
 msgid "No history yet"
@@ -1279,178 +1030,146 @@ msgstr "Nog geen geschiedenis"
 msgid "The VIN for this vehicle is not known to MaTesla yet."
 msgstr "Het VIN van dit voertuig is MaTesla nog niet bekend."
 
-#: matesla/views.py:570
+#: matesla/views.py:596
 msgid "Application settings unchanged (safe to save again anytime)."
 msgstr "Applicatie-instellingen ongewijzigd (veilig om opnieuw op te slaan)."
 
-#: matesla/views.py:576
-msgid ""
-"Developer credentials updated. If you changed Client ID or secret, use Re-"
-"authorize."
-msgstr ""
-"Developer-gegevens bijgewerkt. Als je Client ID of secret hebt gewijzigd, "
-"gebruik Opnieuw autoriseren."
+#: matesla/views.py:602
+msgid "Developer credentials updated. If you changed Client ID or secret, use Re-authorize."
+msgstr "Developer-gegevens bijgewerkt. Als je Client ID of secret hebt gewijzigd, gebruik Opnieuw autoriseren."
 
-#: matesla/views.py:581
+#: matesla/views.py:607
 msgid "Developer credentials saved."
 msgstr "Developer-gegevens opgeslagen."
 
-#: matesla/views.py:590
+#: matesla/views.py:616
 msgid "Save Client ID and secret in step 1 before setting a partner domain."
-msgstr ""
-"Sla Client ID en secret op in stap 1 voordat je een partnerdomein instelt."
+msgstr "Sla Client ID en secret op in stap 1 voordat je een partnerdomein instelt."
 
-#: matesla/views.py:599
+#: matesla/views.py:625
 #, python-format
 msgid "Partner domain unchanged: %(domain)s"
 msgstr "Partnerdomein ongewijzigd: %(domain)s"
 
-#: matesla/views.py:613
+#: matesla/views.py:639
 #, python-format
-msgid ""
-"Partner domain changed to %(domain)s. Previous registration no longer "
-"applies — verify the public key, then register again."
-msgstr ""
-"Partnerdomein gewijzigd naar %(domain)s. Vorige registratie geldt niet meer "
-"— controleer de openbare sleutel en registreer opnieuw."
+msgid "Partner domain changed to %(domain)s. Previous registration no longer applies — verify the public key, then register again."
+msgstr "Partnerdomein gewijzigd naar %(domain)s. Vorige registratie geldt niet meer — controleer de openbare sleutel en registreer opnieuw."
 
-#: matesla/views.py:620 matesla/views.py:629
+#: matesla/views.py:646 matesla/views.py:655
 msgid "Partner domain cleared."
 msgstr "Partnerdomein gewist."
 
-#: matesla/views.py:626
+#: matesla/views.py:652
 #, python-format
 msgid "Partner domain saved: %(domain)s"
 msgstr "Partnerdomein opgeslagen: %(domain)s"
 
-#: matesla/views.py:639
+#: matesla/views.py:665
 #, python-format
-msgid ""
-"EC key pair created. Publish the public key to your partner domain (file: "
-"%(pub)s). Private key stays local: %(priv)s."
-msgstr ""
-"EC-sleutelpaar aangemaakt. Publiceer de openbare sleutel op je partnerdomein"
-" (bestand: %(pub)s). Privésleutel blijft lokaal: %(priv)s."
+msgid "EC key pair created. Publish the public key to your partner domain (file: %(pub)s). Private key stays local: %(priv)s."
+msgstr "EC-sleutelpaar aangemaakt. Publiceer de openbare sleutel op je partnerdomein (bestand: %(pub)s). Privésleutel blijft lokaal: %(priv)s."
 
-#: matesla/views.py:648
-msgid ""
-"EC key pair already exists — left unchanged. Regenerating would invalidate "
-"the public key on HTTPS; delete the files under tesla_keys/ only if you "
-"really mean to."
-msgstr ""
-"EC-sleutelpaar bestaat al — ongewijzigd gelaten. Opnieuw genereren zou de "
-"openbare sleutel op HTTPS ongeldig maken; verwijder bestanden onder "
-"tesla_keys/ alleen als je het echt wilt."
+#: matesla/views.py:674
+msgid "EC key pair already exists — left unchanged. Regenerating would invalidate the public key on HTTPS; delete the files under tesla_keys/ only if you really mean to."
+msgstr "EC-sleutelpaar bestaat al — ongewijzigd gelaten. Opnieuw genereren zou de openbare sleutel op HTTPS ongeldig maken; verwijder bestanden onder tesla_keys/ alleen als je het echt wilt."
 
-#: matesla/views.py:659
+#: matesla/views.py:685
 msgid "Set a partner domain first."
 msgstr "Stel eerst een partnerdomein in."
 
-#: matesla/views.py:686
+#: matesla/views.py:712
 #, python-format
-msgid ""
-"Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail:"
-" %(result)s"
-msgstr ""
-"Partnerregistratie opnieuw bevestigd voor « %(domain)s ». Veilig om te "
-"herhalen. Detail: %(result)s"
+msgid "Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail: %(result)s"
+msgstr "Partnerregistratie opnieuw bevestigd voor « %(domain)s ». Veilig om te herhalen. Detail: %(result)s"
 
-#: matesla/views.py:695
+#: matesla/views.py:721
 #, python-format
-msgid ""
-"Partner register OK for « %(domain)s ». You can authorize Tesla / resync "
-"vehicles now. Detail: %(result)s"
-msgstr ""
-"Partnerregister OK voor « %(domain)s ». Je kunt Tesla autoriseren / "
-"voertuigen opnieuw synchroniseren. Detail: %(result)s"
+msgid "Partner register OK for « %(domain)s ». You can authorize Tesla / resync vehicles now. Detail: %(result)s"
+msgstr "Partnerregister OK voor « %(domain)s ». Je kunt Tesla autoriseren / voertuigen opnieuw synchroniseren. Detail: %(result)s"
 
-#: matesla/views.py:705
+#: matesla/views.py:731
 msgid "No Tesla token — sign in first."
 msgstr "Geen Tesla-token — log eerst in."
 
-#: matesla/views.py:718
+#: matesla/views.py:744
 #, python-format
 msgid "%(count)s vehicle(s) synchronized. Active: %(label)s."
 msgstr "%(count)s voertuig(en) gesynchroniseerd. Actief: %(label)s."
 
-#: matesla/views.py:722
+#: matesla/views.py:748
 msgid "No vehicles on the Tesla account."
 msgstr "Geen voertuigen op het Tesla-account."
 
-#: matesla/views.py:727
+#: matesla/views.py:753
 #, python-format
 msgid "Resync failed: %(err)s"
 msgstr "Opnieuw synchroniseren mislukt: %(err)s"
 
-#: matesla/views.py:735
+#: matesla/views.py:761
 msgid "Tesla account disconnected (tokens and vehicles removed)."
 msgstr "Tesla-account ontkoppeld (tokens en voertuigen verwijderd)."
 
-#: matesla/views.py:802
+#: matesla/views.py:828
 msgid "Configure the Client ID and Client Secret first."
 msgstr "Configureer eerst Client ID en Client Secret."
 
-#: matesla/views.py:833
+#: matesla/views.py:859
 #, python-format
 msgid "Tesla denied authorization: %(error)s (%(desc)s)"
 msgstr "Tesla heeft autorisatie geweigerd: %(error)s (%(desc)s)"
 
-#: matesla/views.py:844
+#: matesla/views.py:870
 msgid "Invalid OAuth callback (missing code or state). Please try again."
 msgstr "Ongeldige OAuth-callback (code of state ontbreekt). Probeer opnieuw."
 
-#: matesla/views.py:859
-msgid ""
-"Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again,"
-" then use “Sign in with Tesla”."
-msgstr ""
-"Ongeldige OAuth-callback (onbekende of verlopen state). Log opnieuw in bij "
-"MaTesla en gebruik „Inloggen met Tesla“."
+#: matesla/views.py:885
+msgid "Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again, then use “Sign in with Tesla”."
+msgstr "Ongeldige OAuth-callback (onbekende of verlopen state). Log opnieuw in bij MaTesla en gebruik „Inloggen met Tesla“."
 
-#: matesla/views.py:872
+#: matesla/views.py:898
 msgid "OAuth user not found."
 msgstr "OAuth-gebruiker niet gevonden."
 
-#: matesla/views.py:891
+#: matesla/views.py:917
 msgid "Connected to Tesla, but no vehicles found on the account."
 msgstr "Verbonden met Tesla, maar geen voertuigen op het account gevonden."
 
-#: matesla/views.py:899
+#: matesla/views.py:925
 #, python-format
 msgid "Tesla connected — %(count)s vehicle(s): %(names)s. Active: %(label)s."
-msgstr ""
-"Tesla verbonden — %(count)s voertuig(en): %(names)s. Actief: %(label)s."
+msgstr "Tesla verbonden — %(count)s voertuig(en): %(names)s. Actief: %(label)s."
 
-#: matesla/views.py:912
+#: matesla/views.py:938
 #, python-format
 msgid "Unexpected error: %(err)s"
 msgstr "Onverwachte fout: %(err)s"
 
-#: matesla/views.py:935
+#: matesla/views.py:961
 msgid "Unknown vehicle."
 msgstr "Onbekend voertuig."
 
-#: mysite/settings.py:275
+#: mysite/settings.py:276
 msgid "English"
 msgstr "English"
 
-#: mysite/settings.py:276
+#: mysite/settings.py:277
 msgid "Français"
 msgstr "Français"
 
-#: mysite/settings.py:277
+#: mysite/settings.py:278
 msgid "Espanol"
 msgstr "Espanol"
 
-#: mysite/settings.py:278
+#: mysite/settings.py:279
 msgid "Deutsch"
 msgstr "Deutsch"
 
-#: mysite/settings.py:279
+#: mysite/settings.py:280
 msgid "Nederlands"
 msgstr "Nederlands"
 
-#: mysite/settings.py:280
+#: mysite/settings.py:281
 msgid "Norsk"
 msgstr "Norsk"
 
@@ -1458,19 +1177,19 @@ msgstr "Norsk"
 msgid "Write operations are only allowed from the local server."
 msgstr "Schrijfbewerkingen zijn alleen toegestaan vanaf de lokale server."
 
-#: personalstats/dc_charge.py:734
+#: personalstats/dc_charge.py:715
 msgid "All DC sessions"
 msgstr "Alle DC-sessies"
 
-#: personalstats/dc_charge.py:735
+#: personalstats/dc_charge.py:716
 msgid "Robust (drop V2 share / cold crawl)"
 msgstr "Robuust (zonder V2-delen / koud)"
 
-#: personalstats/dc_charge.py:740
+#: personalstats/dc_charge.py:721
 msgid "Min / max"
 msgstr "Min / max"
 
-#: personalstats/dc_charge.py:741
+#: personalstats/dc_charge.py:722
 msgid "P10–P90 band"
 msgstr "P10–P90-band"
 
@@ -1480,10 +1199,8 @@ msgid "Software timeline"
 msgstr "Softwaretijdlijn"
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:13
-msgid ""
-"All firmware versions detected on your vehicle, in chronological order."
-msgstr ""
-"Alle firmwareversies die op je voertuig zijn gedetecteerd, chronologisch."
+msgid "All firmware versions detected on your vehicle, in chronological order."
+msgstr "Alle firmwareversies die op je voertuig zijn gedetecteerd, chronologisch."
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:15
 #: personalstats/templates/personalstats/_carstats_body.html:8
@@ -1695,7 +1412,7 @@ msgstr "Fleet-pollkosten"
 
 #: personalstats/templates/personalstats/_carstats_body.html:174
 #: personalstats/templates/personalstats/poll_details.html:6
-#: personalstats/templates/personalstats/poll_details.html:240
+#: personalstats/templates/personalstats/poll_details.html:199
 msgid "Query spacing details"
 msgstr "Query-details"
 
@@ -1704,12 +1421,8 @@ msgid "Vehicle_data HTTP calls, day by day, max 30 days."
 msgstr "Vehicle_data HTTP-calls, dag per dag, max. 30 dagen."
 
 #: personalstats/templates/personalstats/_carstats_body.html:187
-msgid ""
-"Open query spacing details for the current interval, habit model, and "
-"typical week grid."
-msgstr ""
-"Open de query-details voor het huidige interval, gewoonte-model en typische "
-"weekraster."
+msgid "Open query spacing details for the current interval, habit model, and typical week grid."
+msgstr "Open de query-details voor het huidige interval, gewoonte-model en typische weekraster."
 
 #: personalstats/templates/personalstats/_carstats_body.html:198
 #: personalstats/templates/personalstats/_carstats_body.html:211
@@ -1776,12 +1489,12 @@ msgstr "Kaart laden…"
 
 #: personalstats/templates/personalstats/_carstats_body.html:282
 #: personalstats/templates/personalstats/daymap.html:494
-#: personalstats/templates/personalstats/dc_charge.html:397
+#: personalstats/templates/personalstats/dc_charge.html:398
 msgid "Close"
 msgstr "Sluiten"
 
 #: personalstats/templates/personalstats/_carstats_body.html:287
-#: personalstats/templates/personalstats/dc_charge.html:402
+#: personalstats/templates/personalstats/dc_charge.html:403
 msgid "Press Esc or click outside to close."
 msgstr "Druk Esc of klik buiten om te sluiten."
 
@@ -1802,16 +1515,15 @@ msgid "h"
 msgstr "u"
 
 #: personalstats/templates/personalstats/_carstats_js.html:346
-#: personalstats/templates/personalstats/poll_details.html:279
-#: personalstats/templates/personalstats/poll_details.html:285
-#: personalstats/templates/personalstats/poll_details.html:303
-#: personalstats/templates/personalstats/poll_details.html:309
-#: personalstats/templates/personalstats/poll_details.html:355
-#: personalstats/templates/personalstats/poll_details.html:356
-#: personalstats/templates/personalstats/poll_details.html:357
-#: personalstats/templates/personalstats/poll_details.html:358
-#: personalstats/templates/personalstats/poll_details.html:375
-#: personalstats/templates/personalstats/poll_details.html:410
+#: personalstats/templates/personalstats/poll_details.html:238
+#: personalstats/templates/personalstats/poll_details.html:244
+#: personalstats/templates/personalstats/poll_details.html:262
+#: personalstats/templates/personalstats/poll_details.html:268
+#: personalstats/templates/personalstats/poll_details.html:314
+#: personalstats/templates/personalstats/poll_details.html:315
+#: personalstats/templates/personalstats/poll_details.html:316
+#: personalstats/templates/personalstats/poll_details.html:317
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "min"
 msgstr "min"
 
@@ -1830,12 +1542,8 @@ msgid "Telemetry archive"
 msgstr "Telemetriearchief"
 
 #: personalstats/templates/personalstats/carstats.html:12
-msgid ""
-"Understand how your car evolves through battery, charge, climate and drive "
-"history."
-msgstr ""
-"Begrijp hoe je auto evolueert via batterij-, laad-, klimaat- en "
-"ritgeschiedenis."
+msgid "Understand how your car evolves through battery, charge, climate and drive history."
+msgstr "Begrijp hoe je auto evolueert via batterij-, laad-, klimaat- en ritgeschiedenis."
 
 #: personalstats/templates/personalstats/daymap.html:273
 msgid "Journey replay"
@@ -1913,7 +1621,7 @@ msgstr "Duur"
 #: personalstats/templates/personalstats/daymap.html:338
 #: personalstats/templates/personalstats/daymap.html:378
 #: personalstats/templates/personalstats/drives.html:185
-#: personalstats/views.py:3820
+#: personalstats/views.py:3799
 msgid "Distance"
 msgstr "Distance"
 
@@ -1928,7 +1636,7 @@ msgstr "SoC start"
 #: personalstats/templates/personalstats/daymap.html:381
 #: personalstats/templates/personalstats/daymap.html:423
 #: personalstats/templates/personalstats/drives.html:190
-#: personalstats/views.py:3825
+#: personalstats/views.py:3804
 msgid "SoC end"
 msgstr "SoC einde"
 
@@ -1943,12 +1651,8 @@ msgid "SoC used"
 msgstr "SoC gebruikt"
 
 #: personalstats/templates/personalstats/daymap.html:343
-msgid ""
-"SoC drop not explained by drives (park climate, dog/camp, sentry, "
-"preconditioning, vampire drain), after accounting for charges"
-msgstr ""
-"SoC-daling niet verklaard door ritten (parklimaat, dog/camp, sentry, "
-"preconditioning, vampire drain), na verrekening van ladingen"
+msgid "SoC drop not explained by drives (park climate, dog/camp, sentry, preconditioning, vampire drain), after accounting for charges"
+msgstr "SoC-daling niet verklaard door ritten (parklimaat, dog/camp, sentry, preconditioning, vampire drain), na verrekening van ladingen"
 
 #: personalstats/templates/personalstats/daymap.html:343
 msgid "SoC outside driving"
@@ -2051,12 +1755,8 @@ msgid "Charge power versus battery SoC"
 msgstr "Laadvermogen versus batterij-SoC"
 
 #: personalstats/templates/personalstats/daymap.html:518
-msgid ""
-"Two separate images — open PNG to save or print one curve. Press Esc or "
-"click outside to close."
-msgstr ""
-"Twee aparte afbeeldingen — open PNG om één curve op te slaan of te printen. "
-"Esc of klik buiten om te sluiten."
+msgid "Two separate images — open PNG to save or print one curve. Press Esc or click outside to close."
+msgstr "Twee aparte afbeeldingen — open PNG om één curve op te slaan of te printen. Esc of klik buiten om te sluiten."
 
 #: personalstats/templates/personalstats/daymap.html:580
 msgid "Supercharger"
@@ -2111,12 +1811,8 @@ msgid "Power vs battery SoC"
 msgstr "Vermogen vs batterij-SoC"
 
 #: personalstats/templates/personalstats/dc_charge.html:256
-msgid ""
-"Median charger power at each state of charge. Band shows typical spread (or "
-"min/max)."
-msgstr ""
-"Mediane laadvermogen bij elk batterijniveau. De band toont de typische "
-"spreiding (of min/max)."
+msgid "Median charger power at each state of charge. Band shows typical spread (or min/max)."
+msgstr "Mediane laadvermogen bij elk batterijniveau. De band toont de typische spreiding (of min/max)."
 
 #: personalstats/templates/personalstats/dc_charge.html:260
 msgid "DC charge power versus battery SoC"
@@ -2132,12 +1828,8 @@ msgstr "SoC vs tijd per start-SoC"
 
 #: personalstats/templates/personalstats/dc_charge.html:280
 #, python-format
-msgid ""
-"How fast the pack climbs when a DC session starts near 10%%, 20%%, … One "
-"median curve per arrival bucket."
-msgstr ""
-"Hoe snel de batterij stijgt als een DC-sessie start rond 10%%, 20%%, … Eén "
-"mediane curve per aankomstbucket."
+msgid "How fast the pack climbs when a DC session starts near 10%%, 20%%, … One median curve per arrival bucket."
+msgstr "Hoe snel de batterij stijgt als een DC-sessie start rond 10%%, 20%%, … Eén mediane curve per aankomstbucket."
 
 #: personalstats/templates/personalstats/dc_charge.html:284
 msgid "DC charge SoC versus time by start SoC"
@@ -2173,9 +1865,7 @@ msgstr "Vermogen"
 
 #: personalstats/templates/personalstats/dc_charge.html:308
 msgid "Rated range added per hour at this power (EPA energy intensity)"
-msgstr ""
-"Gehomologeerde actieradius per uur bij dit vermogen (EPA-energie-"
-"intensiteit)"
+msgstr "Gehomologeerde actieradius per uur bij dit vermogen (EPA-energie-intensiteit)"
 
 #: personalstats/templates/personalstats/dc_charge.html:308
 #, python-format
@@ -2243,9 +1933,7 @@ msgstr ""
 "        "
 
 #: personalstats/templates/personalstats/dc_charge.html:371
-msgid ""
-"Tip: switch Envelope to Min / max to get day-map links for the samples that "
-"form the band edges."
+msgid "Tip: switch Envelope to Min / max to get day-map links for the samples that form the band edges."
 msgstr "Tip: zet Envelop op Min / max voor dagkaartlinks op de bandranden."
 
 #: personalstats/templates/personalstats/dc_charge.html:376
@@ -2312,12 +2000,8 @@ msgstr "Geen ritten komen overeen met deze periode en minimumafstand."
 
 #: personalstats/templates/personalstats/drives.html:172
 #, python-format
-msgid ""
-"kWh estimates use ~%(kwh)s kWh pack (from EPA range). Outside temperature "
-"only (not cabin)."
-msgstr ""
-"kWh-schattingen gebruiken ~%(kwh)s kWh-pack (uit EPA-bereik). Alleen "
-"buitentemperatuur (niet interieur)."
+msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range). Outside temperature only (not cabin)."
+msgstr "kWh-schattingen gebruiken ~%(kwh)s kWh-pack (uit EPA-bereik). Alleen buitentemperatuur (niet interieur)."
 
 #: personalstats/templates/personalstats/drives.html:187
 msgid "Average speed over the trip"
@@ -2349,7 +2033,7 @@ msgstr "Vorige"
 msgid "Next"
 msgstr "Volgende"
 
-#: personalstats/templates/personalstats/poll_details.html:242
+#: personalstats/templates/personalstats/poll_details.html:201
 #, python-format
 msgid ""
 "\n"
@@ -2360,91 +2044,85 @@ msgstr ""
 "            Adaptieve Fleet-API-afstand voor %(name)s · lokale tijd %(when)s\n"
 "            "
 
-#: personalstats/templates/personalstats/poll_details.html:247
+#: personalstats/templates/personalstats/poll_details.html:206
 msgid "Back to my data"
 msgstr "Terug naar mijn gegevens"
 
-#: personalstats/templates/personalstats/poll_details.html:253
+#: personalstats/templates/personalstats/poll_details.html:212
 msgid "Habit-adapted collection frequency: active"
 msgstr "Aan gewoontes aangepaste verzamelfrequentie: actief."
 
-#: personalstats/templates/personalstats/poll_details.html:255
+#: personalstats/templates/personalstats/poll_details.html:214
 msgid "Habit-adapted collection frequency: inactive"
 msgstr "Aan gewoontes aangepaste verzamelfrequentie: inactief."
 
-#: personalstats/templates/personalstats/poll_details.html:266
-#: personalstats/templates/personalstats/poll_details.html:333
+#: personalstats/templates/personalstats/poll_details.html:225
+#: personalstats/templates/personalstats/poll_details.html:292
 msgid "Right now"
 msgstr "Nu"
 
-#: personalstats/templates/personalstats/poll_details.html:270
+#: personalstats/templates/personalstats/poll_details.html:229
 msgid "List state"
 msgstr "Lijststatus"
 
-#: personalstats/templates/personalstats/poll_details.html:274
+#: personalstats/templates/personalstats/poll_details.html:233
 msgid "Activity kind"
 msgstr "Activiteitstype"
 
-#: personalstats/templates/personalstats/poll_details.html:278
+#: personalstats/templates/personalstats/poll_details.html:237
 msgid "Effective interval"
 msgstr "Effectief interval"
 
-#: personalstats/templates/personalstats/poll_details.html:283
+#: personalstats/templates/personalstats/poll_details.html:242
 msgid "Nav ETA"
 msgstr "Nav-ETA"
 
-#: personalstats/templates/personalstats/poll_details.html:293
+#: personalstats/templates/personalstats/poll_details.html:252
 msgid "Decision source"
 msgstr "Bron van de beslissing"
 
-#: personalstats/templates/personalstats/poll_details.html:295
+#: personalstats/templates/personalstats/poll_details.html:254
 msgid "Live activity"
 msgstr "Live-activiteit"
 
-#: personalstats/templates/personalstats/poll_details.html:296
+#: personalstats/templates/personalstats/poll_details.html:255
 msgid "Long idle (parked)"
 msgstr "Lange stilstand (geparkeerd)"
 
-#: personalstats/templates/personalstats/poll_details.html:297
-#: personalstats/templates/personalstats/poll_details.html:339
+#: personalstats/templates/personalstats/poll_details.html:256
+#: personalstats/templates/personalstats/poll_details.html:298
 msgid "Habit model"
 msgstr "Gewoonte-model"
 
-#: personalstats/templates/personalstats/poll_details.html:298
+#: personalstats/templates/personalstats/poll_details.html:257
 msgid "Default spacing"
 msgstr "Standaardafstand"
 
-#: personalstats/templates/personalstats/poll_details.html:302
+#: personalstats/templates/personalstats/poll_details.html:261
 msgid "Default for this kind"
 msgstr "Standaard voor dit type"
 
-#: personalstats/templates/personalstats/poll_details.html:306
+#: personalstats/templates/personalstats/poll_details.html:265
 msgid "Habit for this hour"
 msgstr "Gewoonte voor dit uur"
 
-#: personalstats/templates/personalstats/poll_details.html:316
+#: personalstats/templates/personalstats/poll_details.html:275
 msgid "Last query"
 msgstr "Laatste query"
 
-#: personalstats/templates/personalstats/poll_details.html:322
+#: personalstats/templates/personalstats/poll_details.html:281
 msgid "Next query due"
 msgstr "Volgende query verschuldigd"
 
-#: personalstats/templates/personalstats/poll_details.html:324
+#: personalstats/templates/personalstats/poll_details.html:283
 msgid "Due now"
 msgstr "Nu verschuldigd"
 
-#: personalstats/templates/personalstats/poll_details.html:334
-msgid ""
-"No vehicle row in the account list for this VIN, so list state and last poll"
-" time are unknown. Habit history below still uses telemetry snapshots when "
-"available."
-msgstr ""
-"Geen voertuigrij in de accountlijst voor deze VIN, dus lijststatus en "
-"laatste poll onbekend. De gewoontehistorie hieronder gebruikt nog steeds "
-"telemetrie-snapshots indien beschikbaar."
+#: personalstats/templates/personalstats/poll_details.html:293
+msgid "No vehicle row in the account list for this VIN, so list state and last poll time are unknown. Habit history below still uses telemetry snapshots when available."
+msgstr "Geen voertuigrij in de accountlijst voor deze VIN, dus lijststatus en laatste poll onbekend. De gewoontehistorie hieronder gebruikt nog steeds telemetrie-snapshots indien beschikbaar."
 
-#: personalstats/templates/personalstats/poll_details.html:341
+#: personalstats/templates/personalstats/poll_details.html:300
 #, python-format
 msgid ""
 "\n"
@@ -2458,132 +2136,96 @@ msgstr ""
 "        Het model zoekt max. de laatste %(max_days)s dagen. Training gebruikt alleen weken *vóór* de laatste %(recent)s dagen (regime-check). ≥ %(min_ref)s referentieweken nodig. „Weken met samples“ telt distincte kalenderweken met telemetrie in het venster — niet de lengte van continue data-capture.\n"
 "        "
 
-#: personalstats/templates/personalstats/poll_details.html:349
+#: personalstats/templates/personalstats/poll_details.html:308
 msgid "Trusted"
 msgstr "Betrouwbaar"
 
-#: personalstats/templates/personalstats/poll_details.html:349
+#: personalstats/templates/personalstats/poll_details.html:308
 msgid "Yes"
 msgstr "Ja"
 
-#: personalstats/templates/personalstats/poll_details.html:349
+#: personalstats/templates/personalstats/poll_details.html:308
 msgid "No"
 msgstr "Nee"
 
-#: personalstats/templates/personalstats/poll_details.html:350
+#: personalstats/templates/personalstats/poll_details.html:309
 msgid "Reason"
 msgstr "Reden"
 
-#: personalstats/templates/personalstats/poll_details.html:351
+#: personalstats/templates/personalstats/poll_details.html:310
 msgid "Reference weeks (training)"
 msgstr "Referentieweken (training)"
 
-#: personalstats/templates/personalstats/poll_details.html:352
+#: personalstats/templates/personalstats/poll_details.html:311
 msgid "Weeks with samples (in search window)"
 msgstr "Weken met samples (in zoekvenster)"
 
-#: personalstats/templates/personalstats/poll_details.html:353
+#: personalstats/templates/personalstats/poll_details.html:312
 msgid "Max search window"
 msgstr "Max. zoekvenster"
 
-#: personalstats/templates/personalstats/poll_details.html:353
-#: personalstats/templates/personalstats/poll_details.html:354
+#: personalstats/templates/personalstats/poll_details.html:312
+#: personalstats/templates/personalstats/poll_details.html:313
 msgid "days"
 msgstr "dagen"
 
-#: personalstats/templates/personalstats/poll_details.html:354
+#: personalstats/templates/personalstats/poll_details.html:313
 msgid "Excluded from training (recent check)"
 msgstr "Uitgesloten van training (recente check)"
 
-#: personalstats/templates/personalstats/poll_details.html:355
+#: personalstats/templates/personalstats/poll_details.html:314
 msgid "Busy slots"
 msgstr "Drukke slots"
 
-#: personalstats/templates/personalstats/poll_details.html:356
-#| msgid "Busy slots"
+#: personalstats/templates/personalstats/poll_details.html:315
 msgid "Near-busy slots"
 msgstr "Slots nabij druk"
 
-#: personalstats/templates/personalstats/poll_details.html:357
+#: personalstats/templates/personalstats/poll_details.html:316
 msgid "Moderate slots"
 msgstr "Matige slots"
 
-#: personalstats/templates/personalstats/poll_details.html:358
+#: personalstats/templates/personalstats/poll_details.html:317
 msgid "Quiet slots"
 msgstr "Stille slots"
 
-#: personalstats/templates/personalstats/poll_details.html:363
-msgid "Idle plan — next 7 days"
-msgstr "Idle-plan — komende 7 dagen"
-
-#: personalstats/templates/personalstats/poll_details.html:364
-#| msgid ""
-#| "What idle/asleep spacing the model would use if the car is not driving or "
-#| "charging. Segments merge consecutive hours with the same interval."
-msgid ""
-"What idle/asleep spacing would apply if the car stays parked (no drive, no "
-"charge). Includes habit model when trusted, day/night defaults, and the "
-"long-idle floor (10 min after 24 h, 15 min after 48 h). Segments merge "
-"consecutive hours with the same interval."
-msgstr ""
-"Welke stilstand-/slaap-interval zou gelden als de auto geparkeerd blijft "
-"(geen rijden, geen laden). Inclusief gewoonte-model indien betrouwbaar, "
-"dag/nacht-defaults en de lange-stilstand-bodem (10 min na 24 u, 15 min na 48"
-" u). Segmenten voegen opeenvolgende uren met hetzelfde interval samen."
-
-#: personalstats/templates/personalstats/poll_details.html:387
-msgid "No forecast available."
-msgstr "Geen voorspelling beschikbaar."
-
-#: personalstats/templates/personalstats/poll_details.html:392
+#: personalstats/templates/personalstats/poll_details.html:322
 msgid "Typical week (idle minutes by weekday and hour)"
 msgstr "Typische week (idle-minuten per weekdag en uur)"
 
-#: personalstats/templates/personalstats/poll_details.html:393
-#| msgid ""
-#| "Household local time (Europe/Brussels). When the model is trusted, every "
-#| "cell is busy, moderate or quiet (no default-spacing holes). Plain cells only"
-#| " appear if habits are inactive."
-msgid ""
-"Household local time (Europe/Brussels). When the model is trusted, every "
-"cell is busy (5 min), near-busy (10 min, ±1 h around busy), moderate or "
-"quiet (no default-spacing holes). Plain cells only appear if habits are "
-"inactive."
-msgstr ""
-"Lokale huishoudtijd (Europa/Brussel). Als het model betrouwbaar is, is elke "
-"cel druk (5 min), nabij druk (10 min, ±1 u rond druk), matig of rustig (geen"
-" defaultgaten). Ongekleurde cellen alleen als gewoonten inactief zijn."
+#: personalstats/templates/personalstats/poll_details.html:323
+msgid "Household local time (Europe/Brussels). When the model is trusted, every cell is busy (5 min), near-busy (10 min, ±1 h around busy), moderate or quiet (no default-spacing holes). Plain cells only appear if habits are inactive."
+msgstr "Lokale huishoudtijd (Europa/Brussel). Als het model betrouwbaar is, is elke cel druk (5 min), nabij druk (10 min, ±1 u rond druk), matig of rustig (geen defaultgaten). Ongekleurde cellen alleen als gewoonten inactief zijn."
 
-#: personalstats/templates/personalstats/poll_details.html:398
+#: personalstats/templates/personalstats/poll_details.html:328
 msgid "Hour"
 msgstr "Uur"
 
-#: personalstats/templates/personalstats/poll_details.html:410
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "class only; default spacing kept"
 msgstr "alleen klasse; standaardafstand behouden"
 
-#: personalstats/templates/personalstats/poll_details.html:420
-#| msgid "Busy (denser idle)"
+#: personalstats/templates/personalstats/poll_details.html:350
 msgid "Busy (5 min)"
 msgstr "Druk (5 min)"
 
-#: personalstats/templates/personalstats/poll_details.html:421
+#: personalstats/templates/personalstats/poll_details.html:351
 msgid "Near busy (10 min, ±1 h)"
 msgstr "Nabij druk (10 min, ±1 u)"
 
-#: personalstats/templates/personalstats/poll_details.html:422
+#: personalstats/templates/personalstats/poll_details.html:352
 msgid "Moderate"
 msgstr "Matig"
 
-#: personalstats/templates/personalstats/poll_details.html:423
+#: personalstats/templates/personalstats/poll_details.html:353
 msgid "Quiet (sparser idle)"
 msgstr "Stil (spaarzamer idle)"
 
-#: personalstats/templates/personalstats/poll_details.html:424
+#: personalstats/templates/personalstats/poll_details.html:354
 msgid "Uncoloured = habits inactive (day/night default)"
 msgstr "Ongekleurd = gewoontes inactief (dag/nacht-standaard)"
 
-#: personalstats/templates/personalstats/poll_details.html:429
+#: personalstats/templates/personalstats/poll_details.html:359
 msgid "How it works"
 msgstr "Hoe het werkt"
 
@@ -2709,12 +2351,8 @@ msgstr "Dataverzoeken"
 
 #: personalstats/views.py:566
 #, python-format
-msgid ""
-"n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car ·"
-" from request log · max %(days)s days"
-msgstr ""
-"n=%(n)s factureerbare vehicle_data · ca. %(money)s (@ %(rate)s/req) · deze "
-"auto · uit requestlog · max. %(days)s dagen"
+msgid "n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car · from request log · max %(days)s days"
+msgstr "n=%(n)s factureerbare vehicle_data · ca. %(money)s (@ %(rate)s/req) · deze auto · uit requestlog · max. %(days)s dagen"
 
 #: personalstats/views.py:592
 msgid "No logged vehicle_data calls in this period"
@@ -2759,12 +2397,8 @@ msgid "Record max %(t).1f °C · %(when)s"
 msgstr "Record max. %(t).1f °C · %(when)s"
 
 #: personalstats/views.py:1122
-msgid ""
-"One min / avg / max per calendar month · band = monthly range · gaps = no "
-"data"
-msgstr ""
-"Eén min / gem / max per kalendermaand · band = maandelijks bereik · gaten = "
-"geen data"
+msgid "One min / avg / max per calendar month · band = monthly range · gaps = no data"
+msgstr "Eén min / gem / max per kalendermaand · band = maandelijks bereik · gaten = geen data"
 
 #: personalstats/views.py:1384
 #, python-format
@@ -2787,8 +2421,7 @@ msgstr "n=%(n)s sessies (≥%(min)s min) · staven = piek kW · kWh toegevoegd"
 #: personalstats/views.py:2265
 #, python-format
 msgid "n=%(n)s sessions (≥%(min)s min) · bars = peak · mi = range added"
-msgstr ""
-"n=%(n)s sessies (≥%(min)s min) · staven = piek · mi = bereik toegevoegd"
+msgstr "n=%(n)s sessies (≥%(min)s min) · staven = piek · mi = bereik toegevoegd"
 
 #: personalstats/views.py:2271
 #, python-format
@@ -2838,21 +2471,13 @@ msgstr "Snelheid (%(u)s)"
 
 #: personalstats/views.py:2558
 #, python-format
-msgid ""
-"n=%(n)s · regen %(regen).1f kWh / traction %(trac).1f kWh = %(pct).1f%% "
-"recovered"
-msgstr ""
-"n=%(n)s · regeneratie %(regen).1f kWh / tractie %(trac).1f kWh = %(pct).1f%%"
-" teruggewonnen"
+msgid "n=%(n)s · regen %(regen).1f kWh / traction %(trac).1f kWh = %(pct).1f%% recovered"
+msgstr "n=%(n)s · regeneratie %(regen).1f kWh / tractie %(trac).1f kWh = %(pct).1f%% teruggewonnen"
 
 #: personalstats/views.py:2569
 #, python-format
-msgid ""
-"n=%(n)s · regen vs traction = %(pct).1f%% (sample power ratio · green = "
-"regen)"
-msgstr ""
-"n=%(n)s · regeneratie vs. tractie = %(pct).1f%% (vermogensverhouding · groen"
-" = regeneratie)"
+msgid "n=%(n)s · regen vs traction = %(pct).1f%% (sample power ratio · green = regen)"
+msgstr "n=%(n)s · regeneratie vs. tractie = %(pct).1f%% (vermogensverhouding · groen = regeneratie)"
 
 #: personalstats/views.py:2577
 #, python-format
@@ -2903,137 +2528,125 @@ msgstr "%(n)s km"
 
 #: personalstats/views.py:2890
 #, python-format
-msgid ""
-"The last trip was not recorded — it was likely too short for the capture "
-"interval (about %(dist)s between the last logged arrival and the car's final"
-" position)."
-msgstr ""
-"De laatste rit is niet geregistreerd — waarschijnlijk te kort voor het "
-"capture-interval (ongeveer %(dist)s tussen de laatst gelogde aankomst en de "
-"eindpositie van de auto)."
+msgid "The last trip was not recorded — it was likely too short for the capture interval (about %(dist)s between the last logged arrival and the car's final position)."
+msgstr "De laatste rit is niet geregistreerd — waarschijnlijk te kort voor het capture-interval (ongeveer %(dist)s tussen de laatst gelogde aankomst en de eindpositie van de auto)."
 
 #: personalstats/views.py:2897
 #, python-format
-msgid ""
-"The last trip was not recorded — missing telemetry between the last logged "
-"arrival and the car's final position (about %(dist)s). This can happen after"
-" a capture gap or a technical issue."
-msgstr ""
-"De laatste rit is niet geregistreerd — ontbrekende telemetrie tussen de "
-"laatst gelogde aankomst en de eindpositie van de auto (ongeveer %(dist)s). "
-"Dit kan na een capture-gap of een technisch probleem gebeuren."
+msgid "The last trip was not recorded — missing telemetry between the last logged arrival and the car's final position (about %(dist)s). This can happen after a capture gap or a technical issue."
+msgstr "De laatste rit is niet geregistreerd — ontbrekende telemetrie tussen de laatst gelogde aankomst en de eindpositie van de auto (ongeveer %(dist)s). Dit kan na een capture-gap of een technisch probleem gebeuren."
 
-#: personalstats/views.py:3551 personalstats/views.py:4342
+#: personalstats/views.py:3528 personalstats/views.py:4417
 #, python-format
 msgid "%(h)s h %(m)s min"
 msgstr "%(h)s u %(m)s min"
 
-#: personalstats/views.py:3553 personalstats/views.py:4344
+#: personalstats/views.py:3530 personalstats/views.py:4419
 #, python-format
 msgid "%(m)s min"
 msgstr "%(m)s min"
 
-#: personalstats/views.py:3808
+#: personalstats/views.py:3787
 msgid "Longest"
 msgstr "Langste"
 
-#: personalstats/views.py:3809
+#: personalstats/views.py:3788
 msgid "Most elevation gain"
 msgstr "Meeste stijging"
 
-#: personalstats/views.py:3810
+#: personalstats/views.py:3789
 msgid "Most elevation loss"
 msgstr "Meeste daling"
 
-#: personalstats/views.py:3811
+#: personalstats/views.py:3790
 msgid "Hottest"
 msgstr "Warmste"
 
-#: personalstats/views.py:3812
+#: personalstats/views.py:3791
 msgid "Coldest"
 msgstr "Koudste"
 
-#: personalstats/views.py:3813
+#: personalstats/views.py:3792
 msgid "Lowest end SoC"
 msgstr "Laagste eind-SoC"
 
-#: personalstats/views.py:3821
+#: personalstats/views.py:3800
 msgid "Elevation gain"
 msgstr "Hoogtewinst"
 
-#: personalstats/views.py:3822
+#: personalstats/views.py:3801
 msgid "Elevation loss"
 msgstr "Hoogteverlies"
 
-#: personalstats/views.py:3823
+#: personalstats/views.py:3802
 msgid "Max outside temp"
 msgstr "Max. buitentemp."
 
-#: personalstats/views.py:3824
+#: personalstats/views.py:3803
 msgid "Min outside temp"
 msgstr "Min. buitentemp."
 
-#: personalstats/views.py:4180
+#: personalstats/views.py:4253
 msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
 msgstr "Ongeldige datum. Gebruik DD/MM/JJJJ of JJJJ-MM-DD."
 
-#: personalstats/views.py:5035
+#: personalstats/views.py:5113
 msgid "No DC charge samples in this period"
 msgstr "Geen DC-laadmonsters in deze periode"
 
-#: personalstats/views.py:5050
+#: personalstats/views.py:5128
 msgid "Min–max"
 msgstr "Min–max"
 
-#: personalstats/views.py:5054
+#: personalstats/views.py:5132
 msgid "P10–P90"
 msgstr "P10–P90"
 
-#: personalstats/views.py:5064
+#: personalstats/views.py:5142
 msgid "Median kW"
 msgstr "Mediaan kW"
 
-#: personalstats/views.py:5066 personalstats/views.py:5110
-#: personalstats/views.py:5266
+#: personalstats/views.py:5144 personalstats/views.py:5188
+#: personalstats/views.py:5344
 msgid "Battery SoC (%)"
 msgstr "Batterij-SoC (%)"
 
-#: personalstats/views.py:5067 personalstats/views.py:5281
+#: personalstats/views.py:5145 personalstats/views.py:5359
 msgid "Charger power (kW)"
 msgstr "Laadvermogen (kW)"
 
-#: personalstats/views.py:5083
+#: personalstats/views.py:5161
 msgid "Not enough DC sessions for start-SoC curves"
 msgstr "Niet genoeg DC-sessies voor start-SoC-curves"
 
-#: personalstats/views.py:5098
+#: personalstats/views.py:5176
 #, python-format
 msgid "%(start)s%% start · n=%(n)s"
 msgstr "%(start)s%% start · n=%(n)s"
 
-#: personalstats/views.py:5109 personalstats/views.py:5278
+#: personalstats/views.py:5187 personalstats/views.py:5356
 msgid "Minutes since charge start"
 msgstr "Minuten sinds start van de lading"
 
-#: personalstats/views.py:5236
+#: personalstats/views.py:5314
 msgid "No charge samples for this stop"
 msgstr "Geen laadmonsters voor deze stop"
 
-#: personalstats/views.py:5331
+#: personalstats/views.py:5409
 #, python-format
 msgid "Charge power vs SoC — %(day)s"
 msgstr "Laadvermogen vs SoC — %(day)s"
 
-#: personalstats/views.py:5333
+#: personalstats/views.py:5411
 #, python-format
 msgid "Charge power vs time — %(day)s"
 msgstr "Laadvermogen vs tijd — %(day)s"
 
-#: personalstats/views.py:5432
+#: personalstats/views.py:5510
 msgid "DC charge power vs battery SoC"
 msgstr "DC-laadvermogen vs batterij-SoC"
 
-#: personalstats/views.py:5440
+#: personalstats/views.py:5518
 msgid "DC charge: SoC vs time by start SoC"
 msgstr "DC-laden: SoC vs tijd per start-SoC"
 
@@ -3065,7 +2678,7 @@ msgstr "Mobiele navigatie"
 msgid "Private by design · Open source"
 msgstr "Privé by design · Open source"
 
-#: templates/base.html:103
+#: templates/base.html:112
 msgid "Source"
 msgstr "Source"
 
@@ -3074,19 +2687,14 @@ msgid "Distance units"
 msgstr "Afstandseenheden"
 
 #: templates/includes/unit_toggle.html:6
-msgid ""
-"Choose kilometres or miles for distances, speeds and consumption across the "
-"site"
-msgstr ""
-"Kies kilometers of mijlen voor afstanden, snelheden en verbruik op de hele "
-"site"
+msgid "Choose kilometres or miles for distances, speeds and consumption across the site"
+msgstr "Kies kilometers of mijlen voor afstanden, snelheden en verbruik op de hele site"
 
 #: templates/includes/unit_toggle.html:7
 msgid "Units"
 msgstr "Eenheden"
 
-#: templates/includes/unit_toggle.html:9
-#: templates/includes/unit_toggle.html:20
+#: templates/includes/unit_toggle.html:9 templates/includes/unit_toggle.html:20
 msgid "km"
 msgstr "km"
 
@@ -3116,16 +2724,8 @@ msgid "co-pilot."
 msgstr "bijrijder."
 
 #: templates/registration/login.html:16
-msgid ""
-"MaTesla is a Python/django free open source website using tesla api to "
-"connect to your marvellous Tesla car, have information on its state, "
-"location and remote control charge, temperature,... Statistics on firmware "
-"updates are also available."
-msgstr ""
-"MaTesla is een gratis open-sourcewebsite in Python/Django die de Tesla-API "
-"gebruikt om verbinding te maken met je fantastische Tesla, informatie te "
-"geven over status en locatie, en laden, temperatuur, … op afstand te "
-"bedienen. Statistieken over firmware-updates zijn ook beschikbaar."
+msgid "MaTesla is a Python/django free open source website using tesla api to connect to your marvellous Tesla car, have information on its state, location and remote control charge, temperature,... Statistics on firmware updates are also available."
+msgstr "MaTesla is een gratis open-sourcewebsite in Python/Django die de Tesla-API gebruikt om verbinding te maken met je fantastische Tesla, informatie te geven over status en locatie, en laden, temperatuur, … op afstand te bedienen. Statistieken over firmware-updates zijn ook beschikbaar."
 
 #: templates/registration/login.html:18
 msgid "Open source · your telemetry stays under your control"
@@ -3156,12 +2756,8 @@ msgid "Beyond a status screen."
 msgstr "Meer dan een statusscherm."
 
 #: templates/registration/login.html:60
-msgid ""
-"Follow battery health, trips and software versions without getting lost in "
-"menus."
-msgstr ""
-"Volg batterijgezondheid, ritten en softwareversies zonder te verdwalen in "
-"menu’s."
+msgid "Follow battery health, trips and software versions without getting lost in menus."
+msgstr "Volg batterijgezondheid, ritten en softwareversies zonder te verdwalen in menu’s."
 
 #: templates/registration/login.html:67
 msgid "A clear view of how your real range evolves."
@@ -3177,8 +2773,7 @@ msgstr "Vind kilometers, cycli en rijdagen."
 
 #: templates/registration/login.html:77
 msgid "Your tesla odometer graph in function of time. Who drives the most?"
-msgstr ""
-"Je Tesla-kilometertellergrafiek in functie van de tijd. Wie rijdt het meest?"
+msgstr "Je Tesla-kilometertellergrafiek in functie van de tijd. Wie rijdt het meest?"
 
 #: templates/registration/login.html:83
 msgid "Every update, placed back in time."
@@ -3224,12 +2819,8 @@ msgid "Invalid link"
 msgstr "Ongeldige link"
 
 #: templates/registration/password_reset_confirm.html:28
-msgid ""
-"The password reset link was invalid, possibly because it has already been "
-"used. Please request a new password reset."
-msgstr ""
-"De link om het wachtwoord te resetten was ongeldig, mogelijk omdat hij al is"
-" gebruikt. Vraag een nieuwe reset aan."
+msgid "The password reset link was invalid, possibly because it has already been used. Please request a new password reset."
+msgstr "De link om het wachtwoord te resetten was ongeldig, mogelijk omdat hij al is gebruikt. Vraag een nieuwe reset aan."
 
 #: templates/registration/password_reset_confirm.html:29
 #: templates/registration/password_reset_form.html:4
@@ -3247,21 +2838,12 @@ msgid "Check your inbox"
 msgstr "Controleer je inbox"
 
 #: templates/registration/password_reset_done.html:11
-msgid ""
-"We&#39;ve emailed you instructions for setting your password, if an account "
-"exists with the email you entered. You should receive them shortly."
-msgstr ""
-"We hebben je per e-mail instructies gestuurd om je wachtwoord in te stellen,"
-" als er een account bestaat met het ingevoerde e-mailadres. Je zou ze "
-"binnenkort moeten ontvangen."
+msgid "We&#39;ve emailed you instructions for setting your password, if an account exists with the email you entered. You should receive them shortly."
+msgstr "We hebben je per e-mail instructies gestuurd om je wachtwoord in te stellen, als er een account bestaat met het ingevoerde e-mailadres. Je zou ze binnenkort moeten ontvangen."
 
 #: templates/registration/password_reset_done.html:12
-msgid ""
-"If you don&#39;t receive an email, please make sure you&#39;ve entered the "
-"address you registered with, and check your spam folder."
-msgstr ""
-"Als je geen e-mail ontvangt, controleer of je het adres hebt ingevoerd "
-"waarmee je je hebt geregistreerd, en kijk in je spammap."
+msgid "If you don&#39;t receive an email, please make sure you&#39;ve entered the address you registered with, and check your spam folder."
+msgstr "Als je geen e-mail ontvangt, controleer of je het adres hebt ingevoerd waarmee je je hebt geregistreerd, en kijk in je spammap."
 
 #: templates/registration/password_reset_done.html:13
 #: templates/registration/password_reset_form.html:28
@@ -3277,12 +2859,8 @@ msgid "MaTesla Account, click the link below:"
 msgstr "MaTesla-account, klik op de link hieronder:"
 
 #: templates/registration/password_reset_email.html:7
-msgid ""
-"If clicking the link above doesn't work, please copy and paste the URL in a "
-"new browser window instead."
-msgstr ""
-"Als de link hierboven niet werkt, kopieer en plak de URL in een nieuw "
-"browservenster."
+msgid "If clicking the link above doesn't work, please copy and paste the URL in a new browser window instead."
+msgstr "Als de link hierboven niet werkt, kopieer en plak de URL in een nieuw browservenster."
 
 #: templates/registration/password_reset_email.html:9
 msgid "Sincerely, The MaTesla Team"
@@ -3293,14 +2871,22 @@ msgid "Account recovery"
 msgstr "Account herstellen"
 
 #: templates/registration/password_reset_form.html:12
-msgid ""
-"Enter the address linked to your account. We will send you a secure link."
-msgstr ""
-"Vul het adres gekoppeld aan je account in. We sturen je een beveiligde link."
+msgid "Enter the address linked to your account. We will send you a secure link."
+msgstr "Vul het adres gekoppeld aan je account in. We sturen je een beveiligde link."
 
 #: templates/registration/password_reset_form.html:25
 msgid "Send e-mail"
 msgstr "E-mail verzenden"
+
+#~ msgid "Idle plan — next 7 days"
+#~ msgstr "Idle-plan — komende 7 dagen"
+
+#~| msgid "What idle/asleep spacing the model would use if the car is not driving or charging. Segments merge consecutive hours with the same interval."
+#~ msgid "What idle/asleep spacing would apply if the car stays parked (no drive, no charge). Includes habit model when trusted, day/night defaults, and the long-idle floor (10 min after 24 h, 15 min after 48 h). Segments merge consecutive hours with the same interval."
+#~ msgstr "Welke stilstand-/slaap-interval zou gelden als de auto geparkeerd blijft (geen rijden, geen laden). Inclusief gewoonte-model indien betrouwbaar, dag/nacht-defaults en de lange-stilstand-bodem (10 min na 24 u, 15 min na 48 u). Segmenten voegen opeenvolgende uren met hetzelfde interval samen."
+
+#~ msgid "No forecast available."
+#~ msgstr "Geen voorspelling beschikbaar."
 
 #~ msgid "Kilometers driven"
 #~ msgstr "Gereden kilometers"
@@ -3333,15 +2919,8 @@ msgstr "E-mail verzenden"
 #~ msgstr "Recent controlevenster"
 
 #, python-format
-#~ msgid ""
-#~ "Habit intervals replace the idle baseline (not max): busy → %(busy)s min, "
-#~ "moderate → %(moderate)s min (day only), quiet → %(quiet)s min. Night "
-#~ "baseline without habit is %(night)s min; day idle baseline is %(day)s min."
-#~ msgstr ""
-#~ "Gewoonte-intervallen vervangen de idle-baseline (geen max): druk → %(busy)s "
-#~ "min, matig → %(moderate)s min (alleen overdag), stil → %(quiet)s min. "
-#~ "Nachtbaseline zonder gewoonte: %(night)s min; dag-idle-baseline: %(day)s "
-#~ "min."
+#~ msgid "Habit intervals replace the idle baseline (not max): busy → %(busy)s min, moderate → %(moderate)s min (day only), quiet → %(quiet)s min. Night baseline without habit is %(night)s min; day idle baseline is %(day)s min."
+#~ msgstr "Gewoonte-intervallen vervangen de idle-baseline (geen max): druk → %(busy)s min, matig → %(moderate)s min (alleen overdag), stil → %(quiet)s min. Nachtbaseline zonder gewoonte: %(night)s min; dag-idle-baseline: %(day)s min."
 
 #~ msgid "Uncoloured = baseline only"
 #~ msgstr "Ongekleurd = alleen baseline"

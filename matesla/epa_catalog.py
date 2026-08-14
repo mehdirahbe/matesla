@@ -277,3 +277,134 @@ def project_full_charge_miles(battery_range, battery_level) -> Optional[float]:
     if rated_range <= 0 or state_of_charge <= 1:
         return None
     return rated_range / (state_of_charge / 100.0)
+
+
+# ---------------------------------------------------------------------------
+# Usable pack capacity when new (kWh) — nameplate-class, NOT EPA × Wh/mi.
+#
+# Same physical pack can have different EPA rated miles (AWD vs RWD, wheels).
+# Example: both 2019 Model 3 LR (AWD EPA 310 / RWD EPA 325) ship ~75 kWh usable.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class PackEntry:
+    """One known usable pack size when new. None optional fields = wildcard."""
+
+    model: str
+    year_min: int
+    year_max: int
+    dual: Optional[bool]
+    trim: Optional[str]  # "sr", "lr", "perf", None
+    pack_kwh: float
+    note: str = ""
+
+
+PACK_TABLE: list[PackEntry] = [
+    # Model 3 classic (Panasonic ~75 kWh LR / smaller SR)
+    PackEntry("3", 2017, 2020, None, "lr", 75.0, "M3 LR pre-Highland ~75 kWh usable"),
+    PackEntry("3", 2017, 2020, None, "perf", 75.0, "M3 Performance classic same pack as LR"),
+    PackEntry("3", 2017, 2020, None, "sr", 50.0, "M3 SR / SR+ ~50 kWh class"),
+    # Model 3 2021–2023 (82 kWh LR class in many markets)
+    PackEntry("3", 2021, 2023, None, "lr", 82.0, "M3 LR 2021–2023 ~82 kWh"),
+    PackEntry("3", 2021, 2023, None, "perf", 82.0, "M3 Performance 2021–2023"),
+    PackEntry("3", 2021, 2023, None, "sr", 60.0, "M3 SR+ 2021+ approx"),
+    # Highland / 2024+
+    PackEntry("3", 2024, 2035, None, "lr", 75.0, "M3 Highland LR ~75 kWh usable"),
+    PackEntry("3", 2024, 2035, None, "perf", 75.0, "M3 Highland Performance"),
+    PackEntry("3", 2024, 2035, None, "sr", 60.0, "M3 Highland RWD / SR-class approx"),
+    # Model Y (common LR packs ~75 kWh class)
+    PackEntry("Y", 2020, 2025, None, "lr", 75.0, "MY LR ~75 kWh class"),
+    PackEntry("Y", 2020, 2025, None, "perf", 75.0, "MY Performance"),
+    PackEntry("Y", 2020, 2025, None, "sr", 60.0, "MY RWD / SR-class approx"),
+    # S/X very rough defaults
+    PackEntry("S", 2016, 2019, None, None, 75.0, "MS 75-class default"),
+    PackEntry("S", 2020, 2025, None, None, 100.0, "MS refresh large pack-ish"),
+    PackEntry("X", 2016, 2020, None, None, 100.0, "MX legacy rough"),
+    PackEntry("X", 2021, 2025, None, None, 100.0, "MX refresh rough"),
+]
+
+
+def _pack_specificity(entry: PackEntry) -> int:
+    score = 0
+    if entry.dual is not None:
+        score += 2
+    if entry.trim is not None:
+        score += 3
+    score += max(0, 10 - (entry.year_max - entry.year_min))
+    return score
+
+
+def _infer_trim_for_pack(
+    trim: Optional[str],
+    *,
+    epa_range_miles: Optional[float] = None,
+) -> Optional[str]:
+    """When VIN trim is unknown, use EPA miles as a coarse SR vs LR hint."""
+    if trim is not None:
+        return trim
+    if epa_range_miles is None:
+        return None
+    try:
+        epa = float(epa_range_miles)
+    except (TypeError, ValueError):
+        return None
+    if epa <= 0:
+        return None
+    # SR-class EPA is well below LR; 270 keeps 2019 SR (~240) vs LR RWD (~325) apart
+    if epa < 270:
+        return "sr"
+    return "lr"
+
+
+def lookup_pack_kwh(
+    vin: str,
+    *,
+    epa_range_miles: Optional[float] = None,
+    trim_hint: Optional[str] = None,
+) -> Optional[float]:
+    """
+    Usable pack kWh when new for this VIN (catalog), or None if unknown.
+
+    Prefer this over EPA×Wh/mi for capacity / SoC→kWh estimates: rated range
+    changes with drivetrain and wheels while the pack stays the same.
+    """
+    model = GetModelFromVin(vin)
+    year = GetYearFromVin(vin)
+    if model is None or year is None:
+        return None
+    dual_motor = IsDualMotor(vin)
+    trim = _infer_trim_for_pack(
+        trim_hint
+        or GuessTrimFromVin(vin, dual=dual_motor, performance=IsPerformanceMotor(vin)),
+        epa_range_miles=epa_range_miles,
+    )
+
+    matches: list[PackEntry] = []
+    for entry in PACK_TABLE:
+        if entry.model != model:
+            continue
+        if year < entry.year_min or year > entry.year_max:
+            continue
+        if entry.dual is not None and dual_motor is not None and entry.dual != dual_motor:
+            continue
+        if not _trim_match(entry.trim, trim):
+            continue
+        matches.append(entry)
+
+    if not matches and trim is not None:
+        # Retry ignoring trim (e.g. unknown trim on a known model year)
+        for entry in PACK_TABLE:
+            if entry.model != model:
+                continue
+            if year < entry.year_min or year > entry.year_max:
+                continue
+            if entry.dual is not None and dual_motor is not None and entry.dual != dual_motor:
+                continue
+            if entry.trim is None:
+                matches.append(entry)
+
+    if not matches:
+        return None
+    matches.sort(key=_pack_specificity, reverse=True)
+    return float(matches[0].pack_kwh)

@@ -162,6 +162,133 @@ def ComputeBatteryDegradationFromEPARange(
     return battery_degradation_percent
 
 
+# Shared pack energy estimate (day map, drives, status, DC charge EPA intensity).
+#
+# Prefer VIN pack catalog (usable kWh when new). EPA × Wh/mi is only a fallback:
+# same pack can have different EPA miles (e.g. 2019 M3 LR AWD 310 vs RWD 325,
+# both ~75 kWh when new).
+PACK_KWH_WH_PER_MILE = 0.22
+PACK_KWH_DEFAULT = 75.0
+PACK_KWH_MIN = 40.0
+PACK_KWH_MAX = 120.0
+
+
+def estimate_new_pack_kwh(epa_range_miles, default=PACK_KWH_DEFAULT):
+    """
+    Fallback pack size (kWh) from EPA rated range when the VIN catalog is unknown.
+
+    Prefer pack_kwh_for_vehicle / lookup_pack_kwh for real cars.
+    """
+    if epa_range_miles is None:
+        return default
+    try:
+        epa = float(epa_range_miles)
+    except (TypeError, ValueError):
+        return default
+    if epa <= 50:
+        return default
+    kwh = epa * PACK_KWH_WH_PER_MILE
+    return max(PACK_KWH_MIN, min(PACK_KWH_MAX, kwh))
+
+
+def pack_kwh_for_vehicle(*, vin=None, hashed_vin=None, epa_range_miles=None):
+    """
+    Usable pack kWh when new for a car (shared by status, day map, drives).
+
+    Preference:
+      1) VIN pack catalog (nameplate-class kWh)
+      2) TeslaCarInfo EPA → estimate_new_pack_kwh fallback
+      3) PACK_KWH_DEFAULT
+    """
+    from matesla.models.TeslaCarInfo import TeslaCarInfo
+    from matesla.epa_catalog import lookup_pack_kwh
+
+    info = None
+    if vin:
+        info = TeslaCarInfo.objects.filter(vin=vin).first()
+    if info is None and hashed_vin:
+        info = TeslaCarInfo.objects.filter(hashedVin=hashed_vin).first()
+
+    resolved_vin = vin or (info.vin if info is not None else None)
+    epa = epa_range_miles
+    if epa is None and info is not None and info.EPARange is not None:
+        epa = info.EPARange
+
+    if resolved_vin:
+        catalog_pack = lookup_pack_kwh(resolved_vin, epa_range_miles=epa)
+        if catalog_pack is not None:
+            return catalog_pack
+
+    return estimate_new_pack_kwh(epa)
+
+
+def usable_capacity_kwh(pack_kwh_when_new, degradation_percent):
+    """
+    Pack energy still available at 100% SoC after range-based degradation.
+
+    capacity = pack_when_new × (1 − degradation/100)
+    """
+    if pack_kwh_when_new is None:
+        return None
+    try:
+        pack = float(pack_kwh_when_new)
+    except (TypeError, ValueError):
+        return None
+    if pack <= 0:
+        return None
+    try:
+        deg = float(degradation_percent) if degradation_percent is not None else 0.0
+    except (TypeError, ValueError):
+        deg = 0.0
+    if deg < 0:
+        deg = 0.0
+    if deg > 50:
+        deg = 50.0
+    return pack * (1.0 - deg / 100.0)
+
+
+def energy_stored_kwh(usable_capacity, battery_level_percent):
+    """Energy currently in the pack: usable_capacity × SoC/100."""
+    if usable_capacity is None or battery_level_percent is None:
+        return None
+    try:
+        capacity = float(usable_capacity)
+        soc = float(battery_level_percent)
+    except (TypeError, ValueError):
+        return None
+    if capacity < 0 or soc < 0:
+        return None
+    return capacity * (soc / 100.0)
+
+
+def compute_usable_capacity_and_stored_kwh(
+    *,
+    pack_kwh_when_new=None,
+    battery_degradation_percent=None,
+    battery_level=None,
+    usable_battery_level=None,
+    epa_range_miles=None,
+    vin=None,
+    hashed_vin=None,
+):
+    """
+    (usable_capacity_kwh, energy_stored_kwh) from the shared pack estimate.
+
+    pack_when_new = estimate_new_pack_kwh / pack_kwh_for_vehicle
+    usable_capacity = pack_when_new × (1 − degradation/100)
+    energy_stored = usable_capacity × current_SoC/100  (usable SoC preferred)
+    """
+    pack = pack_kwh_when_new
+    if pack is None:
+        pack = pack_kwh_for_vehicle(
+            vin=vin, hashed_vin=hashed_vin, epa_range_miles=epa_range_miles
+        )
+    capacity = usable_capacity_kwh(pack, battery_degradation_percent)
+    soc = usable_battery_level if usable_battery_level is not None else battery_level
+    stored = energy_stored_kwh(capacity, soc)
+    return capacity, stored
+
+
 def ComputeNumCycles(epa_range_miles, odometer_miles):
     """
     Rough lifetime cycle estimate: odometer / EPA, with +20% for regen/vampire

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: matesla\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-13 11:48+0000\n"
+"POT-Creation-Date: 2026-08-14 09:30+0000\n"
 "PO-Revision-Date: 2026-07-27 22:00+0000\n"
 "Last-Translator: MaTesla\n"
 "Language-Team: Spanish\n"
@@ -24,10 +24,8 @@ msgid "Sign up"
 msgstr "Crear cuenta"
 
 #: accounts/templates/signup.html:12
-msgid ""
-"Create your private space, then link your Tesla account in a few steps."
-msgstr ""
-"Crea tu espacio privado y luego vincula tu cuenta Tesla en unos pasos."
+msgid "Create your private space, then link your Tesla account in a few steps."
+msgstr "Crea tu espacio privado y luego vincula tu cuenta Tesla en unos pasos."
 
 #: accounts/templates/signup.html:30
 msgid "Already registered?"
@@ -43,9 +41,7 @@ msgstr "Iniciar sesión"
 #: matesla/TeslaPartner.py:121
 #, python-format
 msgid "Partner public key must be served over HTTPS (got %(scheme)s)."
-msgstr ""
-"La clave pública partner debe servirse por HTTPS (esquema recibido: "
-"%(scheme)s)."
+msgstr "La clave pública partner debe servirse por HTTPS (esquema recibido: %(scheme)s)."
 
 #: matesla/TeslaPartner.py:126
 msgid "Could not read a host from that URL."
@@ -53,20 +49,12 @@ msgstr "No se pudo leer un host en esa URL."
 
 #: matesla/TeslaPartner.py:136
 #, python-format
-msgid ""
-"Tesla always fetches the public key at https://%(host)s%(path)s — not at an "
-"arbitrary path. Host the PEM there (any HTTPS server is fine: nginx, S3, "
-"Cloudflare, GitHub Pages, …)."
-msgstr ""
-"Tesla siempre obtiene la clave pública en https://%(host)s%(path)s — no en "
-"una ruta arbitraria. Aloja el PEM ahí (cualquier servidor HTTPS sirve: "
-"nginx, S3, Cloudflare, GitHub Pages, …)."
+msgid "Tesla always fetches the public key at https://%(host)s%(path)s — not at an arbitrary path. Host the PEM there (any HTTPS server is fine: nginx, S3, Cloudflare, GitHub Pages, …)."
+msgstr "Tesla siempre obtiene la clave pública en https://%(host)s%(path)s — no en una ruta arbitraria. Aloja el PEM ahí (cualquier servidor HTTPS sirve: nginx, S3, Cloudflare, GitHub Pages, …)."
 
 #: matesla/TeslaPartner.py:152
-msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
-msgstr ""
-"Tesla rechaza localhost como dominio partner. Usa un dominio HTTPS público."
+msgid "Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
+msgstr "Tesla rechaza localhost como dominio partner. Usa un dominio HTTPS público."
 
 #: matesla/TeslaPartner.py:165
 #, python-format
@@ -85,12 +73,8 @@ msgstr "%(url)s no contiene un PEM de clave pública válido"
 
 #: matesla/TeslaPartner.py:181
 #, python-format
-msgid ""
-"%(url)s is reachable but does not match the local key (%(path)s). Re-upload "
-"the file."
-msgstr ""
-"%(url)s es accesible pero no coincide con la clave local (%(path)s). Vuelve "
-"a subir el archivo."
+msgid "%(url)s is reachable but does not match the local key (%(path)s). Re-upload the file."
+msgstr "%(url)s es accesible pero no coincide con la clave local (%(path)s). Vuelve a subir el archivo."
 
 #: matesla/TeslaPartner.py:186
 #, python-format
@@ -111,12 +95,8 @@ msgid "Missing app settings."
 msgstr "Faltan ajustes de la aplicación."
 
 #: matesla/TeslaPartner.py:229
-msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g."
-" robotcar.example.com)."
-msgstr ""
-"Tesla rechaza localhost como dominio partner. Usa un dominio HTTPS público "
-"(ej. robotcar.example.com)."
+msgid "Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g. robotcar.example.com)."
+msgstr "Tesla rechaza localhost como dominio partner. Usa un dominio HTTPS público (ej. robotcar.example.com)."
 
 #: matesla/TeslaPartner.py:237
 #, python-format
@@ -145,12 +125,8 @@ msgid "Fleet API region"
 msgstr "Región API Fleet"
 
 #: matesla/forms.py:29
-msgid ""
-"Must match the redirect URI on developer.tesla.com exactly (often "
-"http://localhost:8001/oauth/callback for a local install)."
-msgstr ""
-"Debe coincidir exactamente con la URI de redirección en developer.tesla.com "
-"(a menudo http://localhost:8001/oauth/callback en una instalación local)."
+msgid "Must match the redirect URI on developer.tesla.com exactly (often http://localhost:8001/oauth/callback for a local install)."
+msgstr "Debe coincidir exactamente con la URI de redirección en developer.tesla.com (a menudo http://localhost:8001/oauth/callback en una instalación local)."
 
 #: matesla/forms.py:42
 msgid "Europe / Middle East / Africa (recommended for Belgium)"
@@ -169,76 +145,66 @@ msgid "Partner domain or public key URL"
 msgstr "Dominio partner o URL de la clave pública"
 
 #: matesla/forms.py:65
-msgid ""
-"Paste a domain (example.com), an origin (https://example.com), or the full "
-"public-key URL. Hosting is free choice (nginx, S3, Cloudflare, GitHub Pages,"
-" …) but Tesla always fetches /.well-known/appspecific/com.tesla.3p.public-"
-"key.pem on that host. Add the same host with https:// as Allowed Origin on "
-"developer.tesla.com. Not localhost."
-msgstr ""
-"Pega un dominio (example.com), un origen (https://example.com) o la URL "
-"completa de la clave pública. El alojamiento es libre (nginx, S3, "
-"Cloudflare, GitHub Pages, …) pero Tesla siempre obtiene /.well-"
-"known/appspecific/com.tesla.3p.public-key.pem en ese host. Añade el mismo "
-"host con https:// como Allowed Origin en developer.tesla.com. No localhost."
+msgid "Paste a domain (example.com), an origin (https://example.com), or the full public-key URL. Hosting is free choice (nginx, S3, Cloudflare, GitHub Pages, …) but Tesla always fetches /.well-known/appspecific/com.tesla.3p.public-key.pem on that host. Add the same host with https:// as Allowed Origin on developer.tesla.com. Not localhost."
+msgstr "Pega un dominio (example.com), un origen (https://example.com) o la URL completa de la clave pública. El alojamiento es libre (nginx, S3, Cloudflare, GitHub Pages, …) pero Tesla siempre obtiene /.well-known/appspecific/com.tesla.3p.public-key.pem en ese host. Añade el mismo host con https:// como Allowed Origin en developer.tesla.com. No localhost."
 
-#: matesla/poll_diagnostics.py:88
+#: matesla/poll_diagnostics.py:89
 msgid "Mon"
 msgstr "lun"
 
-#: matesla/poll_diagnostics.py:89
+#: matesla/poll_diagnostics.py:90
 msgid "Tue"
 msgstr "mar"
 
-#: matesla/poll_diagnostics.py:90
+#: matesla/poll_diagnostics.py:91
 msgid "Wed"
 msgstr "mié"
 
-#: matesla/poll_diagnostics.py:91
+#: matesla/poll_diagnostics.py:92
 msgid "Thu"
 msgstr "jue"
 
-#: matesla/poll_diagnostics.py:92
+#: matesla/poll_diagnostics.py:93
 msgid "Fri"
 msgstr "vie"
 
-#: matesla/poll_diagnostics.py:93
+#: matesla/poll_diagnostics.py:94
 msgid "Sat"
 msgstr "sáb"
 
-#: matesla/poll_diagnostics.py:94
+#: matesla/poll_diagnostics.py:95
 msgid "Sun"
 msgstr "dom"
 
-#: matesla/poll_diagnostics.py:101
+#: matesla/poll_diagnostics.py:102
 msgid "Monday"
 msgstr "lunes"
 
-#: matesla/poll_diagnostics.py:102
+#: matesla/poll_diagnostics.py:103
 msgid "Tuesday"
 msgstr "martes"
 
-#: matesla/poll_diagnostics.py:103
+#: matesla/poll_diagnostics.py:104
 msgid "Wednesday"
 msgstr "miércoles"
 
-#: matesla/poll_diagnostics.py:104
+#: matesla/poll_diagnostics.py:105
 msgid "Thursday"
 msgstr "jueves"
 
-#: matesla/poll_diagnostics.py:105
+#: matesla/poll_diagnostics.py:106
 msgid "Friday"
 msgstr "viernes"
 
-#: matesla/poll_diagnostics.py:106
+#: matesla/poll_diagnostics.py:107
 msgid "Saturday"
 msgstr "sábado"
 
-#: matesla/poll_diagnostics.py:107
+#: matesla/poll_diagnostics.py:108
 msgid "Sunday"
 msgstr "domingo"
 
-#: matesla/poll_diagnostics.py:123
+#: matesla/poll_diagnostics.py:124
 #: matesla/templates/matesla/_carstatus_body.html:18
 #: matesla/templates/matesla/_carstatus_body.html:22
 #: matesla/templates/matesla/_carstatus_body.html:96
@@ -246,379 +212,225 @@ msgstr "domingo"
 msgid "online"
 msgstr "en línea"
 
-#: matesla/poll_diagnostics.py:124 matesla/poll_diagnostics.py:142
+#: matesla/poll_diagnostics.py:125 matesla/poll_diagnostics.py:143
 #: matesla/templates/matesla/_carstatus_body.html:19
 #: matesla/templates/matesla/_carstatus_body.html:97
 #: matesla/templates/matesla/_vehicle_chrome.html:35
 msgid "asleep"
 msgstr "dormido"
 
-#: matesla/poll_diagnostics.py:125
+#: matesla/poll_diagnostics.py:126
 #: matesla/templates/matesla/_carstatus_body.html:20
 #: matesla/templates/matesla/_carstatus_body.html:98
 #: matesla/templates/matesla/_vehicle_chrome.html:36
 msgid "offline"
 msgstr "fuera de línea"
 
-#: matesla/poll_diagnostics.py:126 matesla/poll_diagnostics.py:144
+#: matesla/poll_diagnostics.py:127 matesla/poll_diagnostics.py:145
 msgid "unknown"
 msgstr "desconocido"
 
-#: matesla/poll_diagnostics.py:135
+#: matesla/poll_diagnostics.py:136
 msgid "driving"
 msgstr "conduciendo"
 
-#: matesla/poll_diagnostics.py:136
+#: matesla/poll_diagnostics.py:137
 msgid "DC charging"
 msgstr "carga DC"
 
-#: matesla/poll_diagnostics.py:137
+#: matesla/poll_diagnostics.py:138
 msgid "AC charging"
 msgstr "carga AC"
 
-#: matesla/poll_diagnostics.py:138
+#: matesla/poll_diagnostics.py:139
 msgid "cabin activity"
 msgstr "actividad en habitáculo"
 
-#: matesla/poll_diagnostics.py:139
+#: matesla/poll_diagnostics.py:140
 msgid "dog / camp mode"
 msgstr "modo perro / campamento"
 
-#: matesla/poll_diagnostics.py:140
+#: matesla/poll_diagnostics.py:141
 msgid "sentry mode"
 msgstr "modo centinela"
 
-#: matesla/poll_diagnostics.py:141
+#: matesla/poll_diagnostics.py:142
 msgid "online, idle"
 msgstr "en línea, en reposo"
 
-#: matesla/poll_diagnostics.py:150
-#: personalstats/templates/personalstats/poll_details.html:311
+#: matesla/poll_diagnostics.py:151
+#: personalstats/templates/personalstats/poll_details.html:270
 msgid "None"
 msgstr "Ninguno"
 
-#: matesla/poll_diagnostics.py:152
-#: personalstats/templates/personalstats/poll_details.html:376
-#: personalstats/templates/personalstats/poll_details.html:410
+#: matesla/poll_diagnostics.py:153
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "busy"
 msgstr "ocupado"
 
-#: matesla/poll_diagnostics.py:153
-#: personalstats/templates/personalstats/poll_details.html:377
-#: personalstats/templates/personalstats/poll_details.html:410
-#| msgid "busy"
+#: matesla/poll_diagnostics.py:154
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "near busy"
 msgstr "cerca de activo"
 
-#: matesla/poll_diagnostics.py:154
-#: personalstats/templates/personalstats/poll_details.html:378
-#: personalstats/templates/personalstats/poll_details.html:410
+#: matesla/poll_diagnostics.py:155
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "moderate"
 msgstr "moderado"
 
-#: matesla/poll_diagnostics.py:155
-#: personalstats/templates/personalstats/poll_details.html:379
-#: personalstats/templates/personalstats/poll_details.html:410
+#: matesla/poll_diagnostics.py:156
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "quiet"
 msgstr "tranquilo"
 
-#: matesla/poll_diagnostics.py:163
+#: matesla/poll_diagnostics.py:164
 #: matesla/templates/matesla/_vehicle_chrome.html:42
 msgid "OK"
 msgstr "OK"
 
-#: matesla/poll_diagnostics.py:164
+#: matesla/poll_diagnostics.py:165
 msgid "No VIN"
 msgstr "Sin VIN"
 
-#: matesla/poll_diagnostics.py:165
+#: matesla/poll_diagnostics.py:166
 msgid "Insufficient reference weeks"
 msgstr "Semanas de referencia insuficientes"
 
-#: matesla/poll_diagnostics.py:166
+#: matesla/poll_diagnostics.py:167
 msgid "Regime break"
 msgstr "Ruptura de régimen"
 
-#: matesla/poll_diagnostics.py:167
+#: matesla/poll_diagnostics.py:168
 msgid "No habit slots"
 msgstr "Sin franjas de hábito"
 
-#: matesla/poll_diagnostics.py:168
+#: matesla/poll_diagnostics.py:169
 msgid "Unknown"
 msgstr "Desconocido"
 
-#: matesla/poll_diagnostics.py:341
-msgid ""
-"Habit model is trusted. For idle/asleep hours it can set 5, 15 or 30 minute "
-"spacing from historical weekday+hour patterns. Live drive, charge and cabin "
-"activity always keep the short reactive intervals."
-msgstr ""
-"El modelo de hábitos es de confianza. En horas de reposo/sueño puede fijar "
-"5, 15 o 30 minutos según el historial día+hora. Conducción, carga y "
-"habitáculo siempre mantienen los intervalos reactivos cortos."
+#: matesla/poll_diagnostics.py:342
+msgid "Habit model is trusted. For idle/asleep hours it can set 5, 15 or 30 minute spacing from historical weekday+hour patterns. Live drive, charge and cabin activity always keep the short reactive intervals."
+msgstr "El modelo de hábitos es de confianza. En horas de reposo/sueño puede fijar 5, 15 o 30 minutos según el historial día+hora. Conducción, carga y habitáculo siempre mantienen los intervalos reactivos cortos."
 
-#: matesla/poll_diagnostics.py:346
+#: matesla/poll_diagnostics.py:347
 msgid "No VIN is available, so habit-based spacing cannot run."
-msgstr ""
-"No hay VIN disponible, así que el espaciado por hábitos no puede ejecutarse."
+msgstr "No hay VIN disponible, así que el espaciado por hábitos no puede ejecutarse."
 
-#: matesla/poll_diagnostics.py:349
+#: matesla/poll_diagnostics.py:350
 #, python-format
-msgid ""
-"Not enough reference weeks of telemetry before the last %(recent)s days "
-"(have %(have)s, need at least %(need)s). Capture uses only the default "
-"day/night spacing until history is long enough."
-msgstr ""
-"No hay suficientes semanas de referencia de telemetría antes de los últimos "
-"%(recent)s días (hay %(have)s, se necesitan al menos %(need)s). La captura "
-"solo usa el espaciado por defecto día/noche hasta tener suficiente "
-"historial."
+msgid "Not enough reference weeks of telemetry before the last %(recent)s days (have %(have)s, need at least %(need)s). Capture uses only the default day/night spacing until history is long enough."
+msgstr "No hay suficientes semanas de referencia de telemetría antes de los últimos %(recent)s días (hay %(have)s, se necesitan al menos %(need)s). La captura solo usa el espaciado por defecto día/noche hasta tener suficiente historial."
 
-#: matesla/poll_diagnostics.py:360
-msgid ""
-"Recent mobility does not match the reference weeks (regime break). Habits "
-"are disabled so a school↔holiday or trip change cannot stretch polls "
-"incorrectly. Default day/night spacing is used until patterns look "
-"consistent again."
-msgstr ""
-"La movilidad reciente no coincide con las semanas de referencia (cambio de "
-"régimen). Los hábitos se desactivan para que un cambio colegio↔vacaciones o "
-"un viaje no alargue las consultas incorrectamente. Se usa el espaciado "
-"día/noche por defecto hasta que los patrones vuelvan a ser coherentes."
+#: matesla/poll_diagnostics.py:361
+msgid "Recent mobility does not match the reference weeks (regime break). Habits are disabled so a school↔holiday or trip change cannot stretch polls incorrectly. Default day/night spacing is used until patterns look consistent again."
+msgstr "La movilidad reciente no coincide con las semanas de referencia (cambio de régimen). Los hábitos se desactivan para que un cambio colegio↔vacaciones o un viaje no alargue las consultas incorrectamente. Se usa el espaciado día/noche por defecto hasta que los patrones vuelvan a ser coherentes."
 
-#: matesla/poll_diagnostics.py:367
-msgid ""
-"There are enough reference weeks, but no weekday+hour slot was classified "
-"quiet, moderate or busy. Default spacing only."
-msgstr ""
-"Hay suficientes semanas de referencia, pero ningún hueco día+hora se "
-"clasificó como tranquilo, moderado o ocupado. Solo espaciado por defecto."
+#: matesla/poll_diagnostics.py:368
+msgid "There are enough reference weeks, but no weekday+hour slot was classified quiet, moderate or busy. Default spacing only."
+msgstr "Hay suficientes semanas de referencia, pero ningún hueco día+hora se clasificó como tranquilo, moderado o ocupado. Solo espaciado por defecto."
 
-#: matesla/poll_diagnostics.py:370
+#: matesla/poll_diagnostics.py:371
 #, python-format
 msgid "Habit model is not trusted (%(reason)s). Default spacing only."
-msgstr ""
-"El modelo de hábitos no es de confianza (%(reason)s). Solo espaciado por "
-"defecto."
+msgstr "El modelo de hábitos no es de confianza (%(reason)s). Solo espaciado por defecto."
 
-#: matesla/poll_diagnostics.py:explain_regime_detail
+#: matesla/poll_diagnostics.py:408
 #, python-format
-msgid ""
-"Driving activity fell sharply: about %(recent).1f h of mobility per day over "
-"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
-"weeks (often school → holidays). Habits stay off until patterns re-align."
+msgid "Driving activity fell sharply: about %(recent).1f h of mobility per day over the last %(recent_days)s days, versus %(ref).1f h/day during the training weeks (often school → holidays). Habits stay off until patterns re-align."
+msgstr "La actividad de conducción bajó mucho: unas %(recent).1f horas de movilidad al día en los últimos %(recent_days)s días, frente a %(ref).1f h/día en las semanas de aprendizaje (a menudo colegio → vacaciones). Los hábitos siguen desactivados hasta que el ritmo se realinee."
 
-msgstr ""
-"La actividad de conducción bajó mucho: unas %(recent).1f horas de movilidad "
-"al día en los últimos %(recent_days)s días, frente a %(ref).1f h/día en las "
-"semanas de aprendizaje (a menudo colegio → vacaciones). Los hábitos siguen "
-"desactivados hasta que el ritmo se realinee."
+#: matesla/poll_diagnostics.py:418
+msgid "Driving activity fell sharply versus the training weeks (often school → holidays). Habits stay off until patterns re-align."
+msgstr "La actividad de conducción bajó mucho respecto a las semanas de aprendizaje (a menudo colegio → vacaciones). Los hábitos siguen desactivados hasta que el ritmo se realinee."
 
-#: matesla/poll_diagnostics.py:explain_regime_detail
-msgid ""
-"Driving activity fell sharply versus the training weeks (often school → "
-"holidays). Habits stay off until patterns re-align."
-msgstr ""
-"La actividad de conducción bajó mucho respecto a las semanas de aprendizaje "
-"(a menudo colegio → vacaciones). Los hábitos siguen desactivados hasta que "
-"el ritmo se realinee."
-
-#: matesla/poll_diagnostics.py:explain_regime_detail
+#: matesla/poll_diagnostics.py:426
 #, python-format
-msgid ""
-"Driving activity rose sharply: about %(recent).1f h of mobility per day over "
-"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
-"weeks (often holidays → school, or a trip). Habits stay off until patterns "
-"re-align."
+msgid "Driving activity rose sharply: about %(recent).1f h of mobility per day over the last %(recent_days)s days, versus %(ref).1f h/day during the training weeks (often holidays → school, or a trip). Habits stay off until patterns re-align."
+msgstr "La actividad de conducción subió mucho: unas %(recent).1f horas de movilidad al día en los últimos %(recent_days)s días, frente a %(ref).1f h/día en las semanas de aprendizaje (a menudo vacaciones → colegio, o un viaje). Los hábitos siguen desactivados hasta que el ritmo se realinee."
 
-msgstr ""
-"La actividad de conducción subió mucho: unas %(recent).1f horas de movilidad "
-"al día en los últimos %(recent_days)s días, frente a %(ref).1f h/día en las "
-"semanas de aprendizaje (a menudo vacaciones → colegio, o un viaje). Los "
-"hábitos siguen desactivados hasta que el ritmo se realinee."
+#: matesla/poll_diagnostics.py:436
+msgid "Driving activity rose sharply versus the training weeks (often holidays → school, or a trip). Habits stay off until patterns re-align."
+msgstr "La actividad de conducción subió mucho respecto a las semanas de aprendizaje (a menudo vacaciones → colegio, o un viaje). Los hábitos siguen desactivados hasta que el ritmo se realinee."
 
-#: matesla/poll_diagnostics.py:explain_regime_detail
-msgid ""
-"Driving activity rose sharply versus the training weeks (often holidays → "
-"school, or a trip). Habits stay off until patterns re-align."
-msgstr ""
-"La actividad de conducción subió mucho respecto a las semanas de aprendizaje "
-"(a menudo vacaciones → colegio, o un viaje). Los hábitos siguen desactivados "
-"hasta que el ritmo se realinee."
-
-#: matesla/poll_diagnostics.py:explain_regime_detail
+#: matesla/poll_diagnostics.py:446
 #, python-format
-msgid ""
-"Several recent drives (%(count)s hour-slots) happened at weekday+hour times "
-"that were almost never mobile in the training weeks. Habits stay off until "
-"patterns re-align."
-msgstr ""
-"Varios trayectos recientes (%(count)s franjas de una hora) ocurrieron en "
-"días/horas casi nunca móviles en las semanas de aprendizaje. Los hábitos "
-"siguen desactivados hasta que el ritmo se realinee."
+msgid "Several recent drives (%(count)s hour-slots) happened at weekday+hour times that were almost never mobile in the training weeks. Habits stay off until patterns re-align."
+msgstr "Varios trayectos recientes (%(count)s franjas de una hora) ocurrieron en días/horas casi nunca móviles en las semanas de aprendizaje. Los hábitos siguen desactivados hasta que el ritmo se realinee."
 
-#: matesla/poll_diagnostics.py:explain_regime_detail
-msgid ""
-"Several recent drives happened at weekday+hour times that were almost never "
-"mobile in the training weeks. Habits stay off until patterns re-align."
-msgstr ""
-"Varios trayectos recientes ocurrieron en días/horas casi nunca móviles en "
-"las semanas de aprendizaje. Los hábitos siguen desactivados hasta que el "
-"ritmo se realinee."
+#: matesla/poll_diagnostics.py:451
+msgid "Several recent drives happened at weekday+hour times that were almost never mobile in the training weeks. Habits stay off until patterns re-align."
+msgstr "Varios trayectos recientes ocurrieron en días/horas casi nunca móviles en las semanas de aprendizaje. Los hábitos siguen desactivados hasta que el ritmo se realinee."
 
-#: matesla/poll_diagnostics.py:explain_regime_detail
-msgid ""
-"Recent driving does not match the training weeks (regime change). Habits "
-"stay off until patterns re-align."
-msgstr ""
-"La conducción reciente no coincide con las semanas de aprendizaje (cambio de "
-"ritmo). Los hábitos siguen desactivados hasta que el ritmo se realinee."
+#: matesla/poll_diagnostics.py:458
+msgid "Recent driving does not match the training weeks (regime change). Habits stay off until patterns re-align."
+msgstr "La conducción reciente no coincide con las semanas de aprendizaje (cambio de ritmo). Los hábitos siguen desactivados hasta que el ritmo se realinee."
 
-#: matesla/poll_diagnostics.py:441
+#: matesla/poll_diagnostics.py:506
 msgid "night"
 msgstr "noche"
 
-#: matesla/poll_diagnostics.py:441
+#: matesla/poll_diagnostics.py:506
 msgid "day"
 msgstr "día"
 
-#: matesla/poll_diagnostics.py:447
+#: matesla/poll_diagnostics.py:512
 #, python-format
-msgid ""
-"Driving with navigation ETA %(eta)s min → query every %(minutes)s min (1 min "
-"when ETA ≤ 3 min or approaching a Supercharger; 2 min near arrival / crawl; "
-"%(mid)s min mid-trip; %(far)s min when ETA is long). Habits do not apply "
-"while driving."
-msgstr ""
-"Conduciendo con ETA de navegación %(eta)s min → consulta cada %(minutes)s "
-"min (1 min si ETA ≤ 3 min o al acercarse a un Supercharger; 2 min cerca de "
-"la llegada / a paso lento; %(mid)s min a mitad de viaje; %(far)s min si el "
-"ETA es largo). Los hábitos no aplican al conducir."
+msgid "Driving with navigation ETA %(eta)s min → query every %(minutes)s min (1 min when ETA ≤ 3 min or approaching a Supercharger; 2 min near arrival / crawl; %(mid)s min mid-trip; %(far)s min when ETA is long). Habits do not apply while driving."
+msgstr "Conduciendo con ETA de navegación %(eta)s min → consulta cada %(minutes)s min (1 min si ETA ≤ 3 min o al acercarse a un Supercharger; 2 min cerca de la llegada / a paso lento; %(mid)s min a mitad de viaje; %(far)s min si el ETA es largo). Los hábitos no aplican al conducir."
 
-#: matesla/poll_diagnostics.py:458
+#: matesla/poll_diagnostics.py:524
 #, python-format
-msgid ""
-"Driving without navigation ETA → dense %(minutes)s min queries (stretch only"
-" when Tesla reports minutes-to-arrival). Habits do not apply while driving."
-msgstr ""
-"Conduciendo sin ETA de navegación → consultas densas cada %(minutes)s min "
-"(solo se alarga si Tesla da minutos hasta llegada). Los hábitos no aplican "
-"al conducir."
+msgid "Driving without navigation ETA → dense %(minutes)s min queries (stretch only when Tesla reports minutes-to-arrival). Habits do not apply while driving."
+msgstr "Conduciendo sin ETA de navegación → consultas densas cada %(minutes)s min (solo se alarga si Tesla da minutos hasta llegada). Los hábitos no aplican al conducir."
 
-#: matesla/poll_diagnostics.py:464
+#: matesla/poll_diagnostics.py:530
 #, python-format
-msgid ""
-"Live activity “%(activity)s” → reactive default spacing %(minutes)s min "
-"(%(day_or_night)s). Habits do not apply while the car is active."
-msgstr ""
-"Actividad en vivo “%(activity)s” → espaciado por defecto reactivo "
-"%(minutes)s min (%(day_or_night)s). Los hábitos no aplican mientras el coche"
-" está activo."
+msgid "Live activity “%(activity)s” → reactive default spacing %(minutes)s min (%(day_or_night)s). Habits do not apply while the car is active."
+msgstr "Actividad en vivo “%(activity)s” → espaciado por defecto reactivo %(minutes)s min (%(day_or_night)s). Los hábitos no aplican mientras el coche está activo."
 
-#: matesla/poll_diagnostics.py:474
+#: matesla/poll_diagnostics.py:540
 #, python-format
-msgid ""
-"Idle/asleep policy: no drive and no charge for a long stretch → minimum "
-"spacing %(minutes)s min (10 min after 24 h, 15 min after 48 h). Baseline "
-"would be %(baseline)s min."
-msgstr ""
-"Política en reposo: sin conducir ni cargar durante un rato largo → intervalo"
-" mínimo %(minutes)s min (10 min tras 24 h, 15 min tras 48 h). La base sería "
-"%(baseline)s min."
+msgid "Idle/asleep policy: no drive and no charge for a long stretch → minimum spacing %(minutes)s min (10 min after 24 h, 15 min after 48 h). Baseline would be %(baseline)s min."
+msgstr "Política en reposo: sin conducir ni cargar durante un rato largo → intervalo mínimo %(minutes)s min (10 min tras 24 h, 15 min tras 48 h). La base sería %(baseline)s min."
 
-#: matesla/poll_diagnostics.py:488
+#: matesla/poll_diagnostics.py:554
 #, python-format
-msgid ""
-"(long-idle floor %(floor)s min also applies but habit is already as sparse "
-"or sparser.)"
-msgstr ""
-"(el suelo de inactividad larga %(floor)s min también aplica, pero el hábito "
-"ya es igual de espaciado o más.)"
+msgid "(long-idle floor %(floor)s min also applies but habit is already as sparse or sparser.)"
+msgstr "(el suelo de inactividad larga %(floor)s min también aplica, pero el hábito ya es igual de espaciado o más.)"
 
-#: matesla/poll_diagnostics.py:492
+#: matesla/poll_diagnostics.py:558
 #, python-format
-msgid ""
-"Idle/asleep policy: habit class “%(habit_class)s” sets %(minutes)s min for "
-"this weekday+hour (default would be %(baseline)s min, %(day_or_night)s)."
-msgstr ""
-"Política reposo/sueño: la clase de hábito “%(habit_class)s” fija %(minutes)s"
-" min para este día+hora (el valor por defecto sería %(baseline)s min, "
-"%(day_or_night)s)."
+msgid "Idle/asleep policy: habit class “%(habit_class)s” sets %(minutes)s min for this weekday+hour (default would be %(baseline)s min, %(day_or_night)s)."
+msgstr "Política reposo/sueño: la clase de hábito “%(habit_class)s” fija %(minutes)s min para este día+hora (el valor por defecto sería %(baseline)s min, %(day_or_night)s)."
 
-#: matesla/poll_diagnostics.py:502
+#: matesla/poll_diagnostics.py:568
 #, python-format
-msgid ""
-"Idle/asleep policy: slot is historically moderate, but at night moderate "
-"does not densify — keep night default %(minutes)s min."
-msgstr ""
-"Política reposo/sueño: la franja es históricamente moderada, pero de noche "
-"lo moderado no densifica — se mantiene el valor nocturno por defecto "
-"%(minutes)s min."
+msgid "Idle/asleep policy: slot is historically moderate, but at night moderate does not densify — keep night default %(minutes)s min."
+msgstr "Política reposo/sueño: la franja es históricamente moderada, pero de noche lo moderado no densifica — se mantiene el valor nocturno por defecto %(minutes)s min."
 
-#: matesla/poll_diagnostics.py:506
+#: matesla/poll_diagnostics.py:572
 #, python-format
-msgid ""
-"Idle/asleep policy: no habit for this weekday+hour → %(day_or_night)s "
-"default %(minutes)s min."
-msgstr ""
-"Política reposo/sueño: sin hábito para este día+hora → por defecto "
-"%(day_or_night)s %(minutes)s min."
+msgid "Idle/asleep policy: no habit for this weekday+hour → %(day_or_night)s default %(minutes)s min."
+msgstr "Política reposo/sueño: sin hábito para este día+hora → por defecto %(day_or_night)s %(minutes)s min."
 
-#: matesla/poll_diagnostics.py:854
-msgid ""
-"The week grid describes idle/asleep/sentry spacing only. If the car drives, "
-"DC/AC charges or has cabin activity, capture switches to the short reactive "
-"default until that ends."
-msgstr ""
-"La cuadrícula describe solo el espaciado reposo/sueño/centinela. Si el coche"
-" conduce, carga (DC/AC) o tiene actividad en habitáculo, la captura vuelve "
-"al espaciado por defecto reactivo corto hasta que termine."
+#: matesla/poll_diagnostics.py:926
+msgid "The week grid describes idle/asleep/sentry spacing only. If the car drives, DC/AC charges or has cabin activity, capture switches to the short reactive default until that ends."
+msgstr "La cuadrícula describe solo el espaciado reposo/sueño/centinela. Si el coche conduce, carga (DC/AC) o tiene actividad en habitáculo, la captura vuelve al espaciado por defecto reactivo corto hasta que termine."
 
-#: matesla/poll_diagnostics.py:859
+#: matesla/poll_diagnostics.py:931
 #, python-format
-msgid ""
-"After %(soft_h)s h with no drive and no charge, idle spacing is at least "
-"%(soft_m)s min; after %(hard_h)s h at least %(hard_m)s min (even if the day "
-"default or a busy habit would be denser). Night default %(night)s min is "
-"already sparser."
-msgstr ""
-"Tras %(soft_h)s h sin conducir ni cargar, el intervalo en reposo es al menos"
-" %(soft_m)s min; tras %(hard_h)s h al menos %(hard_m)s min (aunque el valor "
-"diurno o un hábito ocupado fuera más denso). El valor nocturno %(night)s min"
-" ya es más espaciado."
+msgid "After %(soft_h)s h with no drive and no charge, idle spacing is at least %(soft_m)s min; after %(hard_h)s h at least %(hard_m)s min (even if the day default or a busy habit would be denser). Night default %(night)s min is already sparser."
+msgstr "Tras %(soft_h)s h sin conducir ni cargar, el intervalo en reposo es al menos %(soft_m)s min; tras %(hard_h)s h al menos %(hard_m)s min (aunque el valor diurno o un hábito ocupado fuera más denso). El valor nocturno %(night)s min ya es más espaciado."
 
-#: matesla/poll_diagnostics.py:872
+#: matesla/poll_diagnostics.py:944
 #, python-format
-msgid ""
-"Habits use at most the last %(lookback)s days, require %(min_weeks)s "
-"reference weeks before the last %(recent)s days, and disable themselves on a"
-" regime break."
-msgstr ""
-"Los hábitos usan como máximo los últimos %(lookback)s días, exigen "
-"%(min_weeks)s semanas de referencia antes de los últimos %(recent)s días, y "
-"se desactivan ante una ruptura de régimen."
+msgid "Habits use at most the last %(lookback)s days, require %(min_weeks)s reference weeks before the last %(recent)s days, and disable themselves on a regime break."
+msgstr "Los hábitos usan como máximo los últimos %(lookback)s días, exigen %(min_weeks)s semanas de referencia antes de los últimos %(recent)s días, y se desactivan ante una ruptura de régimen."
 
-#: matesla/poll_diagnostics.py:882
+#: matesla/poll_diagnostics.py:954
 #, python-format
-#| msgid ""
-#| "When habits are trusted, every weekday+hour is busy (%(busy)s min), quiet "
-#| "(%(quiet)s min), or moderate (%(moderate)s min by day; night moderate keeps "
-#| "the %(night)s min night default). There is no idle “default hole” in the "
-#| "grid — only untrusted models fall back to day %(day)s / night %(night)s "
-#| "everywhere."
-msgid ""
-"When habits are trusted, every weekday+hour is busy (%(busy)s min), near-"
-"busy (%(near)s min, ±1 h around a busy core), quiet (%(quiet)s min), or "
-"moderate (%(moderate)s min by day; night moderate keeps the %(night)s min "
-"night default). There is no idle “default hole” in the grid — only untrusted"
-" models fall back to day %(day)s / night %(night)s everywhere."
-msgstr ""
-"Cuando los hábitos son fiables, cada día+hora es ocupado (%(busy)s min), "
-"cerca de activo (%(near)s min, ±1 h alrededor de un núcleo), tranquilo "
-"(%(quiet)s min) o moderado (%(moderate)s min de día; de noche el moderado "
-"mantiene el valor nocturno %(night)s min). No hay «agujero» de valor por "
-"defecto en la cuadrícula: solo los modelos no fiables vuelven a día %(day)s "
-"/ noche %(night)s en todas partes."
+msgid "When habits are trusted, every weekday+hour is busy (%(busy)s min), near-busy (%(near)s min, ±1 h around a busy core), quiet (%(quiet)s min), or moderate (%(moderate)s min by day; night moderate keeps the %(night)s min night default). There is no idle “default hole” in the grid — only untrusted models fall back to day %(day)s / night %(night)s everywhere."
+msgstr "Cuando los hábitos son fiables, cada día+hora es ocupado (%(busy)s min), cerca de activo (%(near)s min, ±1 h alrededor de un núcleo), tranquilo (%(quiet)s min) o moderado (%(moderate)s min de día; de noche el moderado mantiene el valor nocturno %(night)s min). No hay «agujero» de valor por defecto en la cuadrícula: solo los modelos no fiables vuelven a día %(day)s / noche %(night)s en todas partes."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:4
 msgid "Tesla connection"
@@ -634,14 +446,8 @@ msgid "Connect your car."
 msgstr "Conecta tu coche."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:14
-msgid ""
-"Configure the app, register the partner domain, then authorize MaTesla. Your"
-" secrets stay stored locally. You can re-open this page anytime — safe "
-"actions will not break a working setup."
-msgstr ""
-"Configura la app, registra el dominio partner y autoriza MaTesla. Tus "
-"secretos se guardan en local. Puedes reabrir esta página cuando quieras: las"
-" acciones seguras no rompen una configuración que ya funciona."
+msgid "Configure the app, register the partner domain, then authorize MaTesla. Your secrets stay stored locally. You can re-open this page anytime — safe actions will not break a working setup."
+msgstr "Configura la app, registra el dominio partner y autoriza MaTesla. Tus secretos se guardan en local. Puedes reabrir esta página cuando quieras: las acciones seguras no rompen una configuración que ya funciona."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:18
 #: matesla/templates/matesla/AddTeslaAccount.html:95
@@ -692,12 +498,8 @@ msgid "Tokens refresh automatically; re-authorize only if access fails."
 msgstr "Los tokens se renuevan solos; reautoriza solo si falla el acceso."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:57
-msgid ""
-"Disconnect this Tesla account? Tokens and vehicle list will be removed from "
-"MaTesla."
-msgstr ""
-"¿Desconectar esta cuenta Tesla? Se eliminarán de MaTesla los tokens y la "
-"lista de vehículos."
+msgid "Disconnect this Tesla account? Tokens and vehicle list will be removed from MaTesla."
+msgstr "¿Desconectar esta cuenta Tesla? Se eliminarán de MaTesla los tokens y la lista de vehículos."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:57
 msgid "Disconnect"
@@ -713,43 +515,27 @@ msgstr "Estado desconocido"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:77
 msgid "No vehicles synchronized. Finish partner registration, then resync."
-msgstr ""
-"Ningún vehículo sincronizado. Termina el registro partner y luego "
-"resincroniza."
+msgstr "Ningún vehículo sincronizado. Termina el registro partner y luego resincroniza."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:84
 msgid "Resync vehicles"
 msgstr "Resincronizar vehículos"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:86
-msgid ""
-"Re-authorize with Tesla? Your current tokens will be replaced after you "
-"confirm on Tesla site."
-msgstr ""
-"¿Reautorizar con Tesla? Tus tokens actuales se reemplazarán tras confirmar "
-"en el sitio de Tesla."
+msgid "Re-authorize with Tesla? Your current tokens will be replaced after you confirm on Tesla site."
+msgstr "¿Reautorizar con Tesla? Tus tokens actuales se reemplazarán tras confirmar en el sitio de Tesla."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:86
 msgid "Re-authorize"
 msgstr "Reautorizar"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:97
-msgid ""
-"Copy credentials from <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Saving again only updates what "
-"you change."
-msgstr ""
-"Copia las credenciales de <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Guardar de nuevo solo actualiza "
-"lo que cambies."
+msgid "Copy credentials from <a class=\"text-link\" href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com ↗</a>. Saving again only updates what you change."
+msgstr "Copia las credenciales de <a class=\"text-link\" href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com ↗</a>. Guardar de nuevo solo actualiza lo que cambies."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:103
 msgid "Credentials are stored. Save again only if you need to edit them."
-msgstr ""
-"Las credenciales están guardadas. Vuelve a guardar solo si necesitas "
-"editarlas."
+msgstr "Las credenciales están guardadas. Vuelve a guardar solo si necesitas editarlas."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:118
 msgid "Update application"
@@ -760,37 +546,24 @@ msgid "Save application"
 msgstr "Guardar la aplicación"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:129
-msgid ""
-"Tesla fetches an EC public key over HTTPS on a domain you control before "
-"granting vehicle access. Localhost is not allowed."
-msgstr ""
-"Tesla obtiene una clave pública EC por HTTPS en un dominio que controlas "
-"antes de conceder acceso al vehículo. Localhost no está permitido."
+msgid "Tesla fetches an EC public key over HTTPS on a domain you control before granting vehicle access. Localhost is not allowed."
+msgstr "Tesla obtiene una clave pública EC por HTTPS en un dominio que controlas antes de conceder acceso al vehículo. Localhost no está permitido."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:146
 msgid "Any HTTPS host works — GitHub Pages is only one option among many."
-msgstr ""
-"Cualquier host HTTPS sirve: GitHub Pages es solo una opción entre muchas."
+msgstr "Cualquier host HTTPS sirve: GitHub Pages es solo una opción entre muchas."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:147
 msgid "Tesla always requests this exact URL (path fixed by Tesla):"
 msgstr "Tesla siempre solicita exactamente esta URL (ruta fijada por Tesla):"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:154
-msgid ""
-"Add https://&lt;your-domain&gt; to Allowed Origins on the Tesla developer "
-"dashboard."
-msgstr ""
-"Añade https://&lt;tu-dominio&gt; a Allowed Origins en el panel de "
-"desarrollador de Tesla."
+msgid "Add https://&lt;your-domain&gt; to Allowed Origins on the Tesla developer dashboard."
+msgstr "Añade https://&lt;tu-dominio&gt; a Allowed Origins en el panel de desarrollador de Tesla."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:155
-msgid ""
-"Changing the domain later clears partner registration — verify and register "
-"again."
-msgstr ""
-"Cambiar el dominio más tarde borra el registro partner: verifica y registra "
-"de nuevo."
+msgid "Changing the domain later clears partner registration — verify and register again."
+msgstr "Cambiar el dominio más tarde borra el registro partner: verifica y registra de nuevo."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:159
 msgid "Canonical public key URL used for verify &amp; register"
@@ -806,32 +579,21 @@ msgstr "Guardar la URL partner"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:170
 #, python-format
-msgid ""
-"Domain %(domain)s is registered as partner for this region. Re-register is "
-"safe if you need to refresh."
-msgstr ""
-"El dominio %(domain)s está registrado como partner en esta región. Volver a "
-"registrar es seguro si necesitas refrescar."
+msgid "Domain %(domain)s is registered as partner for this region. Re-register is safe if you need to refresh."
+msgstr "El dominio %(domain)s está registrado como partner en esta región. Volver a registrar es seguro si necesitas refrescar."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:174
 #, python-format
-msgid ""
-"Domain saved: %(domain)s. Verify the public key, then register the partner."
-msgstr ""
-"Dominio guardado: %(domain)s. Verifica la clave pública y luego registra el "
-"partner."
+msgid "Domain saved: %(domain)s. Verify the public key, then register the partner."
+msgstr "Dominio guardado: %(domain)s. Verifica la clave pública y luego registra el partner."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:177
 msgid "Set and save a partner domain first."
 msgstr "Define y guarda primero un dominio partner."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:182
-msgid ""
-"Local EC key pair is ready. It will not be overwritten if you click generate"
-" again."
-msgstr ""
-"El par de claves EC local está listo. No se sobrescribirá si vuelves a "
-"pulsar generar."
+msgid "Local EC key pair is ready. It will not be overwritten if you click generate again."
+msgstr "El par de claves EC local está listo. No se sobrescribirá si vuelves a pulsar generar."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:191
 msgid "Generate EC key"
@@ -862,18 +624,12 @@ msgid "Tesla account authorization"
 msgstr "Autorización de la cuenta Tesla"
 
 #: matesla/templates/matesla/AddTeslaAccount.html:223
-msgid ""
-"Tesla will ask you to confirm access. MaTesla never receives your password."
-msgstr ""
-"Tesla te pedirá confirmar el acceso. MaTesla nunca recibe tu contraseña."
+msgid "Tesla will ask you to confirm access. MaTesla never receives your password."
+msgstr "Tesla te pedirá confirmar el acceso. MaTesla nunca recibe tu contraseña."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:229
-msgid ""
-"Already authorized. Use Resync or Re-authorize in the “Account connected” "
-"section above if needed."
-msgstr ""
-"Ya autorizado. Usa Resincronizar o Reautorizar en la sección «Cuenta "
-"conectada» de arriba si hace falta."
+msgid "Already authorized. Use Resync or Re-authorize in the “Account connected” section above if needed."
+msgstr "Ya autorizado. Usa Resincronizar o Reautorizar en la sección «Cuenta conectada» de arriba si hace falta."
 
 #: matesla/templates/matesla/AddTeslaAccount.html:233
 msgid "Redirect URI (must match the Tesla dashboard)"
@@ -919,12 +675,8 @@ msgid "Empty garage"
 msgstr "Garaje vacío"
 
 #: matesla/templates/matesla/NoTeslaVehicules.html:10
-msgid ""
-"No vehicles are associated to your account. Please retry when your car will "
-"be there."
-msgstr ""
-"No hay vehículos asociados a tu cuenta. Reinténtalo cuando el coche esté "
-"disponible."
+msgid "No vehicles are associated to your account. Please retry when your car will be there."
+msgstr "No hay vehículos asociados a tu cuenta. Reinténtalo cuando el coche esté disponible."
 
 #: matesla/templates/matesla/TeslaServerError.html:4
 #: matesla/templates/matesla/TeslaServerError.html:9
@@ -965,7 +717,7 @@ msgid "Outside"
 msgstr "Exterior"
 
 #: matesla/templates/matesla/_carstatus_body.html:56
-#: matesla/templates/matesla/_carstatus_body.html:160
+#: matesla/templates/matesla/_carstatus_body.html:169
 msgid "Odometer"
 msgstr "Odómetro"
 
@@ -1055,115 +807,127 @@ msgid "Battery degradation (%%)"
 msgstr "Degradación de la batería (%%)"
 
 #: matesla/templates/matesla/_carstatus_body.html:133
+msgid "Pack when new (kWh)"
+msgstr "Pack de nuevo (kWh)"
+
+#: matesla/templates/matesla/_carstatus_body.html:136
+msgid "Usable battery capacity (kWh)"
+msgstr "Capacidad útil de batería (kWh)"
+
+#: matesla/templates/matesla/_carstatus_body.html:139
+msgid "Energy currently stored (kWh)"
+msgstr "Energía almacenada actualmente (kWh)"
+
+#: matesla/templates/matesla/_carstatus_body.html:142
 #, python-format
 msgid "Battery charge limit (%%)"
 msgstr "Límite de carga de la batería (%%)"
 
-#: matesla/templates/matesla/_carstatus_body.html:138
+#: matesla/templates/matesla/_carstatus_body.html:147
 msgid "Charge port"
 msgstr "Puerto de carga"
 
-#: matesla/templates/matesla/_carstatus_body.html:140
+#: matesla/templates/matesla/_carstatus_body.html:149
 msgid "Voltage in V"
 msgstr "Tensión en V"
 
-#: matesla/templates/matesla/_carstatus_body.html:141
+#: matesla/templates/matesla/_carstatus_body.html:150
 msgid "Current in A"
 msgstr "Corriente en A"
 
-#: matesla/templates/matesla/_carstatus_body.html:142
+#: matesla/templates/matesla/_carstatus_body.html:151
 msgid "Power in kW"
 msgstr "Potencia en kW"
 
-#: matesla/templates/matesla/_carstatus_body.html:143
+#: matesla/templates/matesla/_carstatus_body.html:152
 msgid "Number of phases"
 msgstr "Número de fases"
 
-#: matesla/templates/matesla/_carstatus_body.html:144
+#: matesla/templates/matesla/_carstatus_body.html:153
 msgid "Time left in minutes"
 msgstr "Tiempo restante en minutos"
 
-#: matesla/templates/matesla/_carstatus_body.html:146
+#: matesla/templates/matesla/_carstatus_body.html:155
 msgid "Vehicle is unplugged"
 msgstr "El vehículo no está enchufado"
 
-#: matesla/templates/matesla/_carstatus_body.html:154
+#: matesla/templates/matesla/_carstatus_body.html:163
 msgid "Drive and location"
 msgstr "Conducción y ubicación"
 
-#: matesla/templates/matesla/_carstatus_body.html:155
+#: matesla/templates/matesla/_carstatus_body.html:164
 msgid "Mobility"
 msgstr "Movilidad"
 
-#: matesla/templates/matesla/_carstatus_body.html:158
+#: matesla/templates/matesla/_carstatus_body.html:167
 msgid "Speed"
 msgstr "Velocidad"
 
-#: matesla/templates/matesla/_carstatus_body.html:159
+#: matesla/templates/matesla/_carstatus_body.html:168
 msgid "Location"
 msgstr "Ubicación"
 
-#: matesla/templates/matesla/_carstatus_body.html:159
+#: matesla/templates/matesla/_carstatus_body.html:168
 msgid "Map"
 msgstr "Mapa"
 
-#: matesla/templates/matesla/_carstatus_body.html:161
+#: matesla/templates/matesla/_carstatus_body.html:170
 msgid "Estim. number of battery cycles"
 msgstr "N.º estimado de ciclos de batería"
 
-#: matesla/templates/matesla/_carstatus_body.html:162
+#: matesla/templates/matesla/_carstatus_body.html:171
 msgid "EPA range"
 msgstr "Autonomía EPA"
 
-#: matesla/templates/matesla/_carstatus_body.html:168
+#: matesla/templates/matesla/_carstatus_body.html:177
 msgid "Climate information"
 msgstr "Información climática"
 
-#: matesla/templates/matesla/_carstatus_body.html:169
+#: matesla/templates/matesla/_carstatus_body.html:178
 msgid "On"
 msgstr "Activado"
 
-#: matesla/templates/matesla/_carstatus_body.html:169
+#: matesla/templates/matesla/_carstatus_body.html:178
 msgid "Off"
 msgstr "Apagado"
 
-#: matesla/templates/matesla/_carstatus_body.html:172
+#: matesla/templates/matesla/_carstatus_body.html:181
 msgid "Inside temperature"
 msgstr "Temperatura interior"
 
-#: matesla/templates/matesla/_carstatus_body.html:173
+#: matesla/templates/matesla/_carstatus_body.html:182
 msgid "Outside temperature"
 msgstr "Temperatura exterior"
 
-#: matesla/templates/matesla/_carstatus_body.html:175
+#: matesla/templates/matesla/_carstatus_body.html:184
 msgid "Driver Temperature setting"
 msgstr "Temperatura del conductor"
 
-#: matesla/templates/matesla/_carstatus_body.html:183
+#: matesla/templates/matesla/_carstatus_body.html:192
 msgid "Software"
 msgstr "Software"
 
-#: matesla/templates/matesla/_carstatus_body.html:187
+#: matesla/templates/matesla/_carstatus_body.html:196
 msgid "Firmware version"
 msgstr "Versión de firmware"
 
-#: matesla/templates/matesla/_carstatus_body.html:189
+#: matesla/templates/matesla/_carstatus_body.html:198
 msgid "Update ready"
 msgstr "Actualización lista"
 
-#: matesla/templates/matesla/_carstatus_body.html:192
+#: matesla/templates/matesla/_carstatus_body.html:201
 msgid "Scheduled update"
 msgstr "Actualización programada"
 
-#: matesla/templates/matesla/_carstatus_body.html:195
+#: matesla/templates/matesla/_carstatus_body.html:204
 msgid "Installing"
 msgstr "Instalando"
 
-#: matesla/templates/matesla/_carstatus_body.html:198
+#: matesla/templates/matesla/_carstatus_body.html:207
 msgid "History"
 msgstr "Historial"
 
-#: matesla/templates/matesla/_carstatus_body.html:198
+#: matesla/templates/matesla/_carstatus_body.html:207
 msgid "View history"
 msgstr "Ver historial"
 
@@ -1239,37 +1003,20 @@ msgid "History mode"
 msgstr "Modo historial"
 
 #: matesla/templates/matesla/vehicle_hub.html:24
-msgid ""
-"MaTesla still shows history. Live status will return when the Tesla Fleet "
-"free credit resets or a payment method is added."
-msgstr ""
-"MaTesla sigue mostrando el historial. El estado en directo volverá cuando se"
-" reinicie el crédito gratuito de Tesla Fleet o se añada un método de pago."
+msgid "MaTesla still shows history. Live status will return when the Tesla Fleet free credit resets or a payment method is added."
+msgstr "MaTesla sigue mostrando el historial. El estado en directo volverá cuando se reinicie el crédito gratuito de Tesla Fleet o se añada un método de pago."
 
 #: matesla/templates/matesla/vehicle_hub.html:26
 msgid "The car is resting. MaTesla shows its history without ever waking it."
-msgstr ""
-"El coche descansa. MaTesla muestra su historial sin despertarlo nunca."
+msgstr "El coche descansa. MaTesla muestra su historial sin despertarlo nunca."
 
 #: matesla/templates/matesla/vehicle_hub.html:38
-msgid ""
-"Tesla disabled this account for usage limits (free monthly credit "
-"exhausted). This is not the car sleeping — the selector may still show "
-"online from the last successful check. Capture is paused until the limit "
-"clears. History graphs below remain available."
-msgstr ""
-"Tesla desactivó esta cuenta por límite de uso (crédito mensual gratuito "
-"agotado). No es que el coche duerma: el selector puede seguir mostrando «en "
-"línea» del último control correcto. La captura se pausa hasta que se levante"
-" el límite. Los gráficos de historial siguen disponibles abajo."
+msgid "Tesla disabled this account for usage limits (free monthly credit exhausted). This is not the car sleeping — the selector may still show online from the last successful check. Capture is paused until the limit clears. History graphs below remain available."
+msgstr "Tesla desactivó esta cuenta por límite de uso (crédito mensual gratuito agotado). No es que el coche duerma: el selector puede seguir mostrando «en línea» del último control correcto. La captura se pausa hasta que se levante el límite. Los gráficos de historial siguen disponibles abajo."
 
 #: matesla/templates/matesla/vehicle_hub.html:49
-msgid ""
-"No live data right now. Wake the car from the Tesla app if needed, then "
-"refresh its status here."
-msgstr ""
-"No hay datos en directo. Despierta el coche desde la app Tesla si hace falta"
-" y actualiza su estado aquí."
+msgid "No live data right now. Wake the car from the Tesla app if needed, then refresh its status here."
+msgstr "No hay datos en directo. Despierta el coche desde la app Tesla si hace falta y actualiza su estado aquí."
 
 #: matesla/templates/matesla/vehicle_hub.html:60
 msgid "No history yet"
@@ -1279,201 +1026,166 @@ msgstr "Aún no hay historial"
 msgid "The VIN for this vehicle is not known to MaTesla yet."
 msgstr "MaTesla aún no conoce el VIN de este vehículo."
 
-#: matesla/views.py:570
+#: matesla/views.py:596
 msgid "Application settings unchanged (safe to save again anytime)."
-msgstr ""
-"Ajustes de la aplicación sin cambios (puedes guardar de nuevo sin riesgo)."
+msgstr "Ajustes de la aplicación sin cambios (puedes guardar de nuevo sin riesgo)."
 
-#: matesla/views.py:576
-msgid ""
-"Developer credentials updated. If you changed Client ID or secret, use Re-"
-"authorize."
-msgstr ""
-"Credenciales de desarrollador actualizadas. Si cambiaste el Client ID o el "
-"secret, usa Reautorizar."
+#: matesla/views.py:602
+msgid "Developer credentials updated. If you changed Client ID or secret, use Re-authorize."
+msgstr "Credenciales de desarrollador actualizadas. Si cambiaste el Client ID o el secret, usa Reautorizar."
 
-#: matesla/views.py:581
+#: matesla/views.py:607
 msgid "Developer credentials saved."
 msgstr "Credenciales de desarrollador guardadas."
 
-#: matesla/views.py:590
+#: matesla/views.py:616
 msgid "Save Client ID and secret in step 1 before setting a partner domain."
-msgstr ""
-"Guarda el Client ID y el secret en el paso 1 antes de definir un dominio "
-"partner."
+msgstr "Guarda el Client ID y el secret en el paso 1 antes de definir un dominio partner."
 
-#: matesla/views.py:599
+#: matesla/views.py:625
 #, python-format
 msgid "Partner domain unchanged: %(domain)s"
 msgstr "Dominio partner sin cambios: %(domain)s"
 
-#: matesla/views.py:613
+#: matesla/views.py:639
 #, python-format
-msgid ""
-"Partner domain changed to %(domain)s. Previous registration no longer "
-"applies — verify the public key, then register again."
-msgstr ""
-"Dominio partner cambiado a %(domain)s. El registro anterior ya no aplica: "
-"verifica la clave pública y registra de nuevo."
+msgid "Partner domain changed to %(domain)s. Previous registration no longer applies — verify the public key, then register again."
+msgstr "Dominio partner cambiado a %(domain)s. El registro anterior ya no aplica: verifica la clave pública y registra de nuevo."
 
-#: matesla/views.py:620 matesla/views.py:629
+#: matesla/views.py:646 matesla/views.py:655
 msgid "Partner domain cleared."
 msgstr "Dominio partner borrado."
 
-#: matesla/views.py:626
+#: matesla/views.py:652
 #, python-format
 msgid "Partner domain saved: %(domain)s"
 msgstr "Dominio partner guardado: %(domain)s"
 
-#: matesla/views.py:639
+#: matesla/views.py:665
 #, python-format
-msgid ""
-"EC key pair created. Publish the public key to your partner domain (file: "
-"%(pub)s). Private key stays local: %(priv)s."
-msgstr ""
-"Par de claves EC creado. Publica la clave pública en tu dominio partner "
-"(archivo: %(pub)s). La clave privada se queda en local: %(priv)s."
+msgid "EC key pair created. Publish the public key to your partner domain (file: %(pub)s). Private key stays local: %(priv)s."
+msgstr "Par de claves EC creado. Publica la clave pública en tu dominio partner (archivo: %(pub)s). La clave privada se queda en local: %(priv)s."
 
-#: matesla/views.py:648
-msgid ""
-"EC key pair already exists — left unchanged. Regenerating would invalidate "
-"the public key on HTTPS; delete the files under tesla_keys/ only if you "
-"really mean to."
-msgstr ""
-"El par de claves EC ya existe — se deja igual. Regenerarlo invalidaría la "
-"clave pública en HTTPS; borra los archivos en tesla_keys/ solo si de verdad "
-"lo quieres."
+#: matesla/views.py:674
+msgid "EC key pair already exists — left unchanged. Regenerating would invalidate the public key on HTTPS; delete the files under tesla_keys/ only if you really mean to."
+msgstr "El par de claves EC ya existe — se deja igual. Regenerarlo invalidaría la clave pública en HTTPS; borra los archivos en tesla_keys/ solo si de verdad lo quieres."
 
-#: matesla/views.py:659
+#: matesla/views.py:685
 msgid "Set a partner domain first."
 msgstr "Indica primero un dominio partner."
 
-#: matesla/views.py:686
+#: matesla/views.py:712
 #, python-format
-msgid ""
-"Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail:"
-" %(result)s"
-msgstr ""
-"Registro partner reconfirmado para « %(domain)s ». Se puede repetir sin "
-"riesgo. Detalle: %(result)s"
+msgid "Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail: %(result)s"
+msgstr "Registro partner reconfirmado para « %(domain)s ». Se puede repetir sin riesgo. Detalle: %(result)s"
 
-#: matesla/views.py:695
+#: matesla/views.py:721
 #, python-format
-msgid ""
-"Partner register OK for « %(domain)s ». You can authorize Tesla / resync "
-"vehicles now. Detail: %(result)s"
-msgstr ""
-"Registro partner OK para « %(domain)s ». Ya puedes autorizar Tesla / "
-"resincronizar vehículos. Detalle: %(result)s"
+msgid "Partner register OK for « %(domain)s ». You can authorize Tesla / resync vehicles now. Detail: %(result)s"
+msgstr "Registro partner OK para « %(domain)s ». Ya puedes autorizar Tesla / resincronizar vehículos. Detalle: %(result)s"
 
-#: matesla/views.py:705
+#: matesla/views.py:731
 msgid "No Tesla token — sign in first."
 msgstr "No hay token Tesla: inicia sesión primero."
 
-#: matesla/views.py:718
+#: matesla/views.py:744
 #, python-format
 msgid "%(count)s vehicle(s) synchronized. Active: %(label)s."
 msgstr "%(count)s vehículo(s) sincronizado(s). Activo: %(label)s."
 
-#: matesla/views.py:722
+#: matesla/views.py:748
 msgid "No vehicles on the Tesla account."
 msgstr "No hay vehículos en la cuenta Tesla."
 
-#: matesla/views.py:727
+#: matesla/views.py:753
 #, python-format
 msgid "Resync failed: %(err)s"
 msgstr "Resincronización fallida: %(err)s"
 
-#: matesla/views.py:735
+#: matesla/views.py:761
 msgid "Tesla account disconnected (tokens and vehicles removed)."
 msgstr "Cuenta Tesla desconectada (tokens y vehículos eliminados)."
 
-#: matesla/views.py:802
+#: matesla/views.py:828
 msgid "Configure the Client ID and Client Secret first."
 msgstr "Configura primero el Client ID y el Client Secret."
 
-#: matesla/views.py:833
+#: matesla/views.py:859
 #, python-format
 msgid "Tesla denied authorization: %(error)s (%(desc)s)"
 msgstr "Tesla denegó la autorización: %(error)s (%(desc)s)"
 
-#: matesla/views.py:844
+#: matesla/views.py:870
 msgid "Invalid OAuth callback (missing code or state). Please try again."
 msgstr "Callback OAuth no válido (falta code o state). Inténtalo de nuevo."
 
-#: matesla/views.py:859
-msgid ""
-"Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again,"
-" then use “Sign in with Tesla”."
-msgstr ""
-"Callback OAuth no válido (state desconocido o caducado). Vuelve a entrar en "
-"MaTesla y usa «Iniciar sesión con Tesla»."
+#: matesla/views.py:885
+msgid "Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again, then use “Sign in with Tesla”."
+msgstr "Callback OAuth no válido (state desconocido o caducado). Vuelve a entrar en MaTesla y usa «Iniciar sesión con Tesla»."
 
-#: matesla/views.py:872
+#: matesla/views.py:898
 msgid "OAuth user not found."
 msgstr "Usuario OAuth no encontrado."
 
-#: matesla/views.py:891
+#: matesla/views.py:917
 msgid "Connected to Tesla, but no vehicles found on the account."
 msgstr "Conectado a Tesla, pero no se encontraron vehículos en la cuenta."
 
-#: matesla/views.py:899
+#: matesla/views.py:925
 #, python-format
 msgid "Tesla connected — %(count)s vehicle(s): %(names)s. Active: %(label)s."
-msgstr ""
-"Tesla conectado — %(count)s vehículo(s): %(names)s. Activo: %(label)s."
+msgstr "Tesla conectado — %(count)s vehículo(s): %(names)s. Activo: %(label)s."
 
-#: matesla/views.py:912
+#: matesla/views.py:938
 #, python-format
 msgid "Unexpected error: %(err)s"
 msgstr "Error inesperado: %(err)s"
 
-#: matesla/views.py:935
+#: matesla/views.py:961
 msgid "Unknown vehicle."
 msgstr "Vehículo desconocido."
 
-#: mysite/settings.py:275
+#: mysite/settings.py:276
 msgid "English"
 msgstr "Inglés"
 
-#: mysite/settings.py:276
+#: mysite/settings.py:277
 msgid "Français"
 msgstr "Francés"
 
-#: mysite/settings.py:277
+#: mysite/settings.py:278
 msgid "Espanol"
 msgstr "Español"
 
-#: mysite/settings.py:278
+#: mysite/settings.py:279
 msgid "Deutsch"
 msgstr "Deutsch"
 
-#: mysite/settings.py:279
+#: mysite/settings.py:280
 msgid "Nederlands"
 msgstr "Nederlands"
 
-#: mysite/settings.py:280
+#: mysite/settings.py:281
 msgid "Norsk"
 msgstr "Norsk"
 
 #: mysite/writable_access.py:104
 msgid "Write operations are only allowed from the local server."
-msgstr ""
-"Las operaciones de escritura solo se permiten desde el servidor local."
+msgstr "Las operaciones de escritura solo se permiten desde el servidor local."
 
-#: personalstats/dc_charge.py:734
+#: personalstats/dc_charge.py:715
 msgid "All DC sessions"
 msgstr "Todas las sesiones DC"
 
-#: personalstats/dc_charge.py:735
+#: personalstats/dc_charge.py:716
 msgid "Robust (drop V2 share / cold crawl)"
 msgstr "Robusto (excluye V2 compartido / frío)"
 
-#: personalstats/dc_charge.py:740
+#: personalstats/dc_charge.py:721
 msgid "Min / max"
 msgstr "Mín / máx"
 
-#: personalstats/dc_charge.py:741
+#: personalstats/dc_charge.py:722
 msgid "P10–P90 band"
 msgstr "Banda P10–P90"
 
@@ -1483,11 +1195,8 @@ msgid "Software timeline"
 msgstr "Cronología de software"
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:13
-msgid ""
-"All firmware versions detected on your vehicle, in chronological order."
-msgstr ""
-"Todas las versiones de firmware detectadas en tu vehículo, en orden "
-"cronológico."
+msgid "All firmware versions detected on your vehicle, in chronological order."
+msgstr "Todas las versiones de firmware detectadas en tu vehículo, en orden cronológico."
 
 #: personalstats/templates/personalstats/FirmwareHistory.html:15
 #: personalstats/templates/personalstats/_carstats_body.html:8
@@ -1699,7 +1408,7 @@ msgstr "Coste del polling Fleet"
 
 #: personalstats/templates/personalstats/_carstats_body.html:174
 #: personalstats/templates/personalstats/poll_details.html:6
-#: personalstats/templates/personalstats/poll_details.html:240
+#: personalstats/templates/personalstats/poll_details.html:199
 msgid "Query spacing details"
 msgstr "Detalles de consulta"
 
@@ -1708,12 +1417,8 @@ msgid "Vehicle_data HTTP calls, day by day, max 30 days."
 msgstr "Llamadas HTTP vehicle_data reales, día a día, máx. 30 días."
 
 #: personalstats/templates/personalstats/_carstats_body.html:187
-msgid ""
-"Open query spacing details for the current interval, habit model, and "
-"typical week grid."
-msgstr ""
-"Abra los detalles de consulta para el intervalo actual, el modelo de hábitos"
-" y la semana típica."
+msgid "Open query spacing details for the current interval, habit model, and typical week grid."
+msgstr "Abra los detalles de consulta para el intervalo actual, el modelo de hábitos y la semana típica."
 
 #: personalstats/templates/personalstats/_carstats_body.html:198
 #: personalstats/templates/personalstats/_carstats_body.html:211
@@ -1780,12 +1485,12 @@ msgstr "Cargando mapa…"
 
 #: personalstats/templates/personalstats/_carstats_body.html:282
 #: personalstats/templates/personalstats/daymap.html:494
-#: personalstats/templates/personalstats/dc_charge.html:397
+#: personalstats/templates/personalstats/dc_charge.html:398
 msgid "Close"
 msgstr "Cerrar"
 
 #: personalstats/templates/personalstats/_carstats_body.html:287
-#: personalstats/templates/personalstats/dc_charge.html:402
+#: personalstats/templates/personalstats/dc_charge.html:403
 msgid "Press Esc or click outside to close."
 msgstr "Pulsa Esc o haz clic fuera para cerrar."
 
@@ -1806,16 +1511,15 @@ msgid "h"
 msgstr "h"
 
 #: personalstats/templates/personalstats/_carstats_js.html:346
-#: personalstats/templates/personalstats/poll_details.html:279
-#: personalstats/templates/personalstats/poll_details.html:285
-#: personalstats/templates/personalstats/poll_details.html:303
-#: personalstats/templates/personalstats/poll_details.html:309
-#: personalstats/templates/personalstats/poll_details.html:355
-#: personalstats/templates/personalstats/poll_details.html:356
-#: personalstats/templates/personalstats/poll_details.html:357
-#: personalstats/templates/personalstats/poll_details.html:358
-#: personalstats/templates/personalstats/poll_details.html:375
-#: personalstats/templates/personalstats/poll_details.html:410
+#: personalstats/templates/personalstats/poll_details.html:238
+#: personalstats/templates/personalstats/poll_details.html:244
+#: personalstats/templates/personalstats/poll_details.html:262
+#: personalstats/templates/personalstats/poll_details.html:268
+#: personalstats/templates/personalstats/poll_details.html:314
+#: personalstats/templates/personalstats/poll_details.html:315
+#: personalstats/templates/personalstats/poll_details.html:316
+#: personalstats/templates/personalstats/poll_details.html:317
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "min"
 msgstr "min"
 
@@ -1834,12 +1538,8 @@ msgid "Telemetry archive"
 msgstr "Archivo de telemetría"
 
 #: personalstats/templates/personalstats/carstats.html:12
-msgid ""
-"Understand how your car evolves through battery, charge, climate and drive "
-"history."
-msgstr ""
-"Comprende la evolución de tu coche a través de batería, carga, clima y "
-"conducción."
+msgid "Understand how your car evolves through battery, charge, climate and drive history."
+msgstr "Comprende la evolución de tu coche a través de batería, carga, clima y conducción."
 
 #: personalstats/templates/personalstats/daymap.html:273
 msgid "Journey replay"
@@ -1917,7 +1617,7 @@ msgstr "Duración"
 #: personalstats/templates/personalstats/daymap.html:338
 #: personalstats/templates/personalstats/daymap.html:378
 #: personalstats/templates/personalstats/drives.html:185
-#: personalstats/views.py:3820
+#: personalstats/views.py:3799
 msgid "Distance"
 msgstr "Distancia"
 
@@ -1932,7 +1632,7 @@ msgstr "SoC inicial"
 #: personalstats/templates/personalstats/daymap.html:381
 #: personalstats/templates/personalstats/daymap.html:423
 #: personalstats/templates/personalstats/drives.html:190
-#: personalstats/views.py:3825
+#: personalstats/views.py:3804
 msgid "SoC end"
 msgstr "SoC final"
 
@@ -1947,13 +1647,8 @@ msgid "SoC used"
 msgstr "SoC consumido"
 
 #: personalstats/templates/personalstats/daymap.html:343
-msgid ""
-"SoC drop not explained by drives (park climate, dog/camp, sentry, "
-"preconditioning, vampire drain), after accounting for charges"
-msgstr ""
-"Caída de SoC no explicada por los trayectos (clima en estacionamiento, "
-"dog/camp, sentry, preacondicionamiento, drenaje vampiro), después de tener "
-"en cuenta las cargas"
+msgid "SoC drop not explained by drives (park climate, dog/camp, sentry, preconditioning, vampire drain), after accounting for charges"
+msgstr "Caída de SoC no explicada por los trayectos (clima en estacionamiento, dog/camp, sentry, preacondicionamiento, drenaje vampiro), después de tener en cuenta las cargas"
 
 #: personalstats/templates/personalstats/daymap.html:343
 msgid "SoC outside driving"
@@ -1962,8 +1657,7 @@ msgstr "SoC fuera de conducción"
 #: personalstats/templates/personalstats/daymap.html:363
 #, python-format
 msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range)."
-msgstr ""
-"Las estimaciones en kWh usan un pack de ~%(kwh)s kWh (según autonomía EPA)."
+msgstr "Las estimaciones en kWh usan un pack de ~%(kwh)s kWh (según autonomía EPA)."
 
 #: personalstats/templates/personalstats/daymap.html:364
 msgid "SoC outside driving = (start − end) − drive SoC + charged."
@@ -2057,12 +1751,8 @@ msgid "Charge power versus battery SoC"
 msgstr "Potencia de carga versus SoC de batería"
 
 #: personalstats/templates/personalstats/daymap.html:518
-msgid ""
-"Two separate images — open PNG to save or print one curve. Press Esc or "
-"click outside to close."
-msgstr ""
-"Dos imágenes separadas: abre el PNG para guardar o imprimir una curva. Esc o"
-" clic fuera para cerrar."
+msgid "Two separate images — open PNG to save or print one curve. Press Esc or click outside to close."
+msgstr "Dos imágenes separadas: abre el PNG para guardar o imprimir una curva. Esc o clic fuera para cerrar."
 
 #: personalstats/templates/personalstats/daymap.html:580
 msgid "Supercharger"
@@ -2117,12 +1807,8 @@ msgid "Power vs battery SoC"
 msgstr "Potencia vs SoC de batería"
 
 #: personalstats/templates/personalstats/dc_charge.html:256
-msgid ""
-"Median charger power at each state of charge. Band shows typical spread (or "
-"min/max)."
-msgstr ""
-"Potencia de carga mediana en cada nivel de batería. La banda muestra la "
-"dispersión típica (o mín/máx)."
+msgid "Median charger power at each state of charge. Band shows typical spread (or min/max)."
+msgstr "Potencia de carga mediana en cada nivel de batería. La banda muestra la dispersión típica (o mín/máx)."
 
 #: personalstats/templates/personalstats/dc_charge.html:260
 msgid "DC charge power versus battery SoC"
@@ -2138,12 +1824,8 @@ msgstr "SoC vs tiempo según SoC de inicio"
 
 #: personalstats/templates/personalstats/dc_charge.html:280
 #, python-format
-msgid ""
-"How fast the pack climbs when a DC session starts near 10%%, 20%%, … One "
-"median curve per arrival bucket."
-msgstr ""
-"Qué tan rápido sube la batería cuando una sesión DC empieza cerca del 10%%, "
-"20%%, … Una curva mediana por tramo de llegada."
+msgid "How fast the pack climbs when a DC session starts near 10%%, 20%%, … One median curve per arrival bucket."
+msgstr "Qué tan rápido sube la batería cuando una sesión DC empieza cerca del 10%%, 20%%, … Una curva mediana por tramo de llegada."
 
 #: personalstats/templates/personalstats/dc_charge.html:284
 msgid "DC charge SoC versus time by start SoC"
@@ -2179,9 +1861,7 @@ msgstr "Potencia"
 
 #: personalstats/templates/personalstats/dc_charge.html:308
 msgid "Rated range added per hour at this power (EPA energy intensity)"
-msgstr ""
-"Autonomía homologada añadida por hora a esta potencia (intensidad energética"
-" EPA)"
+msgstr "Autonomía homologada añadida por hora a esta potencia (intensidad energética EPA)"
 
 #: personalstats/templates/personalstats/dc_charge.html:308
 #, python-format
@@ -2249,12 +1929,8 @@ msgstr ""
 "        "
 
 #: personalstats/templates/personalstats/dc_charge.html:371
-msgid ""
-"Tip: switch Envelope to Min / max to get day-map links for the samples that "
-"form the band edges."
-msgstr ""
-"Consejo: cambia la envolvente a Mín / máx para enlaces al mapa del día en "
-"los bordes."
+msgid "Tip: switch Envelope to Min / max to get day-map links for the samples that form the band edges."
+msgstr "Consejo: cambia la envolvente a Mín / máx para enlaces al mapa del día en los bordes."
 
 #: personalstats/templates/personalstats/dc_charge.html:376
 msgid ""
@@ -2320,12 +1996,8 @@ msgstr "Ningún viaje coincide con este periodo y distancia mínima."
 
 #: personalstats/templates/personalstats/drives.html:172
 #, python-format
-msgid ""
-"kWh estimates use ~%(kwh)s kWh pack (from EPA range). Outside temperature "
-"only (not cabin)."
-msgstr ""
-"Las estimaciones en kWh usan un pack de ~%(kwh)s kWh (según autonomía EPA). "
-"Solo temperatura exterior (no habitáculo)."
+msgid "kWh estimates use ~%(kwh)s kWh pack (from EPA range). Outside temperature only (not cabin)."
+msgstr "Las estimaciones en kWh usan un pack de ~%(kwh)s kWh (según autonomía EPA). Solo temperatura exterior (no habitáculo)."
 
 #: personalstats/templates/personalstats/drives.html:187
 msgid "Average speed over the trip"
@@ -2357,7 +2029,7 @@ msgstr "Anterior"
 msgid "Next"
 msgstr "Siguiente"
 
-#: personalstats/templates/personalstats/poll_details.html:242
+#: personalstats/templates/personalstats/poll_details.html:201
 #, python-format
 msgid ""
 "\n"
@@ -2368,91 +2040,85 @@ msgstr ""
 "            Espaciado adaptativo de la API Fleet para %(name)s · hora local %(when)s\n"
 "            "
 
-#: personalstats/templates/personalstats/poll_details.html:247
+#: personalstats/templates/personalstats/poll_details.html:206
 msgid "Back to my data"
 msgstr "Volver a mis datos"
 
-#: personalstats/templates/personalstats/poll_details.html:253
+#: personalstats/templates/personalstats/poll_details.html:212
 msgid "Habit-adapted collection frequency: active"
 msgstr "Frecuencia de recogida adaptada a los hábitos: activa."
 
-#: personalstats/templates/personalstats/poll_details.html:255
+#: personalstats/templates/personalstats/poll_details.html:214
 msgid "Habit-adapted collection frequency: inactive"
 msgstr "Frecuencia de recogida adaptada a los hábitos: inactiva."
 
-#: personalstats/templates/personalstats/poll_details.html:266
-#: personalstats/templates/personalstats/poll_details.html:333
+#: personalstats/templates/personalstats/poll_details.html:225
+#: personalstats/templates/personalstats/poll_details.html:292
 msgid "Right now"
 msgstr "Ahora mismo"
 
-#: personalstats/templates/personalstats/poll_details.html:270
+#: personalstats/templates/personalstats/poll_details.html:229
 msgid "List state"
 msgstr "Estado (lista)"
 
-#: personalstats/templates/personalstats/poll_details.html:274
+#: personalstats/templates/personalstats/poll_details.html:233
 msgid "Activity kind"
 msgstr "Tipo de actividad"
 
-#: personalstats/templates/personalstats/poll_details.html:278
+#: personalstats/templates/personalstats/poll_details.html:237
 msgid "Effective interval"
 msgstr "Intervalo efectivo"
 
-#: personalstats/templates/personalstats/poll_details.html:283
+#: personalstats/templates/personalstats/poll_details.html:242
 msgid "Nav ETA"
 msgstr "ETA navegación"
 
-#: personalstats/templates/personalstats/poll_details.html:293
+#: personalstats/templates/personalstats/poll_details.html:252
 msgid "Decision source"
 msgstr "Fuente de la decisión"
 
-#: personalstats/templates/personalstats/poll_details.html:295
+#: personalstats/templates/personalstats/poll_details.html:254
 msgid "Live activity"
 msgstr "Actividad en vivo"
 
-#: personalstats/templates/personalstats/poll_details.html:296
+#: personalstats/templates/personalstats/poll_details.html:255
 msgid "Long idle (parked)"
 msgstr "Inactividad larga (aparada)"
 
-#: personalstats/templates/personalstats/poll_details.html:297
-#: personalstats/templates/personalstats/poll_details.html:339
+#: personalstats/templates/personalstats/poll_details.html:256
+#: personalstats/templates/personalstats/poll_details.html:298
 msgid "Habit model"
 msgstr "Modelo de hábitos"
 
-#: personalstats/templates/personalstats/poll_details.html:298
+#: personalstats/templates/personalstats/poll_details.html:257
 msgid "Default spacing"
 msgstr "Espaciado por defecto"
 
-#: personalstats/templates/personalstats/poll_details.html:302
+#: personalstats/templates/personalstats/poll_details.html:261
 msgid "Default for this kind"
 msgstr "Por defecto para este tipo"
 
-#: personalstats/templates/personalstats/poll_details.html:306
+#: personalstats/templates/personalstats/poll_details.html:265
 msgid "Habit for this hour"
 msgstr "Hábito para esta hora"
 
-#: personalstats/templates/personalstats/poll_details.html:316
+#: personalstats/templates/personalstats/poll_details.html:275
 msgid "Last query"
 msgstr "Última consulta"
 
-#: personalstats/templates/personalstats/poll_details.html:322
+#: personalstats/templates/personalstats/poll_details.html:281
 msgid "Next query due"
 msgstr "Próxima consulta"
 
-#: personalstats/templates/personalstats/poll_details.html:324
+#: personalstats/templates/personalstats/poll_details.html:283
 msgid "Due now"
 msgstr "Debido ahora"
 
-#: personalstats/templates/personalstats/poll_details.html:334
-msgid ""
-"No vehicle row in the account list for this VIN, so list state and last poll"
-" time are unknown. Habit history below still uses telemetry snapshots when "
-"available."
-msgstr ""
-"No hay fila de vehículo en la lista de la cuenta para este VIN, así que el "
-"estado de lista y el último sondeo son desconocidos. El historial de hábitos"
-" de abajo sigue usando snapshots de telemetría si existen."
+#: personalstats/templates/personalstats/poll_details.html:293
+msgid "No vehicle row in the account list for this VIN, so list state and last poll time are unknown. Habit history below still uses telemetry snapshots when available."
+msgstr "No hay fila de vehículo en la lista de la cuenta para este VIN, así que el estado de lista y el último sondeo son desconocidos. El historial de hábitos de abajo sigue usando snapshots de telemetría si existen."
 
-#: personalstats/templates/personalstats/poll_details.html:341
+#: personalstats/templates/personalstats/poll_details.html:300
 #, python-format
 msgid ""
 "\n"
@@ -2466,133 +2132,96 @@ msgstr ""
 "        El modelo busca como máximo los últimos %(max_days)s días. El entrenamiento solo usa semanas *antes* de los últimos %(recent)s días (control de régimen). Se necesitan ≥ %(min_ref)s semanas de referencia. «Semanas con muestras» cuenta semanas civiles distintas con telemetría en la ventana, no la duración de la captura continua de datos.\n"
 "        "
 
-#: personalstats/templates/personalstats/poll_details.html:349
+#: personalstats/templates/personalstats/poll_details.html:308
 msgid "Trusted"
 msgstr "Fiable"
 
-#: personalstats/templates/personalstats/poll_details.html:349
+#: personalstats/templates/personalstats/poll_details.html:308
 msgid "Yes"
 msgstr "Sí"
 
-#: personalstats/templates/personalstats/poll_details.html:349
+#: personalstats/templates/personalstats/poll_details.html:308
 msgid "No"
 msgstr "No"
 
-#: personalstats/templates/personalstats/poll_details.html:350
+#: personalstats/templates/personalstats/poll_details.html:309
 msgid "Reason"
 msgstr "Motivo"
 
-#: personalstats/templates/personalstats/poll_details.html:351
+#: personalstats/templates/personalstats/poll_details.html:310
 msgid "Reference weeks (training)"
 msgstr "Semanas de referencia (entrenamiento)"
 
-#: personalstats/templates/personalstats/poll_details.html:352
+#: personalstats/templates/personalstats/poll_details.html:311
 msgid "Weeks with samples (in search window)"
 msgstr "Semanas con muestras (en la ventana de búsqueda)"
 
-#: personalstats/templates/personalstats/poll_details.html:353
+#: personalstats/templates/personalstats/poll_details.html:312
 msgid "Max search window"
 msgstr "Ventana de búsqueda máx."
 
-#: personalstats/templates/personalstats/poll_details.html:353
-#: personalstats/templates/personalstats/poll_details.html:354
+#: personalstats/templates/personalstats/poll_details.html:312
+#: personalstats/templates/personalstats/poll_details.html:313
 msgid "days"
 msgstr "días"
 
-#: personalstats/templates/personalstats/poll_details.html:354
+#: personalstats/templates/personalstats/poll_details.html:313
 msgid "Excluded from training (recent check)"
 msgstr "Excluidas del entrenamiento (control reciente)"
 
-#: personalstats/templates/personalstats/poll_details.html:355
+#: personalstats/templates/personalstats/poll_details.html:314
 msgid "Busy slots"
 msgstr "Franjas ocupadas"
 
-#: personalstats/templates/personalstats/poll_details.html:356
-#| msgid "Busy slots"
+#: personalstats/templates/personalstats/poll_details.html:315
 msgid "Near-busy slots"
 msgstr "Franjas cerca de activo"
 
-#: personalstats/templates/personalstats/poll_details.html:357
+#: personalstats/templates/personalstats/poll_details.html:316
 msgid "Moderate slots"
 msgstr "Franjas moderadas"
 
-#: personalstats/templates/personalstats/poll_details.html:358
+#: personalstats/templates/personalstats/poll_details.html:317
 msgid "Quiet slots"
 msgstr "Franjas tranquilas"
 
-#: personalstats/templates/personalstats/poll_details.html:363
-msgid "Idle plan — next 7 days"
-msgstr "Plan en reposo — próximos 7 días"
-
-#: personalstats/templates/personalstats/poll_details.html:364
-#| msgid ""
-#| "What idle/asleep spacing the model would use if the car is not driving or "
-#| "charging. Segments merge consecutive hours with the same interval."
-msgid ""
-"What idle/asleep spacing would apply if the car stays parked (no drive, no "
-"charge). Includes habit model when trusted, day/night defaults, and the "
-"long-idle floor (10 min after 24 h, 15 min after 48 h). Segments merge "
-"consecutive hours with the same interval."
-msgstr ""
-"Qué intervalo en reposo se aplicaría si el coche sigue aparcado (sin "
-"conducir ni cargar). Incluye el modelo de hábitos si es fiable, los valores "
-"día/noche y el suelo de inactividad larga (10 min tras 24 h, 15 min tras 48 "
-"h). Los segmentos unen horas consecutivas con el mismo intervalo."
-
-#: personalstats/templates/personalstats/poll_details.html:387
-msgid "No forecast available."
-msgstr "No hay previsión disponible."
-
-#: personalstats/templates/personalstats/poll_details.html:392
+#: personalstats/templates/personalstats/poll_details.html:322
 msgid "Typical week (idle minutes by weekday and hour)"
 msgstr "Semana típica (minutos en reposo por día y hora)"
 
-#: personalstats/templates/personalstats/poll_details.html:393
-#| msgid ""
-#| "Household local time (Europe/Brussels). When the model is trusted, every "
-#| "cell is busy, moderate or quiet (no default-spacing holes). Plain cells only"
-#| " appear if habits are inactive."
-msgid ""
-"Household local time (Europe/Brussels). When the model is trusted, every "
-"cell is busy (5 min), near-busy (10 min, ±1 h around busy), moderate or "
-"quiet (no default-spacing holes). Plain cells only appear if habits are "
-"inactive."
-msgstr ""
-"Hora local del hogar (Europa/Bruselas). Cuando el modelo es fiable, cada "
-"celda es ocupada (5 min), cerca de activo (10 min, ±1 h alrededor de "
-"ocupado), moderada o tranquila (sin huecos de valor por defecto). Las celdas"
-" sin color solo aparecen si los hábitos están inactivos."
+#: personalstats/templates/personalstats/poll_details.html:323
+msgid "Household local time (Europe/Brussels). When the model is trusted, every cell is busy (5 min), near-busy (10 min, ±1 h around busy), moderate or quiet (no default-spacing holes). Plain cells only appear if habits are inactive."
+msgstr "Hora local del hogar (Europa/Bruselas). Cuando el modelo es fiable, cada celda es ocupada (5 min), cerca de activo (10 min, ±1 h alrededor de ocupado), moderada o tranquila (sin huecos de valor por defecto). Las celdas sin color solo aparecen si los hábitos están inactivos."
 
-#: personalstats/templates/personalstats/poll_details.html:398
+#: personalstats/templates/personalstats/poll_details.html:328
 msgid "Hour"
 msgstr "Hora"
 
-#: personalstats/templates/personalstats/poll_details.html:410
+#: personalstats/templates/personalstats/poll_details.html:340
 msgid "class only; default spacing kept"
 msgstr "solo clase; se mantiene el espaciado por defecto"
 
-#: personalstats/templates/personalstats/poll_details.html:420
-#| msgid "Busy (denser idle)"
+#: personalstats/templates/personalstats/poll_details.html:350
 msgid "Busy (5 min)"
 msgstr "Ocupado (5 min)"
 
-#: personalstats/templates/personalstats/poll_details.html:421
+#: personalstats/templates/personalstats/poll_details.html:351
 msgid "Near busy (10 min, ±1 h)"
 msgstr "Cerca de activo (10 min, ±1 h)"
 
-#: personalstats/templates/personalstats/poll_details.html:422
+#: personalstats/templates/personalstats/poll_details.html:352
 msgid "Moderate"
 msgstr "Moderado"
 
-#: personalstats/templates/personalstats/poll_details.html:423
+#: personalstats/templates/personalstats/poll_details.html:353
 msgid "Quiet (sparser idle)"
 msgstr "Tranquilo (reposo más espaciado)"
 
-#: personalstats/templates/personalstats/poll_details.html:424
+#: personalstats/templates/personalstats/poll_details.html:354
 msgid "Uncoloured = habits inactive (day/night default)"
 msgstr "Sin color = hábitos inactivos (por defecto día/noche)"
 
-#: personalstats/templates/personalstats/poll_details.html:429
+#: personalstats/templates/personalstats/poll_details.html:359
 msgid "How it works"
 msgstr "Cómo funciona"
 
@@ -2718,12 +2347,8 @@ msgstr "Peticiones Data"
 
 #: personalstats/views.py:566
 #, python-format
-msgid ""
-"n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car ·"
-" from request log · max %(days)s days"
-msgstr ""
-"n=%(n)s vehicle_data facturables · est. %(money)s (@ %(rate)s/req) · este "
-"coche · registro de peticiones · máx. %(days)s días"
+msgid "n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car · from request log · max %(days)s days"
+msgstr "n=%(n)s vehicle_data facturables · est. %(money)s (@ %(rate)s/req) · este coche · registro de peticiones · máx. %(days)s días"
 
 #: personalstats/views.py:592
 msgid "No logged vehicle_data calls in this period"
@@ -2768,12 +2393,8 @@ msgid "Record max %(t).1f °C · %(when)s"
 msgstr "Récord máx. %(t).1f °C · %(when)s"
 
 #: personalstats/views.py:1122
-msgid ""
-"One min / avg / max per calendar month · band = monthly range · gaps = no "
-"data"
-msgstr ""
-"Un mín / media / máx por mes civil · banda = rango mensual · huecos = sin "
-"datos"
+msgid "One min / avg / max per calendar month · band = monthly range · gaps = no data"
+msgstr "Un mín / media / máx por mes civil · banda = rango mensual · huecos = sin datos"
 
 #: personalstats/views.py:1384
 #, python-format
@@ -2796,8 +2417,7 @@ msgstr "n=%(n)s sesiones (≥%(min)s min) · barras = pico kW · kWh añadidos"
 #: personalstats/views.py:2265
 #, python-format
 msgid "n=%(n)s sessions (≥%(min)s min) · bars = peak · mi = range added"
-msgstr ""
-"n=%(n)s sesiones (≥%(min)s min) · barras = pico · mi = autonomía añadida"
+msgstr "n=%(n)s sesiones (≥%(min)s min) · barras = pico · mi = autonomía añadida"
 
 #: personalstats/views.py:2271
 #, python-format
@@ -2847,21 +2467,13 @@ msgstr "Velocidad (%(u)s)"
 
 #: personalstats/views.py:2558
 #, python-format
-msgid ""
-"n=%(n)s · regen %(regen).1f kWh / traction %(trac).1f kWh = %(pct).1f%% "
-"recovered"
-msgstr ""
-"n=%(n)s · regen. %(regen).1f kWh / tracción %(trac).1f kWh = %(pct).1f%% "
-"recuperados"
+msgid "n=%(n)s · regen %(regen).1f kWh / traction %(trac).1f kWh = %(pct).1f%% recovered"
+msgstr "n=%(n)s · regen. %(regen).1f kWh / tracción %(trac).1f kWh = %(pct).1f%% recuperados"
 
 #: personalstats/views.py:2569
 #, python-format
-msgid ""
-"n=%(n)s · regen vs traction = %(pct).1f%% (sample power ratio · green = "
-"regen)"
-msgstr ""
-"n=%(n)s · regen. vs tracción = %(pct).1f%% (ratio de muestras · verde = "
-"regen.)"
+msgid "n=%(n)s · regen vs traction = %(pct).1f%% (sample power ratio · green = regen)"
+msgstr "n=%(n)s · regen. vs tracción = %(pct).1f%% (ratio de muestras · verde = regen.)"
 
 #: personalstats/views.py:2577
 #, python-format
@@ -2912,137 +2524,125 @@ msgstr "%(n)s km"
 
 #: personalstats/views.py:2890
 #, python-format
-msgid ""
-"The last trip was not recorded — it was likely too short for the capture "
-"interval (about %(dist)s between the last logged arrival and the car's final"
-" position)."
-msgstr ""
-"El último trayecto no se registró: probablemente fue demasiado corto para el"
-" intervalo de captura (unos %(dist)s entre la última llegada registrada y la"
-" posición final del coche)."
+msgid "The last trip was not recorded — it was likely too short for the capture interval (about %(dist)s between the last logged arrival and the car's final position)."
+msgstr "El último trayecto no se registró: probablemente fue demasiado corto para el intervalo de captura (unos %(dist)s entre la última llegada registrada y la posición final del coche)."
 
 #: personalstats/views.py:2897
 #, python-format
-msgid ""
-"The last trip was not recorded — missing telemetry between the last logged "
-"arrival and the car's final position (about %(dist)s). This can happen after"
-" a capture gap or a technical issue."
-msgstr ""
-"El último trayecto no se registró: falta telemetría entre la última llegada "
-"registrada y la posición final del coche (unos %(dist)s). Puede deberse a un"
-" hueco de captura o a un problema técnico."
+msgid "The last trip was not recorded — missing telemetry between the last logged arrival and the car's final position (about %(dist)s). This can happen after a capture gap or a technical issue."
+msgstr "El último trayecto no se registró: falta telemetría entre la última llegada registrada y la posición final del coche (unos %(dist)s). Puede deberse a un hueco de captura o a un problema técnico."
 
-#: personalstats/views.py:3551 personalstats/views.py:4342
+#: personalstats/views.py:3528 personalstats/views.py:4417
 #, python-format
 msgid "%(h)s h %(m)s min"
 msgstr "%(h)s h %(m)s min"
 
-#: personalstats/views.py:3553 personalstats/views.py:4344
+#: personalstats/views.py:3530 personalstats/views.py:4419
 #, python-format
 msgid "%(m)s min"
 msgstr "%(m)s min"
 
-#: personalstats/views.py:3808
+#: personalstats/views.py:3787
 msgid "Longest"
 msgstr "Más largos"
 
-#: personalstats/views.py:3809
+#: personalstats/views.py:3788
 msgid "Most elevation gain"
 msgstr "Más desnivel positivo"
 
-#: personalstats/views.py:3810
+#: personalstats/views.py:3789
 msgid "Most elevation loss"
 msgstr "Más desnivel negativo"
 
-#: personalstats/views.py:3811
+#: personalstats/views.py:3790
 msgid "Hottest"
 msgstr "Más caluroso"
 
-#: personalstats/views.py:3812
+#: personalstats/views.py:3791
 msgid "Coldest"
 msgstr "Más frío"
 
-#: personalstats/views.py:3813
+#: personalstats/views.py:3792
 msgid "Lowest end SoC"
 msgstr "SoC final más bajo"
 
-#: personalstats/views.py:3821
+#: personalstats/views.py:3800
 msgid "Elevation gain"
 msgstr "Desnivel positivo"
 
-#: personalstats/views.py:3822
+#: personalstats/views.py:3801
 msgid "Elevation loss"
 msgstr "Desnivel negativo"
 
-#: personalstats/views.py:3823
+#: personalstats/views.py:3802
 msgid "Max outside temp"
 msgstr "Temp. ext. máx."
 
-#: personalstats/views.py:3824
+#: personalstats/views.py:3803
 msgid "Min outside temp"
 msgstr "Temp. ext. mín."
 
-#: personalstats/views.py:4180
+#: personalstats/views.py:4253
 msgid "Invalid date. Use DD/MM/YYYY or YYYY-MM-DD."
 msgstr "Fecha no válida. Usa DD/MM/AAAA o AAAA-MM-DD."
 
-#: personalstats/views.py:5035
+#: personalstats/views.py:5113
 msgid "No DC charge samples in this period"
 msgstr "No hay muestras de carga DC en este período"
 
-#: personalstats/views.py:5050
+#: personalstats/views.py:5128
 msgid "Min–max"
 msgstr "Mín–máx"
 
-#: personalstats/views.py:5054
+#: personalstats/views.py:5132
 msgid "P10–P90"
 msgstr "P10–P90"
 
-#: personalstats/views.py:5064
+#: personalstats/views.py:5142
 msgid "Median kW"
 msgstr "Mediana kW"
 
-#: personalstats/views.py:5066 personalstats/views.py:5110
-#: personalstats/views.py:5266
+#: personalstats/views.py:5144 personalstats/views.py:5188
+#: personalstats/views.py:5344
 msgid "Battery SoC (%)"
 msgstr "SoC de batería (%)"
 
-#: personalstats/views.py:5067 personalstats/views.py:5281
+#: personalstats/views.py:5145 personalstats/views.py:5359
 msgid "Charger power (kW)"
 msgstr "Potencia del cargador (kW)"
 
-#: personalstats/views.py:5083
+#: personalstats/views.py:5161
 msgid "Not enough DC sessions for start-SoC curves"
 msgstr "No hay suficientes sesiones DC para curvas por SoC de inicio"
 
-#: personalstats/views.py:5098
+#: personalstats/views.py:5176
 #, python-format
 msgid "%(start)s%% start · n=%(n)s"
 msgstr "Inicio %(start)s%% · n=%(n)s"
 
-#: personalstats/views.py:5109 personalstats/views.py:5278
+#: personalstats/views.py:5187 personalstats/views.py:5356
 msgid "Minutes since charge start"
 msgstr "Minutos desde el inicio de la carga"
 
-#: personalstats/views.py:5236
+#: personalstats/views.py:5314
 msgid "No charge samples for this stop"
 msgstr "No hay muestras de carga para esta parada"
 
-#: personalstats/views.py:5331
+#: personalstats/views.py:5409
 #, python-format
 msgid "Charge power vs SoC — %(day)s"
 msgstr "Potencia de carga vs SoC — %(day)s"
 
-#: personalstats/views.py:5333
+#: personalstats/views.py:5411
 #, python-format
 msgid "Charge power vs time — %(day)s"
 msgstr "Potencia de carga vs tiempo — %(day)s"
 
-#: personalstats/views.py:5432
+#: personalstats/views.py:5510
 msgid "DC charge power vs battery SoC"
 msgstr "Potencia de carga DC vs SoC de batería"
 
-#: personalstats/views.py:5440
+#: personalstats/views.py:5518
 msgid "DC charge: SoC vs time by start SoC"
 msgstr "Carga DC: SoC vs tiempo según SoC de inicio"
 
@@ -3074,7 +2674,7 @@ msgstr "Navegación móvil"
 msgid "Private by design · Open source"
 msgstr "Privado por diseño · Código abierto"
 
-#: templates/base.html:103
+#: templates/base.html:112
 msgid "Source"
 msgstr "Código fuente"
 
@@ -3083,19 +2683,14 @@ msgid "Distance units"
 msgstr "Unidades de distancia"
 
 #: templates/includes/unit_toggle.html:6
-msgid ""
-"Choose kilometres or miles for distances, speeds and consumption across the "
-"site"
-msgstr ""
-"Elige kilómetros o millas para distancias, velocidades y consumos en todo el"
-" sitio"
+msgid "Choose kilometres or miles for distances, speeds and consumption across the site"
+msgstr "Elige kilómetros o millas para distancias, velocidades y consumos en todo el sitio"
 
 #: templates/includes/unit_toggle.html:7
 msgid "Units"
 msgstr "Unidades"
 
-#: templates/includes/unit_toggle.html:9
-#: templates/includes/unit_toggle.html:20
+#: templates/includes/unit_toggle.html:9 templates/includes/unit_toggle.html:20
 msgid "km"
 msgstr "km"
 
@@ -3125,16 +2720,8 @@ msgid "co-pilot."
 msgstr "discreto."
 
 #: templates/registration/login.html:16
-msgid ""
-"MaTesla is a Python/django free open source website using tesla api to "
-"connect to your marvellous Tesla car, have information on its state, "
-"location and remote control charge, temperature,... Statistics on firmware "
-"updates are also available."
-msgstr ""
-"MaTesla es un sitio web libre en Python/Django que usa la API de Tesla para "
-"conectar con tu coche, ver su estado y ubicación, y controlar a distancia la"
-" carga, la temperatura, etc. También hay estadísticas de actualizaciones de "
-"firmware."
+msgid "MaTesla is a Python/django free open source website using tesla api to connect to your marvellous Tesla car, have information on its state, location and remote control charge, temperature,... Statistics on firmware updates are also available."
+msgstr "MaTesla es un sitio web libre en Python/Django que usa la API de Tesla para conectar con tu coche, ver su estado y ubicación, y controlar a distancia la carga, la temperatura, etc. También hay estadísticas de actualizaciones de firmware."
 
 #: templates/registration/login.html:18
 msgid "Open source · your telemetry stays under your control"
@@ -3165,12 +2752,8 @@ msgid "Beyond a status screen."
 msgstr "Más que una pantalla de estado."
 
 #: templates/registration/login.html:60
-msgid ""
-"Follow battery health, trips and software versions without getting lost in "
-"menus."
-msgstr ""
-"Sigue la salud de la batería, los viajes y las versiones de software sin "
-"perderte en menús."
+msgid "Follow battery health, trips and software versions without getting lost in menus."
+msgstr "Sigue la salud de la batería, los viajes y las versiones de software sin perderte en menús."
 
 #: templates/registration/login.html:67
 msgid "A clear view of how your real range evolves."
@@ -3232,12 +2815,8 @@ msgid "Invalid link"
 msgstr "Enlace no válido"
 
 #: templates/registration/password_reset_confirm.html:28
-msgid ""
-"The password reset link was invalid, possibly because it has already been "
-"used. Please request a new password reset."
-msgstr ""
-"El enlace de restablecimiento no es válido, quizá porque ya se usó. Solicita"
-" uno nuevo."
+msgid "The password reset link was invalid, possibly because it has already been used. Please request a new password reset."
+msgstr "El enlace de restablecimiento no es válido, quizá porque ya se usó. Solicita uno nuevo."
 
 #: templates/registration/password_reset_confirm.html:29
 #: templates/registration/password_reset_form.html:4
@@ -3255,20 +2834,12 @@ msgid "Check your inbox"
 msgstr "Revisa tu bandeja de entrada"
 
 #: templates/registration/password_reset_done.html:11
-msgid ""
-"We&#39;ve emailed you instructions for setting your password, if an account "
-"exists with the email you entered. You should receive them shortly."
-msgstr ""
-"Te hemos enviado instrucciones para establecer la contraseña, si existe una "
-"cuenta con ese correo. Deberías recibirlas en breve."
+msgid "We&#39;ve emailed you instructions for setting your password, if an account exists with the email you entered. You should receive them shortly."
+msgstr "Te hemos enviado instrucciones para establecer la contraseña, si existe una cuenta con ese correo. Deberías recibirlas en breve."
 
 #: templates/registration/password_reset_done.html:12
-msgid ""
-"If you don&#39;t receive an email, please make sure you&#39;ve entered the "
-"address you registered with, and check your spam folder."
-msgstr ""
-"Si no recibes un correo, comprueba que hayas introducido la dirección de "
-"registro y revisa la carpeta de spam."
+msgid "If you don&#39;t receive an email, please make sure you&#39;ve entered the address you registered with, and check your spam folder."
+msgstr "Si no recibes un correo, comprueba que hayas introducido la dirección de registro y revisa la carpeta de spam."
 
 #: templates/registration/password_reset_done.html:13
 #: templates/registration/password_reset_form.html:28
@@ -3284,12 +2855,8 @@ msgid "MaTesla Account, click the link below:"
 msgstr "cuenta MaTesla, haz clic en el enlace siguiente:"
 
 #: templates/registration/password_reset_email.html:7
-msgid ""
-"If clicking the link above doesn't work, please copy and paste the URL in a "
-"new browser window instead."
-msgstr ""
-"Si el enlace no funciona, copia y pega la URL en una nueva ventana del "
-"navegador."
+msgid "If clicking the link above doesn't work, please copy and paste the URL in a new browser window instead."
+msgstr "Si el enlace no funciona, copia y pega la URL en una nueva ventana del navegador."
 
 #: templates/registration/password_reset_email.html:9
 msgid "Sincerely, The MaTesla Team"
@@ -3300,14 +2867,22 @@ msgid "Account recovery"
 msgstr "Recuperación de cuenta"
 
 #: templates/registration/password_reset_form.html:12
-msgid ""
-"Enter the address linked to your account. We will send you a secure link."
-msgstr ""
-"Indica la dirección asociada a tu cuenta. Te enviaremos un enlace seguro."
+msgid "Enter the address linked to your account. We will send you a secure link."
+msgstr "Indica la dirección asociada a tu cuenta. Te enviaremos un enlace seguro."
 
 #: templates/registration/password_reset_form.html:25
 msgid "Send e-mail"
 msgstr "Enviar correo"
+
+#~ msgid "Idle plan — next 7 days"
+#~ msgstr "Plan en reposo — próximos 7 días"
+
+#~| msgid "What idle/asleep spacing the model would use if the car is not driving or charging. Segments merge consecutive hours with the same interval."
+#~ msgid "What idle/asleep spacing would apply if the car stays parked (no drive, no charge). Includes habit model when trusted, day/night defaults, and the long-idle floor (10 min after 24 h, 15 min after 48 h). Segments merge consecutive hours with the same interval."
+#~ msgstr "Qué intervalo en reposo se aplicaría si el coche sigue aparcado (sin conducir ni cargar). Incluye el modelo de hábitos si es fiable, los valores día/noche y el suelo de inactividad larga (10 min tras 24 h, 15 min tras 48 h). Los segmentos unen horas consecutivas con el mismo intervalo."
+
+#~ msgid "No forecast available."
+#~ msgstr "No hay previsión disponible."
 
 #~ msgid "Kilometers driven"
 #~ msgstr "Kilómetros recorridos"
@@ -3340,15 +2915,8 @@ msgstr "Enviar correo"
 #~ msgstr "Ventana de control reciente"
 
 #, python-format
-#~ msgid ""
-#~ "Habit intervals replace the idle baseline (not max): busy → %(busy)s min, "
-#~ "moderate → %(moderate)s min (day only), quiet → %(quiet)s min. Night "
-#~ "baseline without habit is %(night)s min; day idle baseline is %(day)s min."
-#~ msgstr ""
-#~ "Los intervalos de hábito sustituyen la base en reposo (no un máximo): "
-#~ "ocupado → %(busy)s min, moderado → %(moderate)s min (solo de día), tranquilo"
-#~ " → %(quiet)s min. Base nocturna sin hábito: %(night)s min; base diurna en "
-#~ "reposo: %(day)s min."
+#~ msgid "Habit intervals replace the idle baseline (not max): busy → %(busy)s min, moderate → %(moderate)s min (day only), quiet → %(quiet)s min. Night baseline without habit is %(night)s min; day idle baseline is %(day)s min."
+#~ msgstr "Los intervalos de hábito sustituyen la base en reposo (no un máximo): ocupado → %(busy)s min, moderado → %(moderate)s min (solo de día), tranquilo → %(quiet)s min. Base nocturna sin hábito: %(night)s min; base diurna en reposo: %(day)s min."
 
 #~ msgid "Uncoloured = baseline only"
 #~ msgstr "Sin color = solo línea base"
@@ -3380,12 +2948,8 @@ msgstr "Enviar correo"
 #~ msgid "Min longitude"
 #~ msgstr "Longitud mín."
 
-#~ msgid ""
-#~ "E.g. robotcar.example.com — not localhost. Must also be an Allowed Origin on"
-#~ " developer.tesla.com"
-#~ msgstr ""
-#~ "Ej. robotcar.example.com — no localhost. También debe ser un Allowed Origin "
-#~ "en developer.tesla.com"
+#~ msgid "E.g. robotcar.example.com — not localhost. Must also be an Allowed Origin on developer.tesla.com"
+#~ msgstr "Ej. robotcar.example.com — no localhost. También debe ser un Allowed Origin en developer.tesla.com"
 
 #~ msgid "active"
 #~ msgstr "activo"
@@ -3405,31 +2969,17 @@ msgstr "Enviar correo"
 #~ msgid "Disconnect this Tesla account?"
 #~ msgstr "¿Desconectar esta cuenta Tesla?"
 
-#~ msgid ""
-#~ "Expected domain: <code>mehdirahbe.github.io</code> · Allowed Origin: "
-#~ "<code>https://mehdirahbe.github.io</code>"
-#~ msgstr ""
-#~ "Dominio esperado: <code>mehdirahbe.github.io</code> · Allowed Origin: "
-#~ "<code>https://mehdirahbe.github.io</code>"
+#~ msgid "Expected domain: <code>mehdirahbe.github.io</code> · Allowed Origin: <code>https://mehdirahbe.github.io</code>"
+#~ msgstr "Dominio esperado: <code>mehdirahbe.github.io</code> · Allowed Origin: <code>https://mehdirahbe.github.io</code>"
 
-#~ msgid ""
-#~ "Use <code>mehdirahbe.github.io</code> as the partner domain, without a "
-#~ "protocol."
-#~ msgstr ""
-#~ "Usa <code>mehdirahbe.github.io</code> como dominio partner, sin protocolo."
+#~ msgid "Use <code>mehdirahbe.github.io</code> as the partner domain, without a protocol."
+#~ msgstr "Usa <code>mehdirahbe.github.io</code> como dominio partner, sin protocolo."
 
-#~ msgid ""
-#~ "Keep <code>https://mehdirahbe.github.io</code> in the allowed origins of the"
-#~ " Tesla dashboard."
-#~ msgstr ""
-#~ "Mantén <code>https://mehdirahbe.github.io</code> en los orígenes permitidos "
-#~ "del panel de Tesla."
+#~ msgid "Keep <code>https://mehdirahbe.github.io</code> in the allowed origins of the Tesla dashboard."
+#~ msgstr "Mantén <code>https://mehdirahbe.github.io</code> en los orígenes permitidos del panel de Tesla."
 
-#~ msgid ""
-#~ "Verify the published key, register the EU region, then resync vehicles."
-#~ msgstr ""
-#~ "Verifica la clave publicada, registra la región EU y resincroniza los "
-#~ "vehículos."
+#~ msgid "Verify the published key, register the EU region, then resync vehicles."
+#~ msgstr "Verifica la clave publicada, registra la región EU y resincroniza los vehículos."
 
 #~ msgid "Public URL"
 #~ msgstr "URL pública"
@@ -3450,20 +3000,12 @@ msgstr "Enviar correo"
 #~ msgid "Active vehicle updated."
 #~ msgstr "Vehículo activo actualizado."
 
-#~ msgid ""
-#~ "Estimated Data cost from saved samples for this car only (not the Tesla "
-#~ "portal total)."
-#~ msgstr ""
-#~ "Coste Data estimado a partir de las muestras guardadas solo de este coche "
-#~ "(no el total del portal Tesla)."
+#~ msgid "Estimated Data cost from saved samples for this car only (not the Tesla portal total)."
+#~ msgstr "Coste Data estimado a partir de las muestras guardadas solo de este coche (no el total del portal Tesla)."
 
 #, python-format
-#~ msgid ""
-#~ "n=%(n)s saved samples · est. $%(usd).2f Data (@ $%(rate).3f/req) · this car "
-#~ "only · not Tesla portal total"
-#~ msgstr ""
-#~ "n=%(n)s muestras · est. $%(usd).2f Data (@ $%(rate).3f/req) · solo este "
-#~ "coche · no el total del portal Tesla"
+#~ msgid "n=%(n)s saved samples · est. $%(usd).2f Data (@ $%(rate).3f/req) · this car only · not Tesla portal total"
+#~ msgstr "n=%(n)s muestras · est. $%(usd).2f Data (@ $%(rate).3f/req) · solo este coche · no el total del portal Tesla"
 
 #~ msgid "01 · BATTERY HEALTH"
 #~ msgstr "01 · SALUD BATERÍA"

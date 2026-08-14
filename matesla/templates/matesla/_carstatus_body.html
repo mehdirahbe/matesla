@@ -129,6 +129,15 @@
                 {% if batterydegradation is not None %}
                 <div class="data-row"><dt>{% trans 'Battery degradation (%)' %}</dt><dd>{{ batterydegradation }}%</dd></div>
                 {% endif %}
+                {% if battery_pack_kwh_when_new is not None %}
+                <div class="data-row"><dt>{% trans 'Pack when new (kWh)' %}</dt><dd>{{ battery_pack_kwh_when_new }} kWh</dd></div>
+                {% endif %}
+                {% if battery_capacity_kwh is not None %}
+                <div class="data-row"><dt>{% trans 'Usable battery capacity (kWh)' %}</dt><dd>{{ battery_capacity_kwh }} kWh</dd></div>
+                {% endif %}
+                {% if energy_stored_kwh is not None %}
+                <div class="data-row"><dt>{% trans 'Energy currently stored (kWh)' %}</dt><dd>{{ energy_stored_kwh }} kWh</dd></div>
+                {% endif %}
                 <div class="data-row">
                     <dt>{% trans 'Battery charge limit (%)' %}</dt>
                     <dd>{{ charge_limit_soc }}%</dd>

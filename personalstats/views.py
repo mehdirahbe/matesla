@@ -3327,17 +3327,6 @@ def _point_kind(sample):
     return "park"
 
 
-def _estimate_pack_kwh(epa_range_miles):
-    """
-    Rough usable pack size from EPA range (miles).
-    ~220 Wh/mi fleet average; clamp to a sensible EV pack window.
-    """
-    if epa_range_miles and epa_range_miles > 50:
-        kwh = float(epa_range_miles) * 0.22
-        return max(40.0, min(120.0, kwh))
-    return 75.0
-
-
 def _soc(sample):
     """Prefer usable_battery_level, else battery_level."""
     usable = sample.get("usable_battery_level")
@@ -3486,19 +3475,6 @@ def _drive_trip_extras(points, geo_start, geo_end):
         "temp_max_c": max(temps) if temps else None,
         "temp_min_c": min(temps) if temps else None,
     }
-
-
-def _pack_kwh_for_hashed_vin(hashed_vin, vin_hint=None):
-    """EPA-based pack estimate for kWh/100 km on drive leaderboards."""
-    from matesla.models.TeslaCarInfo import TeslaCarInfo
-
-    info = None
-    if vin_hint:
-        info = TeslaCarInfo.objects.filter(vin=vin_hint).first()
-    if info is None:
-        info = TeslaCarInfo.objects.filter(hashedVin=hashed_vin).first()
-    epa = info.EPARange if info and info.EPARange else None
-    return _estimate_pack_kwh(epa)
 
 
 def _as_float_or_none(value):
@@ -3657,7 +3633,9 @@ def _load_ranked_drives(hashed_vin, weeks, *, min_km=DRIVES_MIN_KM):
     if cached is not None:
         return cached
 
-    pack_kwh = _pack_kwh_for_hashed_vin(hashed_vin)
+    from matesla.BatteryDegradation import pack_kwh_for_vehicle
+
+    pack_kwh = pack_kwh_for_vehicle(hashed_vin=hashed_vin)
 
     period_sql = ""
     period_params: list = [hashed_vin]
@@ -4382,7 +4360,9 @@ def DayMap(request, hashedVin, day=None):
         info = TeslaCarInfo.objects.filter(vin=vin).first()
         if info and info.EPARange:
             epa = info.EPARange
-    pack_kwh = _estimate_pack_kwh(epa)
+    from matesla.BatteryDegradation import estimate_new_pack_kwh
+
+    pack_kwh = estimate_new_pack_kwh(epa)
 
     drives, charges = _segment_day(raw_rows, pack_kwh)
 
@@ -4607,6 +4587,8 @@ def Drives(request, hashedVin):
     sort_choices = [
         {"key": key, "label": _drives_sort_label(key)} for key in DRIVES_SORT_SPECS
     ]
+    from matesla.BatteryDegradation import pack_kwh_for_vehicle
+
     context = _vehicle_chrome_context(request, hashedVin)
     context.update(
         {
@@ -4631,7 +4613,7 @@ def Drives(request, hashedVin):
             "has_next": page < total_pages,
             "prev_page": page - 1,
             "next_page": page + 1,
-            "pack_kwh_estimate": _pack_kwh_for_hashed_vin(hashedVin),
+            "pack_kwh_estimate": pack_kwh_for_vehicle(hashed_vin=hashedVin),
         }
     )
     return render(request, "personalstats/drives.html", context)
@@ -5033,6 +5015,7 @@ def _parse_dc_envelope_mode(raw) -> str:
 
 def _epa_kwh_per_100km_for_hashed_vin(hashed_vin) -> float | None:
     """EPA energy intensity (kWh/100 km) from catalog range + pack estimate."""
+    from matesla.BatteryDegradation import estimate_new_pack_kwh
     from matesla.models.TeslaCarInfo import TeslaCarInfo
 
     info = TeslaCarInfo.objects.filter(hashedVin=hashed_vin).first()
@@ -5042,7 +5025,7 @@ def _epa_kwh_per_100km_for_hashed_vin(hashed_vin) -> float | None:
         epa_miles = None
     if not epa_miles or epa_miles < 50:
         return None
-    pack_kwh = _estimate_pack_kwh(epa_miles)
+    pack_kwh = estimate_new_pack_kwh(epa_miles)
     epa_km = epa_miles * 1.609344
     if epa_km <= 0 or pack_kwh <= 0:
         return None

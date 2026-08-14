@@ -4,8 +4,10 @@ from matesla.BatteryDegradation import (
     ComputeBatteryDegradationFromEPARange,
     ComputeNumCycles,
     ResolveEPARange,
+    compute_usable_capacity_and_stored_kwh,
+    estimate_new_pack_kwh,
 )
-from matesla.epa_catalog import lookup_epa_miles, project_full_charge_miles
+from matesla.epa_catalog import lookup_epa_miles, lookup_pack_kwh, project_full_charge_miles
 from matesla.models.VinHash import HashTheVin, IsValidHash
 from matesla.soc_refine import is_whole_percent, refine_soc_percent
 from matesla.urls import urlpatterns
@@ -204,6 +206,41 @@ class EpaCatalogUnitTests(SimpleTestCase):
         refined = refine_soc_percent(60, 186, 310)
         self.assertIsNotNone(refined)
         self.assertAlmostEqual(refined, 60.0, places=1)
+
+
+class BatteryCapacityKwhTests(SimpleTestCase):
+    """Usable capacity + stored energy from the shared pack estimate."""
+
+    def test_pack_catalog_2019_lr_is_75(self):
+        # Both 2019 LR (AWD EPA 310 / RWD EPA 325) share ~75 kWh when new
+        corentin = "5YJ3E7EB1KF123456"
+        aram = "5YJ3E7EA5KF349426"
+        self.assertEqual(lookup_pack_kwh(corentin, epa_range_miles=310), 75.0)
+        self.assertEqual(lookup_pack_kwh(aram, epa_range_miles=325), 75.0)
+
+    def test_estimate_new_pack_kwh_epa_fallback_only(self):
+        # Fallback when no VIN catalog (not used for known household cars)
+        self.assertAlmostEqual(estimate_new_pack_kwh(310), 68.2, places=1)
+        self.assertEqual(estimate_new_pack_kwh(None), 75.0)
+
+    def test_corentin_remaining_capacity_after_degradation(self):
+        # Pack when new 75 kWh; 22.2% deg → ~58.4 kWh left; 20% SoC → ~11.7 kWh
+        capacity, stored = compute_usable_capacity_and_stored_kwh(
+            pack_kwh_when_new=75.0,
+            battery_degradation_percent=22.2,
+            usable_battery_level=20.0,
+        )
+        self.assertAlmostEqual(capacity, 75.0 * (1.0 - 0.222), places=1)
+        self.assertAlmostEqual(capacity, 58.35, places=1)
+        self.assertAlmostEqual(stored, 75.0 * (1.0 - 0.222) * 0.20, places=1)
+
+    def test_missing_soc_still_returns_capacity(self):
+        capacity, stored = compute_usable_capacity_and_stored_kwh(
+            pack_kwh_when_new=75.0,
+            battery_degradation_percent=22.2,
+        )
+        self.assertAlmostEqual(capacity, 75.0 * (1.0 - 0.222), places=2)
+        self.assertIsNone(stored)
 
 
 class ResolveEpaRangeTests(TestCase):
