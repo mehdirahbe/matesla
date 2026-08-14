@@ -40,10 +40,10 @@ HABIT_TZ = ZoneInfo("Europe/Brussels")
 # --- Policy knobs ---
 HABIT_WINDOW_DAYS = 84  # ~12 weeks max lookback
 HABIT_RECENT_DAYS = 14  # regime-check window + excluded from reference weeks
-HABIT_MIN_WEEKS = 4  # below this → no habit trust
+HABIT_MIN_WEEKS = 2  # below this → no habit trust
 HABIT_CI_Z = 1.64485  # ~95% one-sided Wilson (approx)
 # Upper bound on activity probability → long spacing when idle.
-# Note: with only 4 zero-activity weeks, Wilson p_hi≈0.53 — so thresholds
+# Note: with few zero-activity weeks, Wilson p_hi is still high — so thresholds
 # must allow that, and k=0 gets an explicit path (see _classify_slot).
 P_HI_QUIET = 0.22  # very quiet → 30 min (needs ~n≥12 zeros or low rate)
 P_HI_MODERATE = 0.55  # fairly quiet → 15 min
@@ -64,7 +64,7 @@ REGIME_ACTIVE_MISMATCH_MIN = 4  # mobility in historically calm slots
 # Activity heuristics (aligned with capture.activity_kind inputs)
 DRIVING_SPEED_MPH_MIN = 1.0
 CACHE_TTL_SECONDS = 12 * 3600
-CACHE_KEY_PREFIX = "matesla:poll_habits:v6:"
+CACHE_KEY_PREFIX = "matesla:poll_habits:v7:"
 
 
 @dataclass

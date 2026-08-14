@@ -404,7 +404,7 @@ idle “baseline holes”). Busy and quiet stay selective; everything else is
 moderate. A habit interval **replaces** the idle baseline (not `max()`).
 Live drive/charge/cabin never use habits.
 
-Conditions: last ~12 weeks only, ≥4 reference weeks, no regime break
+Conditions: last ~12 weeks only, ≥2 reference weeks, no regime break
 (school ↔ holidays ↔ trips).  
 Diagnose: `python manage.py ShowPollHabits --force`, or the personal-stats
 page **Polling details** (link next to the Fleet poll cost graph) — same
