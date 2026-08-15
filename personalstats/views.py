@@ -3610,7 +3610,9 @@ def _acc_add_sample(acc, sample):
         acc["temp_n"] += 1
 
 
-def _load_ranked_drives(hashed_vin, weeks, *, min_km=DRIVES_MIN_KM):
+def _load_ranked_drives(
+    hashed_vin, weeks, *, min_km=DRIVES_MIN_KM, max_trips=DRIVES_MAX_TRIPS
+):
     """
     Segment drives ≥ min_km for the period (drive samples only).
 
@@ -3622,9 +3624,19 @@ def _load_ranked_drives(hashed_vin, weeks, *, min_km=DRIVES_MIN_KM):
     condition is *literals* (not bound parameters). Multi-day trips stay one
     segment while samples stay within DRIVES_TRIP_GAP. Cache is sort-agnostic;
     the view re-orders among the capped list.
+
+    ``max_trips``: keep the longest N windows (default leaderboard cap). Use a
+    large value for seasonal consumption (need short trips too, not only top-N).
     """
+    try:
+        max_trips_i = int(max_trips) if max_trips is not None else DRIVES_MAX_TRIPS
+    except (TypeError, ValueError):
+        max_trips_i = DRIVES_MAX_TRIPS
+    if max_trips_i < 1:
+        max_trips_i = DRIVES_MAX_TRIPS
     cache_key = (
-        f"drives_list_v7:{hashed_vin}:{int(weeks) if weeks else 0}:{min_km}"
+        f"drives_list_v8:{hashed_vin}:{int(weeks) if weeks else 0}:"
+        f"{min_km}:{max_trips_i}"
     )
     try:
         cached = cache.get(cache_key)
@@ -3695,11 +3707,9 @@ def _load_ranked_drives(hashed_vin, weeks, *, min_km=DRIVES_MIN_KM):
     flush_window()
 
     # Longest first; secondary rankings (elev/temp) only among these.
-    if len(windows) > DRIVES_MAX_TRIPS:
-        windows.sort(key=lambda item: item[2], reverse=True)
-        windows = windows[:DRIVES_MAX_TRIPS]
-    else:
-        windows.sort(key=lambda item: item[2], reverse=True)
+    windows.sort(key=lambda item: item[2], reverse=True)
+    if len(windows) > max_trips_i:
+        windows = windows[:max_trips_i]
 
     # ----- Pass 2: full metrics only inside the kept windows -----
     detail_sql = (
@@ -4990,13 +5000,20 @@ def FirmwareHistoryCSV(request, hashedVin):
 from personalstats.dc_charge import (
     ENVELOPE_MODES,
     OUTLIER_MODES,
+    RANGE_Y_MODES,
+    SEASONAL_LOOKBACK_WEEKS,
+    SEASONAL_TRIP_MIN_KM,
     charge_session_curve_series,
     envelope_mode_label,
     filter_outlier_sessions,
+    full_real_range_km,
     load_dc_sessions,
     outlier_mode_label,
     power_curve_extreme_rows,
     power_vs_soc_curve,
+    range_y_mode_label,
+    scale_soc_time_curves_to_range,
+    select_seasonal_kwh_per_100km,
     soc_vs_time_curves,
     summarize_sessions,
 )
@@ -5013,9 +5030,14 @@ def _parse_dc_envelope_mode(raw) -> str:
     return mode if mode in ENVELOPE_MODES else "p10_p90"
 
 
+def _parse_dc_range_y_mode(raw, *, default: str = "real") -> str:
+    mode = (raw or default).strip().lower()
+    return mode if mode in RANGE_Y_MODES else default
+
+
 def _epa_kwh_per_100km_for_hashed_vin(hashed_vin) -> float | None:
     """EPA energy intensity (kWh/100 km) from catalog range + pack estimate."""
-    from matesla.BatteryDegradation import estimate_new_pack_kwh
+    from matesla.BatteryDegradation import pack_kwh_for_vehicle
     from matesla.models.TeslaCarInfo import TeslaCarInfo
 
     info = TeslaCarInfo.objects.filter(hashedVin=hashed_vin).first()
@@ -5025,22 +5047,29 @@ def _epa_kwh_per_100km_for_hashed_vin(hashed_vin) -> float | None:
         epa_miles = None
     if not epa_miles or epa_miles < 50:
         return None
-    pack_kwh = estimate_new_pack_kwh(epa_miles)
+    pack_kwh = pack_kwh_for_vehicle(
+        hashed_vin=hashed_vin,
+        vin=getattr(info, "vin", None),
+        epa_range_miles=epa_miles,
+    )
     epa_km = epa_miles * 1.609344
-    if epa_km <= 0 or pack_kwh <= 0:
+    if epa_km <= 0 or not pack_kwh or pack_kwh <= 0:
         return None
     return pack_kwh / epa_km * 100.0
 
 
 def _vehicle_drive_kwh_per_100km(hashed_vin, *, weeks=52) -> float | None:
     """
-    Distance-weighted real driving consumption (kWh/100 km).
+    Distance-weighted real driving consumption (kWh/100 km) over ``weeks``.
 
-    Uses the ranked-drives list (already soft-cached). Outlier trips with
-    impossible kWh/100 km are ignored; need enough distance for stability.
+    Legacy helper (simple rolling window). Prefer
+    ``_seasonal_drive_kwh_per_100km`` for range charts.
     """
     trips = _load_ranked_drives(
-        hashed_vin, weeks, min_km=max(float(EFFICIENCY_MIN_KM), 10.0)
+        hashed_vin,
+        weeks,
+        min_km=max(float(EFFICIENCY_MIN_KM), 10.0),
+        max_trips=5000,
     )
     total_kwh = 0.0
     total_km = 0.0
@@ -5063,6 +5092,108 @@ def _vehicle_drive_kwh_per_100km(hashed_vin, *, weeks=52) -> float | None:
     if total_km < 50.0:
         return None
     return total_kwh / total_km * 100.0
+
+
+def _dc_session_start_times(hashed_vin, weeks: int) -> list:
+    """Sorted start datetimes of DC sessions (for SC-approach trip filter)."""
+    cache_key = f"dc_starts_v1:{hashed_vin}:{int(weeks) if weeks else 0}"
+    try:
+        hit = cache.get(cache_key)
+        if hit is not None:
+            return hit
+    except Exception:
+        pass
+    queryset = _dc_charge_period_queryset(hashed_vin, weeks)
+    sessions = load_dc_sessions(queryset)
+    starts = sorted(
+        session.points[0].t for session in sessions if session.points
+    )
+    try:
+        cache.set(cache_key, starts, GRAPH_PNG_CACHE_SECONDS)
+    except Exception:
+        pass
+    return starts
+
+
+def _seasonal_drive_kwh_per_100km(hashed_vin) -> dict | None:
+    """
+    Seasonal kWh/100 km: same calendar season last year (±30 d), then −2y,
+    then last ≤3 months. Excludes Supercharger-approach legs (preconditioning).
+    """
+    today = timezone.localdate() if hasattr(timezone, "localdate") else date.today()
+    try:
+        from zoneinfo import ZoneInfo as _Z
+
+        today = datetime.now(_Z("Europe/Brussels")).date()
+    except Exception:
+        today = date.today()
+
+    cache_key = f"seasonal_kwh100_v1:{hashed_vin}:{today.isoformat()}"
+    try:
+        hit = cache.get(cache_key)
+        if hit is not None:
+            return hit
+    except Exception:
+        pass
+
+    trips = _load_ranked_drives(
+        hashed_vin,
+        SEASONAL_LOOKBACK_WEEKS,
+        min_km=SEASONAL_TRIP_MIN_KM,
+        max_trips=8000,
+    )
+    dc_starts = _dc_session_start_times(hashed_vin, SEASONAL_LOOKBACK_WEEKS)
+    result = select_seasonal_kwh_per_100km(
+        trips, dc_starts_sorted=dc_starts, today=today
+    )
+    try:
+        cache.set(cache_key, result, GRAPH_PNG_CACHE_SECONDS)
+    except Exception:
+        pass
+    return result
+
+
+def _full_rated_miles_for_hashed_vin(hashed_vin) -> float | None:
+    """Current implied 100% rated range (miles), accounts for degradation."""
+    from matesla.models.TeslaCarInfo import TeslaCarInfo
+    from matesla.soc_refine import estimate_pack_rated_miles
+
+    info = TeslaCarInfo.objects.filter(hashedVin=hashed_vin).first()
+    vin = getattr(info, "vin", None) if info else None
+    if not vin:
+        # Fall back to any snapshot VIN
+        row = (
+            TeslaCarDataSnapshot.objects.filter(hashedVin=hashed_vin)
+            .exclude(vin__isnull=True)
+            .exclude(vin="")
+            .values_list("vin", flat=True)
+            .first()
+        )
+        vin = row
+    if not vin:
+        try:
+            epa = float(info.EPARange) if info and info.EPARange else None
+        except (TypeError, ValueError):
+            epa = None
+        return epa if epa and epa >= 50 else None
+    pack = estimate_pack_rated_miles(vin)
+    if pack is not None and pack >= 50:
+        return float(pack)
+    try:
+        epa = float(info.EPARange) if info and info.EPARange else None
+    except (TypeError, ValueError):
+        epa = None
+    return epa if epa and epa >= 50 else None
+
+
+def _seasonal_source_label(source: str | None) -> str:
+    if source == "yoy_1":
+        return _("same season last year")
+    if source == "yoy_2":
+        return _("same season two years ago")
+    if source == "recent_3m":
+        return _("last three months (short history)")
+    return _("recent driving")
 
 
 def _dc_charge_period_queryset(hashed_vin, weeks: int):
@@ -5187,6 +5318,64 @@ def GenerateDcSocVsTimeGraph(time_curves, title, size="full"):
     axes.set_xlabel(_("Minutes since charge start"))
     axes.set_ylabel(_("Battery SoC (%)"))
     axes.set_ylim(0, 100)
+    axes.set_xlim(left=0)
+    style_legend(axes, style_config)
+    finish_figure(figure, axes, title, style_config)
+    return render_png(figure, size)
+
+
+def GenerateDcRangeVsTimeGraph(
+    range_curves,
+    title,
+    *,
+    distance_label: str,
+    size="full",
+    empty_message=None,
+):
+    """
+    Median estimated range vs minutes since plug-in; same start-SoC palette
+    as SoC-vs-time. Y is already in display units (km or mi).
+    """
+    figure, style_config = make_figure(size)
+    axes = figure.add_subplot(111)
+    if not range_curves:
+        axes.text(
+            0.5,
+            0.5,
+            empty_message or _("Not enough data for range-vs-time curves"),
+            ha="center",
+            va="center",
+            color=MUTED,
+            fontsize=style_config["label_size"],
+            transform=axes.transAxes,
+        )
+        finish_figure(figure, axes, title, style_config)
+        return render_png(figure, size)
+
+    palette = (ACCENT, WARM, ENERGY, CYAN, DANGER)
+    y_max = 0.0
+    for index, bucket in enumerate(sorted(range_curves.keys())):
+        series = range_curves[bucket]
+        color = palette[index % len(palette)]
+        label = _("%(start)s%% start · n=%(n)s") % {
+            "start": bucket,
+            "n": series.get("n_sessions", 0),
+        }
+        ys = series.get("range_median") or []
+        if ys:
+            y_max = max(y_max, max(ys))
+        axes.plot(
+            series["times"],
+            ys,
+            color=color,
+            linewidth=style_config["linewidth"],
+            label=label,
+        )
+    axes.set_xlabel(_("Minutes since charge start"))
+    axes.set_ylabel(
+        _("Estimated range (%(u)s)") % {"u": distance_label}
+    )
+    axes.set_ylim(bottom=0, top=max(y_max * 1.08, 1.0) if y_max > 0 else None)
     axes.set_xlim(left=0)
     style_legend(axes, style_config)
     finish_figure(figure, axes, title, style_config)
@@ -5418,11 +5607,14 @@ def DayChargeSessionGraph(request, hashedVin, day, start_ts, chart):
 @require_GET
 def DCCharge(request, hashedVin):
     """
-    DC fast-charge profiles: power vs SoC (with envelope) and SoC vs time
-    by arrival SoC. Outlier filter targets V2 sharing and cold crawls.
+    DC fast-charge profiles: power vs SoC (with envelope), SoC vs time by
+    arrival SoC, and range vs time (rated after degradation / real seasonal
+    consumption). Outlier filter targets V2 sharing and cold crawls.
     """
     if not IsValidHash(hashedVin):
         return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+
+    from matesla.units import get_distance_unit, unit_labels
 
     weeks = resolve_stats_period(request)
     outlier_mode = _parse_dc_outlier_mode(request.GET.get("filter"))
@@ -5433,7 +5625,30 @@ def DCCharge(request, hashedVin):
     # Day-map drill-down only useful when the envelope is the actual min/max
     # (P10–P90 is a statistical band, not a single sample day).
     epa_kwh_100 = _epa_kwh_per_100km_for_hashed_vin(hashedVin)
-    real_kwh_100 = _vehicle_drive_kwh_per_100km(hashedVin, weeks=52)
+    seasonal = _seasonal_drive_kwh_per_100km(hashedVin)
+    real_kwh_100 = seasonal["kwh_per_100km"] if seasonal else None
+    full_rated_mi = _full_rated_miles_for_hashed_vin(hashedVin)
+    has_rated_range = full_rated_mi is not None and full_rated_mi >= 50
+    has_real_range = (
+        has_rated_range
+        and real_kwh_100 is not None
+        and full_real_range_km(
+            full_rated_miles=full_rated_mi,
+            real_kwh_per_100km=real_kwh_100,
+            epa_kwh_per_100km=epa_kwh_100,
+        )
+        is not None
+    )
+    # Default: real (seasonal conso) when available, else rated.
+    default_range_mode = "real" if has_real_range else "rated"
+    range_y_mode = _parse_dc_range_y_mode(
+        request.GET.get("range_mode"), default=default_range_mode
+    )
+    if range_y_mode == "real" and not has_real_range:
+        range_y_mode = "rated"
+    if range_y_mode == "rated" and not has_rated_range and has_real_range:
+        range_y_mode = "real"
+
     if envelope_mode == "min_max" and analysis.get("power_curve"):
         power_extremes = power_curve_extreme_rows(
             analysis["power_curve"],
@@ -5442,6 +5657,24 @@ def DCCharge(request, hashedVin):
         )
     else:
         power_extremes = []
+
+    unit = get_distance_unit(request)
+    labels = unit_labels(unit)
+    seasonal_note = None
+    if seasonal:
+        start = seasonal["window_start"]
+        end = seasonal["window_end"]
+        seasonal_note = {
+            "source": seasonal["source"],
+            "source_label": _seasonal_source_label(seasonal["source"]),
+            "window_start": start.isoformat() if start else None,
+            "window_end": end.isoformat() if end else None,
+            "window_start_display": start.strftime("%d/%m/%Y") if start else "—",
+            "window_end_display": end.strftime("%d/%m/%Y") if end else "—",
+            "total_km": seasonal.get("total_km"),
+            "n_trips": seasonal.get("n_trips"),
+            "kwh_per_100km": seasonal.get("kwh_per_100km"),
+        }
 
     context = _vehicle_chrome_context(request, hashedVin)
     context.update(
@@ -5454,10 +5687,34 @@ def DCCharge(request, hashedVin):
             "summary": summary,
             "has_power_curve": bool(analysis["power_curve"]),
             "has_time_curves": bool(analysis["time_curves"]),
+            "has_range_curves": bool(analysis["time_curves"])
+            and (has_rated_range or has_real_range),
+            "has_rated_range": has_rated_range,
+            "has_real_range": has_real_range,
+            "range_y_mode": range_y_mode,
+            "range_y_mode_label": range_y_mode_label(range_y_mode),
+            "range_mode_choices": [
+                {
+                    "key": "real",
+                    "label": range_y_mode_label("real"),
+                    "available": has_real_range,
+                },
+                {
+                    "key": "rated",
+                    "label": range_y_mode_label("rated"),
+                    "available": has_rated_range,
+                },
+            ],
             "power_extremes": power_extremes,
             "show_power_extremes": bool(power_extremes),
             "epa_kwh_per_100km": epa_kwh_100,
             "real_kwh_per_100km": real_kwh_100,
+            "seasonal_conso": seasonal_note,
+            "full_rated_miles": full_rated_mi,
+            "distance_unit": unit,
+            "u_dist": labels["distance"],
+            "u_energy": labels["energy"],
+            "u_range_rate": labels["range_rate"],
             "filter_choices": [
                 {"key": "robust", "label": outlier_mode_label("robust")},
                 {"key": "all", "label": outlier_mode_label("all")},
@@ -5471,13 +5728,18 @@ def DCCharge(request, hashedVin):
     return render(request, "personalstats/dc_charge.html", context)
 
 
+DC_CHARGE_CHARTS = frozenset(
+    {"power_vs_soc", "soc_vs_time", "range_vs_time_real", "range_vs_time_rated"}
+)
+
+
 @require_GET
 def DCChargeGraph(request, hashedVin, chart, desiredperiod):
-    """PNG for DC charge charts: power_vs_soc | soc_vs_time."""
+    """PNG for DC charge charts: power_vs_soc | soc_vs_time | range_vs_time_*."""
     if not IsValidHash(hashedVin):
         return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
     chart_key = (chart or "").strip().lower()
-    if chart_key not in ("power_vs_soc", "soc_vs_time"):
+    if chart_key not in DC_CHARGE_CHARTS:
         return HttpResponseNotFound("Unknown DC chart " + (chart or ""))
 
     try:
@@ -5487,16 +5749,22 @@ def DCChargeGraph(request, hashedVin, chart, desiredperiod):
     if weeks < 0:
         weeks = 0
 
+    from matesla.BatteryDegradation import pack_kwh_for_vehicle
+    from matesla.units import get_distance_unit, km_to_display, miles_to_display, unit_labels
+
     outlier_mode = _parse_dc_outlier_mode(request.GET.get("filter"))
     envelope_mode = _parse_dc_envelope_mode(request.GET.get("envelope"))
     size = graph_size_from_request(request)
+    unit = get_distance_unit(request)
+    dist_label = unit_labels(unit)["distance"]
 
     cache_key = _graph_png_cache_key(
         hashedVin,
-        f"dc_v6_{chart_key}_{outlier_mode}_{envelope_mode}",
+        f"dc_v7_{chart_key}_{outlier_mode}_{envelope_mode}",
         weeks,
         size,
         kind="dc_charge",
+        unit=unit,
     )
     try:
         hit = cache.get(cache_key)
@@ -5514,12 +5782,47 @@ def DCChargeGraph(request, hashedVin, chart, desiredperiod):
             envelope_mode=envelope_mode,
             size=size,
         )
-    else:
+    elif chart_key == "soc_vs_time":
         title = _("DC charge: SoC vs time by start SoC")
         response = GenerateDcSocVsTimeGraph(
             analysis["time_curves"],
             title,
             size=size,
+        )
+    else:
+        # range_vs_time_real | range_vs_time_rated
+        full_rated_mi = _full_rated_miles_for_hashed_vin(hashedVin)
+        if chart_key == "range_vs_time_rated":
+            full_display = miles_to_display(full_rated_mi, unit)
+            title = _("DC charge: rated range vs time")
+            empty = _("Rated full range unavailable for this vehicle")
+        else:
+            seasonal = _seasonal_drive_kwh_per_100km(hashedVin)
+            real_kwh = seasonal["kwh_per_100km"] if seasonal else None
+            epa_kwh = _epa_kwh_per_100km_for_hashed_vin(hashedVin)
+            pack = pack_kwh_for_vehicle(hashed_vin=hashedVin)
+            full_real_km_val = full_real_range_km(
+                full_rated_miles=full_rated_mi,
+                real_kwh_per_100km=real_kwh,
+                epa_kwh_per_100km=epa_kwh,
+                pack_kwh=pack,
+            )
+            full_display = km_to_display(full_real_km_val, unit)
+            title = _("DC charge: driving range vs time")
+            empty = _("Not enough seasonal driving data for real range")
+
+        if full_display is None or full_display <= 0 or not analysis["time_curves"]:
+            range_curves = {}
+        else:
+            range_curves = scale_soc_time_curves_to_range(
+                analysis["time_curves"], full_display
+            )
+        response = GenerateDcRangeVsTimeGraph(
+            range_curves,
+            title,
+            distance_label=dist_label,
+            size=size,
+            empty_message=empty,
         )
     return _cache_graph_png(cache_key, response, size)
 

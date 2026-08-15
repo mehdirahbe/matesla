@@ -1,6 +1,6 @@
 """Unit tests for DC charge analytics (no DB)."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from django.test import SimpleTestCase
 
@@ -11,12 +11,17 @@ from personalstats.dc_charge import (
     charge_session_curve_series,
     effective_charger_power_kw,
     filter_outlier_sessions,
+    full_real_range_km,
     iter_power_curve_points,
     power_curve_extreme_rows,
     power_vs_soc_curve,
     range_gain_km_per_hour,
+    scale_soc_time_curves_to_range,
+    seasonal_window_candidates,
+    select_seasonal_kwh_per_100km,
     session_from_rows,
     soc_vs_time_curves,
+    trip_followed_by_dc,
 )
 
 
@@ -384,3 +389,109 @@ class DcChargeLogicTests(SimpleTestCase):
         # Median SoC must keep rising on the truncated curve
         soc = curves[20]["soc_median"]
         self.assertGreater(soc[-1], soc[0])
+
+
+class SeasonalConsumptionTests(SimpleTestCase):
+    def test_seasonal_window_order(self):
+        today = date(2026, 8, 15)
+        windows = seasonal_window_candidates(today)
+        self.assertEqual([w[0] for w in windows], ["yoy_1", "yoy_2", "recent_3m"])
+        self.assertEqual(windows[0][1], date(2025, 7, 16))
+        self.assertEqual(windows[0][2], date(2025, 9, 14))
+        self.assertEqual(windows[2][2], today)
+
+    def test_trip_followed_by_dc_detects_approach(self):
+        t0 = datetime(2025, 8, 1, 12, 0, tzinfo=timezone.utc)
+        dc_starts = [t0 + timedelta(minutes=10), t0 + timedelta(hours=3)]
+        self.assertTrue(trip_followed_by_dc(t0, dc_starts))
+        self.assertFalse(trip_followed_by_dc(t0 - timedelta(hours=2), dc_starts))
+        self.assertFalse(
+            trip_followed_by_dc(t0, [t0 + timedelta(minutes=45)])
+        )
+
+    def test_select_seasonal_prefers_yoy_and_drops_sc_approach(self):
+        today = date(2026, 8, 15)
+        # Enough clean trips in yoy_1 window (mid Aug 2025)
+        trips = []
+        for i in range(8):
+            day = date(2025, 8, 1 + i)
+            start = datetime(2025, 8, 1 + i, 10, 0, tzinfo=timezone.utc)
+            end = start + timedelta(hours=1)
+            trips.append(
+                {
+                    "day_iso": day.isoformat(),
+                    "start": start,
+                    "end": end,
+                    "km": 40.0,
+                    "kwh_used": 6.0,
+                    "kwh_per_100km": 15.0,
+                }
+            )
+        # One SC-approach leg (worse conso) ending just before a DC start
+        sc_end = datetime(2025, 8, 5, 14, 0, tzinfo=timezone.utc)
+        trips.append(
+            {
+                "day_iso": "2025-08-05",
+                "start": sc_end - timedelta(hours=1),
+                "end": sc_end,
+                "km": 50.0,
+                "kwh_used": 12.0,
+                "kwh_per_100km": 24.0,
+            }
+        )
+        dc_starts = [sc_end + timedelta(minutes=5)]
+        result = select_seasonal_kwh_per_100km(
+            trips, dc_starts_sorted=dc_starts, today=today, min_total_km=100, min_trips=3
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result["source"], "yoy_1")
+        # SC approach excluded → still ~15 kWh/100
+        self.assertAlmostEqual(result["kwh_per_100km"], 15.0, places=2)
+
+    def test_select_seasonal_falls_back_to_recent(self):
+        today = date(2026, 8, 15)
+        trips = []
+        for i in range(6):
+            day = date(2026, 7, 10 + i)
+            start = datetime(2026, 7, 10 + i, 9, 0, tzinfo=timezone.utc)
+            trips.append(
+                {
+                    "day_iso": day.isoformat(),
+                    "start": start,
+                    "end": start + timedelta(minutes=45),
+                    "km": 50.0,
+                    "kwh_used": 9.0,
+                    "kwh_per_100km": 18.0,
+                }
+            )
+        result = select_seasonal_kwh_per_100km(
+            trips, dc_starts_sorted=[], today=today, min_total_km=100, min_trips=3
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result["source"], "recent_3m")
+        self.assertAlmostEqual(result["kwh_per_100km"], 18.0, places=2)
+
+    def test_scale_soc_curves_to_range(self):
+        curves = {
+            20: {
+                "times": [0, 10, 20],
+                "soc_median": [20.0, 50.0, 80.0],
+                "n_sessions": 4,
+            }
+        }
+        scaled = scale_soc_time_curves_to_range(curves, 400.0)
+        self.assertIn(20, scaled)
+        self.assertEqual(scaled[20]["range_median"][0], 80.0)
+        self.assertEqual(scaled[20]["range_median"][1], 200.0)
+        self.assertEqual(scaled[20]["range_median"][2], 320.0)
+
+    def test_full_real_range_km_scales_by_intensity(self):
+        # 310 mi rated, EPA 14 kWh/100, real 21 kWh/100 → real range = 2/3 rated km
+        rated_mi = 310.0
+        real = full_real_range_km(
+            full_rated_miles=rated_mi,
+            real_kwh_per_100km=21.0,
+            epa_kwh_per_100km=14.0,
+        )
+        self.assertIsNotNone(real)
+        self.assertAlmostEqual(real, rated_mi * 1.609344 * (14.0 / 21.0), places=2)

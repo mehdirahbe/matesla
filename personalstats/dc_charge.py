@@ -16,8 +16,9 @@ include every DC session.
 
 from __future__ import annotations
 
+from bisect import bisect_left
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from statistics import median
 from typing import Iterable, Sequence
 from zoneinfo import ZoneInfo
@@ -52,6 +53,24 @@ SOC_VS_TIME_MIN_SESSIONS = 3
 
 OUTLIER_MODES = frozenset({"robust", "all"})
 ENVELOPE_MODES = frozenset({"p10_p90", "min_max"})
+# Range-vs-time Y axis: rated (after degradation) or real (seasonal conso).
+RANGE_Y_MODES = frozenset({"rated", "real"})
+
+# Seasonal driving intensity for "real" range (not a 12‑month mix).
+# Prefer same calendar season last year (± half window), then 2y ago, then
+# recent history capped at 3 months (new cars). Drop Supercharger-approach
+# legs: battery preconditioning easily adds ~10% energy before the first DC stop.
+SEASONAL_HALF_WINDOW_DAYS = 30  # ±30 d → ~2 months
+SEASONAL_RECENT_MAX_DAYS = 90
+SEASONAL_MIN_TOTAL_KM = 200.0
+SEASONAL_MIN_TRIPS = 5
+SEASONAL_TRIP_MIN_KM = 10.0
+SEASONAL_KWH100_MIN = 5.0
+SEASONAL_KWH100_MAX = 45.0
+# Trip end → DC session start: exclude as SC-approach (preconditioning bias).
+SC_APPROACH_MAX_GAP = timedelta(minutes=30)
+# How far back to load trips / DC starts for seasonal estimate.
+SEASONAL_LOOKBACK_WEEKS = 110
 
 
 @dataclass
@@ -720,6 +739,279 @@ def envelope_mode_label(mode: str) -> str:
     if mode == "min_max":
         return _("Min / max")
     return _("P10–P90 band")
+
+
+def range_y_mode_label(mode: str) -> str:
+    if mode == "rated":
+        return _("Rated range (after degradation)")
+    return _("Your driving range")
+
+
+def calendar_window_centered(
+    center: date, *, half_days: int = SEASONAL_HALF_WINDOW_DAYS
+) -> tuple[date, date]:
+    """Inclusive civil-date window of about 2×half_days around center."""
+    half = max(1, int(half_days))
+    return center - timedelta(days=half), center + timedelta(days=half)
+
+
+def _shift_years(day: date, years: int) -> date:
+    """Shift a civil date by whole years; clamp Feb 29 → Feb 28 when needed."""
+    try:
+        return day.replace(year=day.year - years)
+    except ValueError:
+        # Feb 29 on non-leap target year
+        return day.replace(year=day.year - years, day=28)
+
+
+def seasonal_window_candidates(
+    today: date | None = None,
+    *,
+    half_days: int = SEASONAL_HALF_WINDOW_DAYS,
+    recent_max_days: int = SEASONAL_RECENT_MAX_DAYS,
+) -> list[tuple[str, date, date]]:
+    """
+    Ordered windows for seasonal kWh/100 km (first match with enough data wins).
+
+    1. yoy_1 — ±half_days around today−1 year (same season last year)
+    2. yoy_2 — same, two years ago
+    3. recent_3m — last recent_max_days up to today (short histories / new cars)
+    """
+    ref = today or datetime.now(_DC_DAY_TZ).date()
+    windows: list[tuple[str, date, date]] = []
+    for years_back, key in ((1, "yoy_1"), (2, "yoy_2")):
+        center = _shift_years(ref, years_back)
+        start, end = calendar_window_centered(center, half_days=half_days)
+        windows.append((key, start, end))
+    recent_start = ref - timedelta(days=max(1, int(recent_max_days)))
+    windows.append(("recent_3m", recent_start, ref))
+    return windows
+
+
+def trip_followed_by_dc(
+    trip_end: datetime | None,
+    dc_starts_sorted: Sequence[datetime],
+    *,
+    max_gap: timedelta = SC_APPROACH_MAX_GAP,
+) -> bool:
+    """
+    True when a DC session starts within max_gap after the trip ends.
+
+    Those legs are Supercharger approaches: navigation preconditions the pack
+    and often inflates kWh/100 km by ~10%.
+    """
+    if trip_end is None or not dc_starts_sorted:
+        return False
+    # Normalize naive/aware comparison by comparing as timestamps when needed
+    try:
+        end_ts = trip_end.timestamp()
+    except Exception:
+        return False
+    starts_ts = []
+    for start in dc_starts_sorted:
+        try:
+            starts_ts.append(start.timestamp())
+        except Exception:
+            continue
+    if not starts_ts:
+        return False
+    starts_ts.sort()
+    end_ts_f = float(end_ts)
+    gap_s = max_gap.total_seconds()
+    idx = bisect_left(starts_ts, end_ts_f - 60.0)  # allow 1 min clock skew
+    while idx < len(starts_ts):
+        delta = starts_ts[idx] - end_ts_f
+        if delta > gap_s:
+            break
+        if delta >= -60.0:
+            return True
+        idx += 1
+    return False
+
+
+def aggregate_distance_weighted_kwh100(
+    trips: Sequence[dict],
+    *,
+    min_trip_km: float = SEASONAL_TRIP_MIN_KM,
+    kwh100_min: float = SEASONAL_KWH100_MIN,
+    kwh100_max: float = SEASONAL_KWH100_MAX,
+) -> tuple[float, float, int] | None:
+    """
+    Distance-weighted mean kWh/100 km.
+
+    Returns (kwh_per_100km, total_km, n_trips) or None if empty after filters.
+    """
+    total_kwh = 0.0
+    total_km = 0.0
+    n = 0
+    for trip in trips:
+        kwh = trip.get("kwh_used")
+        km = trip.get("km")
+        k100 = trip.get("kwh_per_100km")
+        if kwh is None or km is None or k100 is None:
+            continue
+        try:
+            kwh_f = float(kwh)
+            km_f = float(km)
+            k100_f = float(k100)
+        except (TypeError, ValueError):
+            continue
+        if km_f < min_trip_km or k100_f < kwh100_min or k100_f > kwh100_max:
+            continue
+        total_kwh += kwh_f
+        total_km += km_f
+        n += 1
+    if n <= 0 or total_km <= 0:
+        return None
+    return total_kwh / total_km * 100.0, total_km, n
+
+
+def _trip_civil_date(trip: dict) -> date | None:
+    raw = trip.get("day_iso")
+    if raw:
+        try:
+            return date.fromisoformat(str(raw)[:10])
+        except ValueError:
+            pass
+    start = trip.get("start")
+    if start is None:
+        return None
+    try:
+        if getattr(start, "tzinfo", None) is not None:
+            return start.astimezone(_DC_DAY_TZ).date()
+        return start.date()
+    except Exception:
+        return None
+
+
+def filter_trips_for_seasonal_window(
+    trips: Sequence[dict],
+    *,
+    window_start: date,
+    window_end: date,
+    dc_starts_sorted: Sequence[datetime] | None = None,
+    exclude_sc_approach: bool = True,
+) -> list[dict]:
+    """Trips whose civil day is in [window_start, window_end], optional SC drop."""
+    kept: list[dict] = []
+    dc_starts = list(dc_starts_sorted or [])
+    for trip in trips:
+        day = _trip_civil_date(trip)
+        if day is None or day < window_start or day > window_end:
+            continue
+        if exclude_sc_approach and trip_followed_by_dc(trip.get("end"), dc_starts):
+            continue
+        kept.append(trip)
+    return kept
+
+
+def select_seasonal_kwh_per_100km(
+    trips: Sequence[dict],
+    *,
+    dc_starts_sorted: Sequence[datetime] | None = None,
+    today: date | None = None,
+    min_total_km: float = SEASONAL_MIN_TOTAL_KM,
+    min_trips: int = SEASONAL_MIN_TRIPS,
+) -> dict | None:
+    """
+    Pick the first seasonal window with enough clean driving data.
+
+    Returns dict with keys: kwh_per_100km, total_km, n_trips, source,
+    window_start, window_end — or None.
+    """
+    for source, start, end in seasonal_window_candidates(today):
+        subset = filter_trips_for_seasonal_window(
+            trips,
+            window_start=start,
+            window_end=end,
+            dc_starts_sorted=dc_starts_sorted,
+            exclude_sc_approach=True,
+        )
+        agg = aggregate_distance_weighted_kwh100(subset)
+        if agg is None:
+            continue
+        k100, total_km, n = agg
+        if total_km < min_total_km or n < min_trips:
+            continue
+        return {
+            "kwh_per_100km": k100,
+            "total_km": total_km,
+            "n_trips": n,
+            "source": source,
+            "window_start": start,
+            "window_end": end,
+        }
+    return None
+
+
+def scale_soc_time_curves_to_range(
+    time_curves: dict[int, dict],
+    full_range_at_100: float,
+) -> dict[int, dict]:
+    """
+    Map median SoC % trajectories to absolute range at that SoC.
+
+    range(t) = soc(t)/100 * full_range_at_100 (same unit as full_range_at_100).
+    """
+    try:
+        full = float(full_range_at_100)
+    except (TypeError, ValueError):
+        return {}
+    if full <= 0:
+        return {}
+    out: dict[int, dict] = {}
+    for bucket, series in time_curves.items():
+        socs = series.get("soc_median") or []
+        times = series.get("times") or []
+        if len(socs) < 2 or len(times) < 2:
+            continue
+        out[int(bucket)] = {
+            "times": list(times),
+            "range_median": [float(s) / 100.0 * full for s in socs],
+            "soc_median": list(socs),
+            "n_sessions": series.get("n_sessions", 0),
+        }
+    return out
+
+
+def full_real_range_km(
+    *,
+    full_rated_miles: float | None,
+    real_kwh_per_100km: float | None,
+    epa_kwh_per_100km: float | None = None,
+    pack_kwh: float | None = None,
+) -> float | None:
+    """
+    Estimated driving range at 100% SoC (km) from current rated full range
+    scaled by EPA vs observed energy intensity.
+    """
+    if full_rated_miles is None or real_kwh_per_100km is None:
+        return None
+    try:
+        rated_mi = float(full_rated_miles)
+        real_c = float(real_kwh_per_100km)
+    except (TypeError, ValueError):
+        return None
+    if rated_mi < 50 or real_c <= 0:
+        return None
+    rated_km = rated_mi * 1.609344
+    epa_c = None
+    if epa_kwh_per_100km is not None:
+        try:
+            epa_c = float(epa_kwh_per_100km)
+        except (TypeError, ValueError):
+            epa_c = None
+    if epa_c is None or epa_c <= 0:
+        if pack_kwh is not None:
+            try:
+                pack = float(pack_kwh)
+            except (TypeError, ValueError):
+                pack = None
+            if pack and pack > 0 and rated_km > 0:
+                epa_c = pack / rated_km * 100.0
+    if epa_c is None or epa_c <= 0:
+        return None
+    return rated_km * (epa_c / real_c)
 
 
 def charge_session_curve_series(points: Sequence[dict]) -> list[dict]:

@@ -142,6 +142,10 @@ class PersonalStatsPageTests(TestCase):
         response = client.get(f"/en/personalstats/DCCharge/{FAKE_HASHED_VIN}")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "DC charge", status_code=200)
+        # Range-vs-time card is gated on start-SoC curves + full pack range;
+        # the page always ships the mode-switcher JS for when the card appears.
+        self.assertContains(response, "applyRangeMode", status_code=200)
+        self.assertContains(response, "matesla_dc_range_mode", status_code=200)
 
     def test_poll_details_page_ok(self):
         client = Client()
@@ -152,7 +156,12 @@ class PersonalStatsPageTests(TestCase):
 
     def test_dc_charge_graphs_png(self):
         client = Client()
-        for chart in ("power_vs_soc", "soc_vs_time"):
+        for chart in (
+            "power_vs_soc",
+            "soc_vs_time",
+            "range_vs_time_real",
+            "range_vs_time_rated",
+        ):
             response = client.get(
                 f"/en/personalstats/DCChargeGraph/{FAKE_HASHED_VIN}/"
                 f"{chart}/520?filter=robust&envelope=p10_p90&size=full"

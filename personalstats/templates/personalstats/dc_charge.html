@@ -172,6 +172,33 @@
         color: #ffc48a;
         background: rgba(240, 180, 41, 0.14);
     }
+    .dc-range-card {
+        grid-column: 1 / -1;
+    }
+    .dc-range-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 0.65rem 1rem;
+        margin: 0 0 0.65rem;
+        padding: 0 2px;
+    }
+    .dc-range-toolbar label {
+        display: block;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--app-muted, #8b9bb4);
+        margin-bottom: 4px;
+    }
+    .dc-range-toolbar select {
+        min-height: 34px;
+        min-width: 14rem;
+        max-width: 100%;
+    }
+    .dc-range-toolbar select:disabled {
+        opacity: 0.55;
+    }
 {% endblock %}
 
 {% block content %}
@@ -287,6 +314,82 @@
                 height="305">
         </div>
     </article>
+
+    {% if has_range_curves %}
+    <article class="graph-card dc-range-card" data-graph-card="range_vs_time"
+             data-range-real-url="{% url 'PersoDCChargeGraph' hashedVin 'range_vs_time_real' stats_period %}?filter={{ outlier_mode }}&envelope={{ envelope_mode }}&size=thumb"
+             data-range-rated-url="{% url 'PersoDCChargeGraph' hashedVin 'range_vs_time_rated' stats_period %}?filter={{ outlier_mode }}&envelope={{ envelope_mode }}&size=thumb"
+             data-range-real-title="{% trans 'Driving range vs time by start SoC' %}"
+             data-range-rated-title="{% trans 'Rated range vs time by start SoC' %}"
+             data-range-real-alt="{% trans 'DC charge driving range versus time by start SoC' %}"
+             data-range-rated-alt="{% trans 'DC charge rated range versus time by start SoC' %}"
+             data-range-real-index="{% trans '03 · RANGE' %}"
+             data-range-rated-index="{% trans '03 · RANGE' %}"
+             data-has-real="{% if has_real_range %}1{% else %}0{% endif %}"
+             data-has-rated="{% if has_rated_range %}1{% else %}0{% endif %}">
+        <header class="graph-card__header">
+            <div>
+                <span class="graph-card__index" data-range-index>{% trans '03 · RANGE' %}</span>
+                <h2 data-range-title>
+                    {% if range_y_mode == 'rated' %}
+                    {% trans 'Rated range vs time by start SoC' %}
+                    {% else %}
+                    {% trans 'Driving range vs time by start SoC' %}
+                    {% endif %}
+                </h2>
+            </div>
+            <button type="button" class="graph-card__expand" data-graph-expand
+                    title="{% trans 'Expand' %}" aria-label="{% trans 'Expand chart' %}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M9 3H3v6M15 3h6v6M9 21H3v-6M21 15v6h-6M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"/>
+                </svg>
+            </button>
+        </header>
+        <div class="dc-range-toolbar">
+            <div>
+                <label for="dc-range-mode">{% trans 'Range scale' %}</label>
+                <select id="dc-range-mode" class="form-control" data-range-mode>
+                    {% for choice in range_mode_choices %}
+                    <option value="{{ choice.key }}"
+                            {% if range_y_mode == choice.key %}selected{% endif %}
+                            {% if not choice.available %}disabled{% endif %}>
+                        {{ choice.label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <p class="graph-card__blurb" data-range-blurb-real {% if range_y_mode != 'real' %}hidden{% endif %}>
+            {% blocktrans %}
+            Same start-SoC curves as above, scaled to estimated driving range using your
+            seasonal consumption (same season last year when possible; Supercharger approach
+            legs excluded because battery preconditioning inflates kWh/100). Best for comparing cars.
+            {% endblocktrans %}
+        </p>
+        <p class="graph-card__blurb" data-range-blurb-rated {% if range_y_mode != 'rated' %}hidden{% endif %}>
+            {% blocktrans %}
+            Same start-SoC curves, scaled to Tesla rated range after battery degradation
+            (implied full-charge range). Comparable across cars without your driving style.
+            {% endblocktrans %}
+        </p>
+        {% if seasonal_conso and has_real_range %}
+        <p class="dc-note" data-range-meta-real {% if range_y_mode != 'real' %}hidden{% endif %}>
+            {% blocktrans with conso=seasonal_conso.kwh_per_100km|as_energy_from_kwh100:distance_unit|floatformat:1 unit=u_energy src=seasonal_conso.source_label start=seasonal_conso.window_start_display end=seasonal_conso.window_end_display km=seasonal_conso.total_km|as_distance_from_km:distance_unit|floatformat:0 dist=u_dist %}
+            Consumption ≈ {{ conso }} {{ unit }} · {{ src }} · {{ start }} → {{ end }} · {{ km }} {{ dist }} (excluding Supercharger approaches).
+            {% endblocktrans %}
+        </p>
+        {% endif %}
+        <div class="graph-card__media" data-graph-media>
+            <img
+                data-range-img
+                src="{% if range_y_mode == 'rated' %}{% url 'PersoDCChargeGraph' hashedVin 'range_vs_time_rated' stats_period %}?filter={{ outlier_mode }}&envelope={{ envelope_mode }}&size=thumb{% else %}{% url 'PersoDCChargeGraph' hashedVin 'range_vs_time_real' stats_period %}?filter={{ outlier_mode }}&envelope={{ envelope_mode }}&size=thumb{% endif %}"
+                alt="{% if range_y_mode == 'rated' %}{% trans 'DC charge rated range versus time by start SoC' %}{% else %}{% trans 'DC charge driving range versus time by start SoC' %}{% endif %}"
+                loading="lazy"
+                width="700"
+                height="305">
+        </div>
+    </article>
+    {% endif %}
 </div>
 
 {% if show_power_extremes %}
@@ -349,7 +452,7 @@
     <p class="dc-note">
         {% blocktrans with epa=epa_kwh_per_100km|as_energy_from_kwh100:distance_unit|floatformat:1 real=real_kwh_per_100km|as_energy_from_kwh100:distance_unit|floatformat:1 unit=u_energy rate=u_range_rate %}
         Range rates convert power to {{ rate }} using EPA ≈ {{ epa }} {{ unit }} and your
-        recent driving average ≈ {{ real }} {{ unit }} (distance-weighted).
+        seasonal driving average ≈ {{ real }} {{ unit }} (distance-weighted, Supercharger approaches excluded).
         {% endblocktrans %}
     </p>
     {% elif epa_kwh_per_100km %}
@@ -361,7 +464,7 @@
     {% elif real_kwh_per_100km %}
     <p class="dc-note">
         {% blocktrans with real=real_kwh_per_100km|as_energy_from_kwh100:distance_unit|floatformat:1 unit=u_energy rate=u_range_rate %}
-        Real range rates use your driving average ≈ {{ real }} {{ unit }}. EPA {{ rate }} needs a catalog range.
+        Real range rates use your seasonal driving average ≈ {{ real }} {{ unit }}. EPA {{ rate }} needs a catalog range.
         {% endblocktrans %}
     </p>
     {% endif %}
@@ -482,6 +585,55 @@ function closeGraphLightbox() {
     if (lightImg) lightImg.removeAttribute("src");
 }
 
+function applyRangeMode(card, mode) {
+    if (!card) return;
+    var realUrl = card.getAttribute("data-range-real-url") || "";
+    var ratedUrl = card.getAttribute("data-range-rated-url") || "";
+    var hasReal = card.getAttribute("data-has-real") === "1";
+    var hasRated = card.getAttribute("data-has-rated") === "1";
+    if (mode === "real" && !hasReal) mode = hasRated ? "rated" : mode;
+    if (mode === "rated" && !hasRated) mode = hasReal ? "real" : mode;
+
+    var img = card.querySelector("[data-range-img]");
+    var titleEl = card.querySelector("[data-range-title]");
+    var indexEl = card.querySelector("[data-range-index]");
+    var blurbReal = card.querySelector("[data-range-blurb-real]");
+    var blurbRated = card.querySelector("[data-range-blurb-rated]");
+    var metaReal = card.querySelector("[data-range-meta-real]");
+    var isReal = mode === "real";
+
+    if (img) {
+        img.src = isReal ? realUrl : ratedUrl;
+        img.alt = isReal
+            ? (card.getAttribute("data-range-real-alt") || "")
+            : (card.getAttribute("data-range-rated-alt") || "");
+    }
+    if (titleEl) {
+        titleEl.textContent = isReal
+            ? (card.getAttribute("data-range-real-title") || "")
+            : (card.getAttribute("data-range-rated-title") || "");
+    }
+    if (indexEl) {
+        indexEl.textContent = isReal
+            ? (card.getAttribute("data-range-real-index") || "")
+            : (card.getAttribute("data-range-rated-index") || "");
+    }
+    if (blurbReal) blurbReal.hidden = !isReal;
+    if (blurbRated) blurbRated.hidden = isReal;
+    if (metaReal) metaReal.hidden = !isReal;
+
+    try {
+        localStorage.setItem("matesla_dc_range_mode", mode);
+    } catch (e) { /* ignore */ }
+
+    // Keep URL shareable without reload
+    try {
+        var u = new URL(window.location.href);
+        u.searchParams.set("range_mode", mode);
+        window.history.replaceState({}, "", u.pathname + u.search + u.hash);
+    } catch (e) { /* ignore */ }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     ensureLightboxOnBody(document.getElementById("graph-lightbox"));
     document.querySelectorAll("[data-graph-expand]").forEach(function (btn) {
@@ -505,6 +657,28 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("keydown", function (ev) {
         if (ev.key === "Escape") closeGraphLightbox();
     });
+
+    var rangeCard = document.querySelector("[data-graph-card='range_vs_time']");
+    var rangeSelect = document.querySelector("[data-range-mode]");
+    if (rangeCard && rangeSelect) {
+        rangeSelect.addEventListener("change", function () {
+            applyRangeMode(rangeCard, rangeSelect.value);
+        });
+        // Restore preference only when both modes exist and URL has no explicit mode
+        try {
+            var params = new URLSearchParams(window.location.search);
+            if (!params.has("range_mode")) {
+                var saved = localStorage.getItem("matesla_dc_range_mode");
+                if (saved && saved !== rangeSelect.value) {
+                    var opt = rangeSelect.querySelector('option[value="' + saved + '"]');
+                    if (opt && !opt.disabled) {
+                        rangeSelect.value = saved;
+                        applyRangeMode(rangeCard, saved);
+                    }
+                }
+            }
+        } catch (e) { /* ignore */ }
+    }
 });
 </script>
 {% endblock %}
