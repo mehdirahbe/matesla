@@ -2132,6 +2132,14 @@ msgstr "Moyenne"
 msgid "Maximum"
 msgstr "Maximum"
 
+#, python-format
+msgid "Latest reading: %(dist)s · %(date)s"
+msgstr "Dernier relevé : %(dist)s · %(date)s"
+
+#, python-format
+msgid "Latest reading: %(dist)s"
+msgstr "Dernier relevé : %(dist)s"
+
 msgid "Monthly range (min–max)"
 msgstr "Plage mensuelle (min–max)"
 

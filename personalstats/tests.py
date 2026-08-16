@@ -5,7 +5,7 @@ Uses Django TestCase → isolated test DB only (test_matesla.sqlite3).
 Fake telemetry is seeded via test_factories — never touches db.sqlite3.
 """
 
-from django.test import Client, TestCase
+from django.test import Client, SimpleTestCase, TestCase
 from django.db import connection
 
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
@@ -800,3 +800,53 @@ class DayMapUnmonitoredTailTests(TestCase):
                 [{"end_lat": 50.8, "end_lon": 4.3}], None, 4.3
             )
         )
+
+
+class OdometerGraphFooterTests(SimpleTestCase):
+    """Exact odometer footer under the date graph (no DB)."""
+
+    def test_last_series_point_is_last_plotted_y(self):
+        from datetime import date
+
+        from personalstats.views import _last_series_point
+
+        day, value = _last_series_point(
+            [date(2026, 1, 1), date(2026, 1, 2), date(2026, 1, 3)],
+            [10.0, 20.5, None],
+        )
+        self.assertEqual(day, date(2026, 1, 2))
+        self.assertEqual(value, 20.5)
+        self.assertEqual(_last_series_point([], []), (None, None))
+
+    def test_km_and_mi_include_exact_reading(self):
+        from datetime import date
+
+        from django.utils import translation
+        from personalstats.views import _odometer_graph_footer
+
+        when = date(2026, 8, 16)
+        with translation.override("en"):
+            km_foot = _odometer_graph_footer(195611.6, when, "km")
+            mi_foot = _odometer_graph_footer(121547.8, when, "mi")
+        self.assertIsNotNone(km_foot)
+        self.assertIn("195612 km", km_foot)
+        self.assertIn("121548 mi", mi_foot)
+        self.assertIn("2026", km_foot)
+        self.assertTrue(km_foot.startswith("Latest reading:"))
+
+    def test_missing_odometer_has_no_footer(self):
+        from personalstats.views import _odometer_graph_footer
+
+        self.assertIsNone(_odometer_graph_footer(None, None, "km"))
+
+    def test_french_footer(self):
+        from datetime import date
+
+        from django.utils import translation
+        from personalstats.views import _odometer_graph_footer
+
+        with translation.override("fr"):
+            foot = _odometer_graph_footer(195611.6, date(2026, 8, 16), "km")
+        self.assertIsNotNone(foot)
+        self.assertIn("195612 km", foot)
+        self.assertTrue(foot.startswith("Dernier relevé"))

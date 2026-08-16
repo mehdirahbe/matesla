@@ -601,7 +601,40 @@ def GenerateFleetPollCostGraph(
     return GeneratePngFromGraph(figure, size=size)
 
 
-def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="full"):
+def _last_series_point(dates, values):
+    """Last (date, y) already plotted — walk back past trailing nulls."""
+    if not dates or not values:
+        return None, None
+    for day, value in zip(reversed(dates), reversed(values)):
+        if value is None:
+            continue
+        try:
+            return day, float(value)
+        except (TypeError, ValueError):
+            continue
+    return None, None
+
+
+def _odometer_graph_footer(display_value, when, unit):
+    """Footer under the odometer chart: Y of the last plotted point."""
+    from django.utils.formats import date_format
+    from matesla.units import format_number, unit_labels
+
+    text = format_number(display_value, 0)
+    if text is None:
+        return None
+    dist = f"{text} {unit_labels(unit)['distance']}"
+    if when is None:
+        return _("Latest reading: %(dist)s") % {"dist": dist}
+    return _("Latest reading: %(dist)s · %(date)s") % {
+        "dist": dist,
+        "date": date_format(when, format="SHORT_DATE_FORMAT", use_l10n=True),
+    }
+
+
+def GenerateDateGraph(
+    datesList, maxvalues, minvalues, avgvalues, title, size="full", footer=None
+):
     # matplotlib 3.9+ removed Axes.plot_date — use plot() with date objects
     figure, style_config = make_figure(size)
 
@@ -652,6 +685,20 @@ def GenerateDateGraph(datesList, maxvalues, minvalues, avgvalues, title, size="f
             )
         figure.autofmt_xdate()
     finish_figure(figure, axes, title, style_config)
+    if footer:
+        figure.text(
+            0.5,
+            0.01,
+            footer,
+            ha="center",
+            va="bottom",
+            color=MUTED,
+            fontsize=max(6.0, style_config["tick_size"] - 0.5),
+        )
+        try:
+            figure.tight_layout(rect=(0.02, 0.06, 0.98, 0.92))
+        except Exception:
+            pass
     return GeneratePngFromGraph(figure, size=size)
 
 
@@ -749,7 +796,7 @@ def _graph_png_cache_key(
     language = get_language() or "en"
     dist_unit = normalize_unit(unit)
     return (
-        f"matesla:png:v3:{kind}:{hashed_vin}:{desired_field}:"
+        f"matesla:png:v5:{kind}:{hashed_vin}:{desired_field}:"
         f"{desired_period_weeks}:{size}:{language}:{dist_unit}"
     )
 
@@ -2693,7 +2740,13 @@ def _stats_on_car_graph_uncached(
         maxvalues = _scale_miles_series(maxvalues, unit)
         minvalues = _scale_miles_series(minvalues, unit)
         avgvalues = _scale_miles_series(avgvalues, unit)
-    return GenerateDateGraph(dates, maxvalues, minvalues, avgvalues, title, size=size)
+    footer = None
+    if desiredfield == "odometer":
+        last_day, last_y = _last_series_point(dates, maxvalues)
+        footer = _odometer_graph_footer(last_y, last_day, unit)
+    return GenerateDateGraph(
+        dates, maxvalues, minvalues, avgvalues, title, size=size, footer=footer
+    )
 
 # Weeks values offered in the personal-stats period dropdown (1 Month = 4, 10 Years = 520).
 STATS_PERIOD_WEEKS = frozenset({1, 2, 4, 13, 26, 52, 104, 260, 520})

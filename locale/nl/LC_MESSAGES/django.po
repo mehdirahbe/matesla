@@ -2105,6 +2105,14 @@ msgstr "Gemiddelde"
 msgid "Maximum"
 msgstr "Maximum"
 
+#, python-format
+msgid "Latest reading: %(dist)s · %(date)s"
+msgstr "Laatste stand: %(dist)s · %(date)s"
+
+#, python-format
+msgid "Latest reading: %(dist)s"
+msgstr "Laatste stand: %(dist)s"
+
 msgid "Monthly range (min–max)"
 msgstr "Maandelijks bereik (min–max)"
 

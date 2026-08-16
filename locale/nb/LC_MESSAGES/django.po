@@ -2087,6 +2087,14 @@ msgstr "Gjennomsnitt"
 msgid "Maximum"
 msgstr "Maksimum"
 
+#, python-format
+msgid "Latest reading: %(dist)s · %(date)s"
+msgstr "Siste avlesning: %(dist)s · %(date)s"
+
+#, python-format
+msgid "Latest reading: %(dist)s"
+msgstr "Siste avlesning: %(dist)s"
+
 msgid "Monthly range (min–max)"
 msgstr "Månedlig spenn (min–maks)"
 

@@ -2114,6 +2114,14 @@ msgstr "Media"
 msgid "Maximum"
 msgstr "Máximo"
 
+#, python-format
+msgid "Latest reading: %(dist)s · %(date)s"
+msgstr "Última lectura: %(dist)s · %(date)s"
+
+#, python-format
+msgid "Latest reading: %(dist)s"
+msgstr "Última lectura: %(dist)s"
+
 msgid "Monthly range (min–max)"
 msgstr "Rango mensual (mín–máx)"
 

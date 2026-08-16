@@ -2120,6 +2120,14 @@ msgstr "Durchschnitt"
 msgid "Maximum"
 msgstr "Maximum"
 
+#, python-format
+msgid "Latest reading: %(dist)s · %(date)s"
+msgstr "Letzter Stand: %(dist)s · %(date)s"
+
+#, python-format
+msgid "Latest reading: %(dist)s"
+msgstr "Letzter Stand: %(dist)s"
+
 msgid "Monthly range (min–max)"
 msgstr "Monatsspanne (min–max)"
 
