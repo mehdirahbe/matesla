@@ -9,12 +9,33 @@ from django.test import Client, SimpleTestCase, TestCase
 from django.db import connection
 
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+from matesla.models.VinHash import IsKnownHashedVin
 from mysite.test_helpers import configured_language_codes
 from personalstats.test_factories import (
     FAKE_HASHED_VIN,
     FAKE_VIN,
     assert_not_production_database,
     seed_fake_car_telemetry,
+)
+
+# Well-formed sha224-length token that is not seeded — a one-char typo class.
+UNKNOWN_HASHED_VIN = "b" * 56
+
+PERSONAL_HASHED_VIN_PATHS = (
+    "/en/personalstats/Stats/{hash}",
+    "/en/personalstats/DayMap/{hash}",
+    "/en/personalstats/DayMap/{hash}/2024-01-15",
+    "/en/personalstats/DayChargeSessionGraph/{hash}/2024-01-15/1700000000/power_vs_time",
+    "/en/personalstats/Drives/{hash}",
+    "/en/personalstats/DCCharge/{hash}",
+    "/en/personalstats/DCChargeGraph/{hash}/power_vs_soc/52",
+    "/en/personalstats/PollDetails/{hash}",
+    "/en/personalstats/LifetimeMapData/{hash}",
+    "/en/personalstats/FirmwareHistory/{hash}",
+    "/en/personalstats/FirmwareHistoryCSV/{hash}",
+    "/en/personalstats/AllMyDataAsCSV/{hash}",
+    "/en/personalstats/BatteryDegradationGraph/{hash}/odometer/52",
+    "/en/personalstats/StatsOnCarGraph/{hash}/odometer/52",
 )
 from personalstats.urls import urlpatterns
 
@@ -79,25 +100,21 @@ class PersonalStatsUrlTests(TestCase):
     def test_invalid_hash_rejected_on_all_personal_routes(self):
         """Path tokens must pass IsValidHash — no SQL/path smuggling."""
         client = Client()
-        bad = "--"
-        paths = (
-            f"/en/personalstats/Stats/{bad}",
-            f"/en/personalstats/DayMap/{bad}",
-            f"/en/personalstats/DayMap/{bad}/2024-01-15",
-            f"/en/personalstats/DayChargeSessionGraph/{bad}/2024-01-15/1700000000/power_vs_time",
-            f"/en/personalstats/Drives/{bad}",
-            f"/en/personalstats/DCCharge/{bad}",
-            f"/en/personalstats/DCChargeGraph/{bad}/power_vs_soc/52",
-            f"/en/personalstats/PollDetails/{bad}",
-            f"/en/personalstats/LifetimeMapData/{bad}",
-            f"/en/personalstats/FirmwareHistory/{bad}",
-            f"/en/personalstats/FirmwareHistoryCSV/{bad}",
-            f"/en/personalstats/AllMyDataAsCSV/{bad}",
-            f"/en/personalstats/BatteryDegradationGraph/{bad}/odometer/52",
-        )
-        for path in paths:
-            response = client.get(path)
+        for path in PERSONAL_HASHED_VIN_PATHS:
+            response = client.get(path.format(hash="--"))
             self.assertEqual(response.status_code, 404, path)
+
+    def test_unknown_well_formed_hash_is_404_not_empty_page(self):
+        """Typo in a real digest is still a valid token — must 404, not 200."""
+        client = Client()
+        self.assertTrue(len(UNKNOWN_HASHED_VIN) == 56)
+        for path in PERSONAL_HASHED_VIN_PATHS:
+            url = path.format(hash=UNKNOWN_HASHED_VIN)
+            response = client.get(url)
+            self.assertEqual(response.status_code, 404, url)
+            body = response.content.decode()
+            self.assertNotIn("No history yet", body)
+            self.assertNotIn("fw-timeline", body)
 
 
 class PersonalStatsPageTests(TestCase):
@@ -249,6 +266,12 @@ class PersonalStatsPageTests(TestCase):
         for trip in trips:
             self.assertGreaterEqual(trip["km"], DRIVES_MIN_KM)
 
+    def test_known_hashed_vin_helper(self):
+        self.assertTrue(IsKnownHashedVin(FAKE_HASHED_VIN))
+        self.assertFalse(IsKnownHashedVin(UNKNOWN_HASHED_VIN))
+        self.assertFalse(IsKnownHashedVin("--"))
+        self.assertFalse(IsKnownHashedVin(None))
+
     def test_firmware_history_page_ok(self):
         from datetime import date
 
@@ -281,6 +304,47 @@ class PersonalStatsPageTests(TestCase):
         self.assertIn("2025.14.1", html)
         self.assertNotIn("table-container", html)
         self.assertNotIn("django_tables2", html)
+
+    def test_firmware_history_known_car_without_rows_is_empty(self):
+        """A real hashedVin with no firmware rows is empty, not 404."""
+        response = Client().get(
+            f"/en/personalstats/FirmwareHistory/{FAKE_HASHED_VIN}"
+        )
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn("No history yet", html)
+        self.assertNotIn("fw-timeline", html)
+
+    def test_firmware_history_unknown_hash_is_404(self):
+        """One-char typo in the URL hash is an unknown vehicle, not empty history."""
+        typo = FAKE_HASHED_VIN[:-1] + ("b" if FAKE_HASHED_VIN[-1] != "b" else "c")
+        response = Client().get(f"/en/personalstats/FirmwareHistory/{typo}")
+        self.assertEqual(response.status_code, 404)
+        html = response.content.decode()
+        self.assertIn("Unknown vehicle.", html)
+        self.assertNotIn("No history yet", html)
+        self.assertNotIn("fw-timeline", html)
+        self.assertNotIn("vehicle-switcher", html)
+
+    def test_firmware_history_linked_vehicle_without_telemetry_is_empty(self):
+        """Newly linked car (TeslaVehicle only) is known — empty timeline, not 404."""
+        from django.contrib.auth import get_user_model
+
+        from matesla.models.TeslaToken import TeslaVehicle
+        from matesla.models.VinHash import HashTheVin
+
+        vin = "5YJ3E7EB1KF000099"
+        hashed = HashTheVin(vin)
+        user = get_user_model().objects.create_user("fw_newcar", password="x")
+        TeslaVehicle.objects.create(
+            user=user,
+            api_id="99",
+            vin=vin,
+            display_name="Newcar",
+        )
+        response = Client().get(f"/en/personalstats/FirmwareHistory/{hashed}")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("No history yet", response.content.decode())
 
     def test_firmware_history_csv_ok(self):
         client = Client()

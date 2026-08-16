@@ -39,7 +39,7 @@ from matesla.graphstyle import (
 from matesla.models.FleetApiCall import FleetApiCall, KIND_VEHICLE_DATA
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
-from matesla.models.VinHash import IsValidHash
+from matesla.models.VinHash import IsKnownHashedVin, IsValidHash
 from django.core.cache import cache
 from django.db import connection
 from django.utils import timezone
@@ -2446,12 +2446,28 @@ def GenerateEfficiencyBinGraph(
     return GeneratePngFromGraph(figure, size=size)
 
 
+def _unknown_hashed_vin_response(request, hashedVin, *, kind="html"):
+    """
+    None if hashedVin is a safe token for a known vehicle.
+
+    Otherwise 404, not 500: the URL does not name a car, the server is fine.
+    kind: html (themed page, no vehicle chrome), json, raw (PNG/CSV).
+    """
+    if IsValidHash(hashedVin) and IsKnownHashedVin(hashedVin):
+        return None
+    if kind == "json":
+        return JsonResponse({"ok": False, "error": "invalid_hash"}, status=404)
+    if kind == "raw":
+        return HttpResponseNotFound(_("Unknown vehicle."))
+    return render(request, "personalstats/unknown_vehicle.html", status=404)
+
+
 # Check params and ensure that they are not a potential SQL injection
 # return response + False if problem, None + True if fine
 def SecurityChecks(hashedVin, desiredfield):
-    if not IsValidHash(hashedVin):
-        # means invalid hashedVin field was passed
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin), False
+    if not IsValidHash(hashedVin) or not IsKnownHashedVin(hashedVin):
+        # malformed token or no such vehicle — 404, not an empty graph
+        return HttpResponseNotFound(_("Unknown vehicle.")), False
     # Check that it is one field from the TeslaCarDataSnapshot, or a computed graph key
     validFields = TeslaCarDataSnapshot.__dict__
     if desiredfield is None or (
@@ -2809,9 +2825,9 @@ def _vehicle_chrome_context(request, hashedVin):
 # allow to disable cache when improving HTML and you want a constant reload
 # @never_cache
 def Stats(request, hashedVin):
-    if not IsValidHash(hashedVin):
-        # means invalid hashedVin field was passed
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    denied = _unknown_hashed_vin_response(request, hashedVin)
+    if denied:
+        return denied
     from matesla.units import get_distance_unit
 
     template = loader.get_template('personalstats/carstats.html')
@@ -4300,9 +4316,9 @@ def DayMap(request, hashedVin, day=None):
 
     UX goal vs TeslaFi: type 31/12/2024 (or use HTML date picker) + prev/next day.
     """
-    if not IsValidHash(hashedVin):
-        # means invalid hashedVin field was passed
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    denied = _unknown_hashed_vin_response(request, hashedVin)
+    if denied:
+        return denied
 
     # Resolve day: path / GET date= / default today (Brussels)
     raw = day or request.GET.get("date") or request.POST.get("date") or ""
@@ -4593,8 +4609,9 @@ def Drives(request, hashedVin):
 
     Not charts (My data) and not a single-day replay (Day map) — ranked trip list.
     """
-    if not IsValidHash(hashedVin):
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    denied = _unknown_hashed_vin_response(request, hashedVin)
+    if denied:
+        return denied
 
     weeks = resolve_stats_period(request)
     sort_key = (request.GET.get("sort") or DRIVES_SORT_DEFAULT).strip().lower()
@@ -4686,10 +4703,9 @@ def LifetimeMapData(request, hashedVin):
     Query: ?period=<weeks> (same values as #DesiredPeriod; 0 = all history).
     Returns polylines + summary KPIs (drives, km, efficiency, …).
     """
-    if not IsValidHash(hashedVin):
-        return JsonResponse(
-            {"ok": False, "error": "invalid_hash"}, status=404
-        )
+    denied = _unknown_hashed_vin_response(request, hashedVin, kind="json")
+    if denied:
+        return denied
     weeks = parse_stats_period(
         request.GET.get("period"), default=STATS_PERIOD_DEFAULT
     )
@@ -4864,11 +4880,11 @@ def MatchSupercharger(request):
 # returns data stored in db for the user is CSV-->the only info from the car
 # we need is the vin to filter results
 def view_AllMyDataAsCSV(request, hashedVin):
-    if not IsValidHash(hashedVin):
-        # means invalid hashedVin field was passed
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    denied = _unknown_hashed_vin_response(request, hashedVin, kind="raw")
+    if denied:
+        return denied
     if TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).count() == 0:
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+        return HttpResponseNotFound(_("Unknown vehicle."))
     query = "select * from matesla_teslacardatasnapshot where \"hashedVin\"='" + hashedVin + "';"
     return PrepareCSVFromQuery(query)
 
@@ -4883,6 +4899,9 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield, desiredperiod=0):
     desiredperiod is weeks (0 = all), same meaning as StatsOnCarGraph / #DesiredPeriod.
     Optional query ?size=thumb|full (default full).
     """
+    denied = _unknown_hashed_vin_response(request, hashedVin, kind="raw")
+    if denied:
+        return denied
     unit = _distance_unit_from_request(request)
     size = graph_size_from_request(request)
     cache_key = _graph_png_cache_key(
@@ -5013,8 +5032,9 @@ def _firmware_timeline(entries_chrono):
 
 # Display page with car firmware history
 def FirmwareHistory(request, hashedVin):
-    if not IsValidHash(hashedVin):
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    denied = _unknown_hashed_vin_response(request, hashedVin)
+    if denied:
+        return denied
     qs_chrono = list(
         TeslaFirmwareHistory.objects.filter(hashedVin=hashedVin).order_by("Date", "id")
     )
@@ -5025,11 +5045,11 @@ def FirmwareHistory(request, hashedVin):
 
 # returns CSV with firmware history for the car
 def FirmwareHistoryCSV(request, hashedVin):
-    if not IsValidHash(hashedVin):
-        # means invalid hashedVin field was passed
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    denied = _unknown_hashed_vin_response(request, hashedVin, kind="raw")
+    if denied:
+        return denied
     if TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).count() == 0:
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+        return HttpResponseNotFound(_("Unknown vehicle."))
     query = (
         'select "Version","Date" from matesla_teslafirmwarehistory '
         f"where \"hashedVin\"='{hashedVin}' order by 2 desc;"
@@ -5602,8 +5622,9 @@ def DayChargeSessionGraph(request, hashedVin, day, start_ts, chart):
     Linked from the day map for DC-ish charging stops (peak ≥ ~40 kW).
     Two separate PNGs so each can be saved or printed alone.
     """
-    if not IsValidHash(hashedVin):
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    denied = _unknown_hashed_vin_response(request, hashedVin, kind="raw")
+    if denied:
+        return denied
 
     chart_key = (chart or "").strip().lower()
     if chart_key not in DAY_CHARGE_SESSION_CHARTS:
@@ -5654,8 +5675,9 @@ def DCCharge(request, hashedVin):
     arrival SoC, and range vs time (rated after degradation / real seasonal
     consumption). Outlier filter targets V2 sharing and cold crawls.
     """
-    if not IsValidHash(hashedVin):
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    denied = _unknown_hashed_vin_response(request, hashedVin)
+    if denied:
+        return denied
 
     from matesla.units import get_distance_unit, unit_labels
 
@@ -5779,8 +5801,9 @@ DC_CHARGE_CHARTS = frozenset(
 @require_GET
 def DCChargeGraph(request, hashedVin, chart, desiredperiod):
     """PNG for DC charge charts: power_vs_soc | soc_vs_time | range_vs_time_*."""
-    if not IsValidHash(hashedVin):
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    denied = _unknown_hashed_vin_response(request, hashedVin, kind="raw")
+    if denied:
+        return denied
     chart_key = (chart or "").strip().lower()
     if chart_key not in DC_CHARGE_CHARTS:
         return HttpResponseNotFound("Unknown DC chart " + (chart or ""))
@@ -5876,8 +5899,9 @@ def PollDetails(request, hashedVin):
     Adaptive Fleet polling diagnostics: current interval, habit trust, and
     typical-week idle grid. Complements the fleet poll cost graph (counts only).
     """
-    if not IsValidHash(hashedVin):
-        return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
+    denied = _unknown_hashed_vin_response(request, hashedVin)
+    if denied:
+        return denied
 
     from matesla.poll_diagnostics import (
         build_poll_diagnostic_report,
