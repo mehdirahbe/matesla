@@ -12,10 +12,25 @@ typography stay aligned with static/css/matesla.css.
 from __future__ import annotations
 
 import io
+import threading
 
 from django.http import HttpResponse
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
+
+# Agg + Figure are not thread-safe. Gunicorn --threads 4 would otherwise
+# interleave six Stats thumbs and stretch a 0.4 s encode into ~2 s.
+_MPL_LOCK = threading.RLock()
+
+
+def exclusive_mpl(fn):
+    """Serialize one figure build+encode (data queries stay parallel)."""
+
+    def wrapped(*args, **kwargs):
+        with _MPL_LOCK:
+            return fn(*args, **kwargs)
+
+    return wrapped
 
 # Palette aligned with static/css/matesla.css dark tokens
 BG = "#0b1220"

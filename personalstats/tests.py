@@ -448,6 +448,131 @@ class PersonalStatsGraphTests(TestCase):
                 response = client.get(url)
                 self._assert_png(response, f"{field}/{size}")
 
+    def test_daily_odometer_sql_matches_orm_annotate(self):
+        """Raw daily min/avg/max must match the ORM annotate used before."""
+        from django.db.models import Avg, Max, Min
+
+        from personalstats.views import (
+            GetDatesAndValuesFromGroupByDateResult,
+            _daily_minmaxavg_series,
+            _period_filter,
+        )
+
+        base = TeslaCarDataSnapshot.objects.filter(hashedVin=FAKE_HASHED_VIN)
+        orm_dates, orm_max, orm_min, orm_avg = GetDatesAndValuesFromGroupByDateResult(
+            _period_filter(base, 520)
+            .values("DateOnlyDay")
+            .annotate(
+                max_val=Max("odometer"),
+                min_val=Min("odometer"),
+                avg_val=Avg("odometer"),
+            )
+            .order_by("DateOnlyDay")
+        )
+        sql_dates, sql_max, sql_min, sql_avg = _daily_minmaxavg_series(
+            FAKE_HASHED_VIN, "odometer", 520
+        )
+        self.assertEqual(list(orm_dates), list(sql_dates))
+        self.assertGreater(len(sql_dates), 10)
+        for index, (left, right) in enumerate(zip(orm_max, sql_max)):
+            if left is None and right is None:
+                continue
+            self.assertAlmostEqual(float(left), float(right), places=6, msg=f"max {index}")
+        for index, (left, right) in enumerate(zip(orm_min, sql_min)):
+            if left is None and right is None:
+                continue
+            self.assertAlmostEqual(float(left), float(right), places=6, msg=f"min {index}")
+        for index, (left, right) in enumerate(zip(orm_avg, sql_avg)):
+            if left is None and right is None:
+                continue
+            self.assertAlmostEqual(float(left), float(right), places=6, msg=f"avg {index}")
+
+    def test_degradation_scatter_daily_median_stable(self):
+        from matesla.degradation_graphs import load_degradation_scatter_xy
+
+        first = load_degradation_scatter_xy(
+            FAKE_HASHED_VIN, "odometer", 520, y_mode="battery_degradation"
+        )
+        second = load_degradation_scatter_xy(
+            FAKE_HASHED_VIN, "odometer", 520, y_mode="battery_degradation"
+        )
+        self.assertEqual(first[0], second[0])
+        self.assertEqual(first[1], second[1])
+        self.assertGreater(len(first[0]), 5)
+
+    def test_first_paint_bundle_matches_direct_helpers(self):
+        """Shared first-paint series must equal the solo helper outputs."""
+        from django.utils import translation
+
+        from matesla.degradation_graphs import load_degradation_scatter_xy
+        from personalstats.stats_bundle import _build_stats_first_paint_bundle
+        from personalstats.views import (
+            _charge_peak_histogram,
+            _daily_minmaxavg_series,
+            _daily_odometer_and_monthly_outside_temp,
+            _efficiency_bins_for_car,
+            _fleet_poll_buckets,
+            _fleet_poll_window_days,
+            _monthly_temp_series,
+        )
+
+        with translation.override("en"):
+            bundle = _build_stats_first_paint_bundle(FAKE_HASHED_VIN, 520, "km")
+            self.assertEqual(
+                bundle["degrad_odometer"],
+                load_degradation_scatter_xy(
+                    FAKE_HASHED_VIN, "odometer", 520, y_mode="battery_degradation"
+                ),
+            )
+            merged_odo, merged_temp = _daily_odometer_and_monthly_outside_temp(
+                FAKE_HASHED_VIN, 520
+            )
+            self.assertEqual(
+                bundle["odometer"],
+                _daily_minmaxavg_series(FAKE_HASHED_VIN, "odometer", 520),
+            )
+            self.assertEqual(bundle["odometer"], merged_odo)
+            self.assertEqual(
+                bundle["outside_temp"][0],
+                _monthly_temp_series(FAKE_HASHED_VIN, "outside_temp", 520)[0],
+            )
+            for left, right in zip(
+                bundle["outside_temp"][1],
+                _monthly_temp_series(FAKE_HASHED_VIN, "outside_temp", 520)[1],
+            ):
+                self.assertAlmostEqual(float(left), float(right), places=6)
+            self.assertEqual(bundle["outside_temp"][0], merged_temp[0])
+            self.assertEqual(
+                bundle["efficiency_by_speed"],
+                _efficiency_bins_for_car(
+                    FAKE_HASHED_VIN, 520, by_speed=True, unit="km"
+                ),
+            )
+            self.assertEqual(
+                bundle["charger_power"],
+                _charge_peak_histogram(FAKE_HASHED_VIN, 520, metric="charger_power"),
+            )
+            self.assertEqual(
+                bundle["fleet_poll_cost"],
+                _fleet_poll_buckets(
+                    FAKE_HASHED_VIN, days=_fleet_poll_window_days(520)
+                ),
+            )
+
+    def test_default_thumb_nocache_stays_miss(self):
+        """?nocache=1 always generates (MISS) and stays byte-stable."""
+        client = Client()
+        url = (
+            f"/en/personalstats/StatsOnCarGraph/{FAKE_HASHED_VIN}/"
+            f"odometer/520?size=thumb&unit=km&nocache=1"
+        )
+        first = client.get(url)
+        second = client.get(url)
+        self.assertEqual(first.get("X-MaTesla-Graph-Cache"), "MISS")
+        self.assertEqual(second.get("X-MaTesla-Graph-Cache"), "MISS")
+        self._assert_png(first, "nocache-odometer")
+        self.assertEqual(first.content, second.content)
+
     def test_battery_degradation_scatter_png(self):
         client = Client()
         for field in BATTERY_DEGRADATION_FIELDS:
@@ -502,11 +627,21 @@ class PersonalStatsGraphTests(TestCase):
         self.assertGreater(data.get("km_driven", 0), 1)
 
     def test_empty_hashed_vin_still_returns_png(self):
-        """Unknown but valid hash: graphs render empty axes, not 500."""
+        """Known vehicle with no snapshots: graphs render empty axes, not 500."""
+        from django.contrib.auth import get_user_model
+
+        from matesla.models.TeslaToken import TeslaVehicle
+        from matesla.models.VinHash import HashTheVin
+
+        vin = "5YJ3E7EB1KF000088"
+        hashed = HashTheVin(vin)
+        user = get_user_model().objects.create_user("emptygraph", password="x")
+        TeslaVehicle.objects.create(
+            user=user, api_id="88", vin=vin, display_name="Empty"
+        )
         client = Client()
-        empty_hash = "b" * 56
         response = client.get(
-            f"/en/personalstats/StatsOnCarGraph/{empty_hash}/outside_temp/52"
+            f"/en/personalstats/StatsOnCarGraph/{hashed}/outside_temp/52"
             f"?size=thumb"
         )
         self._assert_png(response, "empty-car outside_temp")

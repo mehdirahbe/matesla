@@ -29,6 +29,7 @@ from matesla.graphstyle import (
     SPINE,
     TEXT,
     WARM,
+    exclusive_mpl,
     finish_figure,
     graph_size_from_request,
     make_figure,
@@ -40,6 +41,7 @@ from matesla.models.FleetApiCall import FleetApiCall, KIND_VEHICLE_DATA
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from matesla.models.VinHash import IsKnownHashedVin, IsValidHash
+from matesla.sqlite_guard import heavy_snapshot_read
 from django.core.cache import cache
 from django.db import connection
 from django.utils import timezone
@@ -487,6 +489,7 @@ def _fleet_poll_buckets(hashed_vin: str, *, days: int):
     return labels, counts
 
 
+@exclusive_mpl
 def GenerateFleetPollCostGraph(
     labels,
     counts,
@@ -632,6 +635,7 @@ def _odometer_graph_footer(display_value, when, unit):
     }
 
 
+@exclusive_mpl
 def GenerateDateGraph(
     datesList, maxvalues, minvalues, avgvalues, title, size="full", footer=None
 ):
@@ -750,9 +754,10 @@ def _monthly_temp_series(hashed_vin, field_name, desiredperiod=None):
         GROUP BY y, m
         ORDER BY y, m
     """
-    with connection.cursor() as cursor:
-        cursor.execute(sql, params)
-        rows = cursor.fetchall()
+    with heavy_snapshot_read():
+        with connection.cursor() as cursor:
+            cursor.execute(sql, params)
+            rows = cursor.fetchall()
 
     month_dates = []
     monthly_minimums = []
@@ -885,6 +890,7 @@ def _split_monthly_segments(month_dates, monthly_minimums, monthly_maximums, mon
     return segments
 
 
+@exclusive_mpl
 def GenerateMonthlyTempRibbonGraph(
     month_dates, monthly_minimums, monthly_maximums, monthly_averages, title, size="full"
 ):
@@ -1192,6 +1198,122 @@ def GetDatesAndValuesFromGroupByDateResult(results):
     return dates, maxvalues, minvalues, avgvalues
 
 
+def _coerce_sql_date(value):
+    """SQLite raw DateOnlyDay may be a date, datetime, or ISO string."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str) and len(value) >= 10:
+        try:
+            return date.fromisoformat(value[:10])
+        except ValueError:
+            return None
+    return None
+
+
+def _daily_minmaxavg_series(hashed_vin, field_name, desiredperiod=None):
+    """
+    Per-day min / avg / max of a snapshot column (same as the ORM annotate).
+
+    Raw SQL avoids Django dict materialization on multi-year cars. Field name
+    is restricted to snapshot columns already gated by SecurityChecks.
+    """
+    if field_name not in TeslaCarDataSnapshot.__dict__:
+        raise ValueError(f"unsupported daily field: {field_name}")
+    table = TeslaCarDataSnapshot._meta.db_table
+    where = ["hashedVin = %s", "DateOnlyDay IS NOT NULL"]
+    params: list = [hashed_vin]
+    mindate = _lifetime_map_period_mindate(desiredperiod)
+    if mindate is not None:
+        where.append("DateOnlyDay >= %s")
+        params.append(mindate.date() if hasattr(mindate, "date") else mindate)
+    where_sql = " AND ".join(where)
+    sql = (
+        f'SELECT DateOnlyDay, MAX("{field_name}"), MIN("{field_name}"), '
+        f'AVG("{field_name}") '
+        f"FROM {table} WHERE {where_sql} "
+        f"GROUP BY DateOnlyDay ORDER BY DateOnlyDay"
+    )
+    with heavy_snapshot_read():
+        with connection.cursor() as cursor:
+            cursor.execute(sql, params)
+            raw_rows = cursor.fetchall()
+    dates, maxvalues, minvalues, avgvalues = [], [], [], []
+    for day_raw, max_val, min_val, avg_val in raw_rows:
+        day = _coerce_sql_date(day_raw)
+        if day is None:
+            continue
+        dates.append(day)
+        maxvalues.append(max_val)
+        minvalues.append(min_val)
+        avgvalues.append(avg_val)
+    return dates, maxvalues, minvalues, avgvalues
+
+
+def _daily_odometer_and_monthly_outside_temp(hashed_vin, desiredperiod=None):
+    """
+    One GROUP BY for the odometer date graph and the outside-temp ribbon.
+
+    Same values as `_daily_minmaxavg_series(odometer)` + `_monthly_temp_series(
+    outside_temp)`: daily temp clamps match the dedicated HAVING clause.
+    """
+    table = TeslaCarDataSnapshot._meta.db_table
+    where = ["hashedVin = %s", "DateOnlyDay IS NOT NULL"]
+    params: list = [hashed_vin]
+    mindate = _lifetime_map_period_mindate(desiredperiod)
+    if mindate is not None:
+        where.append("DateOnlyDay >= %s")
+        params.append(mindate.date() if hasattr(mindate, "date") else mindate)
+    where_sql = " AND ".join(where)
+    sql = (
+        "SELECT DateOnlyDay, MAX(odometer), MIN(odometer), AVG(odometer), "
+        "MIN(outside_temp), MAX(outside_temp), AVG(outside_temp) "
+        f"FROM {table} WHERE {where_sql} "
+        "GROUP BY DateOnlyDay ORDER BY DateOnlyDay"
+    )
+    with heavy_snapshot_read():
+        with connection.cursor() as cursor:
+            cursor.execute(sql, params)
+            raw_rows = cursor.fetchall()
+    dates, odo_max, odo_min, odo_avg = [], [], [], []
+    month_acc = {}
+    for day_raw, mx, mn, av, tmin, tmax, tavg in raw_rows:
+        day = _coerce_sql_date(day_raw)
+        if day is None:
+            continue
+        dates.append(day)
+        odo_max.append(mx)
+        odo_min.append(mn)
+        odo_avg.append(av)
+        if tmin is None or tmax is None or tavg is None:
+            continue
+        try:
+            tmin_f, tmax_f, tavg_f = float(tmin), float(tmax), float(tavg)
+        except (TypeError, ValueError):
+            continue
+        if tmin_f < -50 or tmax_f > 90 or tmin_f > tmax_f:
+            continue
+        month_acc.setdefault((day.year, day.month), []).append(
+            (tmin_f, tmax_f, tavg_f)
+        )
+    month_dates, monthly_min, monthly_max, monthly_avg = [], [], [], []
+    for year, month in sorted(month_acc):
+        days_in_month = month_acc[(year, month)]
+        month_dates.append(date(year, month, 1))
+        monthly_min.append(min(item[0] for item in days_in_month))
+        monthly_max.append(max(item[1] for item in days_in_month))
+        monthly_avg.append(
+            sum(item[2] for item in days_in_month) / len(days_in_month)
+        )
+    return (
+        (dates, odo_max, odo_min, odo_avg),
+        (month_dates, monthly_min, monthly_max, monthly_avg),
+    )
+
+
 def _rated_range_miles(br, ideal=None):
     """Prefer rated battery_range; fall back to ideal."""
     if br is not None:
@@ -1366,12 +1488,13 @@ def _load_efficiency_trips(hashed_vin, desiredperiod=None):
     # speed unused for trip KPIs; keep columns minimal for the scan
     cols = "Date, odometer, battery_range, ideal_battery_range, outside_temp"
 
-    with connection.cursor() as cursor:
-        cursor.execute(
-            f"SELECT {cols} FROM {table} WHERE {where_sql} ORDER BY Date",
-            params,
-        )
-        raw_rows = cursor.fetchall()
+    with heavy_snapshot_read():
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"SELECT {cols} FROM {table} WHERE {where_sql} ORDER BY Date",
+                params,
+            )
+            raw_rows = cursor.fetchall()
 
     cap = EFFICIENCY_MAX_DRIVE_ROWS
     # Progressive even thin on tuples (same semantics as the old dict path)
@@ -1816,39 +1939,40 @@ def _charge_sessions_sql_by_number(hashed_vin, desiredperiod=None):
 
     where_sql = " AND ".join(where)
 
-    with connection.cursor() as cursor:
-        # Probe: any TeslaFi session id in this window?
-        cursor.execute(
-            f"SELECT 1 FROM {table} WHERE {where_sql} LIMIT 1",
-            params,
-        )
-        if cursor.fetchone() is None:
-            return None
+    with heavy_snapshot_read():
+        with connection.cursor() as cursor:
+            # Probe: any TeslaFi session id in this window?
+            cursor.execute(
+                f"SELECT 1 FROM {table} WHERE {where_sql} LIMIT 1",
+                params,
+            )
+            if cursor.fetchone() is None:
+                return None
 
-        cursor.execute(
-            f"""
-            SELECT charge_number,
-                   MAX(charger_power),
-                   MAX(charge_rate),
-                   MAX(charge_limit_soc),
-                   MIN(charge_energy_added),
-                   MAX(charge_energy_added),
-                   MIN(charge_miles_added_rated),
-                   MAX(charge_miles_added_rated),
-                   MIN(battery_range),
-                   MAX(battery_range),
-                   MAX(usable_battery_level),
-                   MAX(battery_level),
-                   MIN("Date"),
-                   MAX("Date"),
-                   COUNT(*)
-            FROM {table}
-            WHERE {where_sql}
-            GROUP BY charge_number
-            """,
-            params,
-        )
-        raw_sessions = cursor.fetchall()
+            cursor.execute(
+                f"""
+                SELECT charge_number,
+                       MAX(charger_power),
+                       MAX(charge_rate),
+                       MAX(charge_limit_soc),
+                       MIN(charge_energy_added),
+                       MAX(charge_energy_added),
+                       MIN(charge_miles_added_rated),
+                       MAX(charge_miles_added_rated),
+                       MIN(battery_range),
+                       MAX(battery_range),
+                       MAX(usable_battery_level),
+                       MAX(battery_level),
+                       MIN("Date"),
+                       MAX("Date"),
+                       COUNT(*)
+                FROM {table}
+                WHERE {where_sql}
+                GROUP BY charge_number
+                """,
+                params,
+            )
+            raw_sessions = cursor.fetchall()
 
     def _as_dt(value):
         """SQLite may return ISO text for Date columns on raw queries."""
@@ -2199,6 +2323,7 @@ def _daily_min_soc_histogram(queryset):
     return list(DAILY_MIN_SOC_BUCKET_LABELS), counts, pcts
 
 
+@exclusive_mpl
 def GenerateChargeLimitHistogram(labels, counts, pcts, title, size="full"):
     """
     Bar chart: how often charge sessions used each limit band.
@@ -2216,6 +2341,7 @@ def GenerateChargeLimitHistogram(labels, counts, pcts, title, size="full"):
     )
 
 
+@exclusive_mpl
 def GenerateChargeSessionHistogram(
     labels,
     counts,
@@ -2341,6 +2467,7 @@ def GenerateChargeSessionHistogram(
     return GeneratePngFromGraph(figure, size=size)
 
 
+@exclusive_mpl
 def GenerateEfficiencyBinGraph(
     labels, efficiency, km_totals, title, xlabel, size="full", unit=None
 ):
@@ -2504,6 +2631,12 @@ def _distance_unit_from_request(request):
     return get_distance_unit(request)
 
 
+def _skip_graph_png_cache(request) -> bool:
+    """?nocache=1 forces a generate (header still MISS). Used for cold benches."""
+    raw = (request.GET.get("nocache") or "").strip().lower()
+    return raw in ("1", "true", "yes")
+
+
 def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
     response, isValid = SecurityChecks(hashedVin, desiredfield)
     if isValid is False:
@@ -2513,16 +2646,22 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
     cache_key = _graph_png_cache_key(
         hashedVin, desiredfield, desiredperiod, size, unit=unit
     )
-    try:
-        hit = cache.get(cache_key)
-    except Exception:
-        hit = None
-    if hit is not None:
-        return _png_response_from_bytes(hit, size, cache_status="HIT")
+    skip_cache = _skip_graph_png_cache(request)
+    if not skip_cache:
+        try:
+            hit = cache.get(cache_key)
+        except Exception:
+            hit = None
+        if hit is not None:
+            return _png_response_from_bytes(hit, size, cache_status="HIT")
 
     response = _stats_on_car_graph_uncached(
         request, hashedVin, desiredfield, desiredperiod, size, unit=unit
     )
+    if skip_cache:
+        if response is not None:
+            response["X-MaTesla-Graph-Cache"] = "MISS"
+        return response
     return _cache_graph_png(cache_key, response, size)
 
 
@@ -2535,10 +2674,27 @@ def _stats_on_car_graph_uncached(
     unit = unit or get_distance_unit(request)
     labels = unit_labels(unit)
     title = GetTitleForField(desiredfield, unit=unit)
+    first_paint = desiredfield in {
+        "fleet_poll_cost",
+        "charger_power",
+        "efficiency_by_speed",
+        "outside_temp",
+        "odometer",
+    }
+    bundle_field = None
+    if first_paint:
+        from personalstats.stats_bundle import get_stats_first_paint_field
+
+        bundle_field = get_stats_first_paint_field(
+            hashedVin, desiredperiod, unit, desiredfield
+        )
     # Fleet cost uses request log — works even with zero snapshots for this VIN
     if desiredfield == "fleet_poll_cost":
-        days = _fleet_poll_window_days(desiredperiod)
-        labels, counts = _fleet_poll_buckets(hashedVin, days=days)
+        if bundle_field is not None:
+            labels, counts = bundle_field
+        else:
+            days = _fleet_poll_window_days(desiredperiod)
+            labels, counts = _fleet_poll_buckets(hashedVin, days=days)
         cur_code, cur_symbol, price = _fleet_cost_currency()
         return GenerateFleetPollCostGraph(
             labels,
@@ -2551,7 +2707,7 @@ def _stats_on_car_graph_uncached(
         )
 
     base = TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin)
-    if not base.exists():
+    if bundle_field is None and not base.exists():
         if desiredfield in ("efficiency_by_speed", "efficiency_by_temp"):
             return GenerateEfficiencyBinGraph(
                 None, None, None, title, "", size=size
@@ -2574,12 +2730,15 @@ def _stats_on_car_graph_uncached(
 
     # Trip efficiency histograms (not a raw time series field)
     if desiredfield in ("efficiency_by_speed", "efficiency_by_temp"):
-        eff_labels, eff, kms, xlabel = _efficiency_bins_for_car(
-            hashedVin,
-            desiredperiod,
-            by_speed=(desiredfield == "efficiency_by_speed"),
-            unit=unit,
-        )
+        if bundle_field is not None and desiredfield == "efficiency_by_speed":
+            eff_labels, eff, kms, xlabel = bundle_field
+        else:
+            eff_labels, eff, kms, xlabel = _efficiency_bins_for_car(
+                hashedVin,
+                desiredperiod,
+                by_speed=(desiredfield == "efficiency_by_speed"),
+                unit=unit,
+            )
         return GenerateEfficiencyBinGraph(
             eff_labels, eff, kms, title, xlabel, size=size, unit=unit
         )
@@ -2665,9 +2824,12 @@ def _stats_on_car_graph_uncached(
 
     # Peak power / charge-rate session histograms (DC vs AC, Supercharge peaks)
     if desiredfield in ("charger_power", "charge_rate"):
-        labels, counts, amounts, pcts, amount_unit = _charge_peak_histogram(
-            hashedVin, desiredperiod, metric=desiredfield
-        )
+        if bundle_field is not None and desiredfield == "charger_power":
+            labels, counts, amounts, pcts, amount_unit = bundle_field
+        else:
+            labels, counts, amounts, pcts, amount_unit = _charge_peak_histogram(
+                hashedVin, desiredperiod, metric=desiredfield
+            )
         xlabel = (
             _("Peak charger power")
             if desiredfield == "charger_power"
@@ -2718,9 +2880,12 @@ def _stats_on_car_graph_uncached(
 
     # Temperature: monthly min–max ribbon (seasonal + extremes), not noisy daily lines
     if desiredfield in ("outside_temp", "inside_temp"):
-        months, mins, maxs, avgs = _monthly_temp_series(
-            hashedVin, desiredfield, desiredperiod
-        )
+        if bundle_field is not None and desiredfield == "outside_temp":
+            months, mins, maxs, avgs = bundle_field
+        else:
+            months, mins, maxs, avgs = _monthly_temp_series(
+                hashedVin, desiredfield, desiredperiod
+            )
         return GenerateMonthlyTempRibbonGraph(
             months, mins, maxs, avgs, title, size=size
         )
@@ -2737,21 +2902,15 @@ def _stats_on_car_graph_uncached(
             )
             .order_by("DateOnlyDay")
         )
-    else:
-        queryset = _period_filter(base, desiredperiod)
-        results = (
-            queryset.values("DateOnlyDay")
-            .annotate(
-                max_val=Max(desiredfield),
-                min_val=Min(desiredfield),
-                avg_val=Avg(desiredfield),
-            )
-            .order_by("DateOnlyDay")
+        dates, maxvalues, minvalues, avgvalues = GetDatesAndValuesFromGroupByDateResult(
+            results
         )
-
-    dates, maxvalues, minvalues, avgvalues = GetDatesAndValuesFromGroupByDateResult(
-        results
-    )
+    elif bundle_field is not None and desiredfield == "odometer":
+        dates, maxvalues, minvalues, avgvalues = bundle_field
+    else:
+        dates, maxvalues, minvalues, avgvalues = _daily_minmaxavg_series(
+            hashedVin, desiredfield, desiredperiod
+        )
     if desiredfield in _MILES_VALUE_FIELDS:
         maxvalues = _scale_miles_series(maxvalues, unit)
         minvalues = _scale_miles_series(minvalues, unit)
@@ -4907,16 +5066,22 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield, desiredperiod=0):
     cache_key = _graph_png_cache_key(
         hashedVin, desiredfield, desiredperiod, size, kind="degrad", unit=unit
     )
-    try:
-        hit = cache.get(cache_key)
-    except Exception:
-        hit = None
-    if hit is not None:
-        return _png_response_from_bytes(hit, size, cache_status="HIT")
+    skip_cache = _skip_graph_png_cache(request)
+    if not skip_cache:
+        try:
+            hit = cache.get(cache_key)
+        except Exception:
+            hit = None
+        if hit is not None:
+            return _png_response_from_bytes(hit, size, cache_status="HIT")
 
     response = _battery_degradation_graph_uncached(
         hashedVin, desiredfield, desiredperiod, size, unit=unit
     )
+    if skip_cache:
+        if response is not None:
+            response["X-MaTesla-Graph-Cache"] = "MISS"
+        return response
     return _cache_graph_png(cache_key, response, size)
 
 
@@ -4948,11 +5113,10 @@ def _battery_degradation_graph_uncached(
     title = GetTitleForField(desiredfield, unit=unit)
     # odometer (and any future X field mapped in load_degradation_scatter_xy)
     if desiredfield == "odometer":
-        xvalues, yvalues = load_degradation_scatter_xy(
-            hashedVin,
-            desiredfield,
-            desiredperiod,
-            y_mode="battery_degradation",
+        from personalstats.stats_bundle import get_stats_first_paint_field
+
+        xvalues, yvalues = get_stats_first_paint_field(
+            hashedVin, desiredperiod, unit, "degrad_odometer"
         )
         if not xvalues:
             return GenerateScatterGraph(None, None, title, size=size, unit=unit)
@@ -5296,6 +5460,7 @@ def _load_dc_analysis(hashed_vin, weeks: int, outlier_mode: str):
     return payload
 
 
+@exclusive_mpl
 def GenerateDcPowerVsSocGraph(power_curve, title, *, envelope_mode, size="full"):
     """Median charger power vs SoC with P10–P90 or min/max band."""
     figure, style_config = make_figure(size)
@@ -5344,6 +5509,7 @@ def GenerateDcPowerVsSocGraph(power_curve, title, *, envelope_mode, size="full")
     return render_png(figure, size)
 
 
+@exclusive_mpl
 def GenerateDcSocVsTimeGraph(time_curves, title, size="full"):
     """Median SoC vs minutes since plug-in; one curve per start-SoC bucket."""
     figure, style_config = make_figure(size)
@@ -5387,6 +5553,7 @@ def GenerateDcSocVsTimeGraph(time_curves, title, size="full"):
     return render_png(figure, size)
 
 
+@exclusive_mpl
 def GenerateDcRangeVsTimeGraph(
     range_curves,
     title,
@@ -5552,6 +5719,7 @@ def _find_charge_session_points(raw_rows, start_ts: int, *, tol_s: int = 180):
 DAY_CHARGE_SESSION_CHARTS = frozenset({"power_vs_time", "power_vs_soc"})
 
 
+@exclusive_mpl
 def GenerateDayChargeSessionGraph(series, title, *, chart: str, size="full"):
     """
     One PNG for a single fast-charge stop.

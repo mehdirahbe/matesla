@@ -16,10 +16,12 @@ from django.db import connection
 from django.db.models import Q
 from django.http import HttpResponse
 
+from matesla.sqlite_guard import heavy_snapshot_read
 from matesla.graphstyle import (
     FIT_LINEAR,
     SCATTER_EDGE,
     SCATTER_FACE,
+    exclusive_mpl,
     finish_figure,
     make_figure,
     render_png,
@@ -71,13 +73,14 @@ def choose_degradation_min_soc(hashed_vin, desired_period_weeks=None) -> float:
         where.append("DateOnlyDay >= %s")
         params.append(mindate.date() if hasattr(mindate, "date") else mindate)
     where_sql = " AND ".join(where)
-    with connection.cursor() as cursor:
-        cursor.execute(
-            f"SELECT 1 FROM {_SNAPSHOT_TABLE} WHERE {where_sql} "
-            f"LIMIT {int(DEGRADATION_SCATTER_MIN_POINTS)}",
-            params,
-        )
-        found = len(cursor.fetchall())
+    with heavy_snapshot_read():
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"SELECT 1 FROM {_SNAPSHOT_TABLE} WHERE {where_sql} "
+                f"LIMIT {int(DEGRADATION_SCATTER_MIN_POINTS)}",
+                params,
+            )
+            found = len(cursor.fetchall())
     if found >= DEGRADATION_SCATTER_MIN_POINTS:
         return DEGRADATION_SCATTER_MIN_SOC
     return DEGRADATION_SCATTER_FALLBACK_SOC
@@ -107,68 +110,76 @@ def load_degradation_scatter_xy(
     if y_mode not in ("battery_degradation", "range_at_100"):
         raise ValueError(f"unsupported y_mode: {y_mode}")
 
-    min_soc = choose_degradation_min_soc(hashed_vin, desired_period_weeks)
-    where = [
-        "hashedVin = %s",
-        _high_soc_sql(min_soc),
-        f"{x_field} IS NOT NULL",
-    ]
-    params: list = [hashed_vin]
-    mindate = _scatter_period_mindate(desired_period_weeks)
-    if mindate is not None:
-        where.append("DateOnlyDay >= %s")
-        params.append(mindate.date() if hasattr(mindate, "date") else mindate)
-
-    if y_mode == "battery_degradation":
-        where.append("battery_degradation IS NOT NULL")
-        select_cols = f"Date, {x_field}, battery_degradation"
-    else:
-        where.append("battery_range IS NOT NULL")
-        select_cols = (
-            f"Date, {x_field}, battery_range, usable_battery_level, battery_level"
-        )
-
-    where_sql = " AND ".join(where)
-    with connection.cursor() as cursor:
-        cursor.execute(
-            f"SELECT {select_cols} FROM {_SNAPSHOT_TABLE} "
-            f"WHERE {where_sql} ORDER BY Date",
-            params,
-        )
-        raw_rows = cursor.fetchall()
-
-    x_values: list = []
-    y_values: list = []
-    sample_dates: list = []
-
-    if y_mode == "battery_degradation":
-        for sample_date, x_raw, y_raw in raw_rows:
-            if sample_date is None or x_raw is None or y_raw is None:
-                continue
-            try:
-                x_values.append(float(x_raw))
-                y_values.append(float(y_raw))
-            except (TypeError, ValueError):
-                continue
-            sample_dates.append(sample_date)
-    else:
-        for sample_date, x_raw, battery_range, usable, battery_level in raw_rows:
-            if sample_date is None or x_raw is None or battery_range is None:
-                continue
-            level = usable if usable is not None else battery_level
-            if level is None:
-                continue
-            try:
-                level_f = float(level)
-                if level_f <= 0 or level_f < min_soc:
+    def _fetch_at_soc(min_soc: float):
+        where = [
+            "hashedVin = %s",
+            _high_soc_sql(min_soc),
+            f"{x_field} IS NOT NULL",
+        ]
+        params: list = [hashed_vin]
+        mindate = _scatter_period_mindate(desired_period_weeks)
+        if mindate is not None:
+            where.append("DateOnlyDay >= %s")
+            params.append(mindate.date() if hasattr(mindate, "date") else mindate)
+        if y_mode == "battery_degradation":
+            where.append("battery_degradation IS NOT NULL")
+            select_cols = f"Date, {x_field}, battery_degradation"
+        else:
+            where.append("battery_range IS NOT NULL")
+            select_cols = (
+                f"Date, {x_field}, battery_range, usable_battery_level, battery_level"
+            )
+        where_sql = " AND ".join(where)
+        with heavy_snapshot_read():
+            with connection.cursor() as cursor:
+                # No ORDER BY: daily median groups by civil day; scatter +
+                # polyfit do not depend on fetch order.
+                cursor.execute(
+                    f"SELECT {select_cols} FROM {_SNAPSHOT_TABLE} "
+                    f"WHERE {where_sql}",
+                    params,
+                )
+                raw_rows = cursor.fetchall()
+        x_values: list = []
+        y_values: list = []
+        sample_dates: list = []
+        if y_mode == "battery_degradation":
+            for sample_date, x_raw, y_raw in raw_rows:
+                if sample_date is None or x_raw is None or y_raw is None:
                     continue
-                range_at_100 = float(battery_range) / level_f * 100.0
-                x_values.append(float(x_raw))
-                y_values.append(range_at_100)
-            except (TypeError, ValueError, ZeroDivisionError):
-                continue
-            sample_dates.append(sample_date)
+                try:
+                    x_values.append(float(x_raw))
+                    y_values.append(float(y_raw))
+                except (TypeError, ValueError):
+                    continue
+                sample_dates.append(sample_date)
+        else:
+            for sample_date, x_raw, battery_range, usable, battery_level in raw_rows:
+                if sample_date is None or x_raw is None or battery_range is None:
+                    continue
+                level = usable if usable is not None else battery_level
+                if level is None:
+                    continue
+                try:
+                    level_f = float(level)
+                    if level_f <= 0 or level_f < min_soc:
+                        continue
+                    range_at_100 = float(battery_range) / level_f * 100.0
+                    x_values.append(float(x_raw))
+                    y_values.append(range_at_100)
+                except (TypeError, ValueError, ZeroDivisionError):
+                    continue
+                sample_dates.append(sample_date)
+        return x_values, y_values, sample_dates
 
+    # Prefer 80 % SoC when enough raw points exist. Fetching the series is
+    # the probe — a separate LIMIT 15 scan was almost as expensive as the
+    # full read on multi-year cars.
+    x_values, y_values, sample_dates = _fetch_at_soc(DEGRADATION_SCATTER_MIN_SOC)
+    if len(x_values) < DEGRADATION_SCATTER_MIN_POINTS:
+        x_values, y_values, sample_dates = _fetch_at_soc(
+            DEGRADATION_SCATTER_FALLBACK_SOC
+        )
     if daily_median:
         return aggregate_scatter_daily_median(x_values, y_values, sample_dates)
     return x_values, y_values
@@ -327,6 +338,7 @@ def FormatDouble2Decimals(value):
     return "{:.2e}".format(value).replace("e+00", "")
 
 
+@exclusive_mpl
 def GenerateScatterGraph(x_values, y_values, title, size="full", unit=None):
     """
     Degradation scatter with a linear trend line (R² + slope per 10k distance).
