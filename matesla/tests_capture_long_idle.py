@@ -1,4 +1,4 @@
-"""Long parked stretch raises idle poll floor (24h→10 min, 48h→15 min)."""
+"""Long parked stretch raises idle poll floor (24h→10, 48h→15, 72h→30)."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from django.utils import timezone
 from matesla.capture import (
     INTERVAL_LONG_IDLE_HARD_MIN,
     INTERVAL_LONG_IDLE_SOFT_MIN,
+    INTERVAL_LONG_IDLE_VACATION_MIN,
     INTERVAL_ONLINE_IDLE_MIN,
     long_idle_poll_floor_minutes,
     poll_interval_minutes,
@@ -81,8 +82,16 @@ class LongIdlePollFloorTests(TestCase):
             INTERVAL_LONG_IDLE_HARD_MIN,
         )
 
+    def test_vacation_floor_after_72h(self):
+        self._snap(hours_ago=80, shift_state="D", speed=40.0)
+        self._snap(hours_ago=1, shift_state="P", speed=0)
+        self.assertEqual(
+            long_idle_poll_floor_minutes(self.vehicle, now=self.now),
+            INTERVAL_LONG_IDLE_VACATION_MIN,
+        )
+
     def test_poll_interval_applies_floor_over_busy_habit(self):
-        self._snap(hours_ago=72, shift_state="D", speed=50.0)
+        self._snap(hours_ago=80, shift_state="D", speed=50.0)
         self._snap(hours_ago=0.5, shift_state="P", speed=0)
         # Fresh idle snap + asleep list → not LIVE; habit may say 5.
         with _daytime():
@@ -94,7 +103,7 @@ class LongIdlePollFloorTests(TestCase):
                 minutes = poll_interval_minutes(
                     self.vehicle, now=self.now
                 )
-        self.assertEqual(minutes, INTERVAL_LONG_IDLE_HARD_MIN)
+        self.assertEqual(minutes, INTERVAL_LONG_IDLE_VACATION_MIN)
         self.assertGreater(minutes, INTERVAL_ONLINE_IDLE_MIN)
 
     def test_live_charge_ignores_long_idle_floor(self):
@@ -118,7 +127,7 @@ class LongIdlePollFloorTests(TestCase):
         from matesla.poll_diagnostics import build_idle_forecast
         from matesla.poll_habits import HabitModel
 
-        self._snap(hours_ago=72, shift_state="D", speed=40.0)
+        self._snap(hours_ago=80, shift_state="D", speed=40.0)
         model = HabitModel(
             vin=self.vin,
             trusted=False,
@@ -128,10 +137,32 @@ class LongIdlePollFloorTests(TestCase):
         )
         local = self.now.astimezone()
         days = build_idle_forecast(
-            model, now_local=local, days=1, idle_hours_so_far=72.0
+            model, now_local=local, days=1, idle_hours_so_far=80.0
         )
         self.assertTrue(days)
         day_minutes = {seg.idle_interval_minutes for seg in days[0]}
-        # Day baseline 5 is raised to 15; night 30 stays 30.
+        # Day baseline 5 is raised to 30; night 30 stays 30.
+        self.assertIn(INTERVAL_LONG_IDLE_VACATION_MIN, day_minutes)
+        self.assertNotIn(INTERVAL_ONLINE_IDLE_MIN, day_minutes)
+        self.assertNotIn(INTERVAL_LONG_IDLE_HARD_MIN, day_minutes)
+
+    def test_idle_forecast_still_15_between_48h_and_72h(self):
+        from matesla.poll_diagnostics import build_idle_forecast
+        from matesla.poll_habits import HabitModel
+
+        model = HabitModel(
+            vin=self.vin,
+            trusted=False,
+            reason="test",
+            weeks_in_window=0,
+            computed_at=self.now,
+        )
+        local = self.now.astimezone()
+        days = build_idle_forecast(
+            model, now_local=local, days=1, idle_hours_so_far=60.0
+        )
+        day_minutes = {seg.idle_interval_minutes for seg in days[0]}
+        # Day hours still at the 15 min floor; night is already 30, and the
+        # last hours of the day may step to vacation 30 as idle grows.
         self.assertIn(INTERVAL_LONG_IDLE_HARD_MIN, day_minutes)
         self.assertNotIn(INTERVAL_ONLINE_IDLE_MIN, day_minutes)

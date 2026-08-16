@@ -42,11 +42,13 @@ from matesla.capture import (
     INTERVAL_DRIVING_MIN,
     INTERVAL_LONG_IDLE_HARD_MIN,
     INTERVAL_LONG_IDLE_SOFT_MIN,
+    INTERVAL_LONG_IDLE_VACATION_MIN,
     INTERVAL_NIGHT_DEFAULT_MIN,
     INTERVAL_ONLINE_IDLE_MIN,
     LIVE_ACTIVITY_KINDS,
     LONG_IDLE_HARD_HOURS,
     LONG_IDLE_SOFT_HOURS,
+    LONG_IDLE_VACATION_HOURS,
     activity_kind,
     base_poll_interval_minutes,
     is_night,
@@ -538,11 +540,19 @@ def _decision_summary(
     if decision_source == "long_idle":
         return _(
             "Idle/asleep policy: no drive and no charge for a long stretch → "
-            "minimum spacing %(minutes)s min (10 min after 24 h, 15 min after 48 h). "
+            "minimum spacing %(minutes)s min "
+            "(%(soft_m)s min after %(soft_h)s h, %(hard_m)s min after %(hard_h)s h, "
+            "%(vacation_m)s min after %(vacation_h)s h). "
             "Baseline would be %(baseline)s min."
         ) % {
             "minutes": effective_interval_minutes,
             "baseline": baseline_interval_minutes,
+            "soft_h": LONG_IDLE_SOFT_HOURS,
+            "soft_m": INTERVAL_LONG_IDLE_SOFT_MIN,
+            "hard_h": LONG_IDLE_HARD_HOURS,
+            "hard_m": INTERVAL_LONG_IDLE_HARD_MIN,
+            "vacation_h": LONG_IDLE_VACATION_HOURS,
+            "vacation_m": INTERVAL_LONG_IDLE_VACATION_MIN,
         }
     if decision_source == "habit":
         extra = ""
@@ -929,7 +939,8 @@ def build_poll_diagnostic_report(
         ),
         _(
             "After %(soft_h)s h with no drive and no charge, idle spacing is "
-            "at least %(soft_m)s min; after %(hard_h)s h at least %(hard_m)s min "
+            "at least %(soft_m)s min; after %(hard_h)s h at least %(hard_m)s min; "
+            "after %(vacation_h)s h at least %(vacation_m)s min "
             "(even if the day default or a busy habit would be denser). "
             "Night default %(night)s min is already sparser."
         )
@@ -938,6 +949,8 @@ def build_poll_diagnostic_report(
             "soft_m": INTERVAL_LONG_IDLE_SOFT_MIN,
             "hard_h": LONG_IDLE_HARD_HOURS,
             "hard_m": INTERVAL_LONG_IDLE_HARD_MIN,
+            "vacation_h": LONG_IDLE_VACATION_HOURS,
+            "vacation_m": INTERVAL_LONG_IDLE_VACATION_MIN,
             "night": INTERVAL_NIGHT_DEFAULT_MIN,
         },
         _(

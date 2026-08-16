@@ -72,10 +72,14 @@ INTERVAL_ASLEEP_DAY_MIN = 5
 INTERVAL_NIGHT_DEFAULT_MIN = 30  # idle/AC/etc. at night; not drive/DC
 # Parked for a long time (holiday / unused car): raise day idle floor.
 # Night is already 30; this only prevents burning 5 min polls for days.
+# After a few days the day floor meets the night default — missing the first
+# trip on return is acceptable.
 LONG_IDLE_SOFT_HOURS = 24
 LONG_IDLE_HARD_HOURS = 48
+LONG_IDLE_VACATION_HOURS = 72
 INTERVAL_LONG_IDLE_SOFT_MIN = 10  # ≥24 h no drive & no charge
 INTERVAL_LONG_IDLE_HARD_MIN = 15  # ≥48 h no drive & no charge
+INTERVAL_LONG_IDLE_VACATION_MIN = 30  # ≥72 h — clearly away
 
 # DC heuristic: Supercharger / fast pack, or power well above typical AC.
 #Mehdi 2/8/2026: was 20, but all tesla are limited in AC to 11 kW
@@ -449,10 +453,12 @@ def long_idle_poll_floor_for_hours(hours: float | None) -> int | None:
     """
     Map idle duration (hours since last drive/charge) → poll floor minutes.
 
-    ≥48 h → 15 min; ≥24 h → 10 min; else None.
+    ≥72 h → 30 min; ≥48 h → 15 min; ≥24 h → 10 min; else None.
     """
     if hours is None:
         return None
+    if hours >= LONG_IDLE_VACATION_HOURS:
+        return INTERVAL_LONG_IDLE_VACATION_MIN
     if hours >= LONG_IDLE_HARD_HOURS:
         return INTERVAL_LONG_IDLE_HARD_MIN
     if hours >= LONG_IDLE_SOFT_HOURS:
@@ -468,7 +474,8 @@ def long_idle_poll_floor_minutes(
     """
     Minimum idle poll spacing after a long parked stretch.
 
-    ≥48 h no drive & no charge → 15 min
+    ≥72 h no drive & no charge → 30 min
+    ≥48 h → 15 min
     ≥24 h → 10 min
     else → None (no floor)
 
@@ -492,8 +499,9 @@ def poll_interval_minutes(
     when the current weekday+hour is historically classified and no regime break
     is active. See ``matesla.poll_habits`` and ``matesla.poll_diagnostics``.
 
-    After ≥24 h / ≥48 h with no drive and no charge, idle spacing is floored
-    at 10 / 15 min so unused cars do not stay on the 5 min day baseline.
+    After ≥24 h / ≥48 h / ≥72 h with no drive and no charge, idle spacing is
+    floored at 10 / 15 / 30 min so unused cars do not stay on the 5 min day
+    baseline.
     """
     now = now or timezone.now()
     if snap is None:
@@ -525,7 +533,7 @@ def poll_interval_minutes(
             traceback.print_exc()
 
     # Vacation / unused: raise floor after long parked stretch (day or night
-    # habit-busy 5 → at least 10/15; night baseline 30 stays 30).
+    # habit-busy 5 → at least 10/15/30; night baseline 30 stays 30).
     floor = long_idle_poll_floor_minutes(vehicle, now=now)
     if floor is not None:
         interval = max(interval, floor)
