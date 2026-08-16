@@ -250,11 +250,37 @@ class PersonalStatsPageTests(TestCase):
             self.assertGreaterEqual(trip["km"], DRIVES_MIN_KM)
 
     def test_firmware_history_page_ok(self):
+        from datetime import date
+
+        from matesla.models.TeslaFirmwareHistory import TeslaFirmwareHistory
+
+        TeslaFirmwareHistory.objects.create(
+            vin=FAKE_VIN,
+            hashedVin=FAKE_HASHED_VIN,
+            Version="2025.14.1 abcdef12",
+            Date=date(2025, 4, 21),
+            CarModel="model3",
+            IsArchive=True,
+        )
+        TeslaFirmwareHistory.objects.create(
+            vin=FAKE_VIN,
+            hashedVin=FAKE_HASHED_VIN,
+            Version="2026.20.6.1",
+            Date=date(2026, 7, 26),
+            CarModel="model3",
+            IsArchive=False,
+        )
         client = Client()
         response = client.get(
             f"/en/personalstats/FirmwareHistory/{FAKE_HASHED_VIN}"
         )
         self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn("fw-timeline", html)
+        self.assertIn("2026.20.6.1", html)
+        self.assertIn("2025.14.1", html)
+        self.assertNotIn("table-container", html)
+        self.assertNotIn("django_tables2", html)
 
     def test_firmware_history_csv_ok(self):
         client = Client()

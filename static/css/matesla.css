@@ -2669,15 +2669,6 @@ pre.key-box {
     }
 }
 
-/* Django tables */
-.table-container {
-    padding: 16px;
-    overflow-x: auto;
-    border: 1px solid var(--app-line);
-    border-radius: var(--app-radius);
-    background: var(--app-surface);
-}
-
 /* Responsive */
 @media (max-width: 1080px) {
     .app-nav,

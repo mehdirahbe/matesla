@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load i18n %}
-{% load render_table from django_tables2 %}
 
 {% block title %}{% trans 'Firmware history' %} · MaTesla{% endblock %}
 
@@ -15,7 +14,7 @@
     <a href="{% url 'PersoStatsFirmwareHistoryCSV' hashedVin %}" class="btn btn-secondary">{% trans 'Download my Data' %}</a>
 </div>
 
-{% if firmware_timeline|length >= 2 %}
+{% if firmware_timeline %}
 <section class="fw-timeline" aria-label="{% trans 'Software timeline' %}">
     <header class="fw-timeline__header">
         <h2 class="fw-timeline__title">{% trans 'Version timeline' %}</h2>
@@ -49,9 +48,9 @@
         </ol>
     </div>
 </section>
-{% endif %}
-
-<div class="table-container">
-    {% render_table table %}
+{% else %}
+<div class="empty-state">
+    <p class="text-muted mb-0">{% trans 'No history yet' %}</p>
 </div>
+{% endif %}
 {% endblock %}

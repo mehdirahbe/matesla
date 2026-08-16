@@ -5013,18 +5013,12 @@ def _firmware_timeline(entries_chrono):
 
 # Display page with car firmware history
 def FirmwareHistory(request, hashedVin):
-    # see https://django-tables2.readthedocs.io/en/latest/pages/table-data.html
     if not IsValidHash(hashedVin):
         return HttpResponseNotFound("This hashed vin is not valid " + hashedVin)
-    qs_desc = TeslaFirmwareHistory.objects.filter(hashedVin=hashedVin).order_by(
-        "-Date", "-id"
-    )
     qs_chrono = list(
         TeslaFirmwareHistory.objects.filter(hashedVin=hashedVin).order_by("Date", "id")
     )
-    table = TeslaFirmwareHistoryTable(qs_desc)
     context = _vehicle_chrome_context(request, hashedVin)
-    context["table"] = table
     context["firmware_timeline"] = _firmware_timeline(qs_chrono)
     return render(request, "personalstats/FirmwareHistory.html", context)
 
