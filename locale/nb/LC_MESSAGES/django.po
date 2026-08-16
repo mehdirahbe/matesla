@@ -903,6 +903,15 @@ msgstr "Vis historikk"
 msgid "Vehicle"
 msgstr "Kjøretøy"
 
+msgid "Switching to {name}…"
+msgstr "Bytter til {name}…"
+
+msgid "Switching vehicle…"
+msgstr "Bytter bil…"
+
+msgid "The switch is taking too long. You can try again."
+msgstr "Byttet tar for lang tid. Du kan prøve igjen."
+
 msgid "Vehicle shortcuts"
 msgstr "Snarveier for bil"
 

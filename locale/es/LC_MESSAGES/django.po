@@ -918,6 +918,15 @@ msgstr "Ver historial"
 msgid "Vehicle"
 msgstr "Vehículo"
 
+msgid "Switching to {name}…"
+msgstr "Cambiando a {name}…"
+
+msgid "Switching vehicle…"
+msgstr "Cambiando de coche…"
+
+msgid "The switch is taking too long. You can try again."
+msgstr "El cambio está tardando. Puede intentarlo de nuevo."
+
 msgid "Vehicle shortcuts"
 msgstr "Atajos del vehículo"
 

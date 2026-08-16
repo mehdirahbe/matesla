@@ -927,6 +927,15 @@ msgstr "Historique firmware"
 msgid "Vehicle"
 msgstr "Véhicule"
 
+msgid "Switching to {name}…"
+msgstr "Passage à {name}…"
+
+msgid "Switching vehicle…"
+msgstr "Changement de voiture…"
+
+msgid "The switch is taking too long. You can try again."
+msgstr "Le changement tarde. Vous pouvez réessayer."
+
 msgid "Vehicle shortcuts"
 msgstr "Raccourcis véhicule"
 

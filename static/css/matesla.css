@@ -1090,6 +1090,45 @@ button:disabled,
     font-weight: 680;
 }
 
+.vehicle-switcher__status {
+    margin: 0.2rem 0 0;
+    color: var(--app-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.vehicle-switcher.is-pending select {
+    pointer-events: none;
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.vehicle-switcher.is-pending .vehicle-switcher__state {
+    background: var(--app-accent, #4db4ff);
+    box-shadow: 0 0 0 6px rgba(77, 180, 255, 0.18);
+    animation: vehicle-switcher-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes vehicle-switcher-pulse {
+    50% { opacity: 0.35; transform: scale(0.85); }
+}
+
+.vehicle-chrome:has(.vehicle-switcher.is-pending) .vehicle-chrome__links {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+body.vehicle-switch-pending #DesiredPeriod,
+body.vehicle-switch-pending #dc-period,
+body.vehicle-switch-pending #drives-period,
+body.vehicle-switch-pending #daymap-form,
+body.vehicle-switch-pending #dc-form,
+body.vehicle-switch-pending #drives-form {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
 .vehicle-chrome__links {
     display: flex;
     align-items: center;

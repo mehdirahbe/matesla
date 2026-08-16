@@ -283,3 +283,83 @@ class ResolveEpaRangeTests(TestCase):
         self.assertEqual(year, 2018)
         self.assertEqual(is_dual, True)
         self.assertEqual(epa_range, 259)
+
+
+class VehicleSwitcherTests(TestCase):
+    """Chrome selector follows the URL VIN; POST still redirects to the new car."""
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        from matesla.models.TeslaToken import TeslaVehicle
+        from matesla.TeslaConnect import SESSION_ACTIVE_VEHICLE_KEY
+
+        User = get_user_model()
+        self.user = User.objects.create_user("switch_user", password="x")
+        self.car_a = TeslaVehicle.objects.create(
+            user=self.user,
+            api_id="111",
+            vin="5YJ3E7EB1KF00000A",
+            display_name="robotbleu",
+            is_primary=True,
+        )
+        self.car_b = TeslaVehicle.objects.create(
+            user=self.user,
+            api_id="222",
+            vin="5YJ3E7EB1KF00000B",
+            display_name="corentin",
+            is_primary=False,
+        )
+        self.hash_a = HashTheVin(self.car_a.vin)
+        self.hash_b = HashTheVin(self.car_b.vin)
+        self.session_key = SESSION_ACTIVE_VEHICLE_KEY
+        self.client = Client()
+        self.assertTrue(self.client.login(username="switch_user", password="x"))
+        session = self.client.session
+        session[self.session_key] = self.car_a.api_id
+        session.save()
+
+    def test_stats_selected_option_follows_url_vin_not_session(self):
+        response = self.client.get(f"/en/personalstats/Stats/{self.hash_b}")
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn("data-vehicle-switcher", html)
+        self.assertIn("data-i18n-switching", html)
+        self.assertIn("data-vehicle-switcher-bound", html)
+        self.assertNotIn('onchange="this.form.submit()"', html)
+        self.assertRegex(html, rf'value="{self.car_b.api_id}"[^>]*selected')
+        self.assertNotRegex(html, rf'value="{self.car_a.api_id}"[^>]*selected')
+
+    def test_stats_french_pending_copy_is_in_the_form(self):
+        response = self.client.get(f"/fr/personalstats/Stats/{self.hash_a}")
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn("Passage à", html)
+        self.assertIn("Changement de voiture", html)
+
+    def test_select_vehicle_from_stats_redirects_to_new_hashed_vin(self):
+        response = self.client.post(
+            "/en/matesla/select_vehicle",
+            {
+                "vehicle_api_id": self.car_b.api_id,
+                "next": "stats",
+                "period": "260",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        location = response["Location"]
+        self.assertIn(self.hash_b, location)
+        self.assertIn("period=260", location)
+        session = self.client.session
+        self.assertEqual(session.get(self.session_key), self.car_b.api_id)
+
+    def test_shared_js_binds_pending_state(self):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        script = (Path(settings.BASE_DIR) / "static/js/matesla.js").read_text()
+        self.assertIn("data-vehicle-switcher", script)
+        self.assertIn("beginPending", script)
+        self.assertIn("vehicle-switch-pending", script)
+        self.assertIn("pageshow", script)

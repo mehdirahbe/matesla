@@ -1,7 +1,11 @@
 {% load i18n %}
 <div class="vehicle-chrome">
     {% if user_vehicles and user_vehicles|length > 0 %}
-    <form action="{% url 'select_vehicle' %}" method="post" class="vehicle-switcher">
+    <form action="{% url 'select_vehicle' %}" method="post" class="vehicle-switcher"
+          data-vehicle-switcher
+          data-i18n-switching="{% filter escapejs %}{% trans 'Switching to {name}…' %}{% endfilter %}"
+          data-i18n-switching-fallback="{% filter escapejs %}{% trans 'Switching vehicle…' %}{% endfilter %}"
+          data-i18n-timeout="{% filter escapejs %}{% trans 'The switch is taking too long. You can try again.' %}{% endfilter %}">
         {% csrf_token %}
         {# Stay on the same personal page after switching vehicle (hashedVin changes). #}
         {% if request.resolver_match.url_name == 'PersoDayMap' or request.resolver_match.url_name == 'PersoDayMapDay' %}
@@ -27,9 +31,11 @@
         <span class="vehicle-switcher__state" aria-hidden="true"></span>
         <div>
             <label for="vehicle_api_id">{% trans 'Vehicle' %}</label>
-            <select name="vehicle_api_id" id="vehicle_api_id" onchange="this.form.submit()">
+            <select name="vehicle_api_id" id="vehicle_api_id"
+                    onchange="if(!this.form.hasAttribute('data-vehicle-switcher-bound'))this.form.submit()">
                 {% for v in user_vehicles %}
-                <option value="{{ v.api_id }}" {% if active_vehicle_api_id == v.api_id %}selected{% endif %}>
+                <option value="{{ v.api_id }}" data-label="{{ v.label }}"
+                    {% if hashedVin and v.hashed_vin %}{% if v.hashed_vin == hashedVin %}selected{% endif %}{% elif active_vehicle_api_id == v.api_id %}selected{% endif %}>
                     {{ v.label }}{% if v.state %} ·
                     {% if v.state == "online" %}{% trans "online" %}
                     {% elif v.state == "asleep" %}{% trans "asleep" %}
@@ -38,6 +44,7 @@
                 </option>
                 {% endfor %}
             </select>
+            <p class="vehicle-switcher__status" data-vehicle-switch-status hidden aria-live="polite"></p>
         </div>
         <noscript><button type="submit" class="btn btn-sm btn-secondary">{% trans 'OK' %}</button></noscript>
     </form>

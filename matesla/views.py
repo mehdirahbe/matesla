@@ -253,22 +253,10 @@ def DoesHaveUpdateInstalling(software_update):
 def PreparestatusDictionary(request, user):
     params = ParamsConnectedTesla(user, request)
     context = dict(params.vehicle_state.get("response") or {})
-    vehicles = list_user_vehicles(user)
-    active = resolve_active_vehicle(user, request)
     # Dicts (not model instances) so statusJson can JSON-serialize the context
-    context["user_vehicles"] = [
-        {
-            "api_id": vehicle.api_id,
-            "vin": vehicle.vin,
-            "display_name": vehicle.display_name,
-            "label": vehicle.label,
-            "state": vehicle.state,
-            "is_primary": vehicle.is_primary,
-        }
-        for vehicle in vehicles
-    ]
-    context["active_vehicle_api_id"] = active.api_id if active else None
-    context["active_vehicle_label"] = active.label if active else None
+    chrome = _vehicle_list_context(user, request)
+    chrome.pop("active_vehicle", None)
+    context.update(chrome)
     context["display_name"] = params.name or context.get("display_name") or "Tesla"
 
     # Flatten nested Fleet states (may be empty dicts)
@@ -396,17 +384,7 @@ def _vehicle_list_context(user, request):
     vehicles = list_user_vehicles(user)
     active = resolve_active_vehicle(user, request)
     return {
-        "user_vehicles": [
-            {
-                "api_id": vehicle.api_id,
-                "vin": vehicle.vin,
-                "display_name": vehicle.display_name,
-                "label": vehicle.label,
-                "state": vehicle.state,
-                "is_primary": vehicle.is_primary,
-            }
-            for vehicle in vehicles
-        ],
+        "user_vehicles": [serialize_vehicle_for_chrome(vehicle) for vehicle in vehicles],
         "active_vehicle_api_id": active.api_id if active else None,
         "active_vehicle_label": active.label if active else None,
         "active_vehicle": active,

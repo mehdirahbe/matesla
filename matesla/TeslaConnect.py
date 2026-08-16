@@ -13,6 +13,7 @@ from .models.TeslaToken import TeslaToken, TeslaVehicle
 from .models.TeslaFirmwareHistory import TeslaFirmwareHistory
 from .models.TeslaCarInfo import TeslaCarInfo
 from .models.TeslaAppSettings import TeslaAppSettings
+from .models.VinHash import HashTheVin
 from matesla.TeslaState import TeslaState
 from matesla.GetProxyToUse import GetProxyToUse
 from matesla.TeslaOAuth import ensure_fresh_access_token, TeslaOAuthError
@@ -171,6 +172,20 @@ def set_active_vehicle(
         vehicle.is_primary = True
         vehicle.save(update_fields=["is_primary"])
     return vehicle
+
+
+def serialize_vehicle_for_chrome(vehicle) -> dict:
+    """JSON-safe vehicle dict for the shared chrome selector."""
+    vin = vehicle.vin or ""
+    return {
+        "api_id": vehicle.api_id,
+        "vin": vin,
+        "hashed_vin": HashTheVin(vin) if vin else "",
+        "display_name": vehicle.display_name,
+        "label": vehicle.label,
+        "state": vehicle.state,
+        "is_primary": vehicle.is_primary,
+    }
 
 
 def list_user_vehicles(user):

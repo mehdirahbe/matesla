@@ -929,6 +929,15 @@ msgstr "Verlauf anzeigen"
 msgid "Vehicle"
 msgstr "Fahrzeug"
 
+msgid "Switching to {name}…"
+msgstr "Wechsel zu {name}…"
+
+msgid "Switching vehicle…"
+msgstr "Fahrzeugwechsel…"
+
+msgid "The switch is taking too long. You can try again."
+msgstr "Der Wechsel dauert zu lange. Sie können es erneut versuchen."
+
 msgid "Vehicle shortcuts"
 msgstr "Fahrzeug-Shortcuts"
 

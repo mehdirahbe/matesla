@@ -2790,20 +2790,16 @@ def _vehicle_chrome_context(request, hashedVin):
 
     user = resolve_acting_user(request)
     if user is not None:
-        from matesla.TeslaConnect import list_user_vehicles, resolve_active_vehicle
+        from matesla.TeslaConnect import (
+            list_user_vehicles,
+            resolve_active_vehicle,
+            serialize_vehicle_for_chrome,
+        )
 
         vehicles = list_user_vehicles(user)
         active = resolve_active_vehicle(user, request)
         context["user_vehicles"] = [
-            {
-                "api_id": vehicle.api_id,
-                "vin": vehicle.vin,
-                "display_name": vehicle.display_name,
-                "label": vehicle.label,
-                "state": vehicle.state,
-                "is_primary": vehicle.is_primary,
-            }
-            for vehicle in vehicles
+            serialize_vehicle_for_chrome(vehicle) for vehicle in vehicles
         ]
         context["active_vehicle_api_id"] = active.api_id if active else None
         context["active_vehicle_label"] = active.label if active else None

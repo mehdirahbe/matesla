@@ -916,6 +916,15 @@ msgstr "Geschiedenis bekijken"
 msgid "Vehicle"
 msgstr "Voertuig"
 
+msgid "Switching to {name}…"
+msgstr "Overschakelen naar {name}…"
+
+msgid "Switching vehicle…"
+msgstr "Van auto wisselen…"
+
+msgid "The switch is taking too long. You can try again."
+msgstr "Het wisselen duurt te lang. U kunt het opnieuw proberen."
+
 msgid "Vehicle shortcuts"
 msgstr "Voertuig-snelkoppelingen"
 
