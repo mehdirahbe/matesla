@@ -16,27 +16,34 @@ from personalstats.test_factories import (
     FAKE_VIN,
     assert_not_production_database,
     seed_fake_car_telemetry,
+    seed_known_empty_vehicle,
 )
 
 # Well-formed sha224-length token that is not seeded — a one-char typo class.
 UNKNOWN_HASHED_VIN = "b" * 56
 
-PERSONAL_HASHED_VIN_PATHS = (
-    "/en/personalstats/Stats/{hash}",
-    "/en/personalstats/DayMap/{hash}",
-    "/en/personalstats/DayMap/{hash}/2024-01-15",
-    "/en/personalstats/DayChargeSessionGraph/{hash}/2024-01-15/1700000000/power_vs_time",
-    "/en/personalstats/Drives/{hash}",
-    "/en/personalstats/DCCharge/{hash}",
-    "/en/personalstats/DCChargeGraph/{hash}/power_vs_soc/52",
-    "/en/personalstats/PollDetails/{hash}",
-    "/en/personalstats/LifetimeMapData/{hash}",
-    "/en/personalstats/FirmwareHistory/{hash}",
-    "/en/personalstats/FirmwareHistoryCSV/{hash}",
-    "/en/personalstats/AllMyDataAsCSV/{hash}",
-    "/en/personalstats/BatteryDegradationGraph/{hash}/odometer/52",
-    "/en/personalstats/StatsOnCarGraph/{hash}/odometer/52",
+# Every hashedVin content route in personalstats.urls (HTML / PNG / CSV / JSON).
+# Keep in sync with urlpatterns that capture hashedVin.
+PERSONAL_HASHED_VIN_ROUTES = (
+    ("/en/personalstats/Stats/{hash}", "html"),
+    ("/en/personalstats/DayMap/{hash}", "html"),
+    ("/en/personalstats/DayMap/{hash}/2024-01-15", "html"),
+    (
+        "/en/personalstats/DayChargeSessionGraph/{hash}/2024-01-15/1700000000/power_vs_time",
+        "png",
+    ),
+    ("/en/personalstats/Drives/{hash}", "html"),
+    ("/en/personalstats/DCCharge/{hash}", "html"),
+    ("/en/personalstats/DCChargeGraph/{hash}/power_vs_soc/52", "png"),
+    ("/en/personalstats/PollDetails/{hash}", "html"),
+    ("/en/personalstats/LifetimeMapData/{hash}", "json"),
+    ("/en/personalstats/FirmwareHistory/{hash}", "html"),
+    ("/en/personalstats/FirmwareHistoryCSV/{hash}", "csv"),
+    ("/en/personalstats/AllMyDataAsCSV/{hash}", "csv"),
+    ("/en/personalstats/BatteryDegradationGraph/{hash}/odometer/52", "png"),
+    ("/en/personalstats/StatsOnCarGraph/{hash}/odometer/52", "png"),
 )
+PERSONAL_HASHED_VIN_PATHS = tuple(path for path, _kind in PERSONAL_HASHED_VIN_ROUTES)
 from personalstats.urls import urlpatterns
 
 # Fields exercised by StatsOnCarGraph (incl. computed / histogram keys)
@@ -115,6 +122,245 @@ class PersonalStatsUrlTests(TestCase):
             body = response.content.decode()
             self.assertNotIn("No history yet", body)
             self.assertNotIn("fw-timeline", body)
+
+    def test_hashed_vin_paths_cover_every_urlconf_route(self):
+        """PERSONAL_HASHED_VIN_ROUTES must list every hashedVin pattern."""
+        hashed_patterns = [
+            str(pattern.pattern)
+            for pattern in urlpatterns
+            if "hashedVin" in str(pattern.pattern)
+        ]
+        self.assertEqual(
+            len(hashed_patterns),
+            len(PERSONAL_HASHED_VIN_ROUTES),
+            hashed_patterns,
+        )
+
+
+def _assert_payload_kind(test_case, response, kind, url):
+    """HTTP 200 plus a payload of the expected kind (html / png / csv / json)."""
+    test_case.assertEqual(response.status_code, 200, url)
+    test_case.assertLess(response.status_code, 500, url)
+    content_type = response.get("Content-Type", "")
+    if kind == "html":
+        test_case.assertIn("text/html", content_type, url)
+        test_case.assertGreater(len(response.content), 20, url)
+    elif kind == "png":
+        test_case.assertTrue(
+            response.content.startswith(PNG_MAGIC), f"{url} not PNG"
+        )
+        test_case.assertIn("image/png", content_type, url)
+    elif kind == "csv":
+        test_case.assertIn("text/csv", content_type, url)
+    elif kind == "json":
+        test_case.assertIn("json", content_type, url)
+        payload = response.json()
+        test_case.assertIsInstance(payload, dict, url)
+    else:
+        test_case.fail(f"unknown kind {kind} for {url}")
+
+
+class HashedVinUrlMatrixTests(TestCase):
+    """
+    Every hashedVin content URL: known+data, known+empty, unknown.
+
+    Unknown is already 404 in PersonalStatsUrlTests; this class proves the
+    two known-VIN cases never 5xx and with-data returns the right payload kind.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        assert_not_production_database()
+        seed_fake_car_telemetry(
+            hashed_vin=FAKE_HASHED_VIN,
+            vin=FAKE_VIN,
+            days=30,
+            samples_per_day=6,
+        )
+        cls.empty_hashed, _empty_vin = seed_known_empty_vehicle()
+
+    def setUp(self):
+        assert_not_production_database()
+
+    def test_known_hash_with_data_returns_expected_payload(self):
+        client = Client()
+        for path, kind in PERSONAL_HASHED_VIN_ROUTES:
+            url = path.format(hash=FAKE_HASHED_VIN)
+            response = client.get(url)
+            _assert_payload_kind(self, response, kind, url)
+
+    def test_known_hash_without_data_does_not_crash(self):
+        client = Client()
+        for path, kind in PERSONAL_HASHED_VIN_ROUTES:
+            url = path.format(hash=self.empty_hashed)
+            response = client.get(url)
+            self.assertLess(
+                response.status_code,
+                500,
+                f"{url} crashed: {response.status_code}",
+            )
+            self.assertGreaterEqual(response.status_code, 200, url)
+            self.assertLess(response.status_code, 400, url)
+            if kind == "png":
+                self.assertTrue(
+                    response.content.startswith(PNG_MAGIC), f"{url} not PNG"
+                )
+            elif kind == "csv":
+                self.assertIn("text/csv", response.get("Content-Type", ""), url)
+            elif kind == "json":
+                payload = response.json()
+                self.assertIsInstance(payload, dict, url)
+            elif kind == "html":
+                self.assertIn("text/html", response.get("Content-Type", ""), url)
+
+    def test_unknown_hash_is_4xx_on_every_route(self):
+        client = Client()
+        for path, _kind in PERSONAL_HASHED_VIN_ROUTES:
+            url = path.format(hash=UNKNOWN_HASHED_VIN)
+            response = client.get(url)
+            self.assertGreaterEqual(response.status_code, 400, url)
+            self.assertLess(response.status_code, 500, url)
+
+
+class HashedVinQueryArgTests(TestCase):
+    """Valid extra args succeed; present-but-invalid values are HTTP 4xx."""
+
+    @classmethod
+    def setUpTestData(cls):
+        assert_not_production_database()
+        seed_fake_car_telemetry(
+            hashed_vin=FAKE_HASHED_VIN,
+            vin=FAKE_VIN,
+            days=30,
+            samples_per_day=6,
+        )
+
+    def setUp(self):
+        assert_not_production_database()
+
+    def test_graph_size_thumb_and_full_succeed_huge_is_4xx(self):
+        client = Client()
+        base = (
+            f"/en/personalstats/StatsOnCarGraph/{FAKE_HASHED_VIN}/odometer/52"
+        )
+        omitted = client.get(base)
+        self.assertEqual(omitted.status_code, 200)
+        self.assertTrue(omitted.content.startswith(PNG_MAGIC))
+        for size in ("thumb", "full"):
+            response = client.get(f"{base}?size={size}")
+            self.assertEqual(response.status_code, 200, size)
+            self.assertTrue(response.content.startswith(PNG_MAGIC), size)
+        huge = client.get(f"{base}?size=huge")
+        self.assertGreaterEqual(huge.status_code, 400)
+        self.assertLess(huge.status_code, 500)
+
+    def test_path_period_valid_and_invalid(self):
+        client = Client()
+        prefix = f"/en/personalstats/StatsOnCarGraph/{FAKE_HASHED_VIN}/odometer"
+        for weeks in (0, 52, 520):
+            response = client.get(f"{prefix}/{weeks}")
+            self.assertEqual(response.status_code, 200, weeks)
+            self.assertTrue(response.content.startswith(PNG_MAGIC), weeks)
+        out_of_set = client.get(f"{prefix}/99")
+        self.assertGreaterEqual(out_of_set.status_code, 400)
+        self.assertLess(out_of_set.status_code, 500)
+        non_numeric = client.get(f"{prefix}/abc")
+        self.assertGreaterEqual(non_numeric.status_code, 400)
+        self.assertLess(non_numeric.status_code, 500)
+
+    def test_query_period_valid_and_invalid(self):
+        client = Client()
+        base = f"/en/personalstats/Stats/{FAKE_HASHED_VIN}"
+        self.assertEqual(client.get(base).status_code, 200)
+        for weeks in (0, 4, 52, 520):
+            response = client.get(f"{base}?period={weeks}")
+            self.assertEqual(response.status_code, 200, weeks)
+        garbage = client.get(f"{base}?period=nope")
+        self.assertGreaterEqual(garbage.status_code, 400)
+        self.assertLess(garbage.status_code, 500)
+        out_of_set = client.get(f"{base}?period=99")
+        self.assertGreaterEqual(out_of_set.status_code, 400)
+        self.assertLess(out_of_set.status_code, 500)
+        map_ok = client.get(
+            f"/en/personalstats/LifetimeMapData/{FAKE_HASHED_VIN}?period=0"
+        )
+        self.assertEqual(map_ok.status_code, 200)
+        map_bad = client.get(
+            f"/en/personalstats/LifetimeMapData/{FAKE_HASHED_VIN}?period=99"
+        )
+        self.assertGreaterEqual(map_bad.status_code, 400)
+        self.assertLess(map_bad.status_code, 500)
+
+    def test_invalid_graph_field_is_4xx(self):
+        client = Client()
+        stats = client.get(
+            f"/en/personalstats/StatsOnCarGraph/{FAKE_HASHED_VIN}/not_a_field/52"
+        )
+        self.assertGreaterEqual(stats.status_code, 400)
+        self.assertLess(stats.status_code, 500)
+        degrad = client.get(
+            f"/en/personalstats/BatteryDegradationGraph/{FAKE_HASHED_VIN}/speed/52"
+        )
+        self.assertGreaterEqual(degrad.status_code, 400)
+        self.assertLess(degrad.status_code, 500)
+
+    def test_invalid_chart_is_4xx(self):
+        client = Client()
+        dc = client.get(
+            f"/en/personalstats/DCChargeGraph/{FAKE_HASHED_VIN}/not_a_chart/52"
+        )
+        self.assertGreaterEqual(dc.status_code, 400)
+        self.assertLess(dc.status_code, 500)
+        day = client.get(
+            f"/en/personalstats/DayChargeSessionGraph/{FAKE_HASHED_VIN}/"
+            f"2024-01-15/1700000000/not_a_chart"
+        )
+        self.assertGreaterEqual(day.status_code, 400)
+        self.assertLess(day.status_code, 500)
+
+    def test_invalid_day_is_4xx(self):
+        client = Client()
+        for day in ("not-a-day", "2024-13-40"):
+            response = client.get(
+                f"/en/personalstats/DayMap/{FAKE_HASHED_VIN}/{day}"
+            )
+            self.assertGreaterEqual(response.status_code, 400, day)
+            self.assertLess(response.status_code, 500, day)
+        valid_empty = client.get(
+            f"/en/personalstats/DayMap/{FAKE_HASHED_VIN}/2020-01-01"
+        )
+        self.assertEqual(valid_empty.status_code, 200)
+
+    def test_dc_filter_and_envelope_valid_and_invalid(self):
+        client = Client()
+        page = f"/en/personalstats/DCCharge/{FAKE_HASHED_VIN}"
+        graph = (
+            f"/en/personalstats/DCChargeGraph/{FAKE_HASHED_VIN}/power_vs_soc/52"
+        )
+        self.assertEqual(client.get(page).status_code, 200)
+        ok_page = client.get(f"{page}?filter=robust&envelope=p10_p90")
+        self.assertEqual(ok_page.status_code, 200)
+        ok_graph = client.get(f"{graph}?filter=all&envelope=min_max")
+        self.assertEqual(ok_graph.status_code, 200)
+        self.assertTrue(ok_graph.content.startswith(PNG_MAGIC))
+        for url in (page, graph):
+            bad_filter = client.get(f"{url}?filter=nope")
+            self.assertGreaterEqual(bad_filter.status_code, 400, url)
+            self.assertLess(bad_filter.status_code, 500, url)
+            bad_env = client.get(f"{url}?envelope=nope")
+            self.assertGreaterEqual(bad_env.status_code, 400, url)
+            self.assertLess(bad_env.status_code, 500, url)
+
+    def test_drives_sort_valid_and_invalid(self):
+        client = Client()
+        base = f"/en/personalstats/Drives/{FAKE_HASHED_VIN}"
+        self.assertEqual(client.get(base).status_code, 200)
+        for sort in ("longest", "elev_up", "elev_down", "hot", "cold", "soc_end"):
+            response = client.get(f"{base}?sort={sort}")
+            self.assertEqual(response.status_code, 200, sort)
+        bad = client.get(f"{base}?sort=nope")
+        self.assertGreaterEqual(bad.status_code, 400)
+        self.assertLess(bad.status_code, 500)
 
 
 class PersonalStatsPageTests(TestCase):

@@ -245,6 +245,8 @@ class NominatimQuotaPurposeTests(TestCase):
         NOMINATIM_MAX_PER_DAY=10,
         NOMINATIM_BACKFILL_MAX_PER_DAY=6,
         NOMINATIM_MIN_INTERVAL_SEC=0,
+        GEOAPIFY_API_KEY="",
+        GEOAPIFY_KEY="",
     )
     def test_backfill_stops_before_interactive_budget(self):
         from datetime import date
@@ -273,6 +275,8 @@ class NominatimQuotaPurposeTests(TestCase):
         NOMINATIM_MAX_PER_DAY=5,
         NOMINATIM_BACKFILL_MAX_PER_DAY=5,
         NOMINATIM_MIN_INTERVAL_SEC=0,
+        GEOAPIFY_API_KEY="",
+        GEOAPIFY_KEY="",
     )
     def test_interactive_hard_cap(self):
         from datetime import date
@@ -295,6 +299,8 @@ class NominatimQuotaPurposeTests(TestCase):
         NOMINATIM_MAX_PER_DAY=20,
         NOMINATIM_BACKFILL_MAX_PER_DAY=10,
         NOMINATIM_MIN_INTERVAL_SEC=0,
+        GEOAPIFY_API_KEY="",
+        GEOAPIFY_KEY="",
     )
     def test_backfill_get_address_uses_backfill_purpose(self):
         """enrich path must not consume interactive-only headroom."""

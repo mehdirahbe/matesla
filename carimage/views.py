@@ -4,7 +4,7 @@ from urllib.request import urlopen
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files import File
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from PIL import Image
 
 from carimage.models import TeslaImage
@@ -86,6 +86,27 @@ JUNIPER_MY_WHEELS = frozenset({
     "crossflow19", "helix19", "photon19", "uranus19",
 })
 
+# Compositor option codes accepted as URL wheel segments (in addition to Fleet names)
+COMPOSITOR_WHEEL_CODES = frozenset({
+    "w38a", "w38b", "w39b", "w32b",
+    "wy19p", "wy20p", "wy19b",
+    "ws10", "wx00", "wh8a",
+})
+
+CAR_MODEL_ALIASES = {
+    "model3": "m3",
+    "m3": "m3",
+    "modely": "my",
+    "my": "my",
+    "models": "ms",
+    "models2": "ms",
+    "ms": "ms",
+    "modelx": "mx",
+    "mx": "mx",
+    "cybertruck": "ct",
+    "ct": "ct",
+}
+
 
 def normalize_token(value: str) -> str:
     """Lowercase token with separators stripped (Fleet names / URL segments)."""
@@ -121,20 +142,36 @@ def normalize_car_model(car_model: str) -> str:
     model_key = (
         (car_model or "model3").strip().lower().replace(" ", "").replace("_", "")
     )
-    aliases = {
-        "model3": "m3",
-        "m3": "m3",
-        "modely": "my",
-        "my": "my",
-        "models": "ms",
-        "models2": "ms",
-        "ms": "ms",
-        "modelx": "mx",
-        "mx": "mx",
-        "cybertruck": "ct",
-        "ct": "ct",
-    }
-    return aliases.get(model_key, "m3")
+    return CAR_MODEL_ALIASES.get(model_key, "m3")
+
+
+def is_known_color(color: str) -> bool:
+    """True if the URL color segment is a compositor code or Fleet paint name."""
+    raw = (color or "").strip()
+    if not raw:
+        return False
+    upper = raw.upper().lstrip("$")
+    if upper in VALID_COMPOSITOR_COLORS:
+        return True
+    return normalize_token(raw) in EXTERIOR_COLOR_TO_CODE
+
+
+def is_known_wheel(wheel: str) -> bool:
+    """True if the URL wheel segment is a known Fleet name or compositor code."""
+    key = normalize_token(wheel)
+    if not key:
+        return False
+    return (
+        key in WHEEL_TYPE_M3
+        or key in JUNIPER_MY_WHEELS
+        or key in COMPOSITOR_WHEEL_CODES
+    )
+
+
+def is_known_car_model(car_model: str) -> bool:
+    """True if the URL car-type segment maps to a compositor model."""
+    key = normalize_token(car_model)
+    return key in CAR_MODEL_ALIASES
 
 
 def is_highland_m3(wheel: str) -> bool:
@@ -324,6 +361,12 @@ def CreateImageFile(image):
 
 def CarImageFromTesla(request, color, wheel, CarModel):
     """Proxy / cache Tesla compositor render for the vehicle status page."""
+    if not is_known_color(color):
+        return HttpResponseNotFound("Unknown color")
+    if not is_known_wheel(wheel):
+        return HttpResponseNotFound("Unknown wheel")
+    if not is_known_car_model(CarModel):
+        return HttpResponseNotFound("Unknown car model")
     size = "1920"
     url = build_compositor_url(color, wheel, CarModel, size=size)
     cache_url = _cache_key(url)

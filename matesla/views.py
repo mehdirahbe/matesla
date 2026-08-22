@@ -961,6 +961,7 @@ def view_select_vehicle(request):
                 return redirect("PersoDayMap", hashedVin=hashed)
             if next_kind == "stats":
                 from personalstats.views import (
+                    STATS_PERIOD_DEFAULT,
                     STATS_PERIOD_SESSION_KEY,
                     parse_stats_period,
                 )
@@ -973,11 +974,14 @@ def view_select_vehicle(request):
                         request.session.get(STATS_PERIOD_SESSION_KEY)
                     ),
                 )
+                if period is None:
+                    period = STATS_PERIOD_DEFAULT
                 request.session[STATS_PERIOD_SESSION_KEY] = period
                 url = reverse("PersoStats", kwargs={"hashedVin": hashed})
                 return redirect(f"{url}?period={period}")
             if next_kind == "drives":
                 from personalstats.views import (
+                    STATS_PERIOD_DEFAULT,
                     STATS_PERIOD_SESSION_KEY,
                     parse_stats_period,
                     DRIVES_SORT_SPECS,
@@ -991,6 +995,8 @@ def view_select_vehicle(request):
                         request.session.get(STATS_PERIOD_SESSION_KEY)
                     ),
                 )
+                if period is None:
+                    period = STATS_PERIOD_DEFAULT
                 request.session[STATS_PERIOD_SESSION_KEY] = period
                 sort = (request.POST.get("sort") or DRIVES_SORT_DEFAULT).strip().lower()
                 if sort not in DRIVES_SORT_SPECS:
@@ -1001,6 +1007,7 @@ def view_select_vehicle(request):
                 return redirect("PersoStatsFirmwareHistory", hashedVin=hashed)
             if next_kind == "dccharge":
                 from personalstats.views import (
+                    STATS_PERIOD_DEFAULT,
                     STATS_PERIOD_SESSION_KEY,
                     parse_stats_period,
                 )
@@ -1012,6 +1019,8 @@ def view_select_vehicle(request):
                         request.session.get(STATS_PERIOD_SESSION_KEY)
                     ),
                 )
+                if period is None:
+                    period = STATS_PERIOD_DEFAULT
                 request.session[STATS_PERIOD_SESSION_KEY] = period
                 filt = (request.POST.get("filter") or "robust").strip().lower()
                 if filt not in ("robust", "all"):

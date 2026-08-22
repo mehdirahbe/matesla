@@ -1,6 +1,11 @@
 import django
 from django.db.models import Max, Min, Avg, Count, F, FloatField, Case, When, Q
-from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
+from django.http import (
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseNotFound,
+    JsonResponse,
+)
 from django.shortcuts import render
 from django.template import loader
 from django.views.decorators.http import require_GET
@@ -2573,6 +2578,50 @@ def GenerateEfficiencyBinGraph(
     return GeneratePngFromGraph(figure, size=size)
 
 
+class InvalidStatsQuery(ValueError):
+    """Present-but-invalid query or path argument on a personalstats URL."""
+
+
+def _invalid_query_response(message):
+    return HttpResponseBadRequest(message)
+
+
+def _graph_size_or_error(request, default="full"):
+    size = graph_size_from_request(request, default=default)
+    if size is None:
+        return None, _invalid_query_response("Invalid size")
+    return size, None
+
+
+def parse_path_period(desiredperiod):
+    """
+    Path <int:desiredperiod>: 0 = all history, else a UI week value.
+
+    Returns weeks or None if the token is not in the allowed set.
+    """
+    try:
+        weeks = int(desiredperiod)
+    except (TypeError, ValueError):
+        return None
+    if weeks == 0 or weeks in STATS_PERIOD_WEEKS:
+        return weeks
+    return None
+
+
+def _path_period_or_error(desiredperiod):
+    weeks = parse_path_period(desiredperiod)
+    if weeks is None:
+        return None, _invalid_query_response("Invalid period")
+    return weeks, None
+
+
+def _chrome_or_error(request, hashedVin):
+    try:
+        return _vehicle_chrome_context(request, hashedVin), None
+    except InvalidStatsQuery:
+        return None, _invalid_query_response("Invalid period")
+
+
 def _unknown_hashed_vin_response(request, hashedVin, *, kind="html"):
     """
     None if hashedVin is a safe token for a known vehicle.
@@ -2641,8 +2690,13 @@ def StatsOnCarGraph(request, hashedVin, desiredfield, desiredperiod):
     response, isValid = SecurityChecks(hashedVin, desiredfield)
     if isValid is False:
         return response
+    desiredperiod, period_error = _path_period_or_error(desiredperiod)
+    if period_error:
+        return period_error
     unit = _distance_unit_from_request(request)
-    size = graph_size_from_request(request)
+    size, size_error = _graph_size_or_error(request)
+    if size_error:
+        return size_error
     cache_key = _graph_png_cache_key(
         hashedVin, desiredfield, desiredperiod, size, unit=unit
     )
@@ -2930,26 +2984,43 @@ STATS_PERIOD_DEFAULT = 520  # 10 years — full history is fast enough even with
 
 
 def parse_stats_period(raw, default=STATS_PERIOD_DEFAULT):
-    """Return a valid period in weeks, or default."""
+    """
+    Return a valid period in weeks.
+
+    Omitted / empty → default. 0 = all history. Values in STATS_PERIOD_WEEKS
+    succeed. Present-but-invalid (non-numeric or out of set) → None so the
+    view can 4xx instead of silently substituting the default.
+    """
+    if raw is None:
+        return default
+    if isinstance(raw, str) and raw.strip() == "":
+        return default
     try:
         weeks = int(raw)
     except (TypeError, ValueError):
-        return default
-    return weeks if weeks in STATS_PERIOD_WEEKS else default
+        return None
+    if weeks == 0 or weeks in STATS_PERIOD_WEEKS:
+        return weeks
+    return None
 
 
 def resolve_stats_period(request, *, persist=True):
     """
     Preferred stats graph window (weeks).
     Query ?period= wins, then session, then 10 years (520 weeks).
+    Invalid present query values raise InvalidStatsQuery (view → HTTP 4xx).
     """
     if request.GET.get("period") is not None:
         weeks = parse_stats_period(request.GET.get("period"))
+        if weeks is None:
+            raise InvalidStatsQuery("period")
     else:
         weeks = parse_stats_period(
             request.session.get(STATS_PERIOD_SESSION_KEY),
             default=STATS_PERIOD_DEFAULT,
         )
+        if weeks is None:
+            weeks = STATS_PERIOD_DEFAULT
     if persist:
         request.session[STATS_PERIOD_SESSION_KEY] = weeks
     return weeks
@@ -2990,7 +3061,9 @@ def Stats(request, hashedVin):
     from matesla.units import get_distance_unit
 
     template = loader.get_template('personalstats/carstats.html')
-    context = _vehicle_chrome_context(request, hashedVin)
+    context, chrome_error = _chrome_or_error(request, hashedVin)
+    if chrome_error:
+        return chrome_error
     # Dropdown titles must follow km/mi preference (default was always km).
     context.update(GetTitleForFieldDico(get_distance_unit(request)))
     return HttpResponse(template.render(context, request))
@@ -4478,13 +4551,19 @@ def DayMap(request, hashedVin, day=None):
     denied = _unknown_hashed_vin_response(request, hashedVin)
     if denied:
         return denied
+    try:
+        resolve_stats_period(request)
+    except InvalidStatsQuery:
+        return _invalid_query_response("Invalid period")
 
     # Resolve day: path / GET date= / default today (Brussels)
     raw = day or request.GET.get("date") or request.POST.get("date") or ""
     chosen = _parse_day_string(raw)
     parse_error = None
     if raw and chosen is None:
-        parse_error = _("Invalid date. Use DD/MM/YYYY or YYYY-MM-DD.")
+        return _invalid_query_response(
+            _("Invalid date. Use DD/MM/YYYY or YYYY-MM-DD.")
+        )
     if chosen is None:
         chosen = datetime.now(DAY_MAP_TZ).date()
 
@@ -4772,10 +4851,17 @@ def Drives(request, hashedVin):
     if denied:
         return denied
 
-    weeks = resolve_stats_period(request)
-    sort_key = (request.GET.get("sort") or DRIVES_SORT_DEFAULT).strip().lower()
-    if sort_key not in DRIVES_SORT_SPECS:
+    try:
+        weeks = resolve_stats_period(request)
+    except InvalidStatsQuery:
+        return _invalid_query_response("Invalid period")
+    raw_sort = request.GET.get("sort")
+    if raw_sort is None or str(raw_sort).strip() == "":
         sort_key = DRIVES_SORT_DEFAULT
+    else:
+        sort_key = raw_sort.strip().lower()
+        if sort_key not in DRIVES_SORT_SPECS:
+            return _invalid_query_response("Invalid sort")
 
     try:
         page_size = int(request.GET.get("page_size") or DRIVES_DEFAULT_PAGE_SIZE)
@@ -4865,18 +4951,10 @@ def LifetimeMapData(request, hashedVin):
     denied = _unknown_hashed_vin_response(request, hashedVin, kind="json")
     if denied:
         return denied
-    weeks = parse_stats_period(
-        request.GET.get("period"), default=STATS_PERIOD_DEFAULT
-    )
-    # Allow explicit 0 (= all) via query even if not in the select list
     raw = request.GET.get("period")
-    if raw is not None:
-        try:
-            raw_i = int(raw)
-            if raw_i == 0:
-                weeks = 0
-        except (TypeError, ValueError):
-            pass
+    weeks = parse_stats_period(raw, default=STATS_PERIOD_DEFAULT)
+    if raw is not None and str(raw).strip() != "" and weeks is None:
+        return JsonResponse({"ok": False, "error": "invalid_period"}, status=400)
 
     from matesla.units import (
         get_distance_unit,
@@ -5042,8 +5120,6 @@ def view_AllMyDataAsCSV(request, hashedVin):
     denied = _unknown_hashed_vin_response(request, hashedVin, kind="raw")
     if denied:
         return denied
-    if TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).count() == 0:
-        return HttpResponseNotFound(_("Unknown vehicle."))
     query = "select * from matesla_teslacardatasnapshot where \"hashedVin\"='" + hashedVin + "';"
     return PrepareCSVFromQuery(query)
 
@@ -5061,8 +5137,17 @@ def BatteryDegradationGraph(request, hashedVin, desiredfield, desiredperiod=0):
     denied = _unknown_hashed_vin_response(request, hashedVin, kind="raw")
     if denied:
         return denied
+    if desiredfield not in ("odometer", "range_at_100_odometer"):
+        return HttpResponseNotFound(
+            "Graph for this field doesn't exists " + (desiredfield or "")
+        )
+    desiredperiod, period_error = _path_period_or_error(desiredperiod)
+    if period_error:
+        return period_error
     unit = _distance_unit_from_request(request)
-    size = graph_size_from_request(request)
+    size, size_error = _graph_size_or_error(request)
+    if size_error:
+        return size_error
     cache_key = _graph_png_cache_key(
         hashedVin, desiredfield, desiredperiod, size, kind="degrad", unit=unit
     )
@@ -5202,7 +5287,9 @@ def FirmwareHistory(request, hashedVin):
     qs_chrono = list(
         TeslaFirmwareHistory.objects.filter(hashedVin=hashedVin).order_by("Date", "id")
     )
-    context = _vehicle_chrome_context(request, hashedVin)
+    context, chrome_error = _chrome_or_error(request, hashedVin)
+    if chrome_error:
+        return chrome_error
     context["firmware_timeline"] = _firmware_timeline(qs_chrono)
     return render(request, "personalstats/FirmwareHistory.html", context)
 
@@ -5212,8 +5299,6 @@ def FirmwareHistoryCSV(request, hashedVin):
     denied = _unknown_hashed_vin_response(request, hashedVin, kind="raw")
     if denied:
         return denied
-    if TeslaCarDataSnapshot.objects.filter(hashedVin=hashedVin).count() == 0:
-        return HttpResponseNotFound(_("Unknown vehicle."))
     query = (
         'select "Version","Date" from matesla_teslafirmwarehistory '
         f"where \"hashedVin\"='{hashedVin}' order by 2 desc;"
@@ -5247,14 +5332,18 @@ from personalstats.dc_charge import (
 from matesla.graphstyle import CYAN, render_png
 
 
-def _parse_dc_outlier_mode(raw) -> str:
-    mode = (raw or "robust").strip().lower()
-    return mode if mode in OUTLIER_MODES else "robust"
+def _parse_dc_outlier_mode(raw) -> str | None:
+    if raw is None or str(raw).strip() == "":
+        return "robust"
+    mode = str(raw).strip().lower()
+    return mode if mode in OUTLIER_MODES else None
 
 
-def _parse_dc_envelope_mode(raw) -> str:
-    mode = (raw or "p10_p90").strip().lower()
-    return mode if mode in ENVELOPE_MODES else "p10_p90"
+def _parse_dc_envelope_mode(raw) -> str | None:
+    if raw is None or str(raw).strip() == "":
+        return "p10_p90"
+    mode = str(raw).strip().lower()
+    return mode if mode in ENVELOPE_MODES else None
 
 
 def _parse_dc_range_y_mode(raw, *, default: str = "real") -> str:
@@ -5807,7 +5896,9 @@ def DayChargeSessionGraph(request, hashedVin, day, start_ts, chart):
     except (TypeError, ValueError):
         return HttpResponseNotFound("Invalid start time")
 
-    size = graph_size_from_request(request)
+    size, size_error = _graph_size_or_error(request)
+    if size_error:
+        return size_error
     cache_key = _graph_png_cache_key(
         hashedVin,
         f"day_charge_session_v2_{chart_key}_{chosen.isoformat()}_{start_ts_int}",
@@ -5849,9 +5940,16 @@ def DCCharge(request, hashedVin):
 
     from matesla.units import get_distance_unit, unit_labels
 
-    weeks = resolve_stats_period(request)
+    try:
+        weeks = resolve_stats_period(request)
+    except InvalidStatsQuery:
+        return _invalid_query_response("Invalid period")
     outlier_mode = _parse_dc_outlier_mode(request.GET.get("filter"))
+    if outlier_mode is None:
+        return _invalid_query_response("Invalid filter")
     envelope_mode = _parse_dc_envelope_mode(request.GET.get("envelope"))
+    if envelope_mode is None:
+        return _invalid_query_response("Invalid envelope")
 
     analysis = _load_dc_analysis(hashedVin, weeks, outlier_mode)
     summary = analysis["summary"]
@@ -5976,19 +6074,22 @@ def DCChargeGraph(request, hashedVin, chart, desiredperiod):
     if chart_key not in DC_CHARGE_CHARTS:
         return HttpResponseNotFound("Unknown DC chart " + (chart or ""))
 
-    try:
-        weeks = int(desiredperiod)
-    except (TypeError, ValueError):
-        weeks = 520
-    if weeks < 0:
-        weeks = 0
+    weeks, period_error = _path_period_or_error(desiredperiod)
+    if period_error:
+        return period_error
 
     from matesla.BatteryDegradation import pack_kwh_for_vehicle
     from matesla.units import get_distance_unit, km_to_display, miles_to_display, unit_labels
 
     outlier_mode = _parse_dc_outlier_mode(request.GET.get("filter"))
+    if outlier_mode is None:
+        return _invalid_query_response("Invalid filter")
     envelope_mode = _parse_dc_envelope_mode(request.GET.get("envelope"))
-    size = graph_size_from_request(request)
+    if envelope_mode is None:
+        return _invalid_query_response("Invalid envelope")
+    size, size_error = _graph_size_or_error(request)
+    if size_error:
+        return size_error
     unit = get_distance_unit(request)
     dist_label = unit_labels(unit)["distance"]
 
@@ -6070,6 +6171,10 @@ def PollDetails(request, hashedVin):
     denied = _unknown_hashed_vin_response(request, hashedVin)
     if denied:
         return denied
+    try:
+        resolve_stats_period(request)
+    except InvalidStatsQuery:
+        return _invalid_query_response("Invalid period")
 
     from matesla.poll_diagnostics import (
         build_poll_diagnostic_report,

@@ -258,3 +258,31 @@ def seed_fake_car_telemetry(
 
     flush_pending_rows()
     return rows_created
+
+
+def seed_known_empty_vehicle(
+    *,
+    vin: str = "5YJ3E7EB1KF000077",
+    username: str = "emptyvin",
+    api_id: str = "77",
+    display_name: str = "Empty",
+) -> tuple[str, str]:
+    """
+    Link a TeslaVehicle with no snapshots / firmware / car-info rows.
+
+    Returns (hashed_vin, vin). The hash is known (empty-state 2xx), not 404.
+    """
+    from django.contrib.auth import get_user_model
+
+    from matesla.models.TeslaToken import TeslaVehicle
+    from matesla.models.VinHash import HashTheVin
+
+    hashed_vin = HashTheVin(vin)
+    user = get_user_model().objects.create_user(username, password="x")
+    TeslaVehicle.objects.create(
+        user=user,
+        api_id=api_id,
+        vin=vin,
+        display_name=display_name,
+    )
+    return hashed_vin, vin

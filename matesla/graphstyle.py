@@ -89,20 +89,31 @@ GRAPH_SIZES = {
 }
 
 
-def parse_graph_size(raw, default: str = "full") -> str:
-    """Normalize ?size= query values to 'thumb' or 'full'."""
+GRAPH_SIZE_THUMB_ALIASES = frozenset({"thumb", "small", "sm", "grid", "card"})
+GRAPH_SIZE_FULL_ALIASES = frozenset({"full", "large", "lg", "hi", "lightbox"})
+
+
+def parse_graph_size(raw, default: str = "full"):
+    """
+    Normalize ?size= query values to 'thumb' or 'full'.
+
+    Omitted / empty → default. Present-but-unknown (e.g. huge) → None so the
+    view can return HTTP 4xx instead of silently substituting the default.
+    """
     if raw is None:
         return default
     key = str(raw).strip().lower()
-    if key in ("thumb", "small", "sm", "grid", "card"):
+    if key == "":
+        return default
+    if key in GRAPH_SIZE_THUMB_ALIASES:
         return "thumb"
-    if key in ("full", "large", "lg", "hi", "lightbox"):
+    if key in GRAPH_SIZE_FULL_ALIASES:
         return "full"
-    return default
+    return None
 
 
-def graph_size_from_request(request, default: str = "full") -> str:
-    """Read ?size=thumb|full (default full for bookmarked direct URLs)."""
+def graph_size_from_request(request, default: str = "full"):
+    """Read ?size=thumb|full (default full). None if the query value is unknown."""
     return parse_graph_size(request.GET.get("size"), default=default)
 
 
