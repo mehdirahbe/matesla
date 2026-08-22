@@ -51,8 +51,11 @@ class OpenMeteoClientTests(TestCase):
     def test_fetch_failure_returns_nones(self):
         session = MagicMock()
         session.get.side_effect = OSError("network down")
-        out = fetch_open_meteo_elevations([(50.0, 4.0)], session=session)
+        # Capture the warning so a mocked outage is not printed as a real outage.
+        with self.assertLogs("matesla.geo_enrich", level="WARNING") as logs:
+            out = fetch_open_meteo_elevations([(50.0, 4.0)], session=session)
         self.assertEqual(out, [None])
+        self.assertTrue(any("network down" in line for line in logs.output))
 
 
 class ElevationCacheTests(TestCase):
