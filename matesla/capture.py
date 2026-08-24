@@ -81,9 +81,25 @@ INTERVAL_LONG_IDLE_SOFT_MIN = 10  # ≥24 h no drive & no charge
 INTERVAL_LONG_IDLE_HARD_MIN = 15  # ≥48 h no drive & no charge
 INTERVAL_LONG_IDLE_VACATION_MIN = 30  # ≥72 h — clearly away
 
-# DC heuristic: Supercharger / fast pack, or power well above typical AC.
+# DC heuristic: Supercharger / CCS / CHAdeMO, or power well above typical AC.
 #Mehdi 2/8/2026: was 20, but all tesla are limited in AC to 11 kW
 DC_POWER_KW_MIN = 12.0
+# Tesla AC wall / mobile connectors. Fleet still sets fast_charger_type to these
+# *SingleWireCAN names — they are not DC. Treating any non-empty type as DC
+# polled Aram and RobotBleu every 1–2 min on AC (Tesla bill, no extra signal).
+TESLA_AC_CONNECTOR_TYPES = frozenset(
+    {
+        "ac",
+        "ac_single",
+        "ac_three",
+        "mcsinglewirecan",
+        "acsinglewirecan",
+    }
+)
+# True DC names seen in snapshots (plus fast_charger_present).
+DC_CHARGER_TYPES = frozenset(
+    {"combo", "ccs", "tesla", "supercharger", "chademo"}
+)
 DRIVING_SPEED_MPH_MIN = 1.0
 # Last snapshot older than this is not trusted for drive/charge/cabin/sentry.
 # Otherwise a car that finished charging and went to sleep stays "ac_charge" forever.
@@ -172,21 +188,24 @@ def _is_charging(snap: TeslaCarDataSnapshot | None) -> bool:
 
 
 def _is_dc_charging(snap: TeslaCarDataSnapshot | None) -> bool:
+    """True Supercharge / CCS / CHAdeMO — not Tesla AC wall connectors."""
     if not _is_charging(snap):
+        return False
+    fast_charger_type = (snap.fast_charger_type or "").strip().lower()
+    # Named AC connectors stay AC even if charger_power rounds up toward 12 kW.
+    if fast_charger_type in TESLA_AC_CONNECTOR_TYPES:
         return False
     if snap.fast_charger_present:
         return True
-    fast_charger_type = (snap.fast_charger_type or "").strip().lower()
-    if fast_charger_type and fast_charger_type not in {"", "none", "ac", "<invalid>"}:
-        # e.g. Tesla, Combo, CHAdeMO
-        if fast_charger_type not in {"ac_single", "ac_three"}:
-            return True
+    if fast_charger_type in DC_CHARGER_TYPES:
+        return True
     try:
         if snap.charger_power is not None and float(snap.charger_power) >= DC_POWER_KW_MIN:
             return True
     except (TypeError, ValueError):
         pass
     return False
+
 
 def IsDogOrCampingModes(snap: TeslaCarDataSnapshot | None) -> bool:
     #see possible values in definition of climate_keeper_modeRaw in model 

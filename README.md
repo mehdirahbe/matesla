@@ -375,6 +375,11 @@ Spacing uses Europe/Brussels wall clock + last known activity
 | Day, AC charging | 15 min |
 | Day, asleep / offline | 5 min |
 
+Tesla AC wall / mobile connectors report `fast_charger_type`
+`MCSingleWireCAN` or `ACSingleWireCAN`. Those are **not** DC — they use the
+AC 15 min day / 30 min night spacing. Combo / Supercharger / `fast_charger_present`
+keep the 1 min DC cadence.
+
 If no vehicle is due for a user, **no** `/vehicles` list call is made.
 Each vehicle stores `last_polled_at` after a real poll attempt.
 JSON stats include `skipped_wait` when the policy defers the car.
