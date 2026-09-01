@@ -806,7 +806,7 @@ def _graph_png_cache_key(
     language = get_language() or "en"
     dist_unit = normalize_unit(unit)
     return (
-        f"matesla:png:v5:{kind}:{hashed_vin}:{desired_field}:"
+        f"matesla:png:v6:{kind}:{hashed_vin}:{desired_field}:"
         f"{desired_period_weeks}:{size}:{language}:{dist_unit}"
     )
 

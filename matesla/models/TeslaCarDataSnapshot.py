@@ -434,23 +434,20 @@ class TeslaCarDataSnapshot(models.Model):
     def _recompute_derived(self):
         if self.randomNr is None:
             self.randomNr = random()
-        # Fleet API battery_level is whole %; refine from battery_range when possible
-        # (TeslaFi rows are already fractional and are left unchanged).
-        if self.vin and self.battery_range is not None and self.battery_level is not None:
-            from matesla.soc_refine import apply_soc_refinement
-
-            self.battery_level, self.usable_battery_level = apply_soc_refinement(
-                self.battery_level,
-                self.usable_battery_level,
-                self.battery_range,
-                self.vin,
-            )
+        # Keep API SoC as-is (Fleet integer % or TeslaFi fractional). Never
+        # rewrite % from battery_range — that makes degradation a constant.
+        # Degradation = rule of three: (range / soc × 100) vs EPA miles.
         if self.odometer is not None and self.vin:
             epa = GetEPARangeFromCache(self.vin)
             self.NumberCycles = ComputeNumCycles(epa, self.odometer)
-            if self.battery_range is not None and self.usable_battery_level is not None:
+            soc = (
+                self.usable_battery_level
+                if self.usable_battery_level is not None
+                else self.battery_level
+            )
+            if self.battery_range is not None and soc is not None:
                 self.battery_degradation = ComputeBatteryDegradationFromEPARange(
-                    self.battery_range, self.usable_battery_level, epa
+                    self.battery_range, soc, epa
                 )
 
     def SaveSnapshot(self, vin, context, when=None):

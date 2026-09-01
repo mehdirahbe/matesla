@@ -9,7 +9,7 @@ from matesla.BatteryDegradation import (
 )
 from matesla.epa_catalog import lookup_epa_miles, lookup_pack_kwh, project_full_charge_miles
 from matesla.models.VinHash import HashTheVin, IsValidHash
-from matesla.soc_refine import is_whole_percent, refine_soc_percent
+from matesla.soc_refine import is_whole_percent
 from matesla.urls import urlpatterns
 from matesla.views import returnColorFronContext, ValidColorCodes
 from matesla.VinAnalysis import (
@@ -198,14 +198,10 @@ class EpaCatalogUnitTests(SimpleTestCase):
         # odo/EPA * 1.2 → 100 * 1.2
         self.assertAlmostEqual(cycles, 120.0, places=5)
 
-    def test_refine_soc_from_range(self):
+    def test_whole_percent_helper(self):
         self.assertTrue(is_whole_percent(64))
         self.assertTrue(is_whole_percent(64.0))
         self.assertFalse(is_whole_percent(64.3))
-        # 186 mi remaining of 310 pack → 60%
-        refined = refine_soc_percent(60, 186, 310)
-        self.assertIsNotNone(refined)
-        self.assertAlmostEqual(refined, 60.0, places=1)
 
 
 class BatteryCapacityKwhTests(SimpleTestCase):
@@ -363,3 +359,141 @@ class VehicleSwitcherTests(TestCase):
         self.assertIn("beginPending", script)
         self.assertIn("vehicle-switch-pending", script)
         self.assertIn("pageshow", script)
+
+
+def _car_info_for_tests(vin, epa_miles):
+    from datetime import date
+
+    from matesla.models.TeslaCarInfo import TeslaCarInfo
+
+    return TeslaCarInfo.objects.create(
+        vin=vin,
+        hashedVin=HashTheVin(vin),
+        Date=date(2019, 1, 1),
+        LastSeenDate=date(2026, 8, 1),
+        car_type="model3",
+        charge_port_type="CCS",
+        exterior_color="SolidBlack",
+        has_air_suspension=False,
+        has_ludicrous_mode=False,
+        motorized_charge_port=True,
+        rear_seat_heaters="1",
+        rhd=False,
+        roof_color="Glass",
+        wheel_type="Pinwheel18",
+        eu_vehicle=True,
+        EPARange=epa_miles,
+        isDualMotor=True,
+        modelYear=2019,
+    )
+
+
+class RawSocDegradationTests(TestCase):
+    """Capture stores API SoC as-is; degradation is range/soc vs EPA."""
+
+    vin = "5YJ3E7EB1KF200150"
+
+    def setUp(self):
+        _car_info_for_tests(self.vin, 310)
+
+    def test_fleet_integer_soc_is_not_rewritten(self):
+        from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+
+        snapshot = TeslaCarDataSnapshot()
+        snapshot.SaveSnapshot(
+            self.vin,
+            {
+                "display_name": "Corentin",
+                "state": "online",
+                "charge_state": {
+                    "battery_level": 79,
+                    "usable_battery_level": 79,
+                    "battery_range": 189.8,
+                    "ideal_battery_range": 189.8,
+                    "charging_state": "Disconnected",
+                },
+                "vehicle_state": {"odometer": 122000.0},
+                "climate_state": {},
+                "drive_state": {},
+            },
+        )
+        snapshot.refresh_from_db()
+        self.assertEqual(snapshot.battery_level, 79.0)
+        self.assertEqual(snapshot.usable_battery_level, 79.0)
+        self.assertAlmostEqual(snapshot.battery_range, 189.8)
+        expected = ComputeBatteryDegradationFromEPARange(189.8, 79, 310)
+        self.assertAlmostEqual(snapshot.battery_degradation, expected, places=5)
+        # 305.45 km / 79% × 100 vs 310 mi EPA → ~22.5 %
+        self.assertAlmostEqual(snapshot.battery_degradation, 22.499, places=2)
+
+    def test_teslafi_fractional_soc_keeps_decimals(self):
+        from datetime import datetime, timezone as datetime_timezone
+
+        from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+
+        when = datetime(2025, 6, 24, 8, 37, 35, tzinfo=datetime_timezone.utc)
+        snapshot = TeslaCarDataSnapshot()
+        snapshot.apply_flat_row(
+            self.vin,
+            {
+                "battery_level": "80.11",
+                "usable_battery_level": "80.11",
+                "battery_range": "197.14",
+                "ideal_battery_range": "197.142852",
+                "charging_state": "Disconnected",
+                "odometer": "106655.4",
+            },
+            when,
+        )
+        self.assertAlmostEqual(snapshot.battery_level, 80.11)
+        self.assertAlmostEqual(snapshot.usable_battery_level, 80.11)
+        expected = ComputeBatteryDegradationFromEPARange(197.14, 80.11, 310)
+        self.assertAlmostEqual(snapshot.battery_degradation, expected, places=5)
+
+    def test_restore_raw_soc_unrewrites_fleet_only(self):
+        from datetime import datetime, timezone as datetime_timezone
+
+        from django.core.management import call_command
+
+        from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+
+        fleet_when = datetime(2026, 8, 1, 12, 0, tzinfo=datetime_timezone.utc)
+        teslafi_when = datetime(2026, 8, 1, 12, 1, tzinfo=datetime_timezone.utc)
+        TeslaCarDataSnapshot.objects.create(
+            vin=self.vin,
+            hashedVin=HashTheVin(self.vin),
+            Date=fleet_when,
+            DateOnlyDay=fleet_when.date(),
+            battery_level=78.578735,
+            usable_battery_level=78.578735,
+            battery_range=189.8,
+            battery_degradation=22.083,
+            charging_state="Disconnected",
+            odometer=122000.0,
+            charge_number=None,
+        )
+        TeslaCarDataSnapshot.objects.create(
+            vin=self.vin,
+            hashedVin=HashTheVin(self.vin),
+            Date=teslafi_when,
+            DateOnlyDay=teslafi_when.date(),
+            battery_level=80.11,
+            usable_battery_level=80.11,
+            battery_range=197.14,
+            battery_degradation=20.617,
+            charging_state="Disconnected",
+            odometer=106655.4,
+            charge_number=12,
+        )
+
+        call_command("RestoreRawSoc")
+
+        fleet = TeslaCarDataSnapshot.objects.get(Date=fleet_when)
+        teslafi = TeslaCarDataSnapshot.objects.get(Date=teslafi_when)
+        self.assertEqual(fleet.battery_level, 79.0)
+        self.assertEqual(fleet.usable_battery_level, 79.0)
+        expected = ComputeBatteryDegradationFromEPARange(189.8, 79, 310)
+        self.assertAlmostEqual(fleet.battery_degradation, expected, places=5)
+        self.assertAlmostEqual(teslafi.battery_level, 80.11)
+        self.assertAlmostEqual(teslafi.usable_battery_level, 80.11)
+        self.assertAlmostEqual(teslafi.battery_degradation, 20.617, places=3)
