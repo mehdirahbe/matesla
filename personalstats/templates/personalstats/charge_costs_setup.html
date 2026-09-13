@@ -1,0 +1,442 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load static %}
+
+{% block title %}{% trans 'Charge rates' %} · MaTesla{% endblock %}
+
+{% block cssstyle %}
+    .cc-setup .vehicle-chrome { margin-bottom: 12px; }
+    .cc-card {
+        margin-bottom: 1.25rem; padding: 16px 18px; border-radius: 14px;
+        border: 1px solid var(--app-line); background: var(--app-surface);
+    }
+    .cc-card h2 { font-size: 1.15rem; margin: 0 0 0.35rem; }
+    .cc-card .intro { color: var(--app-muted); font-size: 0.9rem; margin-bottom: 0.85rem; }
+    .cc-form-row {
+        display: flex; flex-wrap: wrap; gap: 0.65rem 0.85rem; align-items: flex-end;
+    }
+    .cc-form-row label { display: block; font-size: 0.75rem; color: var(--app-muted); margin-bottom: 4px; }
+    .cc-form-row .form-control, .cc-form-row select { min-height: 36px; width: auto; max-width: 16rem; }
+    .cc-place { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--app-line); }
+    .cc-place h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+    .cc-nested { margin: 0.75rem 0 0 0.25rem; padding-left: 0.75rem; border-left: 2px solid var(--app-line); }
+    .cc-muted { font-size: 0.85rem; color: var(--app-muted); }
+    .cc-filter { width: 100%; max-width: 28rem; margin-bottom: 0.85rem; }
+    .cc-cluster {
+        padding: 12px 0; border-top: 1px solid var(--app-line);
+    }
+    .cc-cluster:first-of-type { border-top: none; }
+    .cc-cluster__head { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; align-items: baseline; margin-bottom: 0.45rem; }
+    .cc-cluster__addr { font-weight: 600; }
+    .cc-cluster__tag {
+        font-size: 0.75rem; padding: 1px 8px; border-radius: 999px;
+        background: var(--app-energy-soft); color: var(--app-energy);
+    }
+    .cc-cluster .btn { min-height: 32px; }
+    .cc-dialog {
+        max-width: 40rem; width: 96vw; max-height: 92vh; overflow: auto;
+        padding: 1.15rem 1.25rem;
+        border: 1px solid var(--app-line); border-radius: 14px;
+        background: var(--app-surface); color: var(--app-text);
+    }
+    .cc-dialog::backdrop { background: rgba(0,0,0,.55); }
+    .cc-dialog h3 { margin: 0 0 0.35rem; font-size: 1.15rem; }
+    .cc-dialog .intro { margin-bottom: 0.85rem; }
+    .cc-timeline { list-style: none; margin: 0; padding: 0; }
+    .cc-period, .cc-gap {
+        padding: 0.85rem 0.9rem; margin-bottom: 0.65rem; border-radius: 12px;
+        border: 1px solid var(--app-line); background: var(--app-surface-2);
+    }
+    .cc-gap { border-style: dashed; background: transparent; }
+    .cc-gap p { margin: 0 0 0.5rem; color: var(--app-warning); font-size: 0.9rem; }
+    .cc-period__when { font-weight: 600; margin-bottom: 0.2rem; }
+    .cc-period__what { color: var(--app-energy); margin-bottom: 0.55rem; }
+    .cc-future-warn { color: var(--app-warning); font-size: 0.9rem; margin: 0 0 0.65rem; }
+    .cc-dialog-actions { display: flex; justify-content: flex-end; margin-top: 0.75rem; }
+{% endblock %}
+
+{% block content %}
+<div class="cc-setup">
+{% include 'matesla/_vehicle_chrome.html' %}
+<div class="page-heading">
+    <div class="page-heading__copy">
+        <p class="eyebrow">{% trans 'Energy' %}</p>
+        <h1 class="page-title page-title--compact">{% trans 'Charge rates' %}</h1>
+        <p class="page-subtitle">{% trans 'Largest charge locations for this car. Tag home, work, or another named place — then set a tariff.' %}</p>
+    </div>
+    {% if hashedVin %}
+    <a class="btn btn-secondary" href="{% url 'PersoChargeCosts' hashedVin %}">{% trans 'Back to charges' %}</a>
+    {% endif %}
+</div>
+
+<section class="cc-card">
+    <h2>{% trans 'Default rates' %}</h2>
+    <p class="intro">{% trans 'Used when a charge is not at a named home or work place.' %}</p>
+    <form method="post" class="cc-form-row">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_rates">
+        {% if hashedVin %}<input type="hidden" name="vin" value="{{ hashedVin }}">{% endif %}
+        <input type="hidden" name="show" value="{{ show }}">
+        <div>
+            <label for="other_eur">{% trans 'Other chargers' %} (€/kWh)</label>
+            <input class="form-control" id="other_eur" name="other_eur_per_kwh" inputmode="decimal"
+                   value="{% if settings.other_eur_per_kwh is not None %}{{ settings.other_eur_per_kwh }}{% endif %}">
+        </div>
+        <div>
+            <label for="sc_eur">{% trans 'Supercharger average rate' %} (€/kWh)</label>
+            <input class="form-control" id="sc_eur" name="supercharger_eur_per_kwh" inputmode="decimal"
+                   value="{% if settings.supercharger_eur_per_kwh is not None %}{{ settings.supercharger_eur_per_kwh }}{% endif %}">
+        </div>
+        <button class="btn btn-primary btn-sm" type="submit">{% trans 'Save' %}</button>
+    </form>
+</section>
+
+<section class="cc-card">
+    <h2>{% trans 'Charge locations' %}</h2>
+    <p class="intro">
+        {% blocktrans count n=cluster_total %}{{ n }} location found, largest first.{% plural %}{{ n }} locations found, largest first.{% endblocktrans %}
+        {% trans 'Name the ones you care about (home, work, family, campsite…).' %}
+    </p>
+    {% if clusters %}
+    <input class="form-control cc-filter" id="clusterFilter" type="search"
+           placeholder="{% trans 'Filter (Ciotat, camping, parents…)' %}" autocomplete="off">
+    {% for c in clusters %}
+    <div class="cc-cluster" data-cluster-row>
+        <div class="cc-cluster__head">
+            <span class="cc-cluster__addr">
+                {% include 'personalstats/_gmaps_link.html' with lat=c.lat lon=c.lon label=c.address %}
+            </span>
+            <span class="cc-muted">
+                {% blocktrans count n=c.n %}{{ n }} sample{% plural %}{{ n }} samples{% endblocktrans %}
+                {% if c.data_from_iso %} · {{ c.data_from_iso }} → {{ c.data_to_iso }}{% endif %}
+            </span>
+            {% if c.kind == 'home' %}
+            <span class="cc-cluster__tag">{% trans 'Home' %} · {{ c.place.name }}{% if c.price_summary %} · {{ c.price_summary }}{% endif %}</span>
+            {% elif c.kind == 'work' %}
+            <span class="cc-cluster__tag">{% trans 'Work' %} · {{ c.place.name }}{% if c.price_summary %} · {{ c.price_summary }}{% endif %}</span>
+            {% elif c.kind == 'other' %}
+            <span class="cc-cluster__tag">{% trans 'Other' %} · {{ c.place.name }}{% if c.price_summary %} · {{ c.price_summary }}{% endif %}</span>
+            {% endif %}
+        </div>
+        <form method="post" class="cc-form-row">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="tag_cluster">
+            <input type="hidden" name="vin" value="{{ hashedVin }}">
+            <input type="hidden" name="hashed_vin" value="{{ hashedVin }}">
+            <input type="hidden" name="show" value="{{ show }}">
+            <input type="hidden" name="latitude" value="{% localize off %}{{ c.lat }}{% endlocalize %}">
+            <input type="hidden" name="longitude" value="{% localize off %}{{ c.lon }}{% endlocalize %}">
+            <div>
+                <label>{% trans 'Name' %}</label>
+                <input class="form-control" name="name" value="{{ c.place.name|default:c.label_guess }}"
+                       placeholder="{% trans 'e.g. Parents, Geneviève, campsite' %}">
+            </div>
+            <div>
+                <label>{% trans '€/kWh' %}</label>
+                <input class="form-control" name="price_eur_per_kwh" inputmode="decimal"
+                       value="{% if c.price_eur is not None %}{{ c.price_eur }}{% endif %}"
+                       placeholder="{% if c.price_hint %}{{ c.price_hint }}{% else %}0.30{% endif %}"
+                       title="{% trans 'Price for this place. 0 is allowed (e.g. work).' %}">
+            </div>
+            <div>
+                <label>{% trans 'This car from' %}</label>
+                <input class="form-control" type="date" name="valid_from" value="{{ c.from_iso }}">
+            </div>
+            <div>
+                <label>{% trans 'This car until (empty = still)' %}</label>
+                <input class="form-control" type="date" name="valid_to" value="{{ c.to_iso }}"
+                       title="{% trans 'Leave empty if this is still the place (no end date).' %}">
+            </div>
+            <button class="btn btn-sm {% if c.kind == 'home' %}btn-primary{% else %}btn-outline-secondary{% endif %}" type="submit" name="role" value="home">{% trans 'Home' %}</button>
+            <button class="btn btn-sm {% if c.kind == 'work' %}btn-primary{% else %}btn-outline-secondary{% endif %}" type="submit" name="role" value="work">{% trans 'Work' %}</button>
+            <button class="btn btn-sm {% if c.kind == 'other' %}btn-primary{% else %}btn-outline-secondary{% endif %}" type="submit" name="role" value="other">{% trans 'Other' %}</button>
+            {% if c.place %}
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-open-dialog="tariff-{{ c.place.id }}">{% trans 'Rates' %}</button>
+            {% endif %}
+        </form>
+    </div>
+    {% endfor %}
+    {% if cluster_has_more %}
+    <p class="mt-3">
+        <a class="btn btn-outline-secondary" href="{% url 'PersoChargeCostsSetup' %}?vin={{ hashedVin }}&amp;show={{ cluster_next_show }}">
+            {% trans 'Show more' %} ({{ show }} / {{ cluster_total }})
+        </a>
+    </p>
+    {% endif %}
+    {% else %}
+    <p class="cc-muted">{% trans 'No charge GPS for this vehicle yet.' %}</p>
+    {% endif %}
+</section>
+
+{% for place in places %}
+<dialog id="tariff-{{ place.id }}" class="cc-dialog">
+    <h3>{{ place.name }}</h3>
+    <p class="intro cc-muted">{% trans 'Electricity rates for this place. The last one stays in force until you add another.' %}</p>
+    <ul class="cc-timeline">
+        {% for item in place.timeline %}
+        {% if item.gap %}
+        <li class="cc-gap">
+            <p>{% blocktrans with start=item.from_label end=item.to_label %}No rate from {{ start }} to {{ end }}.{% endblocktrans %}</p>
+            <form method="post" class="cc-form-row" data-tariff-form>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_tariff">
+                <input type="hidden" name="place_id" value="{{ place.id }}">
+                <input type="hidden" name="valid_from" value="{{ item.from_iso }}">
+                <input type="hidden" name="valid_to" value="{{ item.to_iso }}">
+                {% if hashedVin %}<input type="hidden" name="vin" value="{{ hashedVin }}">{% endif %}
+                <input type="hidden" name="show" value="{{ show }}">
+                <div>
+                    <label>{% trans 'Mode' %}</label>
+                    <select class="form-control" name="mode" data-mode-select>
+                        <option value="{{ mode_flat }}">{% trans 'Flat' %}</option>
+                        <option value="{{ mode_day_night }}">{% trans 'Day / night' %}</option>
+                        <option value="{{ mode_dynamic }}">{% trans 'Dynamic (day-ahead + cents)' %}</option>
+                    </select>
+                </div>
+                <div data-mode="{{ mode_flat }}">
+                    <label>{% trans '€/kWh' %}</label>
+                    <input class="form-control" name="flat_eur_per_kwh" inputmode="decimal" value="0">
+                </div>
+                <div data-mode="{{ mode_day_night }}" hidden>
+                    <label>{% trans 'Day' %} €/kWh</label>
+                    <input class="form-control" name="day_eur_per_kwh">
+                </div>
+                <div data-mode="{{ mode_day_night }}" hidden>
+                    <label>{% trans 'Night' %} €/kWh</label>
+                    <input class="form-control" name="night_eur_per_kwh">
+                </div>
+                <div data-mode="{{ mode_day_night }}" hidden>
+                    <label>{% trans 'Night from' %}</label>
+                    <input class="form-control" type="time" name="night_start" value="22:00">
+                </div>
+                <div data-mode="{{ mode_day_night }}" hidden>
+                    <label>{% trans 'Night until' %}</label>
+                    <input class="form-control" type="time" name="night_end" value="07:00">
+                </div>
+                <div data-mode="{{ mode_dynamic }}" hidden>
+                    <label>{% trans 'Cents on spot' %}</label>
+                    <input class="form-control" name="dynamic_surcharge_cents">
+                </div>
+                <button class="btn btn-primary btn-sm" type="submit">{% trans 'Fill this gap' %}</button>
+            </form>
+        </li>
+        {% else %}
+        <li class="cc-period">
+            <div class="cc-period__when">{{ item.from_label }} → {{ item.to_label }}</div>
+            <div class="cc-period__what">{{ item.summary }}</div>
+            <form method="post" class="cc-form-row" data-tariff-form>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_tariff">
+                <input type="hidden" name="place_id" value="{{ place.id }}">
+                <input type="hidden" name="tariff_id" value="{{ item.period.id }}">
+                {% if hashedVin %}<input type="hidden" name="vin" value="{{ hashedVin }}">{% endif %}
+                <input type="hidden" name="show" value="{{ show }}">
+                <div>
+                    <label>{% trans 'Mode' %}</label>
+                    <select class="form-control" name="mode" data-mode-select>
+                        <option value="{{ mode_flat }}" {% if item.period.mode == mode_flat %}selected{% endif %}>{% trans 'Flat' %}</option>
+                        <option value="{{ mode_day_night }}" {% if item.period.mode == mode_day_night %}selected{% endif %}>{% trans 'Day / night' %}</option>
+                        <option value="{{ mode_dynamic }}" {% if item.period.mode == mode_dynamic %}selected{% endif %}>{% trans 'Dynamic (day-ahead + cents)' %}</option>
+                    </select>
+                </div>
+                <div data-mode="{{ mode_flat }}">
+                    <label>{% trans '€/kWh' %}</label>
+                    <input class="form-control" name="flat_eur_per_kwh" inputmode="decimal"
+                           value="{% if item.period.flat_eur_per_kwh is not None %}{% localize off %}{{ item.period.flat_eur_per_kwh }}{% endlocalize %}{% endif %}">
+                </div>
+                <div data-mode="{{ mode_day_night }}">
+                    <label>{% trans 'Day' %} €/kWh</label>
+                    <input class="form-control" name="day_eur_per_kwh" value="{% if item.period.day_eur_per_kwh is not None %}{% localize off %}{{ item.period.day_eur_per_kwh }}{% endlocalize %}{% endif %}">
+                </div>
+                <div data-mode="{{ mode_day_night }}">
+                    <label>{% trans 'Night' %} €/kWh</label>
+                    <input class="form-control" name="night_eur_per_kwh" value="{% if item.period.night_eur_per_kwh is not None %}{% localize off %}{{ item.period.night_eur_per_kwh }}{% endlocalize %}{% endif %}">
+                </div>
+                <div data-mode="{{ mode_day_night }}">
+                    <label>{% trans 'Night from' %}</label>
+                    <input class="form-control" type="time" name="night_start" value="{{ item.period.night_start|time:'H:i' }}">
+                </div>
+                <div data-mode="{{ mode_day_night }}">
+                    <label>{% trans 'Night until' %}</label>
+                    <input class="form-control" type="time" name="night_end" value="{{ item.period.night_end|time:'H:i' }}">
+                </div>
+                <div data-mode="{{ mode_dynamic }}">
+                    <label>{% trans 'Cents on spot' %}</label>
+                    <input class="form-control" name="dynamic_surcharge_cents" value="{% if item.period.dynamic_surcharge_cents is not None %}{{ item.period.dynamic_surcharge_cents }}{% endif %}">
+                </div>
+                <div>
+                    <label>{% trans 'From' %}</label>
+                    <input class="form-control" type="date" name="valid_from"
+                           value="{% if item.period.valid_from.year != 2010 or item.period.valid_from.month != 1 or item.period.valid_from.day != 1 %}{{ item.period.valid_from|date:'Y-m-d' }}{% endif %}">
+                </div>
+                <div>
+                    <label>{% trans 'Until (empty = still in force)' %}</label>
+                    <input class="form-control" type="date" name="valid_to" value="{% if item.period.valid_to %}{{ item.period.valid_to|date:'Y-m-d' }}{% endif %}">
+                </div>
+                <button class="btn btn-primary btn-sm" type="submit">{% trans 'Save' %}</button>
+            </form>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_tariff">
+                <input type="hidden" name="tariff_id" value="{{ item.period.id }}">
+                <input type="hidden" name="place_id" value="{{ place.id }}">
+                {% if hashedVin %}<input type="hidden" name="vin" value="{{ hashedVin }}">{% endif %}
+                <input type="hidden" name="show" value="{{ show }}">
+                <button class="btn btn-outline-danger btn-sm" type="submit">{% trans 'Delete' %}</button>
+            </form>
+        </li>
+        {% endif %}
+        {% empty %}
+        <li class="cc-muted">{% trans 'No price yet' %}. {% trans 'Enter €/kWh below. 0 is allowed.' %}</li>
+        {% endfor %}
+    </ul>
+    {% if place.needs_future and place.next_from_iso %}
+    <p class="cc-future-warn">{% trans 'Nothing after the last end date. Add a rate that continues.' %}</p>
+    {% endif %}
+    <form method="post" class="cc-form-row" data-tariff-form>
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_tariff">
+        <input type="hidden" name="place_id" value="{{ place.id }}">
+        {% if hashedVin %}<input type="hidden" name="vin" value="{{ hashedVin }}">{% endif %}
+        <input type="hidden" name="show" value="{{ show }}">
+        <div>
+            <label>{% trans 'Mode' %}</label>
+            <select class="form-control" name="mode" data-mode-select>
+                <option value="{{ mode_flat }}">{% trans 'Flat' %}</option>
+                <option value="{{ mode_day_night }}">{% trans 'Day / night' %}</option>
+                <option value="{{ mode_dynamic }}">{% trans 'Dynamic (day-ahead + cents)' %}</option>
+            </select>
+        </div>
+        <div data-mode="{{ mode_flat }}">
+            <label>{% trans '€/kWh' %}</label>
+            <input class="form-control" name="flat_eur_per_kwh" inputmode="decimal" value="0">
+        </div>
+        <div data-mode="{{ mode_day_night }}" hidden>
+            <label>{% trans 'Day' %} €/kWh</label>
+            <input class="form-control" name="day_eur_per_kwh">
+        </div>
+        <div data-mode="{{ mode_day_night }}" hidden>
+            <label>{% trans 'Night' %} €/kWh</label>
+            <input class="form-control" name="night_eur_per_kwh">
+        </div>
+        <div data-mode="{{ mode_day_night }}" hidden>
+            <label>{% trans 'Night from' %}</label>
+            <input class="form-control" type="time" name="night_start" value="22:00">
+        </div>
+        <div data-mode="{{ mode_day_night }}" hidden>
+            <label>{% trans 'Night until' %}</label>
+            <input class="form-control" type="time" name="night_end" value="07:00">
+        </div>
+        <div data-mode="{{ mode_dynamic }}" hidden>
+            <label>{% trans 'Cents on spot' %}</label>
+            <input class="form-control" name="dynamic_surcharge_cents">
+        </div>
+        <div>
+            <label>{% trans 'From' %}</label>
+            <input class="form-control" type="date" name="valid_from" value="{{ place.next_from_iso }}">
+        </div>
+        <div>
+            <label>{% trans 'Until (empty = still in force)' %}</label>
+            <input class="form-control" type="date" name="valid_to">
+        </div>
+        <button class="btn btn-primary btn-sm" type="submit">{% trans 'Add this rate' %}</button>
+    </form>
+    <div class="cc-dialog-actions">
+        <button type="button" class="btn btn-primary" data-close-dialog>{% trans 'Done' %}</button>
+    </div>
+</dialog>
+{% endfor %}
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+(function () {
+    var resolveUrl = "{% url 'PersoResolveAddress' %}";
+    var pending = document.querySelectorAll('a.gmaps-link[data-geocode="1"]');
+    if (pending.length) {
+        var queue = [];
+        var seen = {};
+        pending.forEach(function (el) {
+            var key = el.getAttribute('data-lat') + ',' + el.getAttribute('data-lon');
+            if (!seen[key]) {
+                seen[key] = true;
+                queue.push({ lat: el.getAttribute('data-lat'), lon: el.getAttribute('data-lon') });
+            }
+        });
+        function applyAddress(lat, lon, address) {
+            document.querySelectorAll('a.gmaps-link[data-geocode="1"]').forEach(function (el) {
+                if (el.getAttribute('data-lat') === lat && el.getAttribute('data-lon') === lon) {
+                    el.textContent = address;
+                    el.removeAttribute('data-geocode');
+                    el.classList.remove('gmaps-pending');
+                }
+            });
+            document.querySelectorAll('[data-cluster-row] input[name="name"]').forEach(function (input) {
+                if (input.value) return;
+                var form = input.closest('form');
+                if (!form) return;
+                var latInput = form.querySelector('input[name="latitude"]');
+                var lonInput = form.querySelector('input[name="longitude"]');
+                if (latInput && lonInput && latInput.value === lat && lonInput.value === lon) {
+                    input.value = address;
+                    input.placeholder = address;
+                }
+            });
+        }
+        function next() {
+            if (!queue.length) return;
+            var item = queue.shift();
+            fetch(resolveUrl + '?lat=' + encodeURIComponent(item.lat) + '&lon=' + encodeURIComponent(item.lon), { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data && data.ok && data.address) applyAddress(item.lat, item.lon, data.address);
+                })
+                .catch(function () {})
+                .finally(function () { setTimeout(next, 50); });
+        }
+        next();
+    }
+    document.querySelectorAll('[data-open-dialog]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var dialog = document.getElementById(btn.getAttribute('data-open-dialog'));
+            if (dialog && dialog.showModal) dialog.showModal();
+        });
+    });
+    document.querySelectorAll('[data-close-dialog]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var dialog = btn.closest('dialog');
+            if (dialog) dialog.close();
+        });
+    });
+    function syncTariffMode(form) {
+        var select = form.querySelector('[data-mode-select]');
+        if (!select) return;
+        var mode = select.value;
+        form.querySelectorAll('[data-mode]').forEach(function (el) {
+            el.hidden = el.getAttribute('data-mode') !== mode;
+        });
+    }
+    document.querySelectorAll('[data-tariff-form]').forEach(syncTariffMode);
+    document.querySelectorAll('[data-mode-select]').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+            syncTariffMode(sel.closest('form'));
+        });
+    });
+    var filter = document.getElementById('clusterFilter');
+    if (filter) {
+        filter.addEventListener('input', function () {
+            var q = (filter.value || '').toLowerCase();
+            document.querySelectorAll('[data-cluster-row]').forEach(function (row) {
+                row.hidden = q && row.textContent.toLowerCase().indexOf(q) === -1;
+            });
+        });
+    }
+    {% if open_place_id %}
+    var reopen = document.getElementById("tariff-{{ open_place_id }}");
+    if (reopen && reopen.showModal) reopen.showModal();
+    {% endif %}
+})();
+</script>
+{% endblock %}

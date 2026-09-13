@@ -948,6 +948,8 @@ def view_select_vehicle(request):
         "drives",
         "dccharge",
         "polldetails",
+        "charges",
+        "charges_setup",
     ) and vehicle.vin:
         from matesla.models.VinHash import HashTheVin
 
@@ -1034,6 +1036,12 @@ def view_select_vehicle(request):
                 )
             if next_kind == "polldetails":
                 return redirect("PersoPollDetails", hashedVin=hashed)
+            if next_kind == "charges":
+                return redirect("PersoChargeCosts", hashedVin=hashed)
+            if next_kind == "charges_setup":
+                from django.urls import reverse
+
+                return redirect(f"{reverse('PersoChargeCostsSetup')}?vin={hashed}")
 
     return redirect("tesla_status")
 

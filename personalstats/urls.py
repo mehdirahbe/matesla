@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .charge_pages import ChargeCosts, ChargeCostsSetup
 from .views import FirmwareHistoryView
 
 '''From https://docs.djangoproject.com/en/3.0/topics/http/urls/
@@ -47,6 +48,8 @@ path(
 path('StatsOnCarGraph/<str:hashedVin>/<str:desiredfield>/<int:desiredperiod>', views.StatsOnCarGraph, name='StatsOnCarGraph'),
 path('AllMyDataAsCSV/<str:hashedVin>', views.view_AllMyDataAsCSV, name='AllMyDataAsCSV'),
 path('FirmwareHistory/<str:hashedVin>', views.FirmwareHistory, name='PersoStatsFirmwareHistory'),
+path('ChargeCosts/<str:hashedVin>', ChargeCosts, name='PersoChargeCosts'),
+path('ChargeCostsSetup', ChargeCostsSetup, name='PersoChargeCostsSetup'),
 path('FirmwareHistoryCSV/<str:hashedVin>', views.FirmwareHistoryCSV, name='PersoStatsFirmwareHistoryCSV'),
 path('FirmwareHistory', FirmwareHistoryView.as_view(), name='PersoStatsFirmwareHistory'),
 ]

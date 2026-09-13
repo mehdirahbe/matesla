@@ -423,6 +423,7 @@
             <th>{% trans 'SoC end' %}</th>
             <th>{% trans 'SoC added' %}</th>
             <th>{% trans 'kWh added' %}</th>
+            <th>{% trans 'Cost' %}</th>
             <th>{% trans 'Min power' %}</th>
             <th>{% trans 'Max power' %}</th>
             <th>{% trans 'Address' %}</th>
@@ -438,10 +439,11 @@
             <td>{% if c.soc_end is not None %}{{ c.soc_end|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if c.soc_added is not None %}+{{ c.soc_added|floatformat:1 }} %{% else %}—{% endif %}</td>
             <td>{% if c.kwh_added is not None %}{{ c.kwh_added|floatformat:2 }} kWh{% else %}—{% endif %}</td>
+            <td>{% if c.cost_eur is not None %}{{ c.cost_eur|floatformat:2 }} €{% if c.cost_is_session_total %} <span class="text-muted small">{% trans 'session total' %}</span>{% endif %}{% else %}—{% endif %}</td>
             <td>{% if c.min_power_kw is not None %}{{ c.min_power_kw|floatformat:1 }} kW{% else %}—{% endif %}</td>
             <td>{% if c.max_power_kw is not None %}{{ c.max_power_kw|floatformat:1 }} kW{% else %}—{% endif %}</td>
             <td class="small daymap-charge-place">
-                {% include 'personalstats/_gmaps_link.html' with lat=c.lat lon=c.lon label=c.address %}
+                {% include 'personalstats/_gmaps_link.html' with lat=c.lat lon=c.lon label=c.place_name|default:c.address %}
                 {% if c.is_dc_candidate and c.start_ts %}
                 <button type="button"
                         class="daymap-charge-curve"

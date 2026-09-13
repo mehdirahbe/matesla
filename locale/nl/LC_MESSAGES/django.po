@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-15 08:12+0000\n"
+"POT-Creation-Date: 2026-09-12 19:28+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: MaTesla i18n <noreply@matesla.local>\n"
 "Language-Team: Nederlands <LL@li.org>\n"
@@ -24,8 +24,7 @@ msgstr "Vereist om je wachtwoord te kunnen resetten als je het vergeet"
 msgid "Sign up"
 msgstr "Registreren"
 
-msgid ""
-"Create your private space, then link your Tesla account in a few steps."
+msgid "Create your private space, then link your Tesla account in a few steps."
 msgstr ""
 "Maak je privéruimte aan en koppel daarna je Tesla-account in een paar "
 "stappen."
@@ -55,11 +54,9 @@ msgstr ""
 "niet via een willekeurig pad. Host de PEM daar (elke HTTPS-server is prima: "
 "nginx, S3, Cloudflare, GitHub Pages, …)."
 
-msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
+msgid "Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
 msgstr ""
-"Tesla weigert localhost als partnerdomein. Gebruik een openbaar HTTPS-"
-"domein."
+"Tesla weigert localhost als partnerdomein. Gebruik een openbaar HTTPS-domein."
 
 #, python-format
 msgid "Cannot reach %(url)s: %(err)s"
@@ -96,11 +93,11 @@ msgid "Missing app settings."
 msgstr "App-instellingen ontbreken."
 
 msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g."
-" robotcar.example.com)."
+"Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g. "
+"robotcar.example.com)."
 msgstr ""
-"Tesla weigert localhost als partnerdomein. Gebruik een openbaar HTTPS-domein"
-" (bijv. robotcar.example.com)."
+"Tesla weigert localhost als partnerdomein. Gebruik een openbaar HTTPS-domein "
+"(bijv. robotcar.example.com)."
 
 #, python-format
 msgid "Public key not reachable by Tesla before register: %(msg)s"
@@ -123,8 +120,8 @@ msgid "Fleet API region"
 msgstr "Fleet API-regio"
 
 msgid ""
-"Must match the redirect URI on developer.tesla.com exactly (often "
-"http://localhost:8001/oauth/callback for a local install)."
+"Must match the redirect URI on developer.tesla.com exactly (often http://"
+"localhost:8001/oauth/callback for a local install)."
 msgstr ""
 "Moet exact overeenkomen met de omleidings-URI op developer.tesla.com (vaak "
 "http://localhost:8001/oauth/callback bij lokale installatie)."
@@ -143,17 +140,67 @@ msgstr "Partnerdomein of URL van openbare sleutel"
 
 msgid ""
 "Paste a domain (example.com), an origin (https://example.com), or the full "
-"public-key URL. Hosting is free choice (nginx, S3, Cloudflare, GitHub Pages,"
-" …) but Tesla always fetches /.well-known/appspecific/com.tesla.3p.public-"
-"key.pem on that host. Add the same host with https:// as Allowed Origin on "
+"public-key URL. Hosting is free choice (nginx, S3, Cloudflare, GitHub Pages, "
+"…) but Tesla always fetches /.well-known/appspecific/com.tesla.3p.public-key."
+"pem on that host. Add the same host with https:// as Allowed Origin on "
 "developer.tesla.com. Not localhost."
 msgstr ""
 "Plak een domein (example.com), een origin (https://example.com) of de "
-"volledige URL van de openbare sleutel. Hosting is vrij te kiezen (nginx, S3,"
-" Cloudflare, GitHub Pages, …) maar Tesla haalt altijd /.well-"
-"known/appspecific/com.tesla.3p.public-key.pem op die host op. Voeg dezelfde "
-"host met https:// toe als Allowed Origin op developer.tesla.com. Geen "
-"localhost."
+"volledige URL van de openbare sleutel. Hosting is vrij te kiezen (nginx, S3, "
+"Cloudflare, GitHub Pages, …) maar Tesla haalt altijd /.well-known/"
+"appspecific/com.tesla.3p.public-key.pem op die host op. Voeg dezelfde host "
+"met https:// toe als Allowed Origin op developer.tesla.com. Geen localhost."
+
+msgid "Home"
+msgstr "Thuis"
+
+msgid "Work"
+msgstr "Werk"
+
+msgid "Flat"
+msgstr "Vast tarief"
+
+msgid "Day / night"
+msgstr "Dag / nacht"
+
+msgid "Dynamic (day-ahead + cents)"
+msgstr "Dynamisch (day-ahead + centen)"
+
+msgid "Priced"
+msgstr "Beprijsd"
+
+msgid "Unpriced"
+msgstr "Niet beprijsd"
+
+msgid "Partial"
+msgstr "Gedeeltelijk"
+
+msgid "Home (flat)"
+msgstr "Thuis (vast tarief)"
+
+msgid "Home (day / night)"
+msgstr "Thuis (dag / nacht)"
+
+msgid "Home (dynamic)"
+msgstr "Thuis (dynamisch)"
+
+msgid "Named place"
+msgstr "Genoemde plaats"
+
+msgid "Tesla Supercharger invoice"
+msgstr "Tesla Supercharger-factuur"
+
+msgid "Supercharger average rate"
+msgstr "Supercharger-gemiddeld tarief"
+
+msgid "Other chargers"
+msgstr "Andere laders"
+
+msgid "€/kWh for chargers that are not home, work, or a Supercharger"
+msgstr "€/kWh voor laders die geen thuis, werk of Supercharger zijn"
+
+msgid "€/kWh when no Tesla Supercharger invoice is available"
+msgstr "€/kWh wanneer geen Tesla Supercharger-factuur beschikbaar is"
 
 msgid "Mon"
 msgstr "ma"
@@ -269,8 +316,8 @@ msgid ""
 "activity always keep the short reactive intervals."
 msgstr ""
 "Het gewoonte-model is betrouwbaar. Bij idle/slaap kan het 5, 15 of 30 "
-"minuten zetten uit historische weekdag+uur-patronen. Rijden, laden en cabine"
-" houden altijd de korte reactieve intervallen."
+"minuten zetten uit historische weekdag+uur-patronen. Rijden, laden en cabine "
+"houden altijd de korte reactieve intervallen."
 
 msgid "No VIN is available, so habit-based spacing cannot run."
 msgstr "Geen VIN beschikbaar, dus spacing op gewoontes kan niet draaien."
@@ -278,12 +325,12 @@ msgstr "Geen VIN beschikbaar, dus spacing op gewoontes kan niet draaien."
 #, python-format
 msgid ""
 "Not enough reference weeks of telemetry before the last %(recent)s days "
-"(have %(have)s, need at least %(need)s). Capture uses only the default "
-"day/night spacing until history is long enough."
+"(have %(have)s, need at least %(need)s). Capture uses only the default day/"
+"night spacing until history is long enough."
 msgstr ""
-"Niet genoeg referentieweken telemetrie vóór de laatste %(recent)s dagen (heb"
-" %(have)s, minstens %(need)s nodig). Capture gebruikt alleen de standaard "
-"dag/nacht-afstand tot er genoeg historie is."
+"Niet genoeg referentieweken telemetrie vóór de laatste %(recent)s dagen (heb "
+"%(have)s, minstens %(need)s nodig). Capture gebruikt alleen de standaard dag/"
+"nacht-afstand tot er genoeg historie is."
 
 msgid ""
 "Recent mobility does not match the reference weeks (regime break). Habits "
@@ -309,14 +356,14 @@ msgstr ""
 
 #, python-format
 msgid ""
-"Driving activity fell sharply: about %(recent).1f h of mobility per day over"
-" the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"Driving activity fell sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
 "weeks (often school → holidays). Habits stay off until patterns re-align."
 msgstr ""
-"Rijactiviteit sterk gedaald: ongeveer %(recent).1f uur mobiliteit per dag in"
-" de laatste %(recent_days)s dagen, tegen %(ref).1f u/dag in de "
-"trainingsweken (vaak school → vakantie). Gewoontes blijven uit tot het "
-"patroon weer aansluit."
+"Rijactiviteit sterk gedaald: ongeveer %(recent).1f uur mobiliteit per dag in "
+"de laatste %(recent_days)s dagen, tegen %(ref).1f u/dag in de trainingsweken "
+"(vaak school → vakantie). Gewoontes blijven uit tot het patroon weer "
+"aansluit."
 
 msgid ""
 "Driving activity fell sharply versus the training weeks (often school → "
@@ -327,8 +374,8 @@ msgstr ""
 
 #, python-format
 msgid ""
-"Driving activity rose sharply: about %(recent).1f h of mobility per day over"
-" the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"Driving activity rose sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
 "weeks (often holidays → school, or a trip). Habits stay off until patterns "
 "re-align."
 msgstr ""
@@ -351,8 +398,8 @@ msgid ""
 "patterns re-align."
 msgstr ""
 "Meerdere recente ritten (%(count)s uurslots) vonden plaats op weekdag+uur "
-"die in de trainingsweken bijna nooit mobiel waren. Gewoontes blijven uit tot"
-" het patroon weer aansluit."
+"die in de trainingsweken bijna nooit mobiel waren. Gewoontes blijven uit tot "
+"het patroon weer aansluit."
 
 msgid ""
 "Several recent drives happened at weekday+hour times that were almost never "
@@ -377,20 +424,20 @@ msgstr "dag"
 
 #, python-format
 msgid ""
-"Driving with navigation ETA %(eta)s min → query every %(minutes)s min (1 min"
-" when ETA ≤ 3 min or approaching a Supercharger; 2 min near arrival / crawl;"
-" %(mid)s min mid-trip; %(far)s min when ETA is long). Habits do not apply "
+"Driving with navigation ETA %(eta)s min → query every %(minutes)s min (1 min "
+"when ETA ≤ 3 min or approaching a Supercharger; 2 min near arrival / crawl; "
+"%(mid)s min mid-trip; %(far)s min when ETA is long). Habits do not apply "
 "while driving."
 msgstr ""
-"Rijden met navigatie-ETA %(eta)s min → query elke %(minutes)s min (1 min bij"
-" ETA ≤ 3 min of nadering Supercharger; 2 min dicht bij aankomst / kruipend; "
+"Rijden met navigatie-ETA %(eta)s min → query elke %(minutes)s min (1 min bij "
+"ETA ≤ 3 min of nadering Supercharger; 2 min dicht bij aankomst / kruipend; "
 "%(mid)s min mid-trip; %(far)s min bij lange ETA). Gewoontes gelden niet "
 "tijdens rijden."
 
 #, python-format
 msgid ""
-"Driving without navigation ETA → dense %(minutes)s min queries (stretch only"
-" when Tesla reports minutes-to-arrival). Habits do not apply while driving."
+"Driving without navigation ETA → dense %(minutes)s min queries (stretch only "
+"when Tesla reports minutes-to-arrival). Habits do not apply while driving."
 msgstr ""
 "Rijden zonder navigatie-ETA → dichte queries elke %(minutes)s min (rekken "
 "alleen als Tesla aankomstminuten geeft). Gewoontes gelden niet tijdens "
@@ -429,8 +476,8 @@ msgid ""
 "Idle/asleep policy: habit class “%(habit_class)s” sets %(minutes)s min for "
 "this weekday+hour (default would be %(baseline)s min, %(day_or_night)s)."
 msgstr ""
-"Idle/slaap-beleid: gewoonteklasse “%(habit_class)s” zet %(minutes)s min voor"
-" deze weekdag+uur (standaard zou %(baseline)s min zijn, %(day_or_night)s)."
+"Idle/slaap-beleid: gewoonteklasse “%(habit_class)s” zet %(minutes)s min voor "
+"deze weekdag+uur (standaard zou %(baseline)s min zijn, %(day_or_night)s)."
 
 #, python-format
 msgid ""
@@ -445,8 +492,8 @@ msgid ""
 "Idle/asleep policy: no habit for this weekday+hour → %(day_or_night)s "
 "default %(minutes)s min."
 msgstr ""
-"Idle/slaap-beleid: geen gewoonte voor deze weekdag+uur → "
-"%(day_or_night)s-standaard %(minutes)s min."
+"Idle/slaap-beleid: geen gewoonte voor deze weekdag+uur → %(day_or_night)s-"
+"standaard %(minutes)s min."
 
 msgid ""
 "The week grid describes idle/asleep/sentry spacing only. If the car drives, "
@@ -465,27 +512,27 @@ msgid ""
 "busy habit would be denser). Night default %(night)s min is already sparser."
 msgstr ""
 "Na %(soft_h)s u zonder rijden en laden is de stilstand-interval minstens "
-"%(soft_m)s min; na %(hard_h)s u minstens %(hard_m)s min; na %(vacation_h)s u"
-" minstens %(vacation_m)s min (ook als de dagstandaard of een drukke "
-"gewoonte dichter zou zijn). Nachtstandaard %(night)s min is al ruimer."
+"%(soft_m)s min; na %(hard_h)s u minstens %(hard_m)s min; na %(vacation_h)s u "
+"minstens %(vacation_m)s min (ook als de dagstandaard of een drukke gewoonte "
+"dichter zou zijn). Nachtstandaard %(night)s min is al ruimer."
 
 #, python-format
 msgid ""
 "Habits use at most the last %(lookback)s days, require %(min_weeks)s "
-"reference weeks before the last %(recent)s days, and disable themselves on a"
-" regime break."
+"reference weeks before the last %(recent)s days, and disable themselves on a "
+"regime break."
 msgstr ""
 "Gewoontes gebruiken max. de laatste %(lookback)s dagen, vereisen "
-"%(min_weeks)s referentieweken vóór de laatste %(recent)s dagen, en schakelen"
-" uit bij een regime-breuk."
+"%(min_weeks)s referentieweken vóór de laatste %(recent)s dagen, en schakelen "
+"uit bij een regime-breuk."
 
 #, python-format
 msgid ""
 "When habits are trusted, every weekday+hour is busy (%(busy)s min), near-"
 "busy (%(near)s min, ±1 h around a busy core), quiet (%(quiet)s min), or "
 "moderate (%(moderate)s min by day; night moderate keeps the %(night)s min "
-"night default). There is no idle “default hole” in the grid — only untrusted"
-" models fall back to day %(day)s / night %(night)s everywhere."
+"night default). There is no idle “default hole” in the grid — only untrusted "
+"models fall back to day %(day)s / night %(night)s everywhere."
 msgstr ""
 "Als gewoonten betrouwbaar zijn, is elke weekdag+uur druk (%(busy)s min), "
 "nabij druk (%(near)s min, ±1 u rond een kern), rustig (%(quiet)s min) of "
@@ -503,8 +550,8 @@ msgid "Connect your car."
 msgstr "Koppel je auto."
 
 msgid ""
-"Configure the app, register the partner domain, then authorize MaTesla. Your"
-" secrets stay stored locally. You can re-open this page anytime — safe "
+"Configure the app, register the partner domain, then authorize MaTesla. Your "
+"secrets stay stored locally. You can re-open this page anytime — safe "
 "actions will not break a working setup."
 msgstr ""
 "Configureer de app, registreer het partnerdomein en autoriseer daarna "
@@ -579,15 +626,13 @@ msgid "Re-authorize"
 msgstr "Opnieuw autoriseren"
 
 msgid ""
-"Copy credentials from <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Saving again only updates what "
-"you change."
+"Copy credentials from <a class=\"text-link\" href=\"https://developer.tesla."
+"com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com ↗</"
+"a>. Saving again only updates what you change."
 msgstr ""
-"Kopieer de gegevens van <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Opnieuw opslaan werkt alleen bij"
-" wat je wijzigt."
+"Kopieer de gegevens van <a class=\"text-link\" href=\"https://developer."
+"tesla.com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com "
+"↗</a>. Opnieuw opslaan werkt alleen bij wat je wijzigt."
 
 msgid "Credentials are stored. Save again only if you need to edit them."
 msgstr ""
@@ -604,8 +649,7 @@ msgid ""
 "granting vehicle access. Localhost is not allowed."
 msgstr ""
 "Tesla haalt een openbare EC-sleutel via HTTPS op van een domein dat jij "
-"beheert voordat voertuigtoegang wordt verleend. Localhost is niet "
-"toegestaan."
+"beheert voordat voertuigtoegang wordt verleend. Localhost is niet toegestaan."
 
 msgid "Any HTTPS host works — GitHub Pages is only one option among many."
 msgstr "Elke HTTPS-host werkt — GitHub Pages is slechts één optie onder vele."
@@ -655,8 +699,8 @@ msgid "Set and save a partner domain first."
 msgstr "Stel eerst een partnerdomein in en sla het op."
 
 msgid ""
-"Local EC key pair is ready. It will not be overwritten if you click generate"
-" again."
+"Local EC key pair is ready. It will not be overwritten if you click generate "
+"again."
 msgstr ""
 "Lokaal EC-sleutelpaar is klaar. Het wordt niet overschreven als je opnieuw "
 "op genereren klikt."
@@ -725,8 +769,8 @@ msgid ""
 "No vehicles are associated to your account. Please retry when your car will "
 "be there."
 msgstr ""
-"Er zijn geen voertuigen gekoppeld aan je account. Probeer opnieuw wanneer je"
-" auto er is."
+"Er zijn geen voertuigen gekoppeld aan je account. Probeer opnieuw wanneer je "
+"auto er is."
 
 msgid "Tesla server error"
 msgstr "Tesla-serverfout"
@@ -915,9 +959,7 @@ msgstr "Geschiedenis"
 msgid "View history"
 msgstr "Geschiedenis bekijken"
 
-msgid "Vehicle"
-msgstr "Voertuig"
-
+#, python-brace-format
 msgid "Switching to {name}…"
 msgstr "Overschakelen naar {name}…"
 
@@ -926,6 +968,9 @@ msgstr "Van auto wisselen…"
 
 msgid "The switch is taking too long. You can try again."
 msgstr "Het wisselen duurt te lang. U kunt het opnieuw proberen."
+
+msgid "Vehicle"
+msgstr "Voertuig"
 
 msgid "Vehicle shortcuts"
 msgstr "Voertuig-snelkoppelingen"
@@ -947,6 +992,9 @@ msgstr "DC-laden"
 
 msgid "Firmware history"
 msgstr "Firmwaregeschiedenis"
+
+msgid "Charges"
+msgstr "Ladingen"
 
 msgid "Your tesla is asleep"
 msgstr "Je Tesla slaapt"
@@ -1041,8 +1089,8 @@ msgid ""
 "EC key pair created. Publish the public key to your partner domain (file: "
 "%(pub)s). Private key stays local: %(priv)s."
 msgstr ""
-"EC-sleutelpaar aangemaakt. Publiceer de openbare sleutel op je partnerdomein"
-" (bestand: %(pub)s). Privésleutel blijft lokaal: %(priv)s."
+"EC-sleutelpaar aangemaakt. Publiceer de openbare sleutel op je partnerdomein "
+"(bestand: %(pub)s). Privésleutel blijft lokaal: %(priv)s."
 
 msgid ""
 "EC key pair already exists — left unchanged. Regenerating would invalidate "
@@ -1058,8 +1106,8 @@ msgstr "Stel eerst een partnerdomein in."
 
 #, python-format
 msgid ""
-"Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail:"
-" %(result)s"
+"Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail: "
+"%(result)s"
 msgstr ""
 "Partnerregistratie opnieuw bevestigd voor « %(domain)s ». Veilig om te "
 "herhalen. Detail: %(result)s"
@@ -1100,8 +1148,8 @@ msgid "Invalid OAuth callback (missing code or state). Please try again."
 msgstr "Ongeldige OAuth-callback (code of state ontbreekt). Probeer opnieuw."
 
 msgid ""
-"Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again,"
-" then use “Sign in with Tesla”."
+"Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again, "
+"then use “Sign in with Tesla”."
 msgstr ""
 "Ongeldige OAuth-callback (onbekende of verlopen state). Log opnieuw in bij "
 "MaTesla en gebruik „Inloggen met Tesla“."
@@ -1145,6 +1193,77 @@ msgstr "Norsk"
 msgid "Write operations are only allowed from the local server."
 msgstr "Schrijfbewerkingen zijn alleen toegestaan vanaf de lokale server."
 
+msgid "Day / night — details"
+msgstr "Dag / nacht — details"
+
+#, python-format
+msgid "spot + %(n)s ¢"
+msgstr "spot + %(n)s ¢"
+
+msgid "No price yet"
+msgstr "Nog geen prijs"
+
+msgid "Choose a vehicle."
+msgstr "Kies een voertuig."
+
+msgid "Unknown place."
+msgstr "Onbekende plaats."
+
+msgid "Place"
+msgstr "Plaats"
+
+msgid "Home / work assignment saved."
+msgstr "Thuis-/werktoewijzing opgeslagen."
+
+msgid "Place saved."
+msgstr "Plaats opgeslagen."
+
+msgid "Rates saved."
+msgstr "Tarieven opgeslagen."
+
+msgid "Name, latitude and longitude are required."
+msgstr "Naam, breedte- en lengtegraad zijn verplicht."
+
+msgid "Place deleted."
+msgstr "Plaats verwijderd."
+
+msgid "Unknown tariff period."
+msgstr "Onbekende tariefperiode."
+
+#, python-format
+msgid ""
+"Tariff saved. Day-ahead prices: %(ok)s day(s) fetched, %(skipped)s already "
+"cached, %(failed)s failed."
+msgstr ""
+"Tarief opgeslagen. Day-aheadprijzen: %(ok)s dag(en) opgehaald, %(skipped)s "
+"al in cache, %(failed)s mislukt."
+
+#, python-format
+msgid ""
+"Price history is long; %(n)s older day(s) were not fetched. Save again to "
+"continue."
+msgstr ""
+"De prijsgeschiedenis is lang; %(n)s oudere dag(en) zijn niet opgehaald. Sla "
+"opnieuw op om verder te gaan."
+
+msgid "Tariff saved."
+msgstr "Tarief opgeslagen."
+
+msgid "Tariff period deleted."
+msgstr "Tariefperiode verwijderd."
+
+msgid "Start date is required."
+msgstr "Startdatum is verplicht."
+
+msgid "Unknown assignment."
+msgstr "Onbekende toewijzing."
+
+msgid "Assignment deleted."
+msgstr "Toewijzing verwijderd."
+
+msgid "Unknown action."
+msgstr "Onbekende actie."
+
 msgid "All DC sessions"
 msgstr "Alle DC-sessies"
 
@@ -1157,7 +1276,6 @@ msgstr "Min / max"
 msgid "P10–P90 band"
 msgstr "P10–P90-band"
 
-#| msgid "Battery degradation (%)"
 msgid "Rated range (after degradation)"
 msgstr "EPA-/rated-actieradius (na degradatie)"
 
@@ -1167,8 +1285,7 @@ msgstr "Actieradius op basis van jouw verbruik"
 msgid "Software timeline"
 msgstr "Softwaretijdlijn"
 
-msgid ""
-"All firmware versions detected on your vehicle, in chronological order."
+msgid "All firmware versions detected on your vehicle, in chronological order."
 msgstr ""
 "Alle firmwareversies die op je voertuig zijn gedetecteerd, chronologisch."
 
@@ -1389,6 +1506,254 @@ msgstr ""
 "Begrijp hoe je auto evolueert via batterij-, laad-, klimaat- en "
 "ritgeschiedenis."
 
+msgid "Energy"
+msgstr "Energie"
+
+msgid ""
+"Estimated electricity cost per charge session. Overnight sessions show the "
+"full session total on the start day."
+msgstr ""
+"Geschatte elektriciteitskost per laadsessie. Sessies over middernacht tonen "
+"het sessietotaal op de startdag."
+
+msgid "Configure rates"
+msgstr "Tarieven instellen"
+
+msgid "Month"
+msgstr "Maand"
+
+msgid "Year"
+msgstr "Jaar"
+
+msgid "Show"
+msgstr "Tonen"
+
+msgid "Whole year"
+msgstr "Heel jaar"
+
+msgid "This month"
+msgstr "Deze maand"
+
+msgid "kWh priced"
+msgstr "kWh beprijsd"
+
+msgid "kWh unpriced"
+msgstr "kWh niet beprijsd"
+
+msgid "Share priced"
+msgstr "Aandeel beprijsd"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "End"
+msgstr "Einde"
+
+msgid "Duration"
+msgstr "Duur"
+
+msgid "kWh"
+msgstr "kWh"
+
+msgid "Rule"
+msgstr "Regel"
+
+msgid "Cost"
+msgstr "Kosten"
+
+msgid "session total"
+msgstr "sessietotaal"
+
+msgid "What charging cost this period, by place."
+msgstr "Laadkosten in deze periode, per plaats."
+
+msgid "Largest places"
+msgstr "Grootste plaatsen"
+
+msgid "The rest"
+msgstr "De rest"
+
+msgid "Everything"
+msgstr "Alles"
+
+msgid "Time"
+msgstr "Tijd"
+
+msgid "Where"
+msgstr "Plaats"
+
+msgid "No charge sessions in this period."
+msgstr "Geen laadsessies in deze periode."
+
+msgid "Charge rates"
+msgstr "Laadtarieven"
+
+msgid ""
+"Largest charge locations for this car. Tag home, work, or another named "
+"place — then set a tariff."
+msgstr ""
+"Grootste laadlocaties van deze auto. Markeer thuis, werk of een andere "
+"genoemde plaats en stel daarna een tarief in."
+
+msgid "Back to charges"
+msgstr "Terug naar ladingen"
+
+msgid "Default rates"
+msgstr "Standaardtarieven"
+
+msgid "Used when a charge is not at a named home or work place."
+msgstr ""
+"Gebruikt wanneer een lading niet op een benoemde thuis- of werkplaats is."
+
+msgid "Save"
+msgstr "Opslaan"
+
+msgid "Charge locations"
+msgstr "Laadlocaties"
+
+#, python-format
+msgid "%(n)s location found, largest first."
+msgid_plural "%(n)s locations found, largest first."
+msgstr[0] "%(n)s locatie gevonden, grootste eerst."
+msgstr[1] "%(n)s locaties gevonden, grootste eerst."
+
+msgid "Name the ones you care about (home, work, family, campsite…)."
+msgstr "Geef de belangrijke een naam (thuis, werk, familie, camping…)."
+
+msgid "Filter (Ciotat, camping, parents…)"
+msgstr "Filteren (Ciotat, camping, ouders…)"
+
+#, python-format
+msgid "%(n)s sample"
+msgid_plural "%(n)s samples"
+msgstr[0] "%(n)s monster"
+msgstr[1] "%(n)s monsters"
+
+msgid "Other"
+msgstr "Andere"
+
+msgid "Name"
+msgstr "Naam"
+
+msgid "e.g. Parents, Geneviève, campsite"
+msgstr "bijv. Ouders, Geneviève, camping"
+
+msgid "€/kWh"
+msgstr "€/kWh"
+
+msgid "Price for this place. 0 is allowed (e.g. work)."
+msgstr "Prijs voor deze plaats. 0 is toegestaan (bijv. werk)."
+
+msgid "From"
+msgstr "Van"
+
+msgid "To (empty = no end)"
+msgstr "Tot (leeg = geen einde)"
+
+msgid "Leave empty if this is still the place (no end date)."
+msgstr "Leeg laten als er geen einddatum is (nog steeds van toepassing)."
+
+msgid "Show more"
+msgstr "Meer tonen"
+
+msgid "No charge GPS for this vehicle yet."
+msgstr "Nog geen laad-gps voor dit voertuig."
+
+msgid "Tagged places"
+msgstr "Gemarkeerde plaatsen"
+
+msgid ""
+"Simple price is on the list above (0 is allowed). Details (day/night, "
+"dynamic, extra periods) open in a popup."
+msgstr "De eenvoudige prijs staat in de lijst hierboven (0 is toegestaan). Details (dag/nacht, dynamisch, extra periodes) openen in een venster."
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Delete this place and its tariffs?"
+msgstr "Deze plaats en de tarieven verwijderen?"
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Mode"
+msgstr "Modus"
+
+msgid "Day"
+msgstr "Dag"
+
+msgid "Night"
+msgstr "Nacht"
+
+msgid "Night from"
+msgstr "Nacht vanaf"
+
+msgid "Night until"
+msgstr "Nacht tot"
+
+msgid "Cents on spot"
+msgstr "Centen op de spot"
+
+msgid "Delete period"
+msgstr "Periode verwijderen"
+
+msgid "Set €/kWh on the list above, or add a period here."
+msgstr "Zet €/kWh in de lijst hierboven, of voeg hier een periode toe."
+
+msgid "Add period"
+msgstr "Periode toevoegen"
+
+msgid "This car from"
+msgstr "Deze auto vanaf"
+
+msgid "This car until (empty = still)"
+msgstr "Deze auto tot (leeg = nog steeds)"
+
+msgid "Rates"
+msgstr "Tarieven"
+
+msgid "Electricity rates for this place. The last one stays in force until you add another."
+msgstr "Stroomtarieven voor deze plaats. De laatste blijft gelden tot u een nieuwe toevoegt."
+
+msgid "No rate from %(start)s to %(end)s."
+msgstr "Geen tarief van %(start)s tot %(end)s."
+
+msgid "Fill this gap"
+msgstr "Dit gat vullen"
+
+msgid "still in force"
+msgstr "nog van kracht"
+
+msgid "From the start"
+msgstr "Vanaf het begin"
+
+msgid "Until (empty = still in force)"
+msgstr "Tot (leeg = nog van kracht)"
+
+msgid "Nothing after the last end date. Add a rate that continues."
+msgstr "Niets na de laatste einddatum. Voeg een tarief toe dat doorloopt."
+
+msgid "Add this rate"
+msgstr "Dit tarief toevoegen"
+
+msgid "Done"
+msgstr "Klaar"
+
+msgid "Enter €/kWh below. 0 is allowed."
+msgstr "Vul hieronder €/kWh in. 0 is toegestaan."
+
+msgid "Dates (optional)"
+msgstr "Datums (optioneel)"
+
+msgid "Enter a price. 0 is allowed."
+msgstr "Voer een prijs in. 0 is toegestaan."
+
+msgid "Home and work per vehicle"
+msgstr "Thuis en werk per voertuig"
+
 msgid "Journey replay"
 msgstr "Reisweergave"
 
@@ -1400,9 +1765,6 @@ msgstr "ritten, ladingen en GPS-punten"
 
 msgid "Previous day"
 msgstr "Vorige dag"
-
-msgid "Date"
-msgstr "Date"
 
 msgid "Pick a date"
 msgstr "Kies een datum"
@@ -1425,18 +1787,6 @@ msgstr "%(n)s op de kaart"
 
 msgid "Track"
 msgstr "Spoor"
-
-msgid "Charges"
-msgstr "Ladingen"
-
-msgid "Start"
-msgstr "Start"
-
-msgid "End"
-msgstr "Einde"
-
-msgid "Duration"
-msgstr "Duur"
 
 msgid "Distance"
 msgstr "Distance"
@@ -1556,11 +1906,13 @@ msgstr "Toepassen"
 #, python-format
 msgid ""
 "\n"
-"    DC Supercharging profiles for this vehicle. Filter: %(filter)s. Envelope: %(envelope)s.\n"
+"    DC Supercharging profiles for this vehicle. Filter: %(filter)s. "
+"Envelope: %(envelope)s.\n"
 "    "
 msgstr ""
 "\n"
-"    DC Supercharge-profielen voor dit voertuig. Filter: %(filter)s. Envelop: %(envelope)s.\n"
+"    DC Supercharge-profielen voor dit voertuig. Filter: %(filter)s. Envelop: "
+"%(envelope)s.\n"
 "    "
 
 msgid "DC sessions kept"
@@ -1608,62 +1960,68 @@ msgstr ""
 msgid "DC charge SoC versus time by start SoC"
 msgstr "DC-laad-SoC versus tijd per start-SoC"
 
-#| msgid "DC charge: SoC vs time by start SoC"
 msgid "Driving range vs time by start SoC"
 msgstr "Rij-actieradius vs tijd per start-SoC"
 
-#| msgid "SoC vs time by start SoC"
 msgid "Rated range vs time by start SoC"
 msgstr "Rated-actieradius vs tijd per start-SoC"
 
-#| msgid "DC charge SoC versus time by start SoC"
 msgid "DC charge driving range versus time by start SoC"
 msgstr "DC-laden: rij-actieradius versus tijd per start-SoC"
 
-#| msgid "DC charge SoC versus time by start SoC"
 msgid "DC charge rated range versus time by start SoC"
 msgstr "DC-laden: rated-actieradius versus tijd per start-SoC"
 
-#| msgid "03 · USAGE"
 msgid "03 · RANGE"
 msgstr "03 · ACTIERADIUS"
 
-#| msgid "Range"
 msgid "Range scale"
 msgstr "Actieradius-schaal"
 
 msgid ""
 "\n"
-"            Same start-SoC curves as above, scaled to estimated driving range using your\n"
-"            seasonal consumption (same season last year when possible; Supercharger approach\n"
-"            legs excluded because battery preconditioning inflates kWh/100). Best for comparing cars.\n"
+"            Same start-SoC curves as above, scaled to estimated driving "
+"range using your\n"
+"            seasonal consumption (same season last year when possible; "
+"Supercharger approach\n"
+"            legs excluded because battery preconditioning inflates kWh/100). "
+"Best for comparing cars.\n"
 "            "
 msgstr ""
 "\n"
-"            Dezelfde start-SoC-curven, omgezet naar geschatte rij-actieradius met je\n"
-"            seizoensverbruik (zelfde seizoen vorig jaar indien mogelijk; Supercharger-aanritten\n"
-"            uitgesloten omdat batterijvoorverwarming de kWh/100 opdrijft). Ideaal om auto’s te vergelijken.\n"
+"            Dezelfde start-SoC-curven, omgezet naar geschatte rij-"
+"actieradius met je\n"
+"            seizoensverbruik (zelfde seizoen vorig jaar indien mogelijk; "
+"Supercharger-aanritten\n"
+"            uitgesloten omdat batterijvoorverwarming de kWh/100 opdrijft). "
+"Ideaal om auto’s te vergelijken.\n"
 "            "
 
 msgid ""
 "\n"
-"            Same start-SoC curves, scaled to Tesla rated range after battery degradation\n"
-"            (implied full-charge range). Comparable across cars without your driving style.\n"
+"            Same start-SoC curves, scaled to Tesla rated range after battery "
+"degradation\n"
+"            (implied full-charge range). Comparable across cars without your "
+"driving style.\n"
 "            "
 msgstr ""
 "\n"
-"            Dezelfde start-SoC-curven, omgezet naar Tesla rated-actieradius na\n"
-"            batterijdegradatie (impliciete actieradius bij volle lading). Vergelijkbaar tussen auto’s zonder jouw rijstijl.\n"
+"            Dezelfde start-SoC-curven, omgezet naar Tesla rated-actieradius "
+"na\n"
+"            batterijdegradatie (impliciete actieradius bij volle lading). "
+"Vergelijkbaar tussen auto’s zonder jouw rijstijl.\n"
 "            "
 
 #, python-format
 msgid ""
 "\n"
-"            Consumption ≈ %(conso)s %(unit)s · %(src)s · %(start)s → %(end)s · %(km)s %(dist)s (excluding Supercharger approaches).\n"
+"            Consumption ≈ %(conso)s %(unit)s · %(src)s · %(start)s → %(end)s "
+"· %(km)s %(dist)s (excluding Supercharger approaches).\n"
 "            "
 msgstr ""
 "\n"
-"            Verbruik ≈ %(conso)s %(unit)s · %(src)s · %(start)s → %(end)s · %(km)s %(dist)s (zonder Supercharger-aanritten).\n"
+"            Verbruik ≈ %(conso)s %(unit)s · %(src)s · %(start)s → %(end)s · "
+"%(km)s %(dist)s (zonder Supercharger-aanritten).\n"
 "            "
 
 msgid "Min / max samples → day map"
@@ -1671,12 +2029,14 @@ msgstr "Min-/max-monsters → dagkaart"
 
 msgid ""
 "\n"
-"        Each edge of the min–max envelope is one real sample. Open the day map for that day\n"
+"        Each edge of the min–max envelope is one real sample. Open the day "
+"map for that day\n"
 "        to see the full charge (and what else the car was doing).\n"
 "        "
 msgstr ""
 "\n"
-"        Elke rand van de min–max-envelop is een echt monster. Open de dagkaart\n"
+"        Elke rand van de min–max-envelop is een echt monster. Open de "
+"dagkaart\n"
 "        om de hele lading (en de rest van de dag) te zien.\n"
 "        "
 
@@ -1691,8 +2051,7 @@ msgstr "Vermogen"
 
 msgid "Rated range added per hour at this power (EPA energy intensity)"
 msgstr ""
-"Gehomologeerde actieradius per uur bij dit vermogen (EPA-energie-"
-"intensiteit)"
+"Gehomologeerde actieradius per uur bij dit vermogen (EPA-energie-intensiteit)"
 
 #, python-format
 msgid "EPA %(u)s"
@@ -1718,44 +2077,43 @@ msgid "Open day map for this charge day"
 msgstr "Dagkaart voor deze laaddag openen"
 
 #, python-format
-#| msgid ""
-#| "\n"
-#| "        Range rates convert power to %(rate)s using EPA ≈ %(epa)s %(unit)s and your\n"
-#| "        recent driving average ≈ %(real)s %(unit)s (distance-weighted).\n"
-#| "        "
 msgid ""
 "\n"
-"        Range rates convert power to %(rate)s using EPA ≈ %(epa)s %(unit)s and your\n"
-"        seasonal driving average ≈ %(real)s %(unit)s (distance-weighted, Supercharger approaches excluded).\n"
+"        Range rates convert power to %(rate)s using EPA ≈ %(epa)s %(unit)s "
+"and your\n"
+"        seasonal driving average ≈ %(real)s %(unit)s (distance-weighted, "
+"Supercharger approaches excluded).\n"
 "        "
 msgstr ""
 "\n"
-"        Actieradius-snelheden rekenen vermogen om naar %(rate)s met EPA ≈ %(epa)s %(unit)s en je\n"
-"        seizoensgemiddelde ≈ %(real)s %(unit)s (afstandgewogen, Supercharger-aanritten uitgesloten).\n"
+"        Actieradius-snelheden rekenen vermogen om naar %(rate)s met EPA ≈ "
+"%(epa)s %(unit)s en je\n"
+"        seizoensgemiddelde ≈ %(real)s %(unit)s (afstandgewogen, Supercharger-"
+"aanritten uitgesloten).\n"
 "        "
 
 #, python-format
 msgid ""
 "\n"
-"        Range rates use EPA ≈ %(epa)s %(unit)s. Real %(rate)s needs more driving data.\n"
+"        Range rates use EPA ≈ %(epa)s %(unit)s. Real %(rate)s needs more "
+"driving data.\n"
 "        "
 msgstr ""
 "\n"
-"        Actieradius-snelheden gebruiken EPA ≈ %(epa)s %(unit)s. Echte %(rate)s hebben meer rijgegevens nodig.\n"
+"        Actieradius-snelheden gebruiken EPA ≈ %(epa)s %(unit)s. Echte "
+"%(rate)s hebben meer rijgegevens nodig.\n"
 "        "
 
 #, python-format
-#| msgid ""
-#| "\n"
-#| "        Real range rates use your driving average ≈ %(real)s %(unit)s. EPA %(rate)s needs a catalog range.\n"
-#| "        "
 msgid ""
 "\n"
-"        Real range rates use your seasonal driving average ≈ %(real)s %(unit)s. EPA %(rate)s needs a catalog range.\n"
+"        Real range rates use your seasonal driving average ≈ %(real)s "
+"%(unit)s. EPA %(rate)s needs a catalog range.\n"
 "        "
 msgstr ""
 "\n"
-"        Echte rates gebruiken je seizoensgemiddelde ≈ %(real)s %(unit)s. EPA-%(rate)s heeft een catalogusactieradius nodig.\n"
+"        Echte rates gebruiken je seizoensgemiddelde ≈ %(real)s %(unit)s. EPA-"
+"%(rate)s heeft een catalogusactieradius nodig.\n"
 "        "
 
 msgid ""
@@ -1765,20 +2123,30 @@ msgstr "Tip: zet Envelop op Min / max voor dagkaartlinks op de bandranden."
 
 msgid ""
 "\n"
-"    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast charger) are used —\n"
-"    home AC and destination charging are excluded. The rising power edge after plug-in is\n"
-"    dropped by cutting samples before the first peak of each session (whether that peak is at\n"
-"    10 s or 2 min) so the curve and min/max measure the real profile, not a fixed time window.\n"
-"    Robust filter further drops sessions with unusually low peak power (typical of V2 stall\n"
-"    sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls are not separated: the car caps\n"
+"    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast "
+"charger) are used —\n"
+"    home AC and destination charging are excluded. The rising power edge "
+"after plug-in is\n"
+"    dropped by cutting samples before the first peak of each session "
+"(whether that peak is at\n"
+"    10 s or 2 min) so the curve and min/max measure the real profile, not a "
+"fixed time window.\n"
+"    Robust filter further drops sessions with unusually low peak power "
+"(typical of V2 stall\n"
+"    sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls are not "
+"separated: the car caps\n"
 "    at its max power either way.\n"
 "    "
 msgstr ""
 "\n"
-"    Alleen Supercharge-/CCS-sessies (piek ≥ ~40 kW of gemarkeerde snellader) — thuis-AC en\n"
-"    destination vallen af. De eerste ~2 minuten van elke sessie (en vroege monsters nog ver\n"
-"    onder de sessiepiek) worden weggelaten zodat de Supercharger-opbouw de curve niet omlaag\n"
-"    trekt. Het robuuste filter verwijdert ook lage pieken (V2-deling) en koude starts. V3/V4\n"
+"    Alleen Supercharge-/CCS-sessies (piek ≥ ~40 kW of gemarkeerde snellader) "
+"— thuis-AC en\n"
+"    destination vallen af. De eerste ~2 minuten van elke sessie (en vroege "
+"monsters nog ver\n"
+"    onder de sessiepiek) worden weggelaten zodat de Supercharger-opbouw de "
+"curve niet omlaag\n"
+"    trekt. Het robuuste filter verwijdert ook lage pieken (V2-deling) en "
+"koude starts. V3/V4\n"
 "    worden niet gescheiden.\n"
 "    "
 
@@ -1798,9 +2166,6 @@ msgstr "Ritfilters"
 
 msgid "Rank by"
 msgstr "Rangschikken op"
-
-msgid "Show"
-msgstr "Tonen"
 
 #, python-format
 msgid "%(counter)s trip"
@@ -1850,7 +2215,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Adaptieve Fleet-API-afstand voor %(name)s · lokale tijd %(when)s\n"
+"            Adaptieve Fleet-API-afstand voor %(name)s · lokale tijd "
+"%(when)s\n"
 "            "
 
 msgid "Back to my data"
@@ -1908,8 +2274,8 @@ msgid "Due now"
 msgstr "Nu verschuldigd"
 
 msgid ""
-"No vehicle row in the account list for this VIN, so list state and last poll"
-" time are unknown. Habit history below still uses telemetry snapshots when "
+"No vehicle row in the account list for this VIN, so list state and last poll "
+"time are unknown. Habit history below still uses telemetry snapshots when "
 "available."
 msgstr ""
 "Geen voertuigrij in de accountlijst voor deze VIN, dus lijststatus en "
@@ -1919,14 +2285,22 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"        The model searches at most the last %(max_days)s days. Training uses only weeks\n"
-"        *before* the last %(recent)s days (regime check). Need ≥ %(min_ref)s such\n"
-"        reference weeks. “Weeks with samples” counts distinct calendar weeks that have\n"
-"        any telemetry in the search window — not the length of continuous data capture.\n"
+"        The model searches at most the last %(max_days)s days. Training uses "
+"only weeks\n"
+"        *before* the last %(recent)s days (regime check). Need ≥ %(min_ref)s "
+"such\n"
+"        reference weeks. “Weeks with samples” counts distinct calendar weeks "
+"that have\n"
+"        any telemetry in the search window — not the length of continuous "
+"data capture.\n"
 "        "
 msgstr ""
 "\n"
-"        Het model zoekt max. de laatste %(max_days)s dagen. Training gebruikt alleen weken *vóór* de laatste %(recent)s dagen (regime-check). ≥ %(min_ref)s referentieweken nodig. „Weken met samples“ telt distincte kalenderweken met telemetrie in het venster — niet de lengte van continue data-capture.\n"
+"        Het model zoekt max. de laatste %(max_days)s dagen. Training "
+"gebruikt alleen weken *vóór* de laatste %(recent)s dagen (regime-check). ≥ "
+"%(min_ref)s referentieweken nodig. „Weken met samples“ telt distincte "
+"kalenderweken met telemetrie in het venster — niet de lengte van continue "
+"data-capture.\n"
 "        "
 
 msgid "Trusted"
@@ -1978,8 +2352,8 @@ msgid ""
 "inactive."
 msgstr ""
 "Lokale huishoudtijd (Europa/Brussel). Als het model betrouwbaar is, is elke "
-"cel druk (5 min), nabij druk (10 min, ±1 u rond druk), matig of rustig (geen"
-" defaultgaten). Ongekleurde cellen alleen als gewoonten inactief zijn."
+"cel druk (5 min), nabij druk (10 min, ±1 u rond druk), matig of rustig (geen "
+"defaultgaten). Ongekleurde cellen alleen als gewoonten inactief zijn."
 
 msgid "Hour"
 msgstr "Uur"
@@ -2025,10 +2399,10 @@ msgid "Speed distribution"
 msgstr "Snelheidsverdeling"
 
 msgid "Latitude"
-msgstr "Latitude"
+msgstr "Breedtegraad"
 
 msgid "Longitude"
-msgstr "Longitude"
+msgstr "Lengtegraad"
 
 msgid "Power distribution"
 msgstr "Vermogensverdeling"
@@ -2090,22 +2464,27 @@ msgstr "Geschatte kosten (EUR)"
 msgid "Estimated cost (USD)"
 msgstr "Geschatte kosten (USD)"
 
-msgid "Day"
-msgstr "Dag"
-
 msgid "Data requests"
 msgstr "Dataverzoeken"
 
 #, python-format
 msgid ""
-"n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car ·"
-" from request log · max %(days)s days"
+"n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car · "
+"from request log · max %(days)s days"
 msgstr ""
 "n=%(n)s factureerbare vehicle_data · ca. %(money)s (@ %(rate)s/req) · deze "
 "auto · uit requestlog · max. %(days)s dagen"
 
 msgid "No logged vehicle_data calls in this period"
 msgstr "Geen gelogde vehicle_data-calls in deze periode"
+
+#, python-format
+msgid "Latest reading: %(dist)s"
+msgstr "Laatste stand: %(dist)s"
+
+#, python-format
+msgid "Latest reading: %(dist)s · %(date)s"
+msgstr "Laatste stand: %(dist)s · %(date)s"
 
 msgid "Minimum"
 msgstr "Minimum"
@@ -2115,14 +2494,6 @@ msgstr "Gemiddelde"
 
 msgid "Maximum"
 msgstr "Maximum"
-
-#, python-format
-msgid "Latest reading: %(dist)s · %(date)s"
-msgstr "Laatste stand: %(dist)s · %(date)s"
-
-#, python-format
-msgid "Latest reading: %(dist)s"
-msgstr "Laatste stand: %(dist)s"
 
 msgid "Monthly range (min–max)"
 msgstr "Maandelijks bereik (min–max)"
@@ -2210,16 +2581,16 @@ msgid ""
 "n=%(n)s · regen %(regen).1f kWh / traction %(trac).1f kWh = %(pct).1f%% "
 "recovered"
 msgstr ""
-"n=%(n)s · regeneratie %(regen).1f kWh / tractie %(trac).1f kWh = %(pct).1f%%"
-" teruggewonnen"
+"n=%(n)s · regeneratie %(regen).1f kWh / tractie %(trac).1f kWh = %(pct).1f%% "
+"teruggewonnen"
 
 #, python-format
 msgid ""
 "n=%(n)s · regen vs traction = %(pct).1f%% (sample power ratio · green = "
 "regen)"
 msgstr ""
-"n=%(n)s · regeneratie vs. tractie = %(pct).1f%% (vermogensverhouding · groen"
-" = regeneratie)"
+"n=%(n)s · regeneratie vs. tractie = %(pct).1f%% (vermogensverhouding · groen "
+"= regeneratie)"
 
 #, python-format
 msgid "n=%(n)s drive samples · green = regen · blue/red = traction"
@@ -2260,8 +2631,8 @@ msgstr "%(n)s km"
 #, python-format
 msgid ""
 "The last trip was not recorded — it was likely too short for the capture "
-"interval (about %(dist)s between the last logged arrival and the car's final"
-" position)."
+"interval (about %(dist)s between the last logged arrival and the car's final "
+"position)."
 msgstr ""
 "De laatste rit is niet geregistreerd — waarschijnlijk te kort voor het "
 "capture-interval (ongeveer %(dist)s tussen de laatst gelogde aankomst en de "
@@ -2270,8 +2641,8 @@ msgstr ""
 #, python-format
 msgid ""
 "The last trip was not recorded — missing telemetry between the last logged "
-"arrival and the car's final position (about %(dist)s). This can happen after"
-" a capture gap or a technical issue."
+"arrival and the car's final position (about %(dist)s). This can happen after "
+"a capture gap or a technical issue."
 msgstr ""
 "De laatste rit is niet geregistreerd — ontbrekende telemetrie tussen de "
 "laatst gelogde aankomst en de eindpositie van de auto (ongeveer %(dist)s). "
@@ -2327,7 +2698,6 @@ msgstr "zelfde seizoen twee jaar geleden"
 msgid "last three months (short history)"
 msgstr "laatste drie maanden (korte geschiedenis)"
 
-#| msgid "Time driving"
 msgid "recent driving"
 msgstr "recente ritten"
 
@@ -2359,12 +2729,10 @@ msgstr "%(start)s%% start · n=%(n)s"
 msgid "Minutes since charge start"
 msgstr "Minuten sinds start van de lading"
 
-#| msgid "Not enough DC sessions for start-SoC curves"
 msgid "Not enough data for range-vs-time curves"
 msgstr "Onvoldoende gegevens voor actieradius-vs-tijd-curven"
 
 #, python-format
-#| msgid "Estimated battery range (%(u)s)"
 msgid "Estimated range (%(u)s)"
 msgstr "Geschatte actieradius (%(u)s)"
 
@@ -2385,7 +2753,6 @@ msgstr "DC-laadvermogen vs batterij-SoC"
 msgid "DC charge: SoC vs time by start SoC"
 msgstr "DC-laden: SoC vs tijd per start-SoC"
 
-#| msgid "Charge related graphs"
 msgid "DC charge: rated range vs time"
 msgstr "DC-laden: rated-actieradius vs tijd"
 
@@ -2542,8 +2909,8 @@ msgid ""
 "The password reset link was invalid, possibly because it has already been "
 "used. Please request a new password reset."
 msgstr ""
-"De link om het wachtwoord te resetten was ongeldig, mogelijk omdat hij al is"
-" gebruikt. Vraag een nieuwe reset aan."
+"De link om het wachtwoord te resetten was ongeldig, mogelijk omdat hij al is "
+"gebruikt. Vraag een nieuwe reset aan."
 
 msgid "Password reset"
 msgstr "Wachtwoord resetten"
@@ -2558,8 +2925,8 @@ msgid ""
 "We&#39;ve emailed you instructions for setting your password, if an account "
 "exists with the email you entered. You should receive them shortly."
 msgstr ""
-"We hebben je per e-mail instructies gestuurd om je wachtwoord in te stellen,"
-" als er een account bestaat met het ingevoerde e-mailadres. Je zou ze "
+"We hebben je per e-mail instructies gestuurd om je wachtwoord in te stellen, "
+"als er een account bestaat met het ingevoerde e-mailadres. Je zou ze "
 "binnenkort moeten ontvangen."
 
 msgid ""
@@ -2598,3 +2965,55 @@ msgstr ""
 
 msgid "Send e-mail"
 msgstr "E-mail verzenden"
+
+#~ msgid "Day / night — edit below for night rate"
+#~ msgstr "Dag / nacht — nachttarief lager aanpassen"
+
+#~ msgid "Tariffs on tagged places"
+#~ msgstr "Tarieven van gemarkeerde plaatsen"
+
+#~ msgid ""
+#~ "Flat, day/night or dynamic (cents on the day-ahead spot). Saving a "
+#~ "dynamic period fetches Elia prices for that range."
+#~ msgstr ""
+#~ "Vast, dag/nacht of dynamisch (centen op de day-aheadspot). Een dynamische "
+#~ "periode opslaan haalt Elia-prijzen voor die periode op."
+
+#~ msgid "Delete place"
+#~ msgstr "Plaats verwijderen"
+
+#~ msgid "To"
+#~ msgstr "Tot"
+
+#~ msgid ""
+#~ "Places, home/work periods and prices. Nothing is assumed: you enter every "
+#~ "location and tariff."
+#~ msgstr ""
+#~ "Plaatsen, thuis-/werkperiodes en prijzen. Niets wordt verondersteld: u "
+#~ "voert elke locatie en elk tarief in."
+
+#~ msgid "Places"
+#~ msgstr "Plaatsen"
+
+#~ msgid ""
+#~ "A geofence you name (home, work, or anything else). Radius default is 150 "
+#~ "m."
+#~ msgstr ""
+#~ "Een geofence die u benoemt (thuis, werk of anders). Standaardstraal: 150 "
+#~ "m."
+
+#~ msgid "Radius (m)"
+#~ msgstr "Straal (m)"
+
+#~ msgid ""
+#~ "Which car treats which place as home or work, and when. Same GPS can move "
+#~ "from one car to another on a date you set."
+#~ msgstr ""
+#~ "Welke auto welke plaats als thuis of werk behandelt, en wanneer. Dezelfde "
+#~ "gps kan op een datum die u instelt van de ene auto naar de andere gaan."
+
+#~ msgid "Role"
+#~ msgstr "Rol"
+
+#~ msgid "Add assignment"
+#~ msgstr "Toewijzing toevoegen"

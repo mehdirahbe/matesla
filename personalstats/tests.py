@@ -38,6 +38,7 @@ PERSONAL_HASHED_VIN_ROUTES = (
     ("/en/personalstats/PollDetails/{hash}", "html"),
     ("/en/personalstats/LifetimeMapData/{hash}", "json"),
     ("/en/personalstats/FirmwareHistory/{hash}", "html"),
+    ("/en/personalstats/ChargeCosts/{hash}", "html"),
     ("/en/personalstats/FirmwareHistoryCSV/{hash}", "csv"),
     ("/en/personalstats/AllMyDataAsCSV/{hash}", "csv"),
     ("/en/personalstats/BatteryDegradationGraph/{hash}/odometer/52", "png"),

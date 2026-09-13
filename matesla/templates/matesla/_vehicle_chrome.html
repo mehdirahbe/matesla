@@ -27,6 +27,10 @@
         <input type="hidden" name="period" id="vehicle_switch_period" value="{{ stats_period|default:520 }}">
         {% elif request.resolver_match.url_name == 'PersoStatsFirmwareHistory' %}
         <input type="hidden" name="next" value="firmware">
+        {% elif request.resolver_match.url_name == 'PersoChargeCosts' %}
+        <input type="hidden" name="next" value="charges">
+        {% elif request.resolver_match.url_name == 'PersoChargeCostsSetup' %}
+        <input type="hidden" name="next" value="charges_setup">
         {% endif %}
         <span class="vehicle-switcher__state" aria-hidden="true"></span>
         <div>
@@ -71,6 +75,7 @@
         <a href="{% url 'PersoDrives' hashedVin %}" {% if request.resolver_match.url_name == 'PersoDrives' %}aria-current="page"{% endif %}>{% trans 'Drives' %}</a>
         <a href="{% url 'PersoDCCharge' hashedVin %}" {% if request.resolver_match.url_name == 'PersoDCCharge' %}aria-current="page"{% endif %}>{% trans 'DC charge' %}</a>
         <a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}" {% if request.resolver_match.url_name == 'PersoStatsFirmwareHistory' %}aria-current="page"{% endif %}>{% trans 'Firmware history' %}</a>
+        <a href="{% url 'PersoChargeCosts' hashedVin %}" {% if request.resolver_match.url_name == 'PersoChargeCosts' or request.resolver_match.url_name == 'PersoChargeCostsSetup' %}aria-current="page"{% endif %}>{% trans 'Charges' %}</a>
         {% endif %}
         {% if allow_writes %}
         <a href="{% url 'AddTeslaAccount' %}" {% if request.resolver_match.url_name == 'AddTeslaAccount' %}aria-current="page"{% endif %}>{% trans 'Tesla account' %}</a>

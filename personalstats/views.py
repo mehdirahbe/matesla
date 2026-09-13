@@ -4703,6 +4703,37 @@ def DayMap(request, hashedVin, day=None):
         drive["end_address"] = addr_cached(drive.get("end_lat"), drive.get("end_lon"))
     for charge in charges:
         charge["address"] = addr_cached(charge.get("lat"), charge.get("lon"))
+    # Electricity cost: full plug-in total (same figure if the session
+    # spans midnight). Never invent euros when nothing is configured.
+    try:
+        from django.core.cache import cache as django_cache
+
+        from matesla.charge_cost import annotate_daymap_charges
+        from matesla.superchargers import CACHE_KEY as SC_CACHE_KEY
+        from matesla.superchargers import nearest_supercharger
+
+        sc_flags = {}
+        # Only match when the Supercharger directory is already cached —
+        # never block first paint on supercharge.info.
+        sc_ready = django_cache.get(SC_CACHE_KEY) is not None
+        if sc_ready:
+            for charge in charges:
+                if not charge.get("is_dc_candidate"):
+                    continue
+                lat, lon = charge.get("lat"), charge.get("lon")
+                if lat is None or lon is None:
+                    continue
+                try:
+                    match = nearest_supercharger(lat, lon)
+                except Exception:
+                    match = None
+                if match:
+                    sc_flags[(round(float(lat), 5), round(float(lon), 5))] = True
+        annotate_daymap_charges(hashedVin, charges, supercharger_for=sc_flags)
+    except Exception:
+        for charge in charges:
+            charge.setdefault("cost_eur", None)
+            charge.setdefault("cost_is_session_total", True)
     # Sparse poll: last drive may end elsewhere than the car's final GPS
     unmonitored_tail = _daymap_unmonitored_tail(drives, end_lat, end_lon)
 

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: matesla\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-15 08:12+0000\n"
+"POT-Creation-Date: 2026-09-12 19:28+0000\n"
 "PO-Revision-Date: 2026-07-27 22:00+0000\n"
 "Last-Translator: MaTesla\n"
 "Language-Team: Spanish\n"
@@ -20,10 +20,8 @@ msgstr "Necesario para poder restablecer la contraseña si la olvidas"
 msgid "Sign up"
 msgstr "Crear cuenta"
 
-msgid ""
-"Create your private space, then link your Tesla account in a few steps."
-msgstr ""
-"Crea tu espacio privado y luego vincula tu cuenta Tesla en unos pasos."
+msgid "Create your private space, then link your Tesla account in a few steps."
+msgstr "Crea tu espacio privado y luego vincula tu cuenta Tesla en unos pasos."
 
 msgid "Already registered?"
 msgstr "¿Ya registrado?"
@@ -50,8 +48,7 @@ msgstr ""
 "una ruta arbitraria. Aloja el PEM ahí (cualquier servidor HTTPS sirve: "
 "nginx, S3, Cloudflare, GitHub Pages, …)."
 
-msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
+msgid "Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
 msgstr ""
 "Tesla rechaza localhost como dominio partner. Usa un dominio HTTPS público."
 
@@ -90,8 +87,8 @@ msgid "Missing app settings."
 msgstr "Faltan ajustes de la aplicación."
 
 msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g."
-" robotcar.example.com)."
+"Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g. "
+"robotcar.example.com)."
 msgstr ""
 "Tesla rechaza localhost como dominio partner. Usa un dominio HTTPS público "
 "(ej. robotcar.example.com)."
@@ -117,8 +114,8 @@ msgid "Fleet API region"
 msgstr "Región API Fleet"
 
 msgid ""
-"Must match the redirect URI on developer.tesla.com exactly (often "
-"http://localhost:8001/oauth/callback for a local install)."
+"Must match the redirect URI on developer.tesla.com exactly (often http://"
+"localhost:8001/oauth/callback for a local install)."
 msgstr ""
 "Debe coincidir exactamente con la URI de redirección en developer.tesla.com "
 "(a menudo http://localhost:8001/oauth/callback en una instalación local)."
@@ -137,16 +134,67 @@ msgstr "Dominio partner o URL de la clave pública"
 
 msgid ""
 "Paste a domain (example.com), an origin (https://example.com), or the full "
-"public-key URL. Hosting is free choice (nginx, S3, Cloudflare, GitHub Pages,"
-" …) but Tesla always fetches /.well-known/appspecific/com.tesla.3p.public-"
-"key.pem on that host. Add the same host with https:// as Allowed Origin on "
+"public-key URL. Hosting is free choice (nginx, S3, Cloudflare, GitHub Pages, "
+"…) but Tesla always fetches /.well-known/appspecific/com.tesla.3p.public-key."
+"pem on that host. Add the same host with https:// as Allowed Origin on "
 "developer.tesla.com. Not localhost."
 msgstr ""
 "Pega un dominio (example.com), un origen (https://example.com) o la URL "
 "completa de la clave pública. El alojamiento es libre (nginx, S3, "
-"Cloudflare, GitHub Pages, …) pero Tesla siempre obtiene /.well-"
-"known/appspecific/com.tesla.3p.public-key.pem en ese host. Añade el mismo "
-"host con https:// como Allowed Origin en developer.tesla.com. No localhost."
+"Cloudflare, GitHub Pages, …) pero Tesla siempre obtiene /.well-known/"
+"appspecific/com.tesla.3p.public-key.pem en ese host. Añade el mismo host con "
+"https:// como Allowed Origin en developer.tesla.com. No localhost."
+
+msgid "Home"
+msgstr "Casa"
+
+msgid "Work"
+msgstr "Trabajo"
+
+msgid "Flat"
+msgstr "Tarifa única"
+
+msgid "Day / night"
+msgstr "Día / noche"
+
+msgid "Dynamic (day-ahead + cents)"
+msgstr "Dinámico (day-ahead + céntimos)"
+
+msgid "Priced"
+msgstr "Con precio"
+
+msgid "Unpriced"
+msgstr "Sin precio"
+
+msgid "Partial"
+msgstr "Parcial"
+
+msgid "Home (flat)"
+msgstr "Casa (tarifa única)"
+
+msgid "Home (day / night)"
+msgstr "Casa (día / noche)"
+
+msgid "Home (dynamic)"
+msgstr "Casa (dinámico)"
+
+msgid "Named place"
+msgstr "Lugar con nombre"
+
+msgid "Tesla Supercharger invoice"
+msgstr "Factura Supercharger Tesla"
+
+msgid "Supercharger average rate"
+msgstr "Tarifa media Supercharger"
+
+msgid "Other chargers"
+msgstr "Otros cargadores"
+
+msgid "€/kWh for chargers that are not home, work, or a Supercharger"
+msgstr "€/kWh para cargadores que no son casa, trabajo ni Supercharger"
+
+msgid "€/kWh when no Tesla Supercharger invoice is available"
+msgstr "€/kWh cuando no hay factura Supercharger Tesla"
 
 msgid "Mon"
 msgstr "lun"
@@ -272,13 +320,12 @@ msgstr ""
 #, python-format
 msgid ""
 "Not enough reference weeks of telemetry before the last %(recent)s days "
-"(have %(have)s, need at least %(need)s). Capture uses only the default "
-"day/night spacing until history is long enough."
+"(have %(have)s, need at least %(need)s). Capture uses only the default day/"
+"night spacing until history is long enough."
 msgstr ""
 "No hay suficientes semanas de referencia de telemetría antes de los últimos "
 "%(recent)s días (hay %(have)s, se necesitan al menos %(need)s). La captura "
-"solo usa el espaciado por defecto día/noche hasta tener suficiente "
-"historial."
+"solo usa el espaciado por defecto día/noche hasta tener suficiente historial."
 
 msgid ""
 "Recent mobility does not match the reference weeks (regime break). Habits "
@@ -288,8 +335,8 @@ msgid ""
 msgstr ""
 "La movilidad reciente no coincide con las semanas de referencia (cambio de "
 "régimen). Los hábitos se desactivan para que un cambio colegio↔vacaciones o "
-"un viaje no alargue las consultas incorrectamente. Se usa el espaciado "
-"día/noche por defecto hasta que los patrones vuelvan a ser coherentes."
+"un viaje no alargue las consultas incorrectamente. Se usa el espaciado día/"
+"noche por defecto hasta que los patrones vuelvan a ser coherentes."
 
 msgid ""
 "There are enough reference weeks, but no weekday+hour slot was classified "
@@ -306,8 +353,8 @@ msgstr ""
 
 #, python-format
 msgid ""
-"Driving activity fell sharply: about %(recent).1f h of mobility per day over"
-" the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"Driving activity fell sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
 "weeks (often school → holidays). Habits stay off until patterns re-align."
 msgstr ""
 "La actividad de conducción bajó mucho: unas %(recent).1f horas de movilidad "
@@ -325,23 +372,23 @@ msgstr ""
 
 #, python-format
 msgid ""
-"Driving activity rose sharply: about %(recent).1f h of mobility per day over"
-" the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"Driving activity rose sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
 "weeks (often holidays → school, or a trip). Habits stay off until patterns "
 "re-align."
 msgstr ""
-"La actividad de conducción subió mucho: unas %(recent).1f horas de movilidad"
-" al día en los últimos %(recent_days)s días, frente a %(ref).1f h/día en las"
-" semanas de aprendizaje (a menudo vacaciones → colegio, o un viaje). Los "
+"La actividad de conducción subió mucho: unas %(recent).1f horas de movilidad "
+"al día en los últimos %(recent_days)s días, frente a %(ref).1f h/día en las "
+"semanas de aprendizaje (a menudo vacaciones → colegio, o un viaje). Los "
 "hábitos siguen desactivados hasta que el ritmo se realinee."
 
 msgid ""
 "Driving activity rose sharply versus the training weeks (often holidays → "
 "school, or a trip). Habits stay off until patterns re-align."
 msgstr ""
-"La actividad de conducción subió mucho respecto a las semanas de aprendizaje"
-" (a menudo vacaciones → colegio, o un viaje). Los hábitos siguen "
-"desactivados hasta que el ritmo se realinee."
+"La actividad de conducción subió mucho respecto a las semanas de aprendizaje "
+"(a menudo vacaciones → colegio, o un viaje). Los hábitos siguen desactivados "
+"hasta que el ritmo se realinee."
 
 #, python-format
 msgid ""
@@ -365,8 +412,8 @@ msgid ""
 "Recent driving does not match the training weeks (regime change). Habits "
 "stay off until patterns re-align."
 msgstr ""
-"La conducción reciente no coincide con las semanas de aprendizaje (cambio de"
-" ritmo). Los hábitos siguen desactivados hasta que el ritmo se realinee."
+"La conducción reciente no coincide con las semanas de aprendizaje (cambio de "
+"ritmo). Los hábitos siguen desactivados hasta que el ritmo se realinee."
 
 msgid "night"
 msgstr "noche"
@@ -376,9 +423,9 @@ msgstr "día"
 
 #, python-format
 msgid ""
-"Driving with navigation ETA %(eta)s min → query every %(minutes)s min (1 min"
-" when ETA ≤ 3 min or approaching a Supercharger; 2 min near arrival / crawl;"
-" %(mid)s min mid-trip; %(far)s min when ETA is long). Habits do not apply "
+"Driving with navigation ETA %(eta)s min → query every %(minutes)s min (1 min "
+"when ETA ≤ 3 min or approaching a Supercharger; 2 min near arrival / crawl; "
+"%(mid)s min mid-trip; %(far)s min when ETA is long). Habits do not apply "
 "while driving."
 msgstr ""
 "Conduciendo con ETA de navegación %(eta)s min → consulta cada %(minutes)s "
@@ -388,8 +435,8 @@ msgstr ""
 
 #, python-format
 msgid ""
-"Driving without navigation ETA → dense %(minutes)s min queries (stretch only"
-" when Tesla reports minutes-to-arrival). Habits do not apply while driving."
+"Driving without navigation ETA → dense %(minutes)s min queries (stretch only "
+"when Tesla reports minutes-to-arrival). Habits do not apply while driving."
 msgstr ""
 "Conduciendo sin ETA de navegación → consultas densas cada %(minutes)s min "
 "(solo se alarga si Tesla da minutos hasta llegada). Los hábitos no aplican "
@@ -401,8 +448,8 @@ msgid ""
 "(%(day_or_night)s). Habits do not apply while the car is active."
 msgstr ""
 "Actividad en vivo “%(activity)s” → espaciado por defecto reactivo "
-"%(minutes)s min (%(day_or_night)s). Los hábitos no aplican mientras el coche"
-" está activo."
+"%(minutes)s min (%(day_or_night)s). Los hábitos no aplican mientras el coche "
+"está activo."
 
 #, python-format
 msgid ""
@@ -411,8 +458,8 @@ msgid ""
 "after %(hard_h)s h, %(vacation_m)s min after %(vacation_h)s h). Baseline "
 "would be %(baseline)s min."
 msgstr ""
-"Política en reposo: sin conducir ni cargar durante un rato largo → intervalo"
-" mínimo %(minutes)s min (%(soft_m)s min tras %(soft_h)s h, %(hard_m)s min "
+"Política en reposo: sin conducir ni cargar durante un rato largo → intervalo "
+"mínimo %(minutes)s min (%(soft_m)s min tras %(soft_h)s h, %(hard_m)s min "
 "tras %(hard_h)s h, %(vacation_m)s min tras %(vacation_h)s h). La base sería "
 "%(baseline)s min."
 
@@ -429,8 +476,8 @@ msgid ""
 "Idle/asleep policy: habit class “%(habit_class)s” sets %(minutes)s min for "
 "this weekday+hour (default would be %(baseline)s min, %(day_or_night)s)."
 msgstr ""
-"Política reposo/sueño: la clase de hábito “%(habit_class)s” fija %(minutes)s"
-" min para este día+hora (el valor por defecto sería %(baseline)s min, "
+"Política reposo/sueño: la clase de hábito “%(habit_class)s” fija %(minutes)s "
+"min para este día+hora (el valor por defecto sería %(baseline)s min, "
 "%(day_or_night)s)."
 
 #, python-format
@@ -455,9 +502,9 @@ msgid ""
 "DC/AC charges or has cabin activity, capture switches to the short reactive "
 "default until that ends."
 msgstr ""
-"La cuadrícula describe solo el espaciado reposo/sueño/centinela. Si el coche"
-" conduce, carga (DC/AC) o tiene actividad en habitáculo, la captura vuelve "
-"al espaciado por defecto reactivo corto hasta que termine."
+"La cuadrícula describe solo el espaciado reposo/sueño/centinela. Si el coche "
+"conduce, carga (DC/AC) o tiene actividad en habitáculo, la captura vuelve al "
+"espaciado por defecto reactivo corto hasta que termine."
 
 #, python-format
 msgid ""
@@ -466,8 +513,8 @@ msgid ""
 "%(vacation_h)s h at least %(vacation_m)s min (even if the day default or a "
 "busy habit would be denser). Night default %(night)s min is already sparser."
 msgstr ""
-"Tras %(soft_h)s h sin conducir ni cargar, el intervalo en reposo es al menos"
-" %(soft_m)s min; tras %(hard_h)s h al menos %(hard_m)s min; tras "
+"Tras %(soft_h)s h sin conducir ni cargar, el intervalo en reposo es al menos "
+"%(soft_m)s min; tras %(hard_h)s h al menos %(hard_m)s min; tras "
 "%(vacation_h)s h al menos %(vacation_m)s min (aunque el valor diurno o un "
 "hábito ocupado fuera más denso). El valor nocturno %(night)s min ya es más "
 "espaciado."
@@ -475,8 +522,8 @@ msgstr ""
 #, python-format
 msgid ""
 "Habits use at most the last %(lookback)s days, require %(min_weeks)s "
-"reference weeks before the last %(recent)s days, and disable themselves on a"
-" regime break."
+"reference weeks before the last %(recent)s days, and disable themselves on a "
+"regime break."
 msgstr ""
 "Los hábitos usan como máximo los últimos %(lookback)s días, exigen "
 "%(min_weeks)s semanas de referencia antes de los últimos %(recent)s días, y "
@@ -487,15 +534,15 @@ msgid ""
 "When habits are trusted, every weekday+hour is busy (%(busy)s min), near-"
 "busy (%(near)s min, ±1 h around a busy core), quiet (%(quiet)s min), or "
 "moderate (%(moderate)s min by day; night moderate keeps the %(night)s min "
-"night default). There is no idle “default hole” in the grid — only untrusted"
-" models fall back to day %(day)s / night %(night)s everywhere."
+"night default). There is no idle “default hole” in the grid — only untrusted "
+"models fall back to day %(day)s / night %(night)s everywhere."
 msgstr ""
 "Cuando los hábitos son fiables, cada día+hora es ocupado (%(busy)s min), "
 "cerca de activo (%(near)s min, ±1 h alrededor de un núcleo), tranquilo "
 "(%(quiet)s min) o moderado (%(moderate)s min de día; de noche el moderado "
 "mantiene el valor nocturno %(night)s min). No hay «agujero» de valor por "
-"defecto en la cuadrícula: solo los modelos no fiables vuelven a día %(day)s "
-"/ noche %(night)s en todas partes."
+"defecto en la cuadrícula: solo los modelos no fiables vuelven a día "
+"%(day)s / noche %(night)s en todas partes."
 
 msgid "Tesla connection"
 msgstr "Conexión Tesla"
@@ -507,13 +554,13 @@ msgid "Connect your car."
 msgstr "Conecta tu coche."
 
 msgid ""
-"Configure the app, register the partner domain, then authorize MaTesla. Your"
-" secrets stay stored locally. You can re-open this page anytime — safe "
+"Configure the app, register the partner domain, then authorize MaTesla. Your "
+"secrets stay stored locally. You can re-open this page anytime — safe "
 "actions will not break a working setup."
 msgstr ""
 "Configura la app, registra el dominio partner y autoriza MaTesla. Tus "
-"secretos se guardan en local. Puedes reabrir esta página cuando quieras: las"
-" acciones seguras no rompen una configuración que ya funciona."
+"secretos se guardan en local. Puedes reabrir esta página cuando quieras: las "
+"acciones seguras no rompen una configuración que ya funciona."
 
 msgid "Developer application"
 msgstr "Aplicación de desarrollador"
@@ -581,15 +628,13 @@ msgid "Re-authorize"
 msgstr "Reautorizar"
 
 msgid ""
-"Copy credentials from <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Saving again only updates what "
-"you change."
+"Copy credentials from <a class=\"text-link\" href=\"https://developer.tesla."
+"com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com ↗</"
+"a>. Saving again only updates what you change."
 msgstr ""
-"Copia las credenciales de <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Guardar de nuevo solo actualiza "
-"lo que cambies."
+"Copia las credenciales de <a class=\"text-link\" href=\"https://developer."
+"tesla.com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com "
+"↗</a>. Guardar de nuevo solo actualiza lo que cambies."
 
 msgid "Credentials are stored. Save again only if you need to edit them."
 msgstr ""
@@ -658,8 +703,8 @@ msgid "Set and save a partner domain first."
 msgstr "Define y guarda primero un dominio partner."
 
 msgid ""
-"Local EC key pair is ready. It will not be overwritten if you click generate"
-" again."
+"Local EC key pair is ready. It will not be overwritten if you click generate "
+"again."
 msgstr ""
 "El par de claves EC local está listo. No se sobrescribirá si vuelves a "
 "pulsar generar."
@@ -918,9 +963,7 @@ msgstr "Historial"
 msgid "View history"
 msgstr "Ver historial"
 
-msgid "Vehicle"
-msgstr "Vehículo"
-
+#, python-brace-format
 msgid "Switching to {name}…"
 msgstr "Cambiando a {name}…"
 
@@ -929,6 +972,9 @@ msgstr "Cambiando de coche…"
 
 msgid "The switch is taking too long. You can try again."
 msgstr "El cambio está tardando. Puede intentarlo de nuevo."
+
+msgid "Vehicle"
+msgstr "Vehículo"
 
 msgid "Vehicle shortcuts"
 msgstr "Atajos del vehículo"
@@ -951,6 +997,9 @@ msgstr "Carga DC"
 msgid "Firmware history"
 msgstr "Historial de firmware"
 
+msgid "Charges"
+msgstr "Cargas"
+
 msgid "Your tesla is asleep"
 msgstr "Tu Tesla está dormido"
 
@@ -970,12 +1019,11 @@ msgid ""
 "MaTesla still shows history. Live status will return when the Tesla Fleet "
 "free credit resets or a payment method is added."
 msgstr ""
-"MaTesla sigue mostrando el historial. El estado en directo volverá cuando se"
-" reinicie el crédito gratuito de Tesla Fleet o se añada un método de pago."
+"MaTesla sigue mostrando el historial. El estado en directo volverá cuando se "
+"reinicie el crédito gratuito de Tesla Fleet o se añada un método de pago."
 
 msgid "The car is resting. MaTesla shows its history without ever waking it."
-msgstr ""
-"El coche descansa. MaTesla muestra su historial sin despertarlo nunca."
+msgstr "El coche descansa. MaTesla muestra su historial sin despertarlo nunca."
 
 msgid ""
 "Tesla disabled this account for usage limits (free monthly credit "
@@ -985,15 +1033,15 @@ msgid ""
 msgstr ""
 "Tesla desactivó esta cuenta por límite de uso (crédito mensual gratuito "
 "agotado). No es que el coche duerma: el selector puede seguir mostrando «en "
-"línea» del último control correcto. La captura se pausa hasta que se levante"
-" el límite. Los gráficos de historial siguen disponibles abajo."
+"línea» del último control correcto. La captura se pausa hasta que se levante "
+"el límite. Los gráficos de historial siguen disponibles abajo."
 
 msgid ""
 "No live data right now. Wake the car from the Tesla app if needed, then "
 "refresh its status here."
 msgstr ""
-"No hay datos en directo. Despierta el coche desde la app Tesla si hace falta"
-" y actualiza su estado aquí."
+"No hay datos en directo. Despierta el coche desde la app Tesla si hace falta "
+"y actualiza su estado aquí."
 
 msgid "No history yet"
 msgstr "Aún no hay historial"
@@ -1061,8 +1109,8 @@ msgstr "Indica primero un dominio partner."
 
 #, python-format
 msgid ""
-"Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail:"
-" %(result)s"
+"Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail: "
+"%(result)s"
 msgstr ""
 "Registro partner reconfirmado para « %(domain)s ». Se puede repetir sin "
 "riesgo. Detalle: %(result)s"
@@ -1103,8 +1151,8 @@ msgid "Invalid OAuth callback (missing code or state). Please try again."
 msgstr "Callback OAuth no válido (falta code o state). Inténtalo de nuevo."
 
 msgid ""
-"Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again,"
-" then use “Sign in with Tesla”."
+"Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again, "
+"then use “Sign in with Tesla”."
 msgstr ""
 "Callback OAuth no válido (state desconocido o caducado). Vuelve a entrar en "
 "MaTesla y usa «Iniciar sesión con Tesla»."
@@ -1117,8 +1165,7 @@ msgstr "Conectado a Tesla, pero no se encontraron vehículos en la cuenta."
 
 #, python-format
 msgid "Tesla connected — %(count)s vehicle(s): %(names)s. Active: %(label)s."
-msgstr ""
-"Tesla conectado — %(count)s vehículo(s): %(names)s. Activo: %(label)s."
+msgstr "Tesla conectado — %(count)s vehículo(s): %(names)s. Activo: %(label)s."
 
 #, python-format
 msgid "Unexpected error: %(err)s"
@@ -1146,8 +1193,78 @@ msgid "Norsk"
 msgstr "Norsk"
 
 msgid "Write operations are only allowed from the local server."
+msgstr "Las operaciones de escritura solo se permiten desde el servidor local."
+
+msgid "Day / night — details"
+msgstr "Día / noche — detalles"
+
+#, python-format
+msgid "spot + %(n)s ¢"
+msgstr "spot + %(n)s ¢"
+
+msgid "No price yet"
+msgstr "Aún no hay precio"
+
+msgid "Choose a vehicle."
+msgstr "Elija un vehículo."
+
+msgid "Unknown place."
+msgstr "Lugar desconocido."
+
+msgid "Place"
+msgstr "Lugar"
+
+msgid "Home / work assignment saved."
+msgstr "Asignación casa / trabajo guardada."
+
+msgid "Place saved."
+msgstr "Lugar guardado."
+
+msgid "Rates saved."
+msgstr "Tarifas guardadas."
+
+msgid "Name, latitude and longitude are required."
+msgstr "El nombre, la latitud y la longitud son obligatorios."
+
+msgid "Place deleted."
+msgstr "Lugar eliminado."
+
+msgid "Unknown tariff period."
+msgstr "Periodo tarifario desconocido."
+
+#, python-format
+msgid ""
+"Tariff saved. Day-ahead prices: %(ok)s day(s) fetched, %(skipped)s already "
+"cached, %(failed)s failed."
 msgstr ""
-"Las operaciones de escritura solo se permiten desde el servidor local."
+"Tarifa guardada. Precios day-ahead: %(ok)s día(s) obtenidos, %(skipped)s ya "
+"en caché, %(failed)s fallidos."
+
+#, python-format
+msgid ""
+"Price history is long; %(n)s older day(s) were not fetched. Save again to "
+"continue."
+msgstr ""
+"El historial es largo; no se obtuvieron %(n)s día(s) más antiguos. Guarde de "
+"nuevo para continuar."
+
+msgid "Tariff saved."
+msgstr "Tarifa guardada."
+
+msgid "Tariff period deleted."
+msgstr "Periodo tarifario eliminado."
+
+msgid "Start date is required."
+msgstr "La fecha de inicio es obligatoria."
+
+msgid "Unknown assignment."
+msgstr "Asignación desconocida."
+
+msgid "Assignment deleted."
+msgstr "Asignación eliminada."
+
+msgid "Unknown action."
+msgstr "Acción desconocida."
 
 msgid "All DC sessions"
 msgstr "Todas las sesiones DC"
@@ -1161,7 +1278,6 @@ msgstr "Mín / máx"
 msgid "P10–P90 band"
 msgstr "Banda P10–P90"
 
-#| msgid "Battery degradation (%)"
 msgid "Rated range (after degradation)"
 msgstr "Autonomía EPA / rated (tras degradación)"
 
@@ -1171,8 +1287,7 @@ msgstr "Autonomía según tu consumo"
 msgid "Software timeline"
 msgstr "Cronología de software"
 
-msgid ""
-"All firmware versions detected on your vehicle, in chronological order."
+msgid "All firmware versions detected on your vehicle, in chronological order."
 msgstr ""
 "Todas las versiones de firmware detectadas en tu vehículo, en orden "
 "cronológico."
@@ -1313,8 +1428,8 @@ msgid ""
 "Open query spacing details for the current interval, habit model, and "
 "typical week grid."
 msgstr ""
-"Abra los detalles de consulta para el intervalo actual, el modelo de hábitos"
-" y la semana típica."
+"Abra los detalles de consulta para el intervalo actual, el modelo de hábitos "
+"y la semana típica."
 
 msgid "Lifetime map"
 msgstr "Mapa lifetime"
@@ -1394,6 +1509,253 @@ msgstr ""
 "Comprende la evolución de tu coche a través de batería, carga, clima y "
 "conducción."
 
+msgid "Energy"
+msgstr "Energía"
+
+msgid ""
+"Estimated electricity cost per charge session. Overnight sessions show the "
+"full session total on the start day."
+msgstr ""
+"Coste eléctrico estimado por sesión de carga. Las cargas que cruzan "
+"medianoche muestran el total el día de inicio."
+
+msgid "Configure rates"
+msgstr "Configurar tarifas"
+
+msgid "Month"
+msgstr "Mes"
+
+msgid "Year"
+msgstr "Año"
+
+msgid "Show"
+msgstr "Mostrar"
+
+msgid "Whole year"
+msgstr "Año completo"
+
+msgid "This month"
+msgstr "Este mes"
+
+msgid "kWh priced"
+msgstr "kWh con precio"
+
+msgid "kWh unpriced"
+msgstr "kWh sin precio"
+
+msgid "Share priced"
+msgstr "Porcentaje con precio"
+
+msgid "Date"
+msgstr "Fecha"
+
+msgid "Start"
+msgstr "Inicio"
+
+msgid "End"
+msgstr "Fin"
+
+msgid "Duration"
+msgstr "Duración"
+
+msgid "kWh"
+msgstr "kWh"
+
+msgid "Rule"
+msgstr "Regla"
+
+msgid "Cost"
+msgstr "Coste"
+
+msgid "session total"
+msgstr "total de la sesión"
+
+msgid "What charging cost this period, by place."
+msgstr "Coste de las cargas del periodo, por lugar."
+
+msgid "Largest places"
+msgstr "Lugares principales"
+
+msgid "The rest"
+msgstr "El resto"
+
+msgid "Everything"
+msgstr "Todo"
+
+msgid "Time"
+msgstr "Hora"
+
+msgid "Where"
+msgstr "Lugar"
+
+msgid "No charge sessions in this period."
+msgstr "No hay sesiones de carga en este periodo."
+
+msgid "Charge rates"
+msgstr "Tarifas de carga"
+
+msgid ""
+"Largest charge locations for this car. Tag home, work, or another named "
+"place — then set a tariff."
+msgstr ""
+"Mayores lugares de carga de este coche. Marca casa, trabajo u otro lugar con "
+"nombre y luego define una tarifa."
+
+msgid "Back to charges"
+msgstr "Volver a las cargas"
+
+msgid "Default rates"
+msgstr "Tarifas por defecto"
+
+msgid "Used when a charge is not at a named home or work place."
+msgstr "Se usa cuando una carga no está en un lugar casa o trabajo nombrado."
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Charge locations"
+msgstr "Lugares de carga"
+
+#, python-format
+msgid "%(n)s location found, largest first."
+msgid_plural "%(n)s locations found, largest first."
+msgstr[0] "%(n)s lugar encontrado, los más frecuentes primero."
+msgstr[1] "%(n)s lugares encontrados, los más frecuentes primero."
+
+msgid "Name the ones you care about (home, work, family, campsite…)."
+msgstr "Nombra los que te importan (casa, trabajo, familia, camping…)."
+
+msgid "Filter (Ciotat, camping, parents…)"
+msgstr "Filtrar (Ciotat, camping, padres…)"
+
+#, python-format
+msgid "%(n)s sample"
+msgid_plural "%(n)s samples"
+msgstr[0] "%(n)s muestra"
+msgstr[1] "%(n)s muestras"
+
+msgid "Other"
+msgstr "Otro"
+
+msgid "Name"
+msgstr "Nombre"
+
+msgid "e.g. Parents, Geneviève, campsite"
+msgstr "p. ej. Padres, Geneviève, camping"
+
+msgid "€/kWh"
+msgstr "€/kWh"
+
+msgid "Price for this place. 0 is allowed (e.g. work)."
+msgstr "Precio de este lugar. 0 está permitido (p. ej. trabajo)."
+
+msgid "From"
+msgstr "Desde"
+
+msgid "To (empty = no end)"
+msgstr "Hasta (vacío = sin fin)"
+
+msgid "Leave empty if this is still the place (no end date)."
+msgstr "Déjalo vacío si no hay fecha de fin (sigue vigente)."
+
+msgid "Show more"
+msgstr "Ver más"
+
+msgid "No charge GPS for this vehicle yet."
+msgstr "Aún no hay GPS de carga para este vehículo."
+
+msgid "Tagged places"
+msgstr "Lugares marcados"
+
+msgid ""
+"Simple price is on the list above (0 is allowed). Details (day/night, "
+"dynamic, extra periods) open in a popup."
+msgstr "El precio simple está en la lista de arriba (0 está permitido). Los detalles (día/noche, dinámico, periodos) se abren en una ventana."
+
+msgid "Details"
+msgstr "Detalles"
+
+msgid "Delete this place and its tariffs?"
+msgstr "¿Eliminar este lugar y sus tarifas?"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Mode"
+msgstr "Modo"
+
+msgid "Day"
+msgstr "Día"
+
+msgid "Night"
+msgstr "Noche"
+
+msgid "Night from"
+msgstr "Noche desde"
+
+msgid "Night until"
+msgstr "Noche hasta"
+
+msgid "Cents on spot"
+msgstr "Céntimos sobre el spot"
+
+msgid "Delete period"
+msgstr "Eliminar periodo"
+
+msgid "Set €/kWh on the list above, or add a period here."
+msgstr "Pon €/kWh en la lista de arriba, o añade un periodo aquí."
+
+msgid "Add period"
+msgstr "Añadir periodo"
+
+msgid "This car from"
+msgstr "Este coche desde"
+
+msgid "This car until (empty = still)"
+msgstr "Este coche hasta (vacío = sigue)"
+
+msgid "Rates"
+msgstr "Tarifas"
+
+msgid "Electricity rates for this place. The last one stays in force until you add another."
+msgstr "Tarifas eléctricas de este lugar. La última sigue vigente hasta que añada otra."
+
+msgid "No rate from %(start)s to %(end)s."
+msgstr "Sin tarifa del %(start)s al %(end)s."
+
+msgid "Fill this gap"
+msgstr "Cubrir este hueco"
+
+msgid "still in force"
+msgstr "sigue vigente"
+
+msgid "From the start"
+msgstr "Desde el principio"
+
+msgid "Until (empty = still in force)"
+msgstr "Hasta (vacío = sigue vigente)"
+
+msgid "Nothing after the last end date. Add a rate that continues."
+msgstr "Nada después de la última fecha de fin. Añada una tarifa que continúe."
+
+msgid "Add this rate"
+msgstr "Añadir esta tarifa"
+
+msgid "Done"
+msgstr "Listo"
+
+msgid "Enter €/kWh below. 0 is allowed."
+msgstr "Introduzca €/kWh abajo. 0 está permitido."
+
+msgid "Dates (optional)"
+msgstr "Fechas (opcional)"
+
+msgid "Enter a price. 0 is allowed."
+msgstr "Introduzca un precio. 0 está permitido."
+
+msgid "Home and work per vehicle"
+msgstr "Casa y trabajo por vehículo"
+
 msgid "Journey replay"
 msgstr "Repetición del trayecto"
 
@@ -1405,9 +1767,6 @@ msgstr "trayectos, cargas y puntos GPS"
 
 msgid "Previous day"
 msgstr "Día anterior"
-
-msgid "Date"
-msgstr "Fecha"
 
 msgid "Pick a date"
 msgstr "Elegir una fecha"
@@ -1431,18 +1790,6 @@ msgstr "%(n)s dibujados en el mapa"
 msgid "Track"
 msgstr "Recorrido"
 
-msgid "Charges"
-msgstr "Cargas"
-
-msgid "Start"
-msgstr "Inicio"
-
-msgid "End"
-msgstr "Fin"
-
-msgid "Duration"
-msgstr "Duración"
-
 msgid "Distance"
 msgstr "Distancia"
 
@@ -1462,9 +1809,9 @@ msgid ""
 "SoC drop not explained by drives (park climate, dog/camp, sentry, "
 "preconditioning, vampire drain), after accounting for charges"
 msgstr ""
-"Caída de SoC no explicada por los trayectos (clima en estacionamiento, "
-"dog/camp, sentry, preacondicionamiento, drenaje vampiro), después de tener "
-"en cuenta las cargas"
+"Caída de SoC no explicada por los trayectos (clima en estacionamiento, dog/"
+"camp, sentry, preacondicionamiento, drenaje vampiro), después de tener en "
+"cuenta las cargas"
 
 msgid "SoC outside driving"
 msgstr "SoC fuera de conducción"
@@ -1545,8 +1892,8 @@ msgid ""
 "Two separate images — open PNG to save or print one curve. Press Esc or "
 "click outside to close."
 msgstr ""
-"Dos imágenes separadas: abre el PNG para guardar o imprimir una curva. Esc o"
-" clic fuera para cerrar."
+"Dos imágenes separadas: abre el PNG para guardar o imprimir una curva. Esc o "
+"clic fuera para cerrar."
 
 msgid "Supercharger"
 msgstr "Supercharger"
@@ -1563,11 +1910,13 @@ msgstr "Aplicar"
 #, python-format
 msgid ""
 "\n"
-"    DC Supercharging profiles for this vehicle. Filter: %(filter)s. Envelope: %(envelope)s.\n"
+"    DC Supercharging profiles for this vehicle. Filter: %(filter)s. "
+"Envelope: %(envelope)s.\n"
 "    "
 msgstr ""
 "\n"
-"    Perfiles de Supercharge DC para este vehículo. Filtro: %(filter)s. Envolvente: %(envelope)s.\n"
+"    Perfiles de Supercharge DC para este vehículo. Filtro: %(filter)s. "
+"Envolvente: %(envelope)s.\n"
 "    "
 
 msgid "DC sessions kept"
@@ -1615,62 +1964,68 @@ msgstr ""
 msgid "DC charge SoC versus time by start SoC"
 msgstr "SoC de carga DC frente al tiempo según SoC de inicio"
 
-#| msgid "DC charge: SoC vs time by start SoC"
 msgid "Driving range vs time by start SoC"
 msgstr "Autonomía (consumo) vs tiempo según SoC inicial"
 
-#| msgid "SoC vs time by start SoC"
 msgid "Rated range vs time by start SoC"
 msgstr "Autonomía rated vs tiempo según SoC inicial"
 
-#| msgid "DC charge SoC versus time by start SoC"
 msgid "DC charge driving range versus time by start SoC"
 msgstr "Carga DC: autonomía (consumo) frente al tiempo según SoC inicial"
 
-#| msgid "DC charge SoC versus time by start SoC"
 msgid "DC charge rated range versus time by start SoC"
 msgstr "Carga DC: autonomía rated frente al tiempo según SoC inicial"
 
-#| msgid "03 · USAGE"
 msgid "03 · RANGE"
 msgstr "03 · AUTONOMÍA"
 
-#| msgid "Range"
 msgid "Range scale"
 msgstr "Escala de autonomía"
 
 msgid ""
 "\n"
-"            Same start-SoC curves as above, scaled to estimated driving range using your\n"
-"            seasonal consumption (same season last year when possible; Supercharger approach\n"
-"            legs excluded because battery preconditioning inflates kWh/100). Best for comparing cars.\n"
+"            Same start-SoC curves as above, scaled to estimated driving "
+"range using your\n"
+"            seasonal consumption (same season last year when possible; "
+"Supercharger approach\n"
+"            legs excluded because battery preconditioning inflates kWh/100). "
+"Best for comparing cars.\n"
 "            "
 msgstr ""
 "\n"
-"            Las mismas curvas según SoC inicial, escaladas a autonomía de conducción estimada\n"
-"            con tu consumo estacional (misma temporada del año pasado si es posible; se excluyen\n"
-"            las aproximaciones a Supercharger porque el preacondicionado infla el kWh/100). Ideal para comparar coches.\n"
+"            Las mismas curvas según SoC inicial, escaladas a autonomía de "
+"conducción estimada\n"
+"            con tu consumo estacional (misma temporada del año pasado si es "
+"posible; se excluyen\n"
+"            las aproximaciones a Supercharger porque el preacondicionado "
+"infla el kWh/100). Ideal para comparar coches.\n"
 "            "
 
 msgid ""
 "\n"
-"            Same start-SoC curves, scaled to Tesla rated range after battery degradation\n"
-"            (implied full-charge range). Comparable across cars without your driving style.\n"
+"            Same start-SoC curves, scaled to Tesla rated range after battery "
+"degradation\n"
+"            (implied full-charge range). Comparable across cars without your "
+"driving style.\n"
 "            "
 msgstr ""
 "\n"
-"            Las mismas curvas según SoC inicial, escaladas a la autonomía rated de Tesla tras\n"
-"            la degradación de la batería (autonomía a plena carga implícita). Comparable entre coches sin tu estilo de conducción.\n"
+"            Las mismas curvas según SoC inicial, escaladas a la autonomía "
+"rated de Tesla tras\n"
+"            la degradación de la batería (autonomía a plena carga "
+"implícita). Comparable entre coches sin tu estilo de conducción.\n"
 "            "
 
 #, python-format
 msgid ""
 "\n"
-"            Consumption ≈ %(conso)s %(unit)s · %(src)s · %(start)s → %(end)s · %(km)s %(dist)s (excluding Supercharger approaches).\n"
+"            Consumption ≈ %(conso)s %(unit)s · %(src)s · %(start)s → %(end)s "
+"· %(km)s %(dist)s (excluding Supercharger approaches).\n"
 "            "
 msgstr ""
 "\n"
-"            Consumo ≈ %(conso)s %(unit)s · %(src)s · %(start)s → %(end)s · %(km)s %(dist)s (sin aproximaciones a Supercharger).\n"
+"            Consumo ≈ %(conso)s %(unit)s · %(src)s · %(start)s → %(end)s · "
+"%(km)s %(dist)s (sin aproximaciones a Supercharger).\n"
 "            "
 
 msgid "Min / max samples → day map"
@@ -1678,12 +2033,14 @@ msgstr "Muestras mín / máx → mapa del día"
 
 msgid ""
 "\n"
-"        Each edge of the min–max envelope is one real sample. Open the day map for that day\n"
+"        Each edge of the min–max envelope is one real sample. Open the day "
+"map for that day\n"
 "        to see the full charge (and what else the car was doing).\n"
 "        "
 msgstr ""
 "\n"
-"        Cada borde de la envolvente mín–máx es una muestra real. Abre el mapa del día\n"
+"        Cada borde de la envolvente mín–máx es una muestra real. Abre el "
+"mapa del día\n"
 "        para ver toda la carga (y el resto del día).\n"
 "        "
 
@@ -1698,8 +2055,8 @@ msgstr "Potencia"
 
 msgid "Rated range added per hour at this power (EPA energy intensity)"
 msgstr ""
-"Autonomía homologada añadida por hora a esta potencia (intensidad energética"
-" EPA)"
+"Autonomía homologada añadida por hora a esta potencia (intensidad energética "
+"EPA)"
 
 #, python-format
 msgid "EPA %(u)s"
@@ -1725,44 +2082,43 @@ msgid "Open day map for this charge day"
 msgstr "Abrir el mapa del día de esta carga"
 
 #, python-format
-#| msgid ""
-#| "\n"
-#| "        Range rates convert power to %(rate)s using EPA ≈ %(epa)s %(unit)s and your\n"
-#| "        recent driving average ≈ %(real)s %(unit)s (distance-weighted).\n"
-#| "        "
 msgid ""
 "\n"
-"        Range rates convert power to %(rate)s using EPA ≈ %(epa)s %(unit)s and your\n"
-"        seasonal driving average ≈ %(real)s %(unit)s (distance-weighted, Supercharger approaches excluded).\n"
+"        Range rates convert power to %(rate)s using EPA ≈ %(epa)s %(unit)s "
+"and your\n"
+"        seasonal driving average ≈ %(real)s %(unit)s (distance-weighted, "
+"Supercharger approaches excluded).\n"
 "        "
 msgstr ""
 "\n"
-"        Las tasas de autonomía convierten la potencia en %(rate)s con EPA ≈ %(epa)s %(unit)s y tu\n"
-"        media estacional ≈ %(real)s %(unit)s (ponderada por distancia, sin aproximaciones a Supercharger).\n"
+"        Las tasas de autonomía convierten la potencia en %(rate)s con EPA ≈ "
+"%(epa)s %(unit)s y tu\n"
+"        media estacional ≈ %(real)s %(unit)s (ponderada por distancia, sin "
+"aproximaciones a Supercharger).\n"
 "        "
 
 #, python-format
 msgid ""
 "\n"
-"        Range rates use EPA ≈ %(epa)s %(unit)s. Real %(rate)s needs more driving data.\n"
+"        Range rates use EPA ≈ %(epa)s %(unit)s. Real %(rate)s needs more "
+"driving data.\n"
 "        "
 msgstr ""
 "\n"
-"        Las tasas de autonomía usan EPA ≈ %(epa)s %(unit)s. Los %(rate)s reales necesitan más datos de conducción.\n"
+"        Las tasas de autonomía usan EPA ≈ %(epa)s %(unit)s. Los %(rate)s "
+"reales necesitan más datos de conducción.\n"
 "        "
 
 #, python-format
-#| msgid ""
-#| "\n"
-#| "        Real range rates use your driving average ≈ %(real)s %(unit)s. EPA %(rate)s needs a catalog range.\n"
-#| "        "
 msgid ""
 "\n"
-"        Real range rates use your seasonal driving average ≈ %(real)s %(unit)s. EPA %(rate)s needs a catalog range.\n"
+"        Real range rates use your seasonal driving average ≈ %(real)s "
+"%(unit)s. EPA %(rate)s needs a catalog range.\n"
 "        "
 msgstr ""
 "\n"
-"        Las tasas reales usan tu media estacional ≈ %(real)s %(unit)s. El %(rate)s EPA necesita una autonomía de catálogo.\n"
+"        Las tasas reales usan tu media estacional ≈ %(real)s %(unit)s. El "
+"%(rate)s EPA necesita una autonomía de catálogo.\n"
 "        "
 
 msgid ""
@@ -1774,20 +2130,30 @@ msgstr ""
 
 msgid ""
 "\n"
-"    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast charger) are used —\n"
-"    home AC and destination charging are excluded. The rising power edge after plug-in is\n"
-"    dropped by cutting samples before the first peak of each session (whether that peak is at\n"
-"    10 s or 2 min) so the curve and min/max measure the real profile, not a fixed time window.\n"
-"    Robust filter further drops sessions with unusually low peak power (typical of V2 stall\n"
-"    sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls are not separated: the car caps\n"
+"    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast "
+"charger) are used —\n"
+"    home AC and destination charging are excluded. The rising power edge "
+"after plug-in is\n"
+"    dropped by cutting samples before the first peak of each session "
+"(whether that peak is at\n"
+"    10 s or 2 min) so the curve and min/max measure the real profile, not a "
+"fixed time window.\n"
+"    Robust filter further drops sessions with unusually low peak power "
+"(typical of V2 stall\n"
+"    sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls are not "
+"separated: the car caps\n"
 "    at its max power either way.\n"
 "    "
 msgstr ""
 "\n"
-"    Solo se usan sesiones Supercharge / CCS (pico ≥ ~40 kW, o cargador rápido marcado) —\n"
-"    se excluye AC en casa y destination. Los ~2 primeros minutos de cada sesión (y muestras\n"
-"    aún muy por debajo del pico de esa sesión) se omiten para no bajar la curva con el ramp-up\n"
-"    del Supercharger. El filtro robusto además quita picos bajos (V2 compartido) y arranques fríos.\n"
+"    Solo se usan sesiones Supercharge / CCS (pico ≥ ~40 kW, o cargador "
+"rápido marcado) —\n"
+"    se excluye AC en casa y destination. Los ~2 primeros minutos de cada "
+"sesión (y muestras\n"
+"    aún muy por debajo del pico de esa sesión) se omiten para no bajar la "
+"curva con el ramp-up\n"
+"    del Supercharger. El filtro robusto además quita picos bajos (V2 "
+"compartido) y arranques fríos.\n"
 "    V3 y V4 no se separan: el coche limita a su potencia máxima.\n"
 "    "
 
@@ -1807,9 +2173,6 @@ msgstr "Filtros de viajes"
 
 msgid "Rank by"
 msgstr "Ordenar por"
-
-msgid "Show"
-msgstr "Mostrar"
 
 #, python-format
 msgid "%(counter)s trip"
@@ -1859,7 +2222,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Espaciado adaptativo de la API Fleet para %(name)s · hora local %(when)s\n"
+"            Espaciado adaptativo de la API Fleet para %(name)s · hora local "
+"%(when)s\n"
 "            "
 
 msgid "Back to my data"
@@ -1917,25 +2281,33 @@ msgid "Due now"
 msgstr "Debido ahora"
 
 msgid ""
-"No vehicle row in the account list for this VIN, so list state and last poll"
-" time are unknown. Habit history below still uses telemetry snapshots when "
+"No vehicle row in the account list for this VIN, so list state and last poll "
+"time are unknown. Habit history below still uses telemetry snapshots when "
 "available."
 msgstr ""
 "No hay fila de vehículo en la lista de la cuenta para este VIN, así que el "
-"estado de lista y el último sondeo son desconocidos. El historial de hábitos"
-" de abajo sigue usando snapshots de telemetría si existen."
+"estado de lista y el último sondeo son desconocidos. El historial de hábitos "
+"de abajo sigue usando snapshots de telemetría si existen."
 
 #, python-format
 msgid ""
 "\n"
-"        The model searches at most the last %(max_days)s days. Training uses only weeks\n"
-"        *before* the last %(recent)s days (regime check). Need ≥ %(min_ref)s such\n"
-"        reference weeks. “Weeks with samples” counts distinct calendar weeks that have\n"
-"        any telemetry in the search window — not the length of continuous data capture.\n"
+"        The model searches at most the last %(max_days)s days. Training uses "
+"only weeks\n"
+"        *before* the last %(recent)s days (regime check). Need ≥ %(min_ref)s "
+"such\n"
+"        reference weeks. “Weeks with samples” counts distinct calendar weeks "
+"that have\n"
+"        any telemetry in the search window — not the length of continuous "
+"data capture.\n"
 "        "
 msgstr ""
 "\n"
-"        El modelo busca como máximo los últimos %(max_days)s días. El entrenamiento solo usa semanas *antes* de los últimos %(recent)s días (control de régimen). Se necesitan ≥ %(min_ref)s semanas de referencia. «Semanas con muestras» cuenta semanas civiles distintas con telemetría en la ventana, no la duración de la captura continua de datos.\n"
+"        El modelo busca como máximo los últimos %(max_days)s días. El "
+"entrenamiento solo usa semanas *antes* de los últimos %(recent)s días "
+"(control de régimen). Se necesitan ≥ %(min_ref)s semanas de referencia. "
+"«Semanas con muestras» cuenta semanas civiles distintas con telemetría en la "
+"ventana, no la duración de la captura continua de datos.\n"
 "        "
 
 msgid "Trusted"
@@ -1988,8 +2360,8 @@ msgid ""
 msgstr ""
 "Hora local del hogar (Europa/Bruselas). Cuando el modelo es fiable, cada "
 "celda es ocupada (5 min), cerca de activo (10 min, ±1 h alrededor de "
-"ocupado), moderada o tranquila (sin huecos de valor por defecto). Las celdas"
-" sin color solo aparecen si los hábitos están inactivos."
+"ocupado), moderada o tranquila (sin huecos de valor por defecto). Las celdas "
+"sin color solo aparecen si los hábitos están inactivos."
 
 msgid "Hour"
 msgstr "Hora"
@@ -2100,22 +2472,27 @@ msgstr "Coste estimado (EUR)"
 msgid "Estimated cost (USD)"
 msgstr "Coste estimado (USD)"
 
-msgid "Day"
-msgstr "Día"
-
 msgid "Data requests"
 msgstr "Peticiones Data"
 
 #, python-format
 msgid ""
-"n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car ·"
-" from request log · max %(days)s days"
+"n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car · "
+"from request log · max %(days)s days"
 msgstr ""
 "n=%(n)s vehicle_data facturables · est. %(money)s (@ %(rate)s/req) · este "
 "coche · registro de peticiones · máx. %(days)s días"
 
 msgid "No logged vehicle_data calls in this period"
 msgstr "No hay llamadas vehicle_data registradas en este período"
+
+#, python-format
+msgid "Latest reading: %(dist)s"
+msgstr "Última lectura: %(dist)s"
+
+#, python-format
+msgid "Latest reading: %(dist)s · %(date)s"
+msgstr "Última lectura: %(dist)s · %(date)s"
 
 msgid "Minimum"
 msgstr "Mínimo"
@@ -2125,14 +2502,6 @@ msgstr "Media"
 
 msgid "Maximum"
 msgstr "Máximo"
-
-#, python-format
-msgid "Latest reading: %(dist)s · %(date)s"
-msgstr "Última lectura: %(dist)s · %(date)s"
-
-#, python-format
-msgid "Latest reading: %(dist)s"
-msgstr "Última lectura: %(dist)s"
 
 msgid "Monthly range (min–max)"
 msgstr "Rango mensual (mín–máx)"
@@ -2270,22 +2639,22 @@ msgstr "%(n)s km"
 #, python-format
 msgid ""
 "The last trip was not recorded — it was likely too short for the capture "
-"interval (about %(dist)s between the last logged arrival and the car's final"
-" position)."
+"interval (about %(dist)s between the last logged arrival and the car's final "
+"position)."
 msgstr ""
-"El último trayecto no se registró: probablemente fue demasiado corto para el"
-" intervalo de captura (unos %(dist)s entre la última llegada registrada y la"
-" posición final del coche)."
+"El último trayecto no se registró: probablemente fue demasiado corto para el "
+"intervalo de captura (unos %(dist)s entre la última llegada registrada y la "
+"posición final del coche)."
 
 #, python-format
 msgid ""
 "The last trip was not recorded — missing telemetry between the last logged "
-"arrival and the car's final position (about %(dist)s). This can happen after"
-" a capture gap or a technical issue."
+"arrival and the car's final position (about %(dist)s). This can happen after "
+"a capture gap or a technical issue."
 msgstr ""
 "El último trayecto no se registró: falta telemetría entre la última llegada "
-"registrada y la posición final del coche (unos %(dist)s). Puede deberse a un"
-" hueco de captura o a un problema técnico."
+"registrada y la posición final del coche (unos %(dist)s). Puede deberse a un "
+"hueco de captura o a un problema técnico."
 
 #, python-format
 msgid "%(h)s h %(m)s min"
@@ -2337,7 +2706,6 @@ msgstr "misma temporada hace dos años"
 msgid "last three months (short history)"
 msgstr "últimos tres meses (historial corto)"
 
-#| msgid "Time driving"
 msgid "recent driving"
 msgstr "conducción reciente"
 
@@ -2369,12 +2737,10 @@ msgstr "Inicio %(start)s%% · n=%(n)s"
 msgid "Minutes since charge start"
 msgstr "Minutos desde el inicio de la carga"
 
-#| msgid "Not enough DC sessions for start-SoC curves"
 msgid "Not enough data for range-vs-time curves"
 msgstr "No hay suficientes datos para las curvas de autonomía vs tiempo"
 
 #, python-format
-#| msgid "Estimated battery range (%(u)s)"
 msgid "Estimated range (%(u)s)"
 msgstr "Autonomía estimada (%(u)s)"
 
@@ -2395,7 +2761,6 @@ msgstr "Potencia de carga DC vs SoC de batería"
 msgid "DC charge: SoC vs time by start SoC"
 msgstr "Carga DC: SoC vs tiempo según SoC de inicio"
 
-#| msgid "Charge related graphs"
 msgid "DC charge: rated range vs time"
 msgstr "Carga DC: autonomía rated vs tiempo"
 
@@ -2440,8 +2805,8 @@ msgid ""
 "Choose kilometres or miles for distances, speeds and consumption across the "
 "site"
 msgstr ""
-"Elige kilómetros o millas para distancias, velocidades y consumos en todo el"
-" sitio"
+"Elige kilómetros o millas para distancias, velocidades y consumos en todo el "
+"sitio"
 
 msgid "Units"
 msgstr "Unidades"
@@ -2474,8 +2839,8 @@ msgid ""
 "updates are also available."
 msgstr ""
 "MaTesla es un sitio web libre en Python/Django que usa la API de Tesla para "
-"conectar con tu coche, ver su estado y ubicación, y controlar a distancia la"
-" carga, la temperatura, etc. También hay estadísticas de actualizaciones de "
+"conectar con tu coche, ver su estado y ubicación, y controlar a distancia la "
+"carga, la temperatura, etc. También hay estadísticas de actualizaciones de "
 "firmware."
 
 msgid "Open source · your telemetry stays under your control"
@@ -2552,8 +2917,8 @@ msgid ""
 "The password reset link was invalid, possibly because it has already been "
 "used. Please request a new password reset."
 msgstr ""
-"El enlace de restablecimiento no es válido, quizá porque ya se usó. Solicita"
-" uno nuevo."
+"El enlace de restablecimiento no es válido, quizá porque ya se usó. Solicita "
+"uno nuevo."
 
 msgid "Password reset"
 msgstr "Restablecer contraseña"
@@ -2607,3 +2972,54 @@ msgstr ""
 
 msgid "Send e-mail"
 msgstr "Enviar correo"
+
+#~ msgid "Day / night — edit below for night rate"
+#~ msgstr "Día / noche — la tarifa noche se edita abajo"
+
+#~ msgid "Tariffs on tagged places"
+#~ msgstr "Tarifas de los lugares marcados"
+
+#~ msgid ""
+#~ "Flat, day/night or dynamic (cents on the day-ahead spot). Saving a "
+#~ "dynamic period fetches Elia prices for that range."
+#~ msgstr ""
+#~ "Fija, día/noche o dinámica (céntimos sobre el spot day-ahead). Guardar un "
+#~ "periodo dinámico obtiene los precios Elia de ese rango."
+
+#~ msgid "Delete place"
+#~ msgstr "Eliminar lugar"
+
+#~ msgid "To"
+#~ msgstr "Hasta"
+
+#~ msgid ""
+#~ "Places, home/work periods and prices. Nothing is assumed: you enter every "
+#~ "location and tariff."
+#~ msgstr ""
+#~ "Lugares, periodos casa/trabajo y precios. Nada se supone: introduce cada "
+#~ "lugar y tarifa."
+
+#~ msgid "Places"
+#~ msgstr "Lugares"
+
+#~ msgid ""
+#~ "A geofence you name (home, work, or anything else). Radius default is 150 "
+#~ "m."
+#~ msgstr ""
+#~ "Una geovalla que nombra (casa, trabajo u otro). Radio por defecto: 150 m."
+
+#~ msgid "Radius (m)"
+#~ msgstr "Radio (m)"
+
+#~ msgid ""
+#~ "Which car treats which place as home or work, and when. Same GPS can move "
+#~ "from one car to another on a date you set."
+#~ msgstr ""
+#~ "Qué coche trata qué lugar como casa o trabajo, y cuándo. El mismo GPS "
+#~ "puede pasar de un coche a otro en la fecha que indique."
+
+#~ msgid "Role"
+#~ msgstr "Rol"
+
+#~ msgid "Add assignment"
+#~ msgstr "Añadir asignación"

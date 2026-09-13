@@ -189,6 +189,7 @@ READONLY_ALLOWED_URL_NAMES = [
     "PersoStatsBatteryDegradationGraph",
     "PersoStatsFirmwareHistory",
     "PersoStatsFirmwareHistoryCSV",
+    "PersoChargeCosts",
     "StatsOnCarGraph",
     "AllMyDataAsCSV",
 ]

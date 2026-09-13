@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-15 08:12+0000\n"
+"POT-Creation-Date: 2026-09-12 19:28+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: MaTesla i18n <noreply@matesla.local>\n"
 "Language-Team: Norsk <LL@li.org>\n"
@@ -24,8 +24,7 @@ msgstr "Nødvendig for å kunne tilbakestille passordet hvis du glemmer det"
 msgid "Sign up"
 msgstr "Registrer deg"
 
-msgid ""
-"Create your private space, then link your Tesla account in a few steps."
+msgid "Create your private space, then link your Tesla account in a few steps."
 msgstr ""
 "Opprett ditt private område, og koble deretter Tesla-kontoen din i noen få "
 "trinn."
@@ -38,8 +37,7 @@ msgstr "Logg inn"
 
 #, python-format
 msgid "Partner public key must be served over HTTPS (got %(scheme)s)."
-msgstr ""
-"Partnerens offentlige nøkkel må serveres over HTTPS (fikk %(scheme)s)."
+msgstr "Partnerens offentlige nøkkel må serveres over HTTPS (fikk %(scheme)s)."
 
 msgid "Could not read a host from that URL."
 msgstr "Kunne ikke lese en vert fra den URL-en."
@@ -54,8 +52,7 @@ msgstr ""
 "ikke på en vilkårlig sti. Host PEM-filen der (enhver HTTPS-server fungerer: "
 "nginx, S3, Cloudflare, GitHub Pages, …)."
 
-msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
+msgid "Tesla rejects localhost as a partner domain. Use a public HTTPS domain."
 msgstr ""
 "Tesla avviser localhost som partnerdomene. Bruk et offentlig HTTPS-domene."
 
@@ -94,11 +91,11 @@ msgid "Missing app settings."
 msgstr "App-innstillinger mangler."
 
 msgid ""
-"Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g."
-" robotcar.example.com)."
+"Tesla rejects localhost as a partner domain. Use a public HTTPS domain (e.g. "
+"robotcar.example.com)."
 msgstr ""
-"Tesla avviser localhost som partnerdomene. Bruk et offentlig HTTPS-domene "
-"(f.eks. robotcar.example.com)."
+"Tesla avviser localhost som partnerdomene. Bruk et offentlig HTTPS-domene (f."
+"eks. robotcar.example.com)."
 
 #, python-format
 msgid "Public key not reachable by Tesla before register: %(msg)s"
@@ -121,8 +118,8 @@ msgid "Fleet API region"
 msgstr "Fleet API-region"
 
 msgid ""
-"Must match the redirect URI on developer.tesla.com exactly (often "
-"http://localhost:8001/oauth/callback for a local install)."
+"Must match the redirect URI on developer.tesla.com exactly (often http://"
+"localhost:8001/oauth/callback for a local install)."
 msgstr ""
 "Må samsvare nøyaktig med omdirigerings-URI på developer.tesla.com (ofte "
 "http://localhost:8001/oauth/callback ved lokal installasjon)."
@@ -141,9 +138,9 @@ msgstr "Partnerdomene eller URL for offentlig nøkkel"
 
 msgid ""
 "Paste a domain (example.com), an origin (https://example.com), or the full "
-"public-key URL. Hosting is free choice (nginx, S3, Cloudflare, GitHub Pages,"
-" …) but Tesla always fetches /.well-known/appspecific/com.tesla.3p.public-"
-"key.pem on that host. Add the same host with https:// as Allowed Origin on "
+"public-key URL. Hosting is free choice (nginx, S3, Cloudflare, GitHub Pages, "
+"…) but Tesla always fetches /.well-known/appspecific/com.tesla.3p.public-key."
+"pem on that host. Add the same host with https:// as Allowed Origin on "
 "developer.tesla.com. Not localhost."
 msgstr ""
 "Lim inn et domene (example.com), en origin (https://example.com) eller den "
@@ -151,6 +148,57 @@ msgstr ""
 "(nginx, S3, Cloudflare, GitHub Pages, …), men Tesla henter alltid /.well-"
 "known/appspecific/com.tesla.3p.public-key.pem på den verten. Legg til samme "
 "vert med https:// som Allowed Origin på developer.tesla.com. Ikke localhost."
+
+msgid "Home"
+msgstr "Hjemme"
+
+msgid "Work"
+msgstr "Jobb"
+
+msgid "Flat"
+msgstr "Fast pris"
+
+msgid "Day / night"
+msgstr "Dag / natt"
+
+msgid "Dynamic (day-ahead + cents)"
+msgstr "Dynamisk (day-ahead + øre)"
+
+msgid "Priced"
+msgstr "Prissatt"
+
+msgid "Unpriced"
+msgstr "Uten pris"
+
+msgid "Partial"
+msgstr "Delvis"
+
+msgid "Home (flat)"
+msgstr "Hjemme (fast pris)"
+
+msgid "Home (day / night)"
+msgstr "Hjemme (dag / natt)"
+
+msgid "Home (dynamic)"
+msgstr "Hjemme (dynamisk)"
+
+msgid "Named place"
+msgstr "Navngitt sted"
+
+msgid "Tesla Supercharger invoice"
+msgstr "Tesla Supercharger-faktura"
+
+msgid "Supercharger average rate"
+msgstr "Supercharger gjennomsnittspris"
+
+msgid "Other chargers"
+msgstr "Andre ladere"
+
+msgid "€/kWh for chargers that are not home, work, or a Supercharger"
+msgstr "€/kWh for ladere som ikke er hjemme, jobb eller Supercharger"
+
+msgid "€/kWh when no Tesla Supercharger invoice is available"
+msgstr "€/kWh når Tesla Supercharger-faktura mangler"
 
 msgid "Mon"
 msgstr "man"
@@ -275,8 +323,8 @@ msgstr "Ingen VIN tilgjengelig, så vanebasert avstand kan ikke kjøre."
 #, python-format
 msgid ""
 "Not enough reference weeks of telemetry before the last %(recent)s days "
-"(have %(have)s, need at least %(need)s). Capture uses only the default "
-"day/night spacing until history is long enough."
+"(have %(have)s, need at least %(need)s). Capture uses only the default day/"
+"night spacing until history is long enough."
 msgstr ""
 "Ikke nok referanseuker telemetri før de siste %(recent)s dagene (har "
 "%(have)s, trenger minst %(need)s). Capture bruker bare standard dag/natt-"
@@ -305,12 +353,12 @@ msgstr "Vanemodellen er ikke pålitelig (%(reason)s). Kun standardavstand."
 
 #, python-format
 msgid ""
-"Driving activity fell sharply: about %(recent).1f h of mobility per day over"
-" the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"Driving activity fell sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
 "weeks (often school → holidays). Habits stay off until patterns re-align."
 msgstr ""
-"Kjøreaktivitet falt kraftig: omtrent %(recent).1f timer mobilitet per dag de"
-" siste %(recent_days)s dagene, mot %(ref).1f t/dag i treningsukene (ofte "
+"Kjøreaktivitet falt kraftig: omtrent %(recent).1f timer mobilitet per dag de "
+"siste %(recent_days)s dagene, mot %(ref).1f t/dag i treningsukene (ofte "
 "skole → ferie). Vaner holdes av til mønsteret stemmer igjen."
 
 msgid ""
@@ -322,13 +370,13 @@ msgstr ""
 
 #, python-format
 msgid ""
-"Driving activity rose sharply: about %(recent).1f h of mobility per day over"
-" the last %(recent_days)s days, versus %(ref).1f h/day during the training "
+"Driving activity rose sharply: about %(recent).1f h of mobility per day over "
+"the last %(recent_days)s days, versus %(ref).1f h/day during the training "
 "weeks (often holidays → school, or a trip). Habits stay off until patterns "
 "re-align."
 msgstr ""
-"Kjøreaktivitet steg kraftig: omtrent %(recent).1f timer mobilitet per dag de"
-" siste %(recent_days)s dagene, mot %(ref).1f t/dag i treningsukene (ofte "
+"Kjøreaktivitet steg kraftig: omtrent %(recent).1f timer mobilitet per dag de "
+"siste %(recent_days)s dagene, mot %(ref).1f t/dag i treningsukene (ofte "
 "ferie → skole, eller en tur). Vaner holdes av til mønsteret stemmer igjen."
 
 msgid ""
@@ -359,8 +407,8 @@ msgid ""
 "Recent driving does not match the training weeks (regime change). Habits "
 "stay off until patterns re-align."
 msgstr ""
-"Nylig kjøring matcher ikke treningsukene (rytmeendring). Vaner holdes av til"
-" mønsteret stemmer igjen."
+"Nylig kjøring matcher ikke treningsukene (rytmeendring). Vaner holdes av til "
+"mønsteret stemmer igjen."
 
 msgid "night"
 msgstr "natt"
@@ -370,9 +418,9 @@ msgstr "dag"
 
 #, python-format
 msgid ""
-"Driving with navigation ETA %(eta)s min → query every %(minutes)s min (1 min"
-" when ETA ≤ 3 min or approaching a Supercharger; 2 min near arrival / crawl;"
-" %(mid)s min mid-trip; %(far)s min when ETA is long). Habits do not apply "
+"Driving with navigation ETA %(eta)s min → query every %(minutes)s min (1 min "
+"when ETA ≤ 3 min or approaching a Supercharger; 2 min near arrival / crawl; "
+"%(mid)s min mid-trip; %(far)s min when ETA is long). Habits do not apply "
 "while driving."
 msgstr ""
 "Kjøring med navigasjons-ETA %(eta)s min → spørring hvert %(minutes)s min (1 "
@@ -382,8 +430,8 @@ msgstr ""
 
 #, python-format
 msgid ""
-"Driving without navigation ETA → dense %(minutes)s min queries (stretch only"
-" when Tesla reports minutes-to-arrival). Habits do not apply while driving."
+"Driving without navigation ETA → dense %(minutes)s min queries (stretch only "
+"when Tesla reports minutes-to-arrival). Habits do not apply while driving."
 msgstr ""
 "Kjøring uten navigasjons-ETA → tette spørringer hvert %(minutes)s min "
 "(strekk bare når Tesla gir minutter til ankomst). Vaner gjelder ikke under "
@@ -414,8 +462,8 @@ msgid ""
 "(long-idle floor %(floor)s min also applies but habit is already as sparse "
 "or sparser.)"
 msgstr ""
-"(gulv for lang inaktivitet %(floor)s min gjelder også, men vanen er allerede"
-" like spredt eller mer.)"
+"(gulv for lang inaktivitet %(floor)s min gjelder også, men vanen er allerede "
+"like spredt eller mer.)"
 
 #, python-format
 msgid ""
@@ -438,8 +486,8 @@ msgid ""
 "Idle/asleep policy: no habit for this weekday+hour → %(day_or_night)s "
 "default %(minutes)s min."
 msgstr ""
-"Hvile/søvn-policy: ingen vane for denne ukedag+time → "
-"%(day_or_night)s-standard %(minutes)s min."
+"Hvile/søvn-policy: ingen vane for denne ukedag+time → %(day_or_night)s-"
+"standard %(minutes)s min."
 
 msgid ""
 "The week grid describes idle/asleep/sentry spacing only. If the car drives, "
@@ -466,8 +514,8 @@ msgstr ""
 #, python-format
 msgid ""
 "Habits use at most the last %(lookback)s days, require %(min_weeks)s "
-"reference weeks before the last %(recent)s days, and disable themselves on a"
-" regime break."
+"reference weeks before the last %(recent)s days, and disable themselves on a "
+"regime break."
 msgstr ""
 "Vaner bruker høyst de siste %(lookback)s dagene, krever %(min_weeks)s "
 "referanseuker før de siste %(recent)s dagene, og deaktiveres ved "
@@ -478,14 +526,14 @@ msgid ""
 "When habits are trusted, every weekday+hour is busy (%(busy)s min), near-"
 "busy (%(near)s min, ±1 h around a busy core), quiet (%(quiet)s min), or "
 "moderate (%(moderate)s min by day; night moderate keeps the %(night)s min "
-"night default). There is no idle “default hole” in the grid — only untrusted"
-" models fall back to day %(day)s / night %(night)s everywhere."
+"night default). There is no idle “default hole” in the grid — only untrusted "
+"models fall back to day %(day)s / night %(night)s everywhere."
 msgstr ""
 "Når vaner er pålitelige, er hver ukedag+time travelt (%(busy)s min), nær "
 "travelt (%(near)s min, ±1 t rundt en kjerne), rolig (%(quiet)s min) eller "
 "moderat (%(moderate)s min på dag; om natten beholder moderat nattdefault "
-"%(night)s min). Ingen «defaulthull» i rutenettet — bare upålitelige modeller"
-" faller tilbake til dag %(day)s / natt %(night)s overalt."
+"%(night)s min). Ingen «defaulthull» i rutenettet — bare upålitelige modeller "
+"faller tilbake til dag %(day)s / natt %(night)s overalt."
 
 msgid "Tesla connection"
 msgstr "Tesla-tilkobling"
@@ -497,8 +545,8 @@ msgid "Connect your car."
 msgstr "Koble til bilen din."
 
 msgid ""
-"Configure the app, register the partner domain, then authorize MaTesla. Your"
-" secrets stay stored locally. You can re-open this page anytime — safe "
+"Configure the app, register the partner domain, then authorize MaTesla. Your "
+"secrets stay stored locally. You can re-open this page anytime — safe "
 "actions will not break a working setup."
 msgstr ""
 "Konfigurer appen, registrer partnerdomenet og autoriser deretter MaTesla. "
@@ -570,15 +618,13 @@ msgid "Re-authorize"
 msgstr "Autoriser på nytt"
 
 msgid ""
-"Copy credentials from <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Saving again only updates what "
-"you change."
+"Copy credentials from <a class=\"text-link\" href=\"https://developer.tesla."
+"com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com ↗</"
+"a>. Saving again only updates what you change."
 msgstr ""
-"Kopier legitimasjon fra <a class=\"text-link\" "
-"href=\"https://developer.tesla.com/dashboard\" target=\"_blank\" "
-"rel=\"noopener\">developer.tesla.com ↗</a>. Lagring på nytt oppdaterer bare "
-"det du endrer."
+"Kopier legitimasjon fra <a class=\"text-link\" href=\"https://developer."
+"tesla.com/dashboard\" target=\"_blank\" rel=\"noopener\">developer.tesla.com "
+"↗</a>. Lagring på nytt oppdaterer bare det du endrer."
 
 msgid "Credentials are stored. Save again only if you need to edit them."
 msgstr "Legitimasjon er lagret. Lagre på nytt bare hvis du må redigere dem."
@@ -593,8 +639,8 @@ msgid ""
 "Tesla fetches an EC public key over HTTPS on a domain you control before "
 "granting vehicle access. Localhost is not allowed."
 msgstr ""
-"Tesla henter en offentlig EC-nøkkel over HTTPS fra et domene du kontrollerer"
-" før biltilgang gis. Localhost er ikke tillatt."
+"Tesla henter en offentlig EC-nøkkel over HTTPS fra et domene du kontrollerer "
+"før biltilgang gis. Localhost er ikke tillatt."
 
 msgid "Any HTTPS host works — GitHub Pages is only one option among many."
 msgstr ""
@@ -607,8 +653,8 @@ msgid ""
 "Add https://&lt;your-domain&gt; to Allowed Origins on the Tesla developer "
 "dashboard."
 msgstr ""
-"Legg til https://&lt;your-domain&gt; under Allowed Origins i Tesla "
-"developer-dashbordet."
+"Legg til https://&lt;your-domain&gt; under Allowed Origins i Tesla developer-"
+"dashbordet."
 
 msgid ""
 "Changing the domain later clears partner registration — verify and register "
@@ -645,8 +691,8 @@ msgid "Set and save a partner domain first."
 msgstr "Angi og lagre et partnerdomene først."
 
 msgid ""
-"Local EC key pair is ready. It will not be overwritten if you click generate"
-" again."
+"Local EC key pair is ready. It will not be overwritten if you click generate "
+"again."
 msgstr ""
 "Lokalt EC-nøkkelpar er klart. Det overskrives ikke hvis du klikker generer "
 "på nytt."
@@ -903,9 +949,7 @@ msgstr "Historikk"
 msgid "View history"
 msgstr "Vis historikk"
 
-msgid "Vehicle"
-msgstr "Kjøretøy"
-
+#, python-brace-format
 msgid "Switching to {name}…"
 msgstr "Bytter til {name}…"
 
@@ -914,6 +958,9 @@ msgstr "Bytter bil…"
 
 msgid "The switch is taking too long. You can try again."
 msgstr "Byttet tar for lang tid. Du kan prøve igjen."
+
+msgid "Vehicle"
+msgstr "Kjøretøy"
 
 msgid "Vehicle shortcuts"
 msgstr "Snarveier for bil"
@@ -935,6 +982,9 @@ msgstr "DC-lading"
 
 msgid "Firmware history"
 msgstr "Firmwarehistorikk"
+
+msgid "Charges"
+msgstr "Ladinger"
 
 msgid "Your tesla is asleep"
 msgstr "Teslaen din sover"
@@ -1034,8 +1084,8 @@ msgid ""
 "the public key on HTTPS; delete the files under tesla_keys/ only if you "
 "really mean to."
 msgstr ""
-"EC-nøkkelpar finnes allerede — uendret. Ny generering ville ugyldiggjøre den"
-" offentlige nøkkelen på HTTPS; slett filer under tesla_keys/ bare hvis du "
+"EC-nøkkelpar finnes allerede — uendret. Ny generering ville ugyldiggjøre den "
+"offentlige nøkkelen på HTTPS; slett filer under tesla_keys/ bare hvis du "
 "virkelig mener det."
 
 msgid "Set a partner domain first."
@@ -1043,8 +1093,8 @@ msgstr "Angi et partnerdomene først."
 
 #, python-format
 msgid ""
-"Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail:"
-" %(result)s"
+"Partner registration reconfirmed for « %(domain)s ». Safe to repeat. Detail: "
+"%(result)s"
 msgstr ""
 "Partnerregistrering bekreftet på nytt for « %(domain)s ». Trygt å gjenta. "
 "Detalj: %(result)s"
@@ -1085,8 +1135,8 @@ msgid "Invalid OAuth callback (missing code or state). Please try again."
 msgstr "Ugyldig OAuth-callback (code eller state mangler). Prøv igjen."
 
 msgid ""
-"Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again,"
-" then use “Sign in with Tesla”."
+"Invalid OAuth callback (unknown or expired state). Sign in to MaTesla again, "
+"then use “Sign in with Tesla”."
 msgstr ""
 "Ugyldig OAuth-callback (ukjent eller utløpt state). Logg inn på MaTesla på "
 "nytt, deretter bruk «Logg inn med Tesla»."
@@ -1129,6 +1179,77 @@ msgstr "Norsk"
 msgid "Write operations are only allowed from the local server."
 msgstr "Skriveoperasjoner er bare tillatt fra den lokale serveren."
 
+msgid "Day / night — details"
+msgstr "Dag / natt — detaljer"
+
+#, python-format
+msgid "spot + %(n)s ¢"
+msgstr "spot + %(n)s ¢"
+
+msgid "No price yet"
+msgstr "Ingen pris ennå"
+
+msgid "Choose a vehicle."
+msgstr "Velg et kjøretøy."
+
+msgid "Unknown place."
+msgstr "Ukjent sted."
+
+msgid "Place"
+msgstr "Sted"
+
+msgid "Home / work assignment saved."
+msgstr "Hjemme-/jobbtilordning lagret."
+
+msgid "Place saved."
+msgstr "Sted lagret."
+
+msgid "Rates saved."
+msgstr "Tariffer lagret."
+
+msgid "Name, latitude and longitude are required."
+msgstr "Navn, bredde- og lengdegrad er obligatorisk."
+
+msgid "Place deleted."
+msgstr "Sted slettet."
+
+msgid "Unknown tariff period."
+msgstr "Ukjent tariffperiode."
+
+#, python-format
+msgid ""
+"Tariff saved. Day-ahead prices: %(ok)s day(s) fetched, %(skipped)s already "
+"cached, %(failed)s failed."
+msgstr ""
+"Tariff lagret. Day-ahead-priser: %(ok)s dag(er) hentet, %(skipped)s allerede "
+"i hurtiglager, %(failed)s feilet."
+
+#, python-format
+msgid ""
+"Price history is long; %(n)s older day(s) were not fetched. Save again to "
+"continue."
+msgstr ""
+"Prishistorikken er lang; %(n)s eldre dag(er) ble ikke hentet. Lagre på nytt "
+"for å fortsette."
+
+msgid "Tariff saved."
+msgstr "Tariff lagret."
+
+msgid "Tariff period deleted."
+msgstr "Tariffperiode slettet."
+
+msgid "Start date is required."
+msgstr "Startdato er obligatorisk."
+
+msgid "Unknown assignment."
+msgstr "Ukjent tilordning."
+
+msgid "Assignment deleted."
+msgstr "Tilordning slettet."
+
+msgid "Unknown action."
+msgstr "Ukjent handling."
+
 msgid "All DC sessions"
 msgstr "Alle DC-økter"
 
@@ -1141,7 +1262,6 @@ msgstr "Min / maks"
 msgid "P10–P90 band"
 msgstr "P10–P90-bånd"
 
-#| msgid "Battery degradation (%)"
 msgid "Rated range (after degradation)"
 msgstr "EPA-/rated-rekkevidde (etter degradering)"
 
@@ -1151,8 +1271,7 @@ msgstr "Rekkevidde etter ditt forbruk"
 msgid "Software timeline"
 msgstr "Programvaretidslinje"
 
-msgid ""
-"All firmware versions detected on your vehicle, in chronological order."
+msgid "All firmware versions detected on your vehicle, in chronological order."
 msgstr "Alle firmwareversjoner opvist på bilen din, i kronologisk rekkefølge."
 
 msgid "Download my Data"
@@ -1291,8 +1410,8 @@ msgid ""
 "Open query spacing details for the current interval, habit model, and "
 "typical week grid."
 msgstr ""
-"Åpne forespørselsdetaljene for nåværende intervall, vanemodell og typisk "
-"uke-rutenett."
+"Åpne forespørselsdetaljene for nåværende intervall, vanemodell og typisk uke-"
+"rutenett."
 
 msgid "Lifetime map"
 msgstr "Livstidskart"
@@ -1372,6 +1491,253 @@ msgstr ""
 "Forstå hvordan bilen din utvikler seg gjennom batteri-, lade-, klima- og "
 "kjørehistorikk."
 
+msgid "Energy"
+msgstr "Energi"
+
+msgid ""
+"Estimated electricity cost per charge session. Overnight sessions show the "
+"full session total on the start day."
+msgstr ""
+"Estimert strømkostnad per ladeøkt. Økter over midnatt viser økttotalen på "
+"startdagen."
+
+msgid "Configure rates"
+msgstr "Konfigurer tariffer"
+
+msgid "Month"
+msgstr "Måned"
+
+msgid "Year"
+msgstr "År"
+
+msgid "Show"
+msgstr "Vis"
+
+msgid "Whole year"
+msgstr "Hele året"
+
+msgid "This month"
+msgstr "Denne måneden"
+
+msgid "kWh priced"
+msgstr "kWh prissatt"
+
+msgid "kWh unpriced"
+msgstr "kWh uten pris"
+
+msgid "Share priced"
+msgstr "Andel prissatt"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "End"
+msgstr "Slutt"
+
+msgid "Duration"
+msgstr "Varighet"
+
+msgid "kWh"
+msgstr "kWh"
+
+msgid "Rule"
+msgstr "Regel"
+
+msgid "Cost"
+msgstr "Kostnad"
+
+msgid "session total"
+msgstr "økttotal"
+
+msgid "What charging cost this period, by place."
+msgstr "Ladekostnad i perioden, per sted."
+
+msgid "Largest places"
+msgstr "Største steder"
+
+msgid "The rest"
+msgstr "Resten"
+
+msgid "Everything"
+msgstr "Alt"
+
+msgid "Time"
+msgstr "Tid"
+
+msgid "Where"
+msgstr "Sted"
+
+msgid "No charge sessions in this period."
+msgstr "Ingen ladeøkter i denne perioden."
+
+msgid "Charge rates"
+msgstr "Ladetariffer"
+
+msgid ""
+"Largest charge locations for this car. Tag home, work, or another named "
+"place — then set a tariff."
+msgstr ""
+"Største ladesteder for denne bilen. Merk hjemme, jobb eller et annet "
+"navngitt sted, og sett deretter tariff."
+
+msgid "Back to charges"
+msgstr "Tilbake til ladinger"
+
+msgid "Default rates"
+msgstr "Standardtariffer"
+
+msgid "Used when a charge is not at a named home or work place."
+msgstr "Brukes når en lading ikke er på et navngitt hjemme- eller jobbsted."
+
+msgid "Save"
+msgstr "Lagre"
+
+msgid "Charge locations"
+msgstr "Ladesteder"
+
+#, python-format
+msgid "%(n)s location found, largest first."
+msgid_plural "%(n)s locations found, largest first."
+msgstr[0] "%(n)s sted funnet, største først."
+msgstr[1] "%(n)s steder funnet, største først."
+
+msgid "Name the ones you care about (home, work, family, campsite…)."
+msgstr "Gi navn til de som betyr noe (hjemme, jobb, familie, camping…)."
+
+msgid "Filter (Ciotat, camping, parents…)"
+msgstr "Filtrer (Ciotat, camping, foreldre…)"
+
+#, python-format
+msgid "%(n)s sample"
+msgid_plural "%(n)s samples"
+msgstr[0] "%(n)s utvalg"
+msgstr[1] "%(n)s utvalg"
+
+msgid "Other"
+msgstr "Annet"
+
+msgid "Name"
+msgstr "Navn"
+
+msgid "e.g. Parents, Geneviève, campsite"
+msgstr "f.eks. Foreldre, Geneviève, camping"
+
+msgid "€/kWh"
+msgstr "€/kWh"
+
+msgid "Price for this place. 0 is allowed (e.g. work)."
+msgstr "Pris for dette stedet. 0 er tillatt (f.eks. jobb)."
+
+msgid "From"
+msgstr "Fra"
+
+msgid "To (empty = no end)"
+msgstr "Til (tom = ingen slutt)"
+
+msgid "Leave empty if this is still the place (no end date)."
+msgstr "La stå tomt hvis det ikke er en sluttdato (gjelder fortsatt)."
+
+msgid "Show more"
+msgstr "Vis mer"
+
+msgid "No charge GPS for this vehicle yet."
+msgstr "Ingen lade-GPS for dette kjøretøyet ennå."
+
+msgid "Tagged places"
+msgstr "Merkede steder"
+
+msgid ""
+"Simple price is on the list above (0 is allowed). Details (day/night, "
+"dynamic, extra periods) open in a popup."
+msgstr "Enkel pris står i listen over (0 er tillatt). Detaljer (dag/natt, dynamisk, ekstra perioder) åpnes i et vindu."
+
+msgid "Details"
+msgstr "Detaljer"
+
+msgid "Delete this place and its tariffs?"
+msgstr "Slette dette stedet og tariffene?"
+
+msgid "Delete"
+msgstr "Slett"
+
+msgid "Mode"
+msgstr "Modus"
+
+msgid "Day"
+msgstr "Dag"
+
+msgid "Night"
+msgstr "Natt"
+
+msgid "Night from"
+msgstr "Natt fra"
+
+msgid "Night until"
+msgstr "Natt til"
+
+msgid "Cents on spot"
+msgstr "Øre på spot"
+
+msgid "Delete period"
+msgstr "Slett periode"
+
+msgid "Set €/kWh on the list above, or add a period here."
+msgstr "Sett €/kWh i listen over, eller legg til en periode her."
+
+msgid "Add period"
+msgstr "Legg til periode"
+
+msgid "This car from"
+msgstr "Denne bilen fra"
+
+msgid "This car until (empty = still)"
+msgstr "Denne bilen til (tom = fortsatt)"
+
+msgid "Rates"
+msgstr "Priser"
+
+msgid "Electricity rates for this place. The last one stays in force until you add another."
+msgstr "Strømpriser for dette stedet. Den siste gjelder til du legger til en ny."
+
+msgid "No rate from %(start)s to %(end)s."
+msgstr "Ingen pris fra %(start)s til %(end)s."
+
+msgid "Fill this gap"
+msgstr "Fyll dette hullet"
+
+msgid "still in force"
+msgstr "gjelder fortsatt"
+
+msgid "From the start"
+msgstr "Fra starten"
+
+msgid "Until (empty = still in force)"
+msgstr "Til (tom = gjelder fortsatt)"
+
+msgid "Nothing after the last end date. Add a rate that continues."
+msgstr "Ingenting etter siste sluttdato. Legg til en pris som fortsetter."
+
+msgid "Add this rate"
+msgstr "Legg til denne prisen"
+
+msgid "Done"
+msgstr "Ferdig"
+
+msgid "Enter €/kWh below. 0 is allowed."
+msgstr "Skriv inn €/kWh nedenfor. 0 er tillatt."
+
+msgid "Dates (optional)"
+msgstr "Datoer (valgfritt)"
+
+msgid "Enter a price. 0 is allowed."
+msgstr "Oppgi en pris. 0 er tillatt."
+
+msgid "Home and work per vehicle"
+msgstr "Hjemme og jobb per kjøretøy"
+
 msgid "Journey replay"
 msgstr "Turavspilling"
 
@@ -1383,9 +1749,6 @@ msgstr "turer, ladinger og GPS-punkter"
 
 msgid "Previous day"
 msgstr "Forrige dag"
-
-msgid "Date"
-msgstr "Date"
 
 msgid "Pick a date"
 msgstr "Velg en dato"
@@ -1408,18 +1771,6 @@ msgstr "%(n)s tegnet på kartet"
 
 msgid "Track"
 msgstr "Spor"
-
-msgid "Charges"
-msgstr "Ladinger"
-
-msgid "Start"
-msgstr "Start"
-
-msgid "End"
-msgstr "Slutt"
-
-msgid "Duration"
-msgstr "Varighet"
 
 msgid "Distance"
 msgstr "Distance"
@@ -1539,11 +1890,13 @@ msgstr "Bruk"
 #, python-format
 msgid ""
 "\n"
-"    DC Supercharging profiles for this vehicle. Filter: %(filter)s. Envelope: %(envelope)s.\n"
+"    DC Supercharging profiles for this vehicle. Filter: %(filter)s. "
+"Envelope: %(envelope)s.\n"
 "    "
 msgstr ""
 "\n"
-"    DC Supercharge-profiler for dette kjøretøyet. Filter: %(filter)s. Konvolutt: %(envelope)s.\n"
+"    DC Supercharge-profiler for dette kjøretøyet. Filter: %(filter)s. "
+"Konvolutt: %(envelope)s.\n"
 "    "
 
 msgid "DC sessions kept"
@@ -1591,62 +1944,68 @@ msgstr ""
 msgid "DC charge SoC versus time by start SoC"
 msgstr "DC-lade-SoC versus tid etter start-SoC"
 
-#| msgid "DC charge: SoC vs time by start SoC"
 msgid "Driving range vs time by start SoC"
 msgstr "Kjøre-rekkevidde vs tid etter start-SoC"
 
-#| msgid "SoC vs time by start SoC"
 msgid "Rated range vs time by start SoC"
 msgstr "Rated-rekkevidde vs tid etter start-SoC"
 
-#| msgid "DC charge SoC versus time by start SoC"
 msgid "DC charge driving range versus time by start SoC"
 msgstr "DC-lading: kjøre-rekkevidde versus tid etter start-SoC"
 
-#| msgid "DC charge SoC versus time by start SoC"
 msgid "DC charge rated range versus time by start SoC"
 msgstr "DC-lading: rated-rekkevidde versus tid etter start-SoC"
 
-#| msgid "03 · USAGE"
 msgid "03 · RANGE"
 msgstr "03 · REKKEVIDDE"
 
-#| msgid "Range"
 msgid "Range scale"
 msgstr "Rekkevidde-skala"
 
 msgid ""
 "\n"
-"            Same start-SoC curves as above, scaled to estimated driving range using your\n"
-"            seasonal consumption (same season last year when possible; Supercharger approach\n"
-"            legs excluded because battery preconditioning inflates kWh/100). Best for comparing cars.\n"
+"            Same start-SoC curves as above, scaled to estimated driving "
+"range using your\n"
+"            seasonal consumption (same season last year when possible; "
+"Supercharger approach\n"
+"            legs excluded because battery preconditioning inflates kWh/100). "
+"Best for comparing cars.\n"
 "            "
 msgstr ""
 "\n"
-"            Samme start-SoC-kurver, skalert til estimert kjørerekkevidde med ditt\n"
-"            sesongforbruk (samme sesong i fjor når mulig; Supercharger-innkjøringer\n"
-"            utelates fordi batteriforvarming blåser opp kWh/100). Best for å sammenligne biler.\n"
+"            Samme start-SoC-kurver, skalert til estimert kjørerekkevidde med "
+"ditt\n"
+"            sesongforbruk (samme sesong i fjor når mulig; Supercharger-"
+"innkjøringer\n"
+"            utelates fordi batteriforvarming blåser opp kWh/100). Best for å "
+"sammenligne biler.\n"
 "            "
 
 msgid ""
 "\n"
-"            Same start-SoC curves, scaled to Tesla rated range after battery degradation\n"
-"            (implied full-charge range). Comparable across cars without your driving style.\n"
+"            Same start-SoC curves, scaled to Tesla rated range after battery "
+"degradation\n"
+"            (implied full-charge range). Comparable across cars without your "
+"driving style.\n"
 "            "
 msgstr ""
 "\n"
-"            Samme start-SoC-kurver, skalert til Tesla rated-rekkevidde etter\n"
-"            batteridegradering (implisitt rekkevidde ved full lading). Sammenlignbart mellom biler uten kjørestilen din.\n"
+"            Samme start-SoC-kurver, skalert til Tesla rated-rekkevidde "
+"etter\n"
+"            batteridegradering (implisitt rekkevidde ved full lading). "
+"Sammenlignbart mellom biler uten kjørestilen din.\n"
 "            "
 
 #, python-format
 msgid ""
 "\n"
-"            Consumption ≈ %(conso)s %(unit)s · %(src)s · %(start)s → %(end)s · %(km)s %(dist)s (excluding Supercharger approaches).\n"
+"            Consumption ≈ %(conso)s %(unit)s · %(src)s · %(start)s → %(end)s "
+"· %(km)s %(dist)s (excluding Supercharger approaches).\n"
 "            "
 msgstr ""
 "\n"
-"            Forbruk ≈ %(conso)s %(unit)s · %(src)s · %(start)s → %(end)s · %(km)s %(dist)s (uten Supercharger-innkjøringer).\n"
+"            Forbruk ≈ %(conso)s %(unit)s · %(src)s · %(start)s → %(end)s · "
+"%(km)s %(dist)s (uten Supercharger-innkjøringer).\n"
 "            "
 
 msgid "Min / max samples → day map"
@@ -1654,7 +2013,8 @@ msgstr "Min-/maks-prøver → dagkart"
 
 msgid ""
 "\n"
-"        Each edge of the min–max envelope is one real sample. Open the day map for that day\n"
+"        Each edge of the min–max envelope is one real sample. Open the day "
+"map for that day\n"
 "        to see the full charge (and what else the car was doing).\n"
 "        "
 msgstr ""
@@ -1701,44 +2061,43 @@ msgid "Open day map for this charge day"
 msgstr "Åpne dagkart for denne ladedagen"
 
 #, python-format
-#| msgid ""
-#| "\n"
-#| "        Range rates convert power to %(rate)s using EPA ≈ %(epa)s %(unit)s and your\n"
-#| "        recent driving average ≈ %(real)s %(unit)s (distance-weighted).\n"
-#| "        "
 msgid ""
 "\n"
-"        Range rates convert power to %(rate)s using EPA ≈ %(epa)s %(unit)s and your\n"
-"        seasonal driving average ≈ %(real)s %(unit)s (distance-weighted, Supercharger approaches excluded).\n"
+"        Range rates convert power to %(rate)s using EPA ≈ %(epa)s %(unit)s "
+"and your\n"
+"        seasonal driving average ≈ %(real)s %(unit)s (distance-weighted, "
+"Supercharger approaches excluded).\n"
 "        "
 msgstr ""
 "\n"
-"        Rekkevidderater gjør effekt om til %(rate)s med EPA ≈ %(epa)s %(unit)s og ditt\n"
-"        sesongsnitt ≈ %(real)s %(unit)s (avstandsvektet, Supercharger-innkjøringer utelatt).\n"
+"        Rekkevidderater gjør effekt om til %(rate)s med EPA ≈ %(epa)s "
+"%(unit)s og ditt\n"
+"        sesongsnitt ≈ %(real)s %(unit)s (avstandsvektet, Supercharger-"
+"innkjøringer utelatt).\n"
 "        "
 
 #, python-format
 msgid ""
 "\n"
-"        Range rates use EPA ≈ %(epa)s %(unit)s. Real %(rate)s needs more driving data.\n"
+"        Range rates use EPA ≈ %(epa)s %(unit)s. Real %(rate)s needs more "
+"driving data.\n"
 "        "
 msgstr ""
 "\n"
-"        Rekkevidderater bruker EPA ≈ %(epa)s %(unit)s. Faktiske %(rate)s trenger mer kjøredata.\n"
+"        Rekkevidderater bruker EPA ≈ %(epa)s %(unit)s. Faktiske %(rate)s "
+"trenger mer kjøredata.\n"
 "        "
 
 #, python-format
-#| msgid ""
-#| "\n"
-#| "        Real range rates use your driving average ≈ %(real)s %(unit)s. EPA %(rate)s needs a catalog range.\n"
-#| "        "
 msgid ""
 "\n"
-"        Real range rates use your seasonal driving average ≈ %(real)s %(unit)s. EPA %(rate)s needs a catalog range.\n"
+"        Real range rates use your seasonal driving average ≈ %(real)s "
+"%(unit)s. EPA %(rate)s needs a catalog range.\n"
 "        "
 msgstr ""
 "\n"
-"        Reelle rater bruker sesongsnittet ditt ≈ %(real)s %(unit)s. EPA-%(rate)s trenger en katalogrekkevidde.\n"
+"        Reelle rater bruker sesongsnittet ditt ≈ %(real)s %(unit)s. EPA-"
+"%(rate)s trenger en katalogrekkevidde.\n"
 "        "
 
 msgid ""
@@ -1748,20 +2107,30 @@ msgstr "Tips: bytt konvolutt til Min / maks for dagkartlenker på båndkantene."
 
 msgid ""
 "\n"
-"    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast charger) are used —\n"
-"    home AC and destination charging are excluded. The rising power edge after plug-in is\n"
-"    dropped by cutting samples before the first peak of each session (whether that peak is at\n"
-"    10 s or 2 min) so the curve and min/max measure the real profile, not a fixed time window.\n"
-"    Robust filter further drops sessions with unusually low peak power (typical of V2 stall\n"
-"    sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls are not separated: the car caps\n"
+"    Only Supercharging / CCS-style sessions (peak ≥ ~40 kW, or flagged fast "
+"charger) are used —\n"
+"    home AC and destination charging are excluded. The rising power edge "
+"after plug-in is\n"
+"    dropped by cutting samples before the first peak of each session "
+"(whether that peak is at\n"
+"    10 s or 2 min) so the curve and min/max measure the real profile, not a "
+"fixed time window.\n"
+"    Robust filter further drops sessions with unusually low peak power "
+"(typical of V2 stall\n"
+"    sharing) and cold / unpreconditioned crawls. V3 vs V4 stalls are not "
+"separated: the car caps\n"
 "    at its max power either way.\n"
 "    "
 msgstr ""
 "\n"
-"    Kun Supercharge-/CCS-økter (topp ≥ ~40 kW eller merket hurtiglader) — hjemme-AC og\n"
-"    destination utelates. De første ~2 minuttene av hver økt (og tidlige prøver langt under\n"
-"    økttoppen) droppes slik at Supercharger-oppkjøring ikke drar kurven ned. Robust filter\n"
-"    fjerner også lave topper (V2-deling) og kalde starter. V3/V4 skilles ikke.\n"
+"    Kun Supercharge-/CCS-økter (topp ≥ ~40 kW eller merket hurtiglader) — "
+"hjemme-AC og\n"
+"    destination utelates. De første ~2 minuttene av hver økt (og tidlige "
+"prøver langt under\n"
+"    økttoppen) droppes slik at Supercharger-oppkjøring ikke drar kurven ned. "
+"Robust filter\n"
+"    fjerner også lave topper (V2-deling) og kalde starter. V3/V4 skilles "
+"ikke.\n"
 "    "
 
 msgid "Trip rankings"
@@ -1780,9 +2149,6 @@ msgstr "Turfiltre"
 
 msgid "Rank by"
 msgstr "Ranger etter"
-
-msgid "Show"
-msgstr "Vis"
 
 #, python-format
 msgid "%(counter)s trip"
@@ -1890,8 +2256,8 @@ msgid "Due now"
 msgstr "Forfalt nå"
 
 msgid ""
-"No vehicle row in the account list for this VIN, so list state and last poll"
-" time are unknown. Habit history below still uses telemetry snapshots when "
+"No vehicle row in the account list for this VIN, so list state and last poll "
+"time are unknown. Habit history below still uses telemetry snapshots when "
 "available."
 msgstr ""
 "Ingen bilrad i kontolisten for denne VIN, så listestatus og siste poll er "
@@ -1901,14 +2267,21 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"        The model searches at most the last %(max_days)s days. Training uses only weeks\n"
-"        *before* the last %(recent)s days (regime check). Need ≥ %(min_ref)s such\n"
-"        reference weeks. “Weeks with samples” counts distinct calendar weeks that have\n"
-"        any telemetry in the search window — not the length of continuous data capture.\n"
+"        The model searches at most the last %(max_days)s days. Training uses "
+"only weeks\n"
+"        *before* the last %(recent)s days (regime check). Need ≥ %(min_ref)s "
+"such\n"
+"        reference weeks. “Weeks with samples” counts distinct calendar weeks "
+"that have\n"
+"        any telemetry in the search window — not the length of continuous "
+"data capture.\n"
 "        "
 msgstr ""
 "\n"
-"        Modellen søker høyst de siste %(max_days)s dagene. Trening bruker bare uker *før* de siste %(recent)s dagene (regimesjekk). Trenger ≥ %(min_ref)s referanseuker. «Uker med samples» teller distinkte kalenderuker med telemetri i vinduet — ikke lengden på kontinuerlig datafangst.\n"
+"        Modellen søker høyst de siste %(max_days)s dagene. Trening bruker "
+"bare uker *før* de siste %(recent)s dagene (regimesjekk). Trenger ≥ "
+"%(min_ref)s referanseuker. «Uker med samples» teller distinkte kalenderuker "
+"med telemetri i vinduet — ikke lengden på kontinuerlig datafangst.\n"
 "        "
 
 msgid "Trusted"
@@ -2008,10 +2381,10 @@ msgid "Speed distribution"
 msgstr "Hastighetsfordeling"
 
 msgid "Latitude"
-msgstr "Latitude"
+msgstr "Breddegrad"
 
 msgid "Longitude"
-msgstr "Longitude"
+msgstr "Lengdegrad"
 
 msgid "Power distribution"
 msgstr "Effektfordeling"
@@ -2073,22 +2446,27 @@ msgstr "Estimert kostnad (EUR)"
 msgid "Estimated cost (USD)"
 msgstr "Estimert kostnad (USD)"
 
-msgid "Day"
-msgstr "Dag"
-
 msgid "Data requests"
 msgstr "Dataforespørsler"
 
 #, python-format
 msgid ""
-"n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car ·"
-" from request log · max %(days)s days"
+"n=%(n)s billable vehicle_data · est. %(money)s (@ %(rate)s/req) · this car · "
+"from request log · max %(days)s days"
 msgstr ""
 "n=%(n)s fakturerbare vehicle_data · ca. %(money)s (@ %(rate)s/req) · denne "
 "bilen · fra forespørselslogg · maks. %(days)s dager"
 
 msgid "No logged vehicle_data calls in this period"
 msgstr "Ingen loggede vehicle_data-kall i denne perioden"
+
+#, python-format
+msgid "Latest reading: %(dist)s"
+msgstr "Siste avlesning: %(dist)s"
+
+#, python-format
+msgid "Latest reading: %(dist)s · %(date)s"
+msgstr "Siste avlesning: %(dist)s · %(date)s"
 
 msgid "Minimum"
 msgstr "Minimum"
@@ -2098,14 +2476,6 @@ msgstr "Gjennomsnitt"
 
 msgid "Maximum"
 msgstr "Maksimum"
-
-#, python-format
-msgid "Latest reading: %(dist)s · %(date)s"
-msgstr "Siste avlesning: %(dist)s · %(date)s"
-
-#, python-format
-msgid "Latest reading: %(dist)s"
-msgstr "Siste avlesning: %(dist)s"
 
 msgid "Monthly range (min–max)"
 msgstr "Månedlig spenn (min–maks)"
@@ -2242,8 +2612,8 @@ msgstr "%(n)s km"
 #, python-format
 msgid ""
 "The last trip was not recorded — it was likely too short for the capture "
-"interval (about %(dist)s between the last logged arrival and the car's final"
-" position)."
+"interval (about %(dist)s between the last logged arrival and the car's final "
+"position)."
 msgstr ""
 "Den siste turen ble ikke registrert — sannsynligvis for kort for "
 "fangstintervallet (ca. %(dist)s mellom siste loggførte ankomst og bilens "
@@ -2252,8 +2622,8 @@ msgstr ""
 #, python-format
 msgid ""
 "The last trip was not recorded — missing telemetry between the last logged "
-"arrival and the car's final position (about %(dist)s). This can happen after"
-" a capture gap or a technical issue."
+"arrival and the car's final position (about %(dist)s). This can happen after "
+"a capture gap or a technical issue."
 msgstr ""
 "Den siste turen ble ikke registrert — manglende telemetri mellom siste "
 "loggførte ankomst og bilens sluttposisjon (ca. %(dist)s). Dette kan skje "
@@ -2309,7 +2679,6 @@ msgstr "samme sesong for to år siden"
 msgid "last three months (short history)"
 msgstr "siste tre måneder (kort historikk)"
 
-#| msgid "Time driving"
 msgid "recent driving"
 msgstr "nylig kjøring"
 
@@ -2341,12 +2710,10 @@ msgstr "%(start)s%% start · n=%(n)s"
 msgid "Minutes since charge start"
 msgstr "Minutter siden ladestart"
 
-#| msgid "Not enough DC sessions for start-SoC curves"
 msgid "Not enough data for range-vs-time curves"
 msgstr "Ikke nok data for rekkevidde-vs-tid-kurver"
 
 #, python-format
-#| msgid "Estimated battery range (%(u)s)"
 msgid "Estimated range (%(u)s)"
 msgstr "Estimert rekkevidde (%(u)s)"
 
@@ -2367,7 +2734,6 @@ msgstr "DC-ladeeffekt vs batteri-SoC"
 msgid "DC charge: SoC vs time by start SoC"
 msgstr "DC-lading: SoC vs tid etter start-SoC"
 
-#| msgid "Charge related graphs"
 msgid "DC charge: rated range vs time"
 msgstr "DC-lading: rated-rekkevidde vs tid"
 
@@ -2474,8 +2840,7 @@ msgid ""
 "Follow battery health, trips and software versions without getting lost in "
 "menus."
 msgstr ""
-"Følg batterihelse, turer og programvareversjoner uten å gå deg vill i "
-"menyer."
+"Følg batterihelse, turer og programvareversjoner uten å gå deg vill i menyer."
 
 msgid "A clear view of how your real range evolves."
 msgstr "Et klart bilde av hvordan den reelle rekkevidden din utvikler seg."
@@ -2487,8 +2852,7 @@ msgid "Find kilometres, cycles and driving days."
 msgstr "Finn kilometer, sykluser og kjøredager."
 
 msgid "Your tesla odometer graph in function of time. Who drives the most?"
-msgstr ""
-"Tesla-kilometerstandsgrafen din som funksjon av tid. Hvem kjører mest?"
+msgstr "Tesla-kilometerstandsgrafen din som funksjon av tid. Hvem kjører mest?"
 
 msgid "Every update, placed back in time."
 msgstr "Hver oppdatering, plassert i tid."
@@ -2574,8 +2938,58 @@ msgstr "Kontogjenoppretting"
 
 msgid ""
 "Enter the address linked to your account. We will send you a secure link."
-msgstr ""
-"Oppgi adressen knyttet til kontoen din. Vi sender deg en sikker lenke."
+msgstr "Oppgi adressen knyttet til kontoen din. Vi sender deg en sikker lenke."
 
 msgid "Send e-mail"
 msgstr "Send e-post"
+
+#~ msgid "Day / night — edit below for night rate"
+#~ msgstr "Dag / natt — nattpris redigeres lenger ned"
+
+#~ msgid "Tariffs on tagged places"
+#~ msgstr "Tariffer for merkede steder"
+
+#~ msgid ""
+#~ "Flat, day/night or dynamic (cents on the day-ahead spot). Saving a "
+#~ "dynamic period fetches Elia prices for that range."
+#~ msgstr ""
+#~ "Fast, dag/natt eller dynamisk (øre på day-ahead-spot). Lagring av en "
+#~ "dynamisk periode henter Elia-priser for det intervallet."
+
+#~ msgid "Delete place"
+#~ msgstr "Slett sted"
+
+#~ msgid "To"
+#~ msgstr "Til"
+
+#~ msgid ""
+#~ "Places, home/work periods and prices. Nothing is assumed: you enter every "
+#~ "location and tariff."
+#~ msgstr ""
+#~ "Steder, hjemme-/jobbperioder og priser. Ingenting antas: du legger inn "
+#~ "hvert sted og hver tariff."
+
+#~ msgid "Places"
+#~ msgstr "Steder"
+
+#~ msgid ""
+#~ "A geofence you name (home, work, or anything else). Radius default is 150 "
+#~ "m."
+#~ msgstr ""
+#~ "En geofence du navngir (hjemme, jobb eller annet). Standard radius: 150 m."
+
+#~ msgid "Radius (m)"
+#~ msgstr "Radius (m)"
+
+#~ msgid ""
+#~ "Which car treats which place as home or work, and when. Same GPS can move "
+#~ "from one car to another on a date you set."
+#~ msgstr ""
+#~ "Hvilken bil behandler hvilket sted som hjemme eller jobb, og når. Samme "
+#~ "GPS kan flyttes fra en bil til en annen på en dato du setter."
+
+#~ msgid "Role"
+#~ msgstr "Rolle"
+
+#~ msgid "Add assignment"
+#~ msgstr "Legg til tilordning"

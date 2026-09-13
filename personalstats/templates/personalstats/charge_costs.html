@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans 'Charges' %}{% endblock %}
+
+{% block cssstyle %}
+    .charges-page .vehicle-chrome { margin-bottom: 12px; }
+    .charges-toolbar {
+        display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem 1rem;
+        margin-bottom: 1rem; padding: 12px 14px; border-radius: 12px;
+        border: 1px solid var(--app-line); background: var(--app-surface);
+    }
+    .charges-toolbar form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem 0.65rem; }
+    .charges-toolbar input[type="number"] { width: 7.5rem; }
+    .charges-kpis {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+        gap: 0.75rem; margin-bottom: 1rem;
+    }
+    .charges-kpi {
+        padding: 12px 14px; border-radius: 12px;
+        border: 1px solid var(--app-line); background: var(--app-surface);
+    }
+    .charges-kpi span { display: block; font-size: 0.75rem; color: var(--app-muted); text-transform: uppercase; letter-spacing: .04em; }
+    .charges-kpi strong { font-size: 1.25rem; }
+    .charges-places { margin-bottom: 1.15rem; }
+    .charges-places__label {
+        font-size: 0.75rem; color: var(--app-muted); text-transform: uppercase;
+        letter-spacing: .04em; margin: 0 0 0.55rem;
+    }
+    .charges-place-grid {
+        display: grid; gap: 0.65rem;
+        grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+    }
+    .charges-place-card {
+        display: flex; flex-direction: column; gap: 0.15rem; text-align: left;
+        padding: 12px 14px; border-radius: 14px; cursor: pointer;
+        border: 1px solid var(--app-line); background: var(--app-surface);
+        color: var(--app-text); min-height: 100%;
+    }
+    .charges-place-card:hover { border-color: var(--app-line-strong); }
+    .charges-place-card.is-active {
+        border-color: var(--app-energy);
+        box-shadow: 0 0 0 1px var(--app-energy-soft);
+        background: var(--app-energy-soft);
+    }
+    .charges-place-card strong {
+        font-size: 0.95rem; line-height: 1.25;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .charges-place-card .kwh { color: var(--app-energy); font-weight: 600; font-size: 1.05rem; }
+    .charges-place-card .avg, .charges-place-card .n { color: var(--app-muted); font-size: 0.82rem; }
+    .charges-place-card .total { font-size: 1.05rem; font-weight: 600; }
+    .charges-table-wrap {
+        overflow-x: auto; border-radius: 14px;
+        border: 1px solid var(--app-line); background: var(--app-surface);
+    }
+    .charges-list { width: 100%; margin: 0; border-collapse: collapse; font-size: 0.95rem; }
+    .charges-list th {
+        font-size: 0.72rem; font-weight: 600; color: var(--app-muted);
+        text-transform: uppercase; letter-spacing: .04em;
+        padding: 0.7rem 1rem; border-bottom: 1px solid var(--app-line);
+        text-align: left;
+    }
+    .charges-list td { padding: 0.72rem 1rem; border-bottom: 1px solid var(--app-line); vertical-align: middle; }
+    .charges-list tbody tr:last-child td { border-bottom: none; }
+    .charges-list tbody tr[data-cluster-row]:hover { background: var(--app-surface-2); }
+    .charges-month td {
+        padding: 0.85rem 1rem 0.35rem; font-size: 0.78rem; font-weight: 600;
+        color: var(--app-muted); text-transform: uppercase; letter-spacing: .06em;
+        background: var(--app-bg-raised); border-bottom: 1px solid var(--app-line);
+    }
+    .charges-day { font-weight: 600; white-space: nowrap; }
+    .charges-day a { color: inherit; text-decoration: none; }
+    .charges-day a:hover { color: var(--app-blue); }
+    .charges-when { color: var(--app-text); white-space: nowrap; }
+    .charges-when .muted { color: var(--app-muted); font-size: 0.82rem; font-weight: 400; }
+    .charges-where { max-width: 16rem; }
+    .charges-pill {
+        display: inline-block; max-width: 100%;
+        padding: 2px 10px; border-radius: 999px;
+        background: var(--app-energy-soft); color: var(--app-energy);
+        font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .charges-kwh, .charges-cost { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .charges-kwh { color: var(--app-energy); }
+    .charges-cost { font-weight: 600; }
+    @media (max-width: 700px) {
+        .charges-list th:nth-child(2), .charges-list td:nth-child(2) { display: none; }
+        .charges-where { max-width: 9rem; }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="charges-page">
+{% include 'matesla/_vehicle_chrome.html' %}
+<div class="page-heading">
+    <div class="page-heading__copy">
+        <p class="eyebrow">{% trans 'Energy' %}</p>
+        <h1 class="page-title page-title--compact">{% trans 'Charges' %}</h1>
+        <p class="page-subtitle">{% trans 'What charging cost this period, by place.' %}</p>
+    </div>
+    {% if allow_setup %}
+    <a class="btn btn-secondary" href="{% url 'PersoChargeCostsSetup' %}?vin={{ hashedVin }}">{% trans 'Configure rates' %}</a>
+    {% endif %}
+</div>
+
+<div class="charges-toolbar">
+    <form method="get">
+        {% if view == 'year' %}
+        <label for="year">{% trans 'Year' %}</label>
+        <input class="form-control" type="number" id="year" name="year"
+               min="2010" max="{{ max_year }}" step="1" value="{{ year }}">
+        {% else %}
+        <label for="month">{% trans 'Month' %}</label>
+        <input class="form-control" type="month" id="month" name="month" value="{{ month_iso }}">
+        {% endif %}
+        <button class="btn btn-primary btn-sm" type="submit">{% trans 'Show' %}</button>
+    </form>
+    {% if view == 'month' %}
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'PersoChargeCosts' hashedVin %}?month={{ prev_month }}">←</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'PersoChargeCosts' hashedVin %}?month={{ next_month }}">→</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'PersoChargeCosts' hashedVin %}?year={{ year }}">{% trans 'Whole year' %}</a>
+    {% else %}
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'PersoChargeCosts' hashedVin %}?year={{ prev_year }}">←</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'PersoChargeCosts' hashedVin %}?year={{ next_year }}">→</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'PersoChargeCosts' hashedVin %}?month={{ month_iso }}">{% trans 'This month' %}</a>
+    {% endif %}
+</div>
+
+<div class="charges-kpis">
+    <div class="charges-kpi"><span>{% trans 'Priced' %}</span><strong>{% if total_eur %}{{ total_eur|floatformat:2 }} €{% else %}—{% endif %}</strong></div>
+    <div class="charges-kpi"><span>{% trans 'kWh priced' %}</span><strong>{% if priced_kwh %}{{ priced_kwh|floatformat:1 }}{% else %}—{% endif %}</strong></div>
+    <div class="charges-kpi"><span>{% trans 'kWh unpriced' %}</span><strong>{% if unpriced_kwh %}{{ unpriced_kwh|floatformat:1 }}{% else %}—{% endif %}</strong></div>
+    <div class="charges-kpi"><span>{% trans 'Share priced' %}</span><strong>{% if pct_priced is not None %}{{ pct_priced|floatformat:0 }} %{% else %}—{% endif %}</strong></div>
+</div>
+
+{% if top_clusters %}
+<section class="charges-places">
+    <p class="charges-places__label">{% trans 'Largest places' %}</p>
+    <div class="charges-place-grid">
+        {% for c in top_clusters %}
+        <button type="button" class="charges-place-card" data-cluster-filter="{{ c.key }}">
+            <strong title="{{ c.name }}">{{ c.name }}</strong>
+            <span class="kwh">{{ c.kwh|floatformat:0 }} kWh</span>
+            <span class="avg">{% if c.avg_eur is not None %}{{ c.avg_eur|floatformat:2 }} €/kWh{% else %}—{% endif %}</span>
+            <span class="total">{% if c.cost_eur is not None %}{{ c.cost_eur|floatformat:0 }} €{% else %}—{% endif %}</span>
+        </button>
+        {% endfor %}
+        {% if rest_cluster %}
+        <button type="button" class="charges-place-card" data-cluster-filter="rest">
+            <strong>{% trans 'The rest' %}</strong>
+            <span class="kwh">{{ rest_cluster.kwh|floatformat:0 }} kWh</span>
+            <span class="avg">{% if rest_cluster.avg_eur is not None %}{{ rest_cluster.avg_eur|floatformat:2 }} €/kWh{% else %}—{% endif %}</span>
+            <span class="total">{% if rest_cluster.cost_eur is not None %}{{ rest_cluster.cost_eur|floatformat:0 }} €{% else %}—{% endif %}</span>
+        </button>
+        {% endif %}
+        <button type="button" class="charges-place-card is-active" data-cluster-filter="all">
+            <strong>{% trans 'Everything' %}</strong>
+            <span class="kwh">{% if kwh_all %}{{ kwh_all|floatformat:0 }} kWh{% else %}—{% endif %}</span>
+            <span class="avg">{% if avg_eur is not None %}{{ avg_eur|floatformat:2 }} €/kWh{% else %}—{% endif %}</span>
+            <span class="total">{% if total_eur is not None %}{{ total_eur|floatformat:0 }} €{% else %}—{% endif %}</span>
+        </button>
+    </div>
+</section>
+{% endif %}
+
+{% if rows %}
+<div class="charges-table-wrap">
+<table class="charges-list">
+    <thead>
+    <tr>
+        <th>{% trans 'Date' %}</th>
+        <th>{% trans 'Time' %}</th>
+        <th>{% trans 'Where' %}</th>
+        <th class="charges-kwh">{% trans 'Energy' %}</th>
+        <th class="charges-cost">{% trans 'Cost' %}</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for r in rows %}
+    {% ifchanged r.month_key %}
+    <tr class="charges-month" data-month-row>
+        <td colspan="5">{{ r.month_label }}</td>
+    </tr>
+    {% endifchanged %}
+    <tr data-cluster-row data-cluster="{{ r.cluster_key }}" data-in-top="{% if r.in_top %}1{% else %}0{% endif %}">
+        <td class="charges-day"><a href="{% url 'PersoDayMapDay' hashedVin r.day_iso %}">{{ r.day_label }}</a></td>
+        <td class="charges-when">
+            {{ r.start_local }} – {{ r.end_local }}
+            <span class="muted"> · {{ r.duration_label }}{% if r.spans_midnight %} · {% trans 'session total' %}{% endif %}</span>
+        </td>
+        <td class="charges-where"><span class="charges-pill" title="{{ r.cluster_name }}">{{ r.cluster_name }}</span></td>
+        <td class="charges-kwh">{% if r.kwh is not None %}{{ r.kwh|floatformat:1 }} kWh{% else %}—{% endif %}</td>
+        <td class="charges-cost">{% if r.cost_eur is not None %}{{ r.cost_eur|floatformat:2 }} €{% else %}—{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<p class="text-muted">{% trans 'No charge sessions in this period.' %}</p>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+(function () {
+    var buttons = document.querySelectorAll('[data-cluster-filter]');
+    if (!buttons.length) return;
+    function applyFilter(key) {
+        document.querySelectorAll('[data-cluster-row]').forEach(function (row) {
+            if (key === 'all') row.hidden = false;
+            else if (key === 'rest') row.hidden = row.getAttribute('data-in-top') === '1';
+            else row.hidden = row.getAttribute('data-cluster') !== key;
+        });
+        document.querySelectorAll('[data-month-row]').forEach(function (hdr) {
+            var show = false;
+            var el = hdr.nextElementSibling;
+            while (el && !el.hasAttribute('data-month-row')) {
+                if (el.hasAttribute('data-cluster-row') && !el.hidden) { show = true; break; }
+                el = el.nextElementSibling;
+            }
+            hdr.hidden = !show;
+        });
+        buttons.forEach(function (btn) {
+            var on = btn.getAttribute('data-cluster-filter') === key;
+            btn.classList.toggle('is-active', on);
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        try {
+            var url = new URL(window.location.href);
+            if (key === 'all') url.searchParams.delete('cluster');
+            else url.searchParams.set('cluster', key);
+            history.replaceState(null, '', url.pathname + url.search);
+        } catch (e) {}
+    }
+    buttons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            applyFilter(btn.getAttribute('data-cluster-filter'));
+        });
+    });
+    var initial = 'all';
+    try { initial = new URL(window.location.href).searchParams.get('cluster') || 'all'; } catch (e) {}
+    applyFilter(initial);
+})();
+</script>
+{% endblock %}
