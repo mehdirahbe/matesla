@@ -166,6 +166,19 @@ msgstr "Dag / nacht"
 msgid "Dynamic (day-ahead + cents)"
 msgstr "Dynamisch (day-ahead + centen)"
 
+msgid "Per day"
+msgstr "Per dag"
+
+msgid "€/day"
+msgstr "€/dag"
+
+#, python-format
+msgid "%(n)s €/day"
+msgstr "%(n)s €/dag"
+
+msgid "Pitch / campsite: one fee per day at this place, not per kWh."
+msgstr "Kampeerplaats: één forfait per dag op deze plek, niet per kWh."
+
 msgid "Priced"
 msgstr "Beprijsd"
 
@@ -1221,6 +1234,27 @@ msgstr "Plaats opgeslagen."
 msgid "Rates saved."
 msgstr "Tarieven opgeslagen."
 
+msgid "Tesla invoices updated (%(n)s stored)."
+msgstr "Tesla-facturen bijgewerkt (%(n)s opgeslagen)."
+
+msgid "Tesla Supercharger invoices"
+msgstr "Tesla Supercharger-facturen"
+
+msgid "Tesla history is fetched in one-year slices, from the oldest charge on this car until now."
+msgstr "De Tesla-historie wordt in schijven van één jaar opgehaald, van de oudste lading van deze auto tot nu."
+
+msgid "%(n)s invoices · last sync %(when)s"
+msgstr "%(n)s factu(u)r(en) · laatste sync %(when)s"
+
+msgid "Not synced yet"
+msgstr "Nog niet gesynchroniseerd"
+
+msgid "Error: %(msg)s"
+msgstr "Fout: %(msg)s"
+
+msgid "Sync Tesla invoices"
+msgstr "Tesla-facturen synchroniseren"
+
 msgid "Name, latitude and longitude are required."
 msgstr "Naam, breedte- en lengtegraad zijn verplicht."
 
@@ -1587,6 +1621,12 @@ msgstr "Plaats"
 
 msgid "No charge sessions in this period."
 msgstr "Geen laadsessies in deze periode."
+
+msgid "Some charges in this period are not priced."
+msgstr "Sommige laadbeurten in deze periode zijn niet beprijsd."
+
+msgid "Set a rate for these places:"
+msgstr "Stel een tarief in voor deze plaatsen:"
 
 msgid "Charge rates"
 msgstr "Laadtarieven"

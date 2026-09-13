@@ -82,6 +82,21 @@
         background: var(--app-energy-soft); color: var(--app-energy);
         font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    .charges-source {
+        display: block; margin-top: 0.2rem;
+        font-size: 0.72rem; color: var(--app-muted); line-height: 1.3;
+    }
+    .charges-source--supercharger_invoice { color: var(--app-energy); }
+    .charges-source--unpriced { color: var(--app-warning); }
+    .charges-place-card .source { color: var(--app-muted); font-size: 0.75rem; }
+    .charges-onboard {
+        margin-bottom: 1rem; padding: 12px 14px; border-radius: 12px;
+        border: 1px solid rgba(240, 180, 41, 0.45);
+        background: rgba(240, 180, 41, 0.12);
+    }
+    .charges-onboard p { margin: 0; }
+    .charges-onboard ul { margin: 0.45rem 0 0; padding-left: 1.2rem; }
+    .charges-onboard a { font-weight: 600; }
     .charges-kwh, .charges-cost { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .charges-kwh { color: var(--app-energy); }
     .charges-cost { font-weight: 600; }
@@ -129,11 +144,38 @@
 </div>
 
 <div class="charges-kpis">
-    <div class="charges-kpi"><span>{% trans 'Priced' %}</span><strong>{% if total_eur %}{{ total_eur|floatformat:2 }} €{% else %}—{% endif %}</strong></div>
-    <div class="charges-kpi"><span>{% trans 'kWh priced' %}</span><strong>{% if priced_kwh %}{{ priced_kwh|floatformat:1 }}{% else %}—{% endif %}</strong></div>
-    <div class="charges-kpi"><span>{% trans 'kWh unpriced' %}</span><strong>{% if unpriced_kwh %}{{ unpriced_kwh|floatformat:1 }}{% else %}—{% endif %}</strong></div>
+    <div class="charges-kpi"><span>{% trans 'Priced' %}</span><strong>{% if total_eur is not None %}{{ total_eur|floatformat:2 }} €{% else %}—{% endif %}</strong></div>
+    <div class="charges-kpi"><span>{% trans 'kWh priced' %}</span><strong>{% if priced_kwh is not None %}{{ priced_kwh|floatformat:1 }}{% else %}—{% endif %}</strong></div>
+    <div class="charges-kpi"><span>{% trans 'kWh unpriced' %}</span><strong>{% if unpriced_kwh is not None %}{{ unpriced_kwh|floatformat:1 }}{% else %}—{% endif %}</strong></div>
     <div class="charges-kpi"><span>{% trans 'Share priced' %}</span><strong>{% if pct_priced is not None %}{{ pct_priced|floatformat:0 }} %{% else %}—{% endif %}</strong></div>
 </div>
+
+{% if needs_onboarding %}
+<div class="charges-onboard">
+    <p>{% trans 'Some charges in this period are not priced.' %}
+        {% if allow_setup %}
+        <a href="{% url 'PersoChargeCostsSetup' %}?vin={{ hashedVin }}">{% trans 'Configure rates' %}</a>
+        {% endif %}
+    </p>
+    {% if unpriced_clusters %}
+    <p>{% trans 'Set a rate for these places:' %}</p>
+    <ul>
+        {% for c in unpriced_clusters %}
+        <li>
+            {% if allow_setup and c.place_id %}
+            <a href="{% url 'PersoChargeCostsSetup' %}?vin={{ hashedVin }}&amp;place={{ c.place_id }}">{{ c.name }}</a>
+            {% elif allow_setup %}
+            <a href="{% url 'PersoChargeCostsSetup' %}?vin={{ hashedVin }}&amp;q={{ c.name|urlencode }}">{{ c.name }}</a>
+            {% else %}
+            {{ c.name }}
+            {% endif %}
+            · {{ c.kwh|floatformat:0 }} kWh
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+{% endif %}
 
 {% if top_clusters %}
 <section class="charges-places">
@@ -142,6 +184,7 @@
         {% for c in top_clusters %}
         <button type="button" class="charges-place-card" data-cluster-filter="{{ c.key }}">
             <strong title="{{ c.name }}">{{ c.name }}</strong>
+            {% if c.source_label %}<span class="source">{{ c.source_label }}</span>{% endif %}
             <span class="kwh">{{ c.kwh|floatformat:0 }} kWh</span>
             <span class="avg">{% if c.avg_eur is not None %}{{ c.avg_eur|floatformat:2 }} €/kWh{% else %}—{% endif %}</span>
             <span class="total">{% if c.cost_eur is not None %}{{ c.cost_eur|floatformat:0 }} €{% else %}—{% endif %}</span>
@@ -157,7 +200,7 @@
         {% endif %}
         <button type="button" class="charges-place-card is-active" data-cluster-filter="all">
             <strong>{% trans 'Everything' %}</strong>
-            <span class="kwh">{% if kwh_all %}{{ kwh_all|floatformat:0 }} kWh{% else %}—{% endif %}</span>
+            <span class="kwh">{% if kwh_all is not None %}{{ kwh_all|floatformat:0 }} kWh{% else %}—{% endif %}</span>
             <span class="avg">{% if avg_eur is not None %}{{ avg_eur|floatformat:2 }} €/kWh{% else %}—{% endif %}</span>
             <span class="total">{% if total_eur is not None %}{{ total_eur|floatformat:0 }} €{% else %}—{% endif %}</span>
         </button>
@@ -190,7 +233,10 @@
             {{ r.start_local }} – {{ r.end_local }}
             <span class="muted"> · {{ r.duration_label }}{% if r.spans_midnight %} · {% trans 'session total' %}{% endif %}</span>
         </td>
-        <td class="charges-where"><span class="charges-pill" title="{{ r.cluster_name }}">{{ r.cluster_name }}</span></td>
+        <td class="charges-where">
+            <span class="charges-pill" title="{{ r.cluster_name }}">{{ r.cluster_name }}</span>
+            {% if r.source_label %}<span class="charges-source charges-source--{{ r.rule }}">{{ r.source_label }}</span>{% endif %}
+        </td>
         <td class="charges-kwh">{% if r.kwh is not None %}{{ r.kwh|floatformat:1 }} kWh{% else %}—{% endif %}</td>
         <td class="charges-cost">{% if r.cost_eur is not None %}{{ r.cost_eur|floatformat:2 }} €{% else %}—{% endif %}</td>
     </tr>

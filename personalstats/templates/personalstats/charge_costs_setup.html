@@ -92,6 +92,32 @@
     </form>
 </section>
 
+{% if hashedVin %}
+<section class="cc-card">
+    <h2>{% trans 'Tesla Supercharger invoices' %}</h2>
+    <p class="intro">{% trans 'Tesla history is fetched in one-year slices, from the oldest charge on this car until now.' %}</p>
+    {% if tesla_sync.last_ok %}
+    <p>
+        {% blocktrans with n=tesla_sync.invoice_count when=tesla_sync.last_ok %}{{ n }} invoices · last sync {{ when }}{% endblocktrans %}
+        {% if tesla_sync.covered %} · {{ tesla_sync.covered }}{% endif %}
+    </p>
+    {% else %}
+    <p class="cc-muted">{% trans 'Not synced yet' %}{% if tesla_sync.invoice_count %} · {{ tesla_sync.invoice_count }}{% endif %}</p>
+    {% endif %}
+    {% if tesla_sync.error %}
+    <p class="cc-future-warn">{% blocktrans with msg=tesla_sync.error %}Error: {{ msg }}{% endblocktrans %}</p>
+    {% endif %}
+    <form method="post" class="cc-form-row">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="sync_tesla_history">
+        <input type="hidden" name="vin" value="{{ hashedVin }}">
+        <input type="hidden" name="hashed_vin" value="{{ hashedVin }}">
+        <input type="hidden" name="show" value="{{ show }}">
+        <button class="btn btn-outline-secondary btn-sm" type="submit">{% trans 'Sync Tesla invoices' %}</button>
+    </form>
+</section>
+{% endif %}
+
 <section class="cc-card">
     <h2>{% trans 'Charge locations' %}</h2>
     <p class="intro">
@@ -192,11 +218,17 @@
                         <option value="{{ mode_flat }}">{% trans 'Flat' %}</option>
                         <option value="{{ mode_day_night }}">{% trans 'Day / night' %}</option>
                         <option value="{{ mode_dynamic }}">{% trans 'Dynamic (day-ahead + cents)' %}</option>
+                        <option value="{{ mode_per_day }}">{% trans 'Per day' %}</option>
                     </select>
                 </div>
                 <div data-mode="{{ mode_flat }}">
                     <label>{% trans '€/kWh' %}</label>
-                    <input class="form-control" name="flat_eur_per_kwh" inputmode="decimal" value="0">
+                    <input class="form-control" name="flat_eur_per_kwh" inputmode="decimal" placeholder="0.30">
+                </div>
+                <div data-mode="{{ mode_per_day }}" hidden>
+                    <label>{% trans '€/day' %}</label>
+                    <input class="form-control" name="eur_per_day" inputmode="decimal" placeholder="15"
+                           title="{% trans 'Pitch / campsite: one fee per day at this place, not per kWh.' %}">
                 </div>
                 <div data-mode="{{ mode_day_night }}" hidden>
                     <label>{% trans 'Day' %} €/kWh</label>
@@ -238,6 +270,7 @@
                         <option value="{{ mode_flat }}" {% if item.period.mode == mode_flat %}selected{% endif %}>{% trans 'Flat' %}</option>
                         <option value="{{ mode_day_night }}" {% if item.period.mode == mode_day_night %}selected{% endif %}>{% trans 'Day / night' %}</option>
                         <option value="{{ mode_dynamic }}" {% if item.period.mode == mode_dynamic %}selected{% endif %}>{% trans 'Dynamic (day-ahead + cents)' %}</option>
+                        <option value="{{ mode_per_day }}" {% if item.period.mode == mode_per_day %}selected{% endif %}>{% trans 'Per day' %}</option>
                     </select>
                 </div>
                 <div data-mode="{{ mode_flat }}">
@@ -264,6 +297,12 @@
                 <div data-mode="{{ mode_dynamic }}">
                     <label>{% trans 'Cents on spot' %}</label>
                     <input class="form-control" name="dynamic_surcharge_cents" value="{% if item.period.dynamic_surcharge_cents is not None %}{{ item.period.dynamic_surcharge_cents }}{% endif %}">
+                </div>
+                <div data-mode="{{ mode_per_day }}">
+                    <label>{% trans '€/day' %}</label>
+                    <input class="form-control" name="eur_per_day" inputmode="decimal"
+                           value="{% if item.period.eur_per_day is not None %}{% localize off %}{{ item.period.eur_per_day }}{% endlocalize %}{% endif %}"
+                           title="{% trans 'Pitch / campsite: one fee per day at this place, not per kWh.' %}">
                 </div>
                 <div>
                     <label>{% trans 'From' %}</label>
@@ -306,11 +345,17 @@
                 <option value="{{ mode_flat }}">{% trans 'Flat' %}</option>
                 <option value="{{ mode_day_night }}">{% trans 'Day / night' %}</option>
                 <option value="{{ mode_dynamic }}">{% trans 'Dynamic (day-ahead + cents)' %}</option>
+                <option value="{{ mode_per_day }}">{% trans 'Per day' %}</option>
             </select>
         </div>
         <div data-mode="{{ mode_flat }}">
             <label>{% trans '€/kWh' %}</label>
-            <input class="form-control" name="flat_eur_per_kwh" inputmode="decimal" value="0">
+            <input class="form-control" name="flat_eur_per_kwh" inputmode="decimal" placeholder="0.30">
+        </div>
+        <div data-mode="{{ mode_per_day }}" hidden>
+            <label>{% trans '€/day' %}</label>
+            <input class="form-control" name="eur_per_day" inputmode="decimal" placeholder="15"
+                   title="{% trans 'Pitch / campsite: one fee per day at this place, not per kWh.' %}">
         </div>
         <div data-mode="{{ mode_day_night }}" hidden>
             <label>{% trans 'Day' %} €/kWh</label>
@@ -426,12 +471,17 @@
     });
     var filter = document.getElementById('clusterFilter');
     if (filter) {
-        filter.addEventListener('input', function () {
+        function applyClusterFilter() {
             var q = (filter.value || '').toLowerCase();
             document.querySelectorAll('[data-cluster-row]').forEach(function (row) {
                 row.hidden = q && row.textContent.toLowerCase().indexOf(q) === -1;
             });
-        });
+        }
+        filter.addEventListener('input', applyClusterFilter);
+        {% if cluster_query %}
+        filter.value = "{{ cluster_query|escapejs }}";
+        applyClusterFilter();
+        {% endif %}
     }
     {% if open_place_id %}
     var reopen = document.getElementById("tariff-{{ open_place_id }}");

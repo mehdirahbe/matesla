@@ -21,16 +21,18 @@ from matesla.elia_dayahead import ensure_spots_for_dynamic_period
 from matesla.models.ChargeCost import (
     COST_PARTIAL,
     COST_PRICED,
+    COST_UNPRICED,
     ChargeCostSettings,
     ChargePlace,
     PlaceTariffPeriod,
     ROLE_HOME,
     ROLE_WORK,
-    RULE_PLACE,
-    RULE_SUPERCHARGER_INVOICE,
     TARIFF_DAY_NIGHT,
     TARIFF_DYNAMIC,
     TARIFF_FLAT,
+    TARIFF_PER_DAY,
+    TeslaChargingHistorySync,
+    TeslaChargingInvoice,
     VehiclePlaceRole,
 )
 from matesla.models.TeslaCarInfo import TeslaCarInfo
@@ -53,6 +55,7 @@ def _rule_labels() -> dict[str, str]:
         "supercharger_invoice": gettext("Tesla Supercharger invoice"),
         "supercharger_rate": gettext("Supercharger average rate"),
         "place": gettext("Named place"),
+        "per_day": gettext("Per day"),
         "other": gettext("Other chargers"),
         "unpriced": gettext("Unpriced"),
     }
@@ -61,6 +64,11 @@ def _rule_labels() -> dict[str, str]:
 def _rule_label(rule: str, place_name: str | None = None) -> str:
     if place_name:
         return place_name
+    return _source_label(rule)
+
+
+def _source_label(rule: str) -> str:
+    """Price origin (invoice vs estimate vs home…), never the place name."""
     return _rule_labels().get(rule, rule)
 
 
@@ -114,15 +122,19 @@ def _summarize_clusters(rows: list[dict], top_n: int = 5):
                 "key": key,
                 "name": row["cluster_name"],
                 "kwh": 0.0,
-                "cost_eur": 0.0,
+                "cost_eur": None,
                 "priced_kwh": 0.0,
                 "n": 0,
+                "rules": set(),
             }
             buckets[key] = bucket
         bucket["n"] += 1
         kwh = row["kwh"] or 0.0
         bucket["kwh"] += kwh
+        bucket["rules"].add(row.get("rule") or "")
         if row["cost_eur"] is not None:
+            if bucket["cost_eur"] is None:
+                bucket["cost_eur"] = 0.0
             bucket["cost_eur"] += row["cost_eur"]
             bucket["priced_kwh"] += kwh
     ranked = sorted(buckets.values(), key=lambda item: item["kwh"], reverse=True)
@@ -133,19 +145,34 @@ def _summarize_clusters(rows: list[dict], top_n: int = 5):
     rest = None
     leftover = ranked[top_n:]
     if leftover:
+        rest_cost = None
+        rest_priced = sum(item["priced_kwh"] for item in leftover)
+        if any(item["cost_eur"] is not None for item in leftover):
+            rest_cost = sum(item["cost_eur"] or 0.0 for item in leftover)
         rest = {
             "key": "rest",
             "name": gettext("The rest"),
             "kwh": sum(item["kwh"] for item in leftover),
-            "cost_eur": sum(item["cost_eur"] for item in leftover),
-            "priced_kwh": sum(item["priced_kwh"] for item in leftover),
+            "cost_eur": rest_cost,
+            "priced_kwh": rest_priced,
             "n": sum(item["n"] for item in leftover),
+            "source_label": None,
         }
-    for item in top + ([rest] if rest else []):
-        if item["priced_kwh"] > 0:
+    for item in top:
+        rules = {rule for rule in item.pop("rules", set()) if rule}
+        if len(rules) == 1:
+            item["source_label"] = _source_label(next(iter(rules)))
+        else:
+            item["source_label"] = None
+        if item["priced_kwh"] > 0 and item["cost_eur"] is not None:
             item["avg_eur"] = item["cost_eur"] / item["priced_kwh"]
         else:
             item["avg_eur"] = None
+    if rest:
+        if rest["priced_kwh"] > 0 and rest["cost_eur"] is not None:
+            rest["avg_eur"] = rest["cost_eur"] / rest["priced_kwh"]
+        else:
+            rest["avg_eur"] = None
     return top, rest
 
 
@@ -378,6 +405,10 @@ def _annotate_cluster_places(clusters: list[dict], user, hashed_vin: str) -> Non
                     cents = tariff.dynamic_surcharge_cents
                     if cents is not None:
                         cluster["price_hint"] = gettext("spot + %(n)s ¢") % {"n": cents}
+                elif tariff.mode == TARIFF_PER_DAY and tariff.eur_per_day is not None:
+                    cluster["price_hint"] = gettext("%(n)s €/day") % {
+                        "n": f"{tariff.eur_per_day:g}"
+                    }
 
 
 def _active_tariff(place):
@@ -408,6 +439,8 @@ def _tariff_summary(tariff) -> str:
             return f"{day_p:g} €/kWh"
     if tariff.mode == TARIFF_DYNAMIC and tariff.dynamic_surcharge_cents is not None:
         return gettext("spot + %(n)s ¢") % {"n": tariff.dynamic_surcharge_cents}
+    if tariff.mode == TARIFF_PER_DAY and tariff.eur_per_day is not None:
+        return gettext("%(n)s €/day") % {"n": f"{tariff.eur_per_day:g}"}
     return gettext("No price yet")
 
 
@@ -460,6 +493,68 @@ def _timeline_for_place(place):
             next_from = last.valid_to + timedelta(days=1)
             needs_future = True
     return items, next_from, needs_future
+
+
+def _tesla_sync_status(hashed_vin: str) -> dict:
+    empty = {
+        "invoice_count": 0,
+        "last_ok": "",
+        "covered": "",
+        "error": "",
+    }
+    if not hashed_vin:
+        return empty
+    n = TeslaChargingInvoice.objects.filter(hashed_vin=hashed_vin).count()
+    sync = TeslaChargingHistorySync.objects.filter(hashed_vin=hashed_vin).first()
+    last_ok = ""
+    covered = ""
+    error = ""
+    if sync:
+        if sync.last_ok_at is not None:
+            last_ok = date_format(
+                sync.last_ok_at.astimezone(CHARGE_COST_TZ), "j N Y H:i"
+            )
+        if sync.last_from is not None and sync.last_to is not None:
+            start_d = sync.last_from.astimezone(CHARGE_COST_TZ).date().isoformat()
+            end_d = sync.last_to.astimezone(CHARGE_COST_TZ).date().isoformat()
+            covered = f"{start_d} → {end_d}"
+        error = (sync.last_error or "").strip()
+    return {
+        "invoice_count": n,
+        "last_ok": last_ok,
+        "covered": covered,
+        "error": error,
+    }
+
+
+def _unpriced_clusters(rows: list[dict], top_n: int = 5) -> list[dict]:
+    buckets: dict[str, dict] = {}
+    for row in rows:
+        if row.get("status") not in (COST_UNPRICED, COST_PARTIAL) and row.get(
+            "cost_eur"
+        ) is not None:
+            continue
+        energy = row["kwh"] or 0.0
+        if energy <= 0:
+            # Plug-in with no recorded kWh is not "this place has no rate".
+            continue
+        key = row["cluster_key"]
+        bucket = buckets.get(key)
+        if bucket is None:
+            bucket = {
+                "key": key,
+                "name": row["cluster_name"],
+                "kwh": 0.0,
+                "n": 0,
+                "place_id": row.get("place_id"),
+            }
+            buckets[key] = bucket
+        elif bucket["place_id"] != row.get("place_id"):
+            bucket["place_id"] = None
+        bucket["n"] += 1
+        bucket["kwh"] += energy
+    ranked = sorted(buckets.values(), key=lambda item: item["kwh"], reverse=True)
+    return [item for item in ranked if item["kwh"] > 0][:top_n]
 
 
 def _close_open_ended_before(place, new_from: date, exclude_id=None) -> None:
@@ -520,6 +615,7 @@ def ChargeCostsSetup(request):
         "mode_flat": TARIFF_FLAT,
         "mode_day_night": TARIFF_DAY_NIGHT,
         "mode_dynamic": TARIFF_DYNAMIC,
+        "mode_per_day": TARIFF_PER_DAY,
     }
     for place in context["places"]:
         place.summary = _tariff_summary(_active_tariff(place))
@@ -529,11 +625,13 @@ def ChargeCostsSetup(request):
         place.needs_future = needs_future
     context["vehicles"] = _vehicles_for_config(user)
     context["open_place_id"] = _parse_int(request.GET.get("place"))
+    context["cluster_query"] = (request.GET.get("q") or "").strip()
     context["show"] = show
     context["clusters"] = []
     context["cluster_total"] = 0
     context["cluster_has_more"] = False
     context["cluster_next_show"] = None
+    context["tesla_sync"] = _tesla_sync_status(hashed_vin)
     chrome_vin = hashed_vin
     if not chrome_vin:
         from matesla.TeslaConnect import resolve_active_vehicle
@@ -554,6 +652,9 @@ def ChargeCostsSetup(request):
         if len(all_clusters) > show:
             context["cluster_has_more"] = True
             context["cluster_next_show"] = min(show + 10, CLUSTER_SHOW_MAX, len(all_clusters))
+        context["tesla_sync"] = _tesla_sync_status(chrome_vin)
+    else:
+        context["tesla_sync"] = _tesla_sync_status("")
     return render(request, "personalstats/charge_costs_setup.html", context)
 
 
@@ -650,6 +751,19 @@ def _handle_setup_post(request, user, action: str):
         messages.success(request, gettext("Rates saved."))
         return
 
+    if action == "sync_tesla_history":
+        hashed = (request.POST.get("hashed_vin") or request.POST.get("vin") or "").strip()
+        if len(hashed) < 16:
+            raise ValueError(gettext("Choose a vehicle."))
+        from matesla.tesla_charging_history import sync_tesla_invoices
+
+        stored = sync_tesla_invoices(hashed, force=True)
+        messages.success(
+            request,
+            gettext("Tesla invoices updated (%(n)s stored).") % {"n": stored},
+        )
+        return
+
     if action == "save_place":
         place_id = _parse_int(request.POST.get("place_id"))
         name = (request.POST.get("name") or "").strip()
@@ -690,22 +804,21 @@ def _handle_setup_post(request, user, action: str):
         valid_from = _parse_date(posted_from)
         valid_to = _parse_date(posted_to)
         mode = (request.POST.get("mode") or TARIFF_FLAT).strip()
-        if mode not in (TARIFF_FLAT, TARIFF_DAY_NIGHT, TARIFF_DYNAMIC):
+        if mode not in (TARIFF_FLAT, TARIFF_DAY_NIGHT, TARIFF_DYNAMIC, TARIFF_PER_DAY):
             mode = TARIFF_FLAT
-        # Empty field (placeholder "0") is 0, not "missing".
         flat_eur = _parse_float(request.POST.get("flat_eur_per_kwh"))
         day_eur = _parse_float(request.POST.get("day_eur_per_kwh"))
         night_eur = _parse_float(request.POST.get("night_eur_per_kwh"))
         cents = _parse_int(request.POST.get("dynamic_surcharge_cents"))
+        eur_day = _parse_float(request.POST.get("eur_per_day"))
         if mode == TARIFF_FLAT and flat_eur is None:
-            flat_eur = 0.0
-        elif mode == TARIFF_DAY_NIGHT:
-            if day_eur is None:
-                day_eur = 0.0
-            if night_eur is None:
-                night_eur = 0.0
-        elif mode == TARIFF_DYNAMIC and cents is None:
-            cents = 0
+            raise ValueError(gettext("Enter a price. 0 is allowed."))
+        if mode == TARIFF_DAY_NIGHT and (day_eur is None or night_eur is None):
+            raise ValueError(gettext("Enter a price. 0 is allowed."))
+        if mode == TARIFF_DYNAMIC and cents is None:
+            raise ValueError(gettext("Enter a price. 0 is allowed."))
+        if mode == TARIFF_PER_DAY and eur_day is None:
+            raise ValueError(gettext("Enter a price. 0 is allowed."))
         if tariff_id:
             period = PlaceTariffPeriod.objects.filter(
                 pk=tariff_id, place=place
@@ -736,6 +849,7 @@ def _handle_setup_post(request, user, action: str):
         period.night_start = _parse_time(request.POST.get("night_start"), time(22, 0))
         period.night_end = _parse_time(request.POST.get("night_end"), time(7, 0))
         period.dynamic_surcharge_cents = cents
+        period.eur_per_day = eur_day
         period.save()
         if mode == TARIFF_DYNAMIC:
             summary = ensure_spots_for_dynamic_period(valid_from, valid_to)
@@ -940,14 +1054,20 @@ def ChargeCosts(request, hashedVin):
                 "status": result.status,
                 "rule": result.rule,
                 "rule_label": _rule_label(result.rule, place_name),
+                "source_label": _source_label(result.rule),
                 "cluster_key": cluster_key,
                 "cluster_name": cluster_name,
+                "place_id": result.place_id,
                 "spans_midnight": local_start.date() != local_end.date(),
             }
         )
 
     top_clusters, rest_cluster = _summarize_clusters(rows)
     kwh_all = priced_kwh + unpriced_kwh
+    pct_priced = (100.0 * priced_kwh / kwh_all) if kwh_all else None
+    needs_onboarding = bool(rows) and (
+        unpriced_kwh > 0 or (pct_priced is not None and pct_priced < 80)
+    )
     context.update(
         {
             "hashedVin": hashedVin,
@@ -967,7 +1087,9 @@ def ChargeCosts(request, hashedVin):
             "unpriced_kwh": unpriced_kwh,
             "kwh_all": kwh_all,
             "avg_eur": (total_eur / priced_kwh) if priced_kwh else None,
-            "pct_priced": (100.0 * priced_kwh / kwh_all) if kwh_all else None,
+            "pct_priced": pct_priced,
+            "needs_onboarding": needs_onboarding,
+            "unpriced_clusters": _unpriced_clusters(rows) if needs_onboarding else [],
             "allow_setup": is_writable_request(request),
             "max_year": today.year + 1,
         }

@@ -22,10 +22,12 @@ PLACE_ROLE_CHOICES = (
 TARIFF_FLAT = "flat"
 TARIFF_DAY_NIGHT = "day_night"
 TARIFF_DYNAMIC = "dynamic"
+TARIFF_PER_DAY = "per_day"
 TARIFF_MODE_CHOICES = (
     (TARIFF_FLAT, _("Flat")),
     (TARIFF_DAY_NIGHT, _("Day / night")),
     (TARIFF_DYNAMIC, _("Dynamic (day-ahead + cents)")),
+    (TARIFF_PER_DAY, _("Per day")),
 )
 
 COST_PRICED = "priced"
@@ -44,6 +46,7 @@ RULE_WORK = "work"
 RULE_SUPERCHARGER_INVOICE = "supercharger_invoice"
 RULE_SUPERCHARGER_RATE = "supercharger_rate"
 RULE_PLACE = "place"
+RULE_PER_DAY = "per_day"
 RULE_OTHER = "other"
 RULE_UNPRICED = "unpriced"
 RULE_CHOICES = (
@@ -52,6 +55,7 @@ RULE_CHOICES = (
     (RULE_HOME_DYNAMIC, _("Home (dynamic)")),
     (RULE_WORK, _("Work")),
     (RULE_PLACE, _("Named place")),
+    (RULE_PER_DAY, _("Per day")),
     (RULE_SUPERCHARGER_INVOICE, _("Tesla Supercharger invoice")),
     (RULE_SUPERCHARGER_RATE, _("Supercharger average rate")),
     (RULE_OTHER, _("Other chargers")),
@@ -129,6 +133,8 @@ class PlaceTariffPeriod(models.Model):
     night_end = models.TimeField(default="07:00:00")
     # Cents added to Elia day-ahead €/kWh (spot/1000 + cents/100).
     dynamic_surcharge_cents = models.IntegerField(null=True, blank=True)
+    # Campsite pitch: one fee per Brussels civil day at this place, not €/kWh.
+    eur_per_day = models.FloatField(null=True, blank=True)
 
     class Meta:
         indexes = [

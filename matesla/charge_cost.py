@@ -40,6 +40,7 @@ from matesla.models.ChargeCost import (
     RULE_HOME_DYNAMIC,
     RULE_HOME_FLAT,
     RULE_OTHER,
+    RULE_PER_DAY,
     RULE_PLACE,
     RULE_SUPERCHARGER_INVOICE,
     RULE_SUPERCHARGER_RATE,
@@ -48,6 +49,7 @@ from matesla.models.ChargeCost import (
     TARIFF_DAY_NIGHT,
     TARIFF_DYNAMIC,
     TARIFF_FLAT,
+    TARIFF_PER_DAY,
     VehiclePlaceRole,
 )
 
@@ -234,9 +236,15 @@ def _session_kwh(session: ChargeSession) -> float | None:
         kwh = float(session.kwh)
     except (TypeError, ValueError):
         return None
-    if kwh <= 0:
+    if kwh < 0:
         return None
     return kwh
+
+
+def _kwh_for_known_rate(session: ChargeSession) -> float:
+    """Tesla sometimes omits energy on a 1–2 min plug-in. A known rate still means 0 €."""
+    kwh = _session_kwh(session)
+    return kwh if kwh is not None else 0.0
 
 
 def _energy_timeline(
@@ -353,13 +361,11 @@ def _price_day_night(
     session: ChargeSession,
     tariff: PlaceTariffPeriod,
 ) -> CostResult:
-    kwh = _session_kwh(session)
-    if kwh is None:
-        return CostResult(None, COST_UNPRICED, RULE_UNPRICED, place_id=tariff.place_id)
+    kwh = _kwh_for_known_rate(session)
     day_p = tariff.day_eur_per_kwh
     night_p = tariff.night_eur_per_kwh
     if day_p is None or night_p is None:
-        return CostResult(None, COST_UNPRICED, RULE_UNPRICED, place_id=tariff.place_id)
+        return CostResult(None, COST_UNPRICED, RULE_HOME_DAY_NIGHT, place_id=tariff.place_id)
     slices = _energy_timeline(
         session.start, session.end, kwh, session.power_samples
     )
@@ -421,12 +427,19 @@ def _price_dynamic(
     session: ChargeSession,
     tariff: PlaceTariffPeriod,
 ) -> CostResult:
-    kwh = _session_kwh(session)
-    if kwh is None:
-        return CostResult(None, COST_UNPRICED, RULE_UNPRICED, place_id=tariff.place_id)
+    kwh = _kwh_for_known_rate(session)
     cents = tariff.dynamic_surcharge_cents
     if cents is None:
-        return CostResult(None, COST_UNPRICED, RULE_UNPRICED, place_id=tariff.place_id)
+        return CostResult(None, COST_UNPRICED, RULE_HOME_DYNAMIC, place_id=tariff.place_id)
+    if kwh <= 0:
+        return CostResult(
+            0.0,
+            COST_PRICED,
+            RULE_HOME_DYNAMIC,
+            place_id=tariff.place_id,
+            priced_kwh=0.0,
+            missing_kwh=0.0,
+        )
     surcharge = float(cents) / 100.0
     slices = _energy_timeline(
         session.start, session.end, kwh, session.power_samples
@@ -470,9 +483,7 @@ def _price_flat(
     rule: str,
     place_id: int | None,
 ) -> CostResult:
-    kwh = _session_kwh(session)
-    if kwh is None:
-        return CostResult(None, COST_UNPRICED, RULE_UNPRICED, place_id=place_id)
+    kwh = _kwh_for_known_rate(session)
     return CostResult(
         kwh * float(rate),
         COST_PRICED,
@@ -496,6 +507,8 @@ def _unpriced_at(place: ChargePlace, role: str) -> CostResult:
             rule = RULE_HOME_DYNAMIC
         elif latest.mode == TARIFF_DAY_NIGHT:
             rule = RULE_HOME_DAY_NIGHT
+        elif latest.mode == TARIFF_PER_DAY:
+            rule = RULE_PER_DAY
         else:
             rule = RULE_HOME_FLAT
     else:
@@ -511,6 +524,17 @@ def _price_home_or_work(
     tariff = _tariff_at(place, session.start)
     if tariff is None:
         return None
+    if tariff.mode == TARIFF_PER_DAY:
+        if tariff.eur_per_day is None:
+            return None
+        return CostResult(
+            float(tariff.eur_per_day),
+            COST_PRICED,
+            RULE_PER_DAY,
+            place.id,
+            priced_kwh=_kwh_for_known_rate(session),
+            missing_kwh=0.0,
+        )
     if role == ROLE_WORK:
         # Work uses the place rate: flat if set, else day rate, else night.
         rate = tariff.flat_eur_per_kwh
@@ -629,8 +653,52 @@ def persist_session_cost(session: ChargeSession, result: CostResult) -> ChargeSe
     return obj
 
 
+def _brussels_day_bounds(when: datetime) -> tuple[datetime, datetime]:
+    day = _local_date(when)
+    start = datetime.combine(day, time.min, tzinfo=CHARGE_COST_TZ)
+    return start, start + timedelta(days=1)
+
+
+def _sibling_daily_fee_exists(session: ChargeSession, result: CostResult) -> bool:
+    """True if another persisted session already holds this place's €/day."""
+    if result.rule != RULE_PER_DAY or result.place_id is None:
+        return False
+    day_start, day_end = _brussels_day_bounds(session.start)
+    return (
+        ChargeSessionCost.objects.filter(
+            hashed_vin=session.hashed_vin,
+            place_id=result.place_id,
+            rule=RULE_PER_DAY,
+            start__gte=_as_utc(day_start),
+            start__lt=_as_utc(day_end),
+            cost_eur__gt=0,
+        )
+        .exclude(start=_as_utc(session.start))
+        .exists()
+    )
+
+
+def apply_daily_place_fees(rows: list[tuple[ChargeSession, CostResult]]) -> None:
+    """One pitch fee per place per Brussels civil day; later plug-ins that day are 0 €."""
+    charged: set[tuple[int, date]] = set()
+    for session, result in sorted(rows, key=lambda item: _as_utc(item[0].start)):
+        if result.rule != RULE_PER_DAY or result.place_id is None:
+            continue
+        if result.cost_eur is None:
+            continue
+        key = (result.place_id, _local_date(session.start))
+        if key in charged or _sibling_daily_fee_exists(session, result):
+            result.cost_eur = 0.0
+            result.status = COST_PRICED
+        else:
+            charged.add(key)
+
+
 def price_and_persist(session: ChargeSession) -> CostResult:
     result = price_session(session)
+    if result.rule == RULE_PER_DAY and _sibling_daily_fee_exists(session, result):
+        result.cost_eur = 0.0
+        result.status = COST_PRICED
     persist_session_cost(session, result)
     return result
 
@@ -881,7 +949,13 @@ def price_sessions_starting_in(
     )
 
     try:
-        ensure_tesla_invoices_for_window(hashed_vin, window_start, window_end)
+        ensure_tesla_invoices_for_window(
+            hashed_vin,
+            window_start,
+            window_end,
+            backfill=True,
+            max_extra_chunks=1,
+        )
     except Exception:
         pass
     sessions = list(iter_sessions_starting_in(hashed_vin, window_start, window_end))
@@ -907,8 +981,10 @@ def price_sessions_starting_in(
             session.tesla_invoice_eur = stored.tesla_invoice_eur
             if stored.tesla_session_id and not session.tesla_session_id:
                 session.tesla_session_id = stored.tesla_session_id
-        result = price_and_persist(session)
-        out.append((session, result))
+        out.append((session, price_session(session)))
+    apply_daily_place_fees(out)
+    for session, result in out:
+        persist_session_cost(session, result)
     return out
 
 

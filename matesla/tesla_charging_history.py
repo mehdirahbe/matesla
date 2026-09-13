@@ -25,7 +25,13 @@ UTC = ZoneInfo("UTC")
 FETCH_TIMEOUT_S = 12
 CACHE_SECONDS = 3600
 PAGE_SIZE = 50
-MAX_PAGES = 6
+# Safety cap only: stop if Tesla keeps returning full pages.
+MAX_PAGES = 40
+# Tesla: "Date range cannot exceed 1 year". Keep each HTTP call under that
+# *after* the ±12 h match padding (a civil year + padding is what broke).
+WINDOW_PAD = timedelta(hours=12)
+MAX_API_SPAN = timedelta(days=364)
+RECENT_REFRESH = timedelta(days=14)
 MATCH_START_MAX_S = 30 * 60
 EUR_CODES = {"EUR", "€", ""}
 
@@ -246,6 +252,11 @@ def fetch_charging_history(
         records.extend(page_rows)
         if len(page_rows) < PAGE_SIZE:
             break
+    else:
+        logger.warning(
+            "Tesla charging history: hit %s-page cap, some sessions may be missing",
+            MAX_PAGES,
+        )
     return records
 
 
@@ -267,30 +278,138 @@ def store_history_records(hashed_vin: str, records: list[dict]) -> int:
     return stored
 
 
-def ensure_tesla_invoices_for_window(
+def padded_api_bounds(start: datetime, end: datetime) -> tuple[datetime, datetime]:
+    """±12 h padding, clamped so the HTTP range stays ≤ MAX_API_SPAN."""
+    start = _as_utc(start)
+    end = _as_utc(end)
+    if end < start:
+        start, end = end, start
+    fetch_from = start - WINDOW_PAD
+    fetch_to = end + WINDOW_PAD
+    if fetch_to - fetch_from > MAX_API_SPAN:
+        fetch_from = start
+        fetch_to = min(end, fetch_from + MAX_API_SPAN)
+    return fetch_from, fetch_to
+
+
+def history_chunks(start: datetime, end: datetime) -> list[tuple[datetime, datetime]]:
+    """Inner windows whose padded API calls stay ≤ 1 year. Oldest first."""
+    start = _as_utc(start)
+    end = _as_utc(end)
+    if end <= start:
+        return []
+    inner_max = MAX_API_SPAN - 2 * WINDOW_PAD
+    if inner_max <= timedelta(0):
+        inner_max = MAX_API_SPAN
+    chunks: list[tuple[datetime, datetime]] = []
+    cursor = start
+    while cursor < end:
+        chunk_end = min(cursor + inner_max, end)
+        chunks.append((cursor, chunk_end))
+        cursor = chunk_end
+    return chunks
+
+
+def _coerce_stamp(value) -> datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return _as_utc(value)
+    parsed = _parse_dt(value)
+    if parsed is not None:
+        return parsed
+    if isinstance(value, str):
+        text = value.replace("T", " ", 1)
+        try:
+            when = datetime.fromisoformat(text[:19])
+        except ValueError:
+            return None
+        return when.replace(tzinfo=UTC)
+    return None
+
+
+def oldest_charge_datetime(hashed_vin: str) -> datetime | None:
+    """Earliest charging snapshot for this VIN (source of derived sessions)."""
+    if not hashed_vin:
+        return None
+    from django.db import connection
+
+    from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+    from matesla.sqlite_guard import heavy_snapshot_read
+
+    table = TeslaCarDataSnapshot._meta.db_table
+    with heavy_snapshot_read():
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"""
+                SELECT MIN("Date")
+                FROM {table}
+                WHERE hashedVin = %s
+                  AND (charging_state IN ('Charging', 'Starting')
+                       OR charger_power > 0.5)
+                """,
+                [hashed_vin],
+            )
+            row = cursor.fetchone()
+    if not row:
+        return None
+    return _coerce_stamp(row[0])
+
+
+def _merge_coverage(sync: TeslaChargingHistorySync, fetch_from: datetime, fetch_to: datetime) -> None:
+    fetch_from = _as_utc(fetch_from)
+    fetch_to = _as_utc(fetch_to)
+    if sync.last_from is None or fetch_from < _as_utc(sync.last_from):
+        sync.last_from = fetch_from
+    if sync.last_to is None or fetch_to > _as_utc(sync.last_to):
+        sync.last_to = fetch_to
+
+
+def _chunk_is_cached(
+    sync: TeslaChargingHistorySync,
+    chunk_start: datetime,
+    chunk_end: datetime,
+    now: datetime,
+    force: bool,
+) -> bool:
+    if force:
+        return False
+    if sync.last_from is None or sync.last_to is None:
+        return False
+    if _as_utc(sync.last_from) > _as_utc(chunk_start):
+        return False
+    if _as_utc(sync.last_to) < _as_utc(chunk_end):
+        return False
+    if _as_utc(chunk_end) >= now - RECENT_REFRESH:
+        if sync.last_ok_at is None:
+            return False
+        return (now - sync.last_ok_at).total_seconds() < CACHE_SECONDS
+    return True
+
+
+def _fetch_chunks(
     hashed_vin: str,
-    window_start: datetime,
-    window_end: datetime,
+    start: datetime,
+    end: datetime,
     *,
     http_get=None,
     force: bool = False,
+    max_chunks: int | None = None,
 ) -> int:
-    """Fetch Tesla history for this window unless cached recently. Never raises."""
+    """Newest-first. Clears last_error on the first successful chunk. Never raises."""
     if not hashed_vin:
         return 0
+    chunks = history_chunks(start, end)
+    if not chunks:
+        return 0
     now = timezone.now()
-    fetch_from = _as_utc(window_start) - timedelta(hours=12)
-    fetch_to = _as_utc(window_end) + timedelta(hours=12)
     sync, _ = TeslaChargingHistorySync.objects.get_or_create(hashed_vin=hashed_vin)
-    if (
-        not force
-        and sync.last_ok_at is not None
-        and (now - sync.last_ok_at).total_seconds() < CACHE_SECONDS
-        and sync.last_from is not None
-        and sync.last_to is not None
-        and _as_utc(sync.last_from) <= _as_utc(window_start)
-        and _as_utc(sync.last_to) >= _as_utc(window_end)
-    ):
+    pending = [
+        pair
+        for pair in reversed(chunks)
+        if not _chunk_is_cached(sync, pair[0], pair[1], now, force)
+    ]
+    if not pending:
         return 0
     vin, token = _vin_and_token(hashed_vin)
     if not vin or token is None:
@@ -299,30 +418,122 @@ def ensure_tesla_invoices_for_window(
         from matesla.TeslaOAuth import ensure_fresh_access_token
 
         token = ensure_fresh_access_token(token)
-        records = fetch_charging_history(
-            token.access_token,
-            vin,
-            fetch_from,
-            fetch_to,
-            http_get=http_get,
-        )
-        stored = store_history_records(hashed_vin, records)
-        sync.last_ok_at = now
-        sync.last_from = fetch_from
-        sync.last_to = fetch_to
-        sync.last_error = ""
-        sync.save(update_fields=["last_ok_at", "last_from", "last_to", "last_error"])
-        logger.info(
-            "Tesla charging history: %s session(s) stored for %s…",
-            stored,
-            hashed_vin[:8],
-        )
-        return stored
     except Exception as exc:
         sync.last_error = str(exc)[:240]
         sync.save(update_fields=["last_error"])
-        logger.warning("Tesla charging history fetch failed: %s", exc)
+        logger.warning("Tesla charging history token refresh failed: %s", exc)
         return 0
+
+    stored_total = 0
+    fetched = 0
+    for chunk_start, chunk_end in pending:
+        if max_chunks is not None and fetched >= max_chunks:
+            break
+        fetch_from, fetch_to = padded_api_bounds(chunk_start, chunk_end)
+        try:
+            records = fetch_charging_history(
+                token.access_token,
+                vin,
+                fetch_from,
+                fetch_to,
+                http_get=http_get,
+            )
+            stored = store_history_records(hashed_vin, records)
+            stored_total += stored
+            fetched += 1
+            now = timezone.now()
+            sync.last_ok_at = now
+            sync.last_error = ""
+            _merge_coverage(sync, fetch_from, fetch_to)
+            sync.save(
+                update_fields=["last_ok_at", "last_from", "last_to", "last_error"]
+            )
+            logger.info(
+                "Tesla charging history: %s session(s) stored for %s… (%s → %s)",
+                stored,
+                hashed_vin[:8],
+                fetch_from.date(),
+                fetch_to.date(),
+            )
+        except Exception as exc:
+            sync.last_error = str(exc)[:240]
+            sync.save(update_fields=["last_error"])
+            logger.warning("Tesla charging history fetch failed: %s", exc)
+            fetched += 1
+            continue
+    return stored_total
+
+
+def ensure_tesla_invoices_for_window(
+    hashed_vin: str,
+    window_start: datetime,
+    window_end: datetime,
+    *,
+    http_get=None,
+    force: bool = False,
+    backfill: bool = True,
+    max_extra_chunks: int | None = 1,
+) -> int:
+    """
+    Fetch Tesla history for this window in ≤1-year chunks. Never raises.
+
+    When backfill is true, also walk older uncovered years (from the oldest
+    matesla charge snapshot) newest-first, limited by max_extra_chunks.
+    """
+    if not hashed_vin:
+        return 0
+    stored = _fetch_chunks(
+        hashed_vin,
+        window_start,
+        window_end,
+        http_get=http_get,
+        force=force,
+        max_chunks=None,
+    )
+    if not backfill:
+        return stored
+    oldest = oldest_charge_datetime(hashed_vin)
+    if oldest is None:
+        return stored
+    sync = TeslaChargingHistorySync.objects.filter(hashed_vin=hashed_vin).first()
+    covered_from = (
+        _as_utc(sync.last_from)
+        if sync is not None and sync.last_from is not None
+        else _as_utc(window_start)
+    )
+    if oldest >= covered_from:
+        return stored
+    extra = _fetch_chunks(
+        hashed_vin,
+        oldest,
+        covered_from,
+        http_get=http_get,
+        force=force,
+        max_chunks=max_extra_chunks,
+    )
+    return stored + extra
+
+
+def sync_tesla_invoices(
+    hashed_vin: str,
+    *,
+    http_get=None,
+    force: bool = False,
+) -> int:
+    """Fetch invoices from the oldest known charge until now (all chunks)."""
+    now = timezone.now()
+    oldest = oldest_charge_datetime(hashed_vin)
+    start = oldest if oldest is not None else now - MAX_API_SPAN
+    if start > now:
+        start = now - timedelta(days=1)
+    return ensure_tesla_invoices_for_window(
+        hashed_vin,
+        start,
+        now,
+        http_get=http_get,
+        force=force,
+        backfill=False,
+    )
 
 
 def apply_tesla_invoices(sessions) -> None:

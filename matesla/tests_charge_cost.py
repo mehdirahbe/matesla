@@ -12,6 +12,7 @@ from matesla.charge_cost import (
     CHARGE_COST_TZ,
     ChargeSession,
     annotate_daymap_charges,
+    apply_daily_place_fees,
     price_and_persist,
     price_session,
 )
@@ -25,6 +26,7 @@ from matesla.models.ChargeCost import (
     ChargeSessionCost,
     DayAheadSpotPrice,
     PlaceTariffPeriod,
+    TeslaChargingHistorySync,
     TeslaChargingInvoice,
     ROLE_HOME,
     ROLE_WORK,
@@ -32,6 +34,7 @@ from matesla.models.ChargeCost import (
     RULE_HOME_DYNAMIC,
     RULE_HOME_FLAT,
     RULE_OTHER,
+    RULE_PER_DAY,
     RULE_PLACE,
     RULE_SUPERCHARGER_INVOICE,
     RULE_SUPERCHARGER_RATE,
@@ -40,6 +43,7 @@ from matesla.models.ChargeCost import (
     TARIFF_DAY_NIGHT,
     TARIFF_DYNAMIC,
     TARIFF_FLAT,
+    TARIFF_PER_DAY,
     VehiclePlaceRole,
 )
 
@@ -206,6 +210,35 @@ class ChargeCostEngineTests(TestCase):
         self.assertIsNone(result.cost_eur)
         self.assertEqual(result.place_id, self.home.id)
 
+    def test_known_home_rate_with_no_kwh_is_zero_not_unpriced(self):
+        PlaceTariffPeriod.objects.create(
+            place=self.home,
+            valid_from=date(2019, 2, 1),
+            valid_to=date(2022, 2, 1),
+            mode=TARIFF_DAY_NIGHT,
+            day_eur_per_kwh=0.22,
+            night_eur_per_kwh=0.18,
+        )
+        VehiclePlaceRole.objects.create(
+            hashed_vin=HV_A,
+            place=self.home,
+            role=ROLE_HOME,
+            valid_from=date(2020, 5, 2),
+        )
+        session = self._session(
+            HV_A,
+            _at(2021, 5, 27, 20, 50),
+            _at(2021, 5, 27, 20, 52),
+            None,
+            HOME_LAT,
+            HOME_LON,
+        )
+        result = price_session(session)
+        self.assertEqual(result.rule, RULE_HOME_DAY_NIGHT)
+        self.assertEqual(result.status, COST_PRICED)
+        self.assertAlmostEqual(result.cost_eur, 0.0, places=4)
+        self.assertEqual(result.place_id, self.home.id)
+
     def test_named_place_beats_other_chargers_rate(self):
         camping = ChargePlace.objects.create(
             user=self.user,
@@ -226,6 +259,43 @@ class ChargeCostEngineTests(TestCase):
         result = price_session(session)
         self.assertEqual(result.rule, RULE_PLACE)
         self.assertAlmostEqual(result.cost_eur, 4.2, places=4)
+
+    def test_campsite_per_day_once_per_civil_day(self):
+        camping = ChargePlace.objects.create(
+            user=self.user,
+            name="camping cham",
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+            radius_m=150,
+        )
+        PlaceTariffPeriod.objects.create(
+            place=camping,
+            valid_from=date(2020, 1, 1),
+            mode=TARIFF_PER_DAY,
+            eur_per_day=15.0,
+        )
+        morning = self._session(
+            HV_A, _at(2021, 7, 11, 8), _at(2021, 7, 11, 9), 6.8, ELSE_LAT, ELSE_LON
+        )
+        evening = self._session(
+            HV_A, _at(2021, 7, 11, 19), _at(2021, 7, 11, 21), 16.0, ELSE_LAT, ELSE_LON
+        )
+        next_day = self._session(
+            HV_A, _at(2021, 7, 12, 20), _at(2021, 7, 12, 22), 12.0, ELSE_LAT, ELSE_LON
+        )
+        first = price_session(morning)
+        second = price_session(evening)
+        third = price_session(next_day)
+        self.assertEqual(first.rule, RULE_PER_DAY)
+        apply_daily_place_fees(
+            [(morning, first), (evening, second), (next_day, third)]
+        )
+        self.assertAlmostEqual(first.cost_eur, 15.0, places=4)
+        self.assertAlmostEqual(second.cost_eur, 0.0, places=4)
+        self.assertAlmostEqual(third.cost_eur, 15.0, places=4)
+        price_and_persist(morning)
+        later = price_and_persist(evening)
+        self.assertAlmostEqual(later.cost_eur, 0.0, places=4)
 
     def test_work_rate(self):
         PlaceTariffPeriod.objects.create(
@@ -612,14 +682,94 @@ class ChargeCostPagesTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Camping Frehel")
-        self.assertNotContains(response, "Named place")
+        self.assertContains(response, "Named place")
+        self.assertContains(response, "0.00")
         year_view = self.client.get(
             f"/en/personalstats/ChargeCosts/{HV_A}?year=2026"
         )
         self.assertEqual(year_view.status_code, 200)
         self.assertContains(year_view, "Camping Frehel")
+        self.assertContains(year_view, "Named place")
         self.assertContains(year_view, "data-cluster-filter")
         self.assertContains(year_view, "Everything")
+
+    def test_charges_kpi_shows_true_zero(self):
+        from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+
+        work = ChargePlace.objects.create(
+            user=self.user,
+            name="Office",
+            latitude=50.1,
+            longitude=4.2,
+            radius_m=150,
+        )
+        PlaceTariffPeriod.objects.create(
+            place=work,
+            valid_from=date(2010, 1, 1),
+            mode=TARIFF_FLAT,
+            flat_eur_per_kwh=0.0,
+        )
+        VehiclePlaceRole.objects.create(
+            hashed_vin=HV_A,
+            place=work,
+            role=ROLE_WORK,
+            valid_from=date(2010, 1, 1),
+        )
+        when = datetime(2026, 3, 10, 9, 0, tzinfo=UTC)
+        for index in range(2):
+            TeslaCarDataSnapshot.objects.create(
+                vin="5YJ3E1EA0KFCOSTUI01",
+                hashedVin=HV_A,
+                Date=when + timedelta(minutes=index * 20),
+                DateOnlyDay=when.date(),
+                charging_state="Charging",
+                charger_power=7.0,
+                charge_energy_added=5.0 + index,
+                latitude=50.1,
+                longitude=4.2,
+                battery_level=40.0,
+            )
+        response = self.client.get(
+            f"/en/personalstats/ChargeCosts/{HV_A}?month=2026-03"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "0.00")
+        self.assertContains(response, "Work")
+        self.assertNotContains(response, "Some charges in this period are not priced.")
+
+    def test_charges_onboarding_when_unpriced(self):
+        from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+
+        camping = ChargePlace.objects.create(
+            user=self.user,
+            name="camping cham",
+            latitude=51.0,
+            longitude=5.0,
+            radius_m=150,
+        )
+        when = datetime(2026, 4, 2, 12, 0, tzinfo=UTC)
+        for index in range(2):
+            TeslaCarDataSnapshot.objects.create(
+                vin="5YJ3E1EA0KFCOSTUI01",
+                hashedVin=HV_A,
+                Date=when + timedelta(minutes=index * 15),
+                DateOnlyDay=when.date(),
+                charging_state="Charging",
+                charger_power=11.0,
+                charge_energy_added=10.0 + index,
+                latitude=51.0,
+                longitude=5.0,
+                battery_level=40.0,
+            )
+        response = self.client.get(
+            f"/en/personalstats/ChargeCosts/{HV_A}?month=2026-04"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Some charges in this period are not priced.")
+        self.assertContains(response, "Configure rates")
+        self.assertContains(response, "camping cham")
+        self.assertContains(response, f"place={camping.id}")
+        self.assertContains(response, "Named place")
 
     def test_setup_requires_login_on_localhost(self):
         response = self.client.get("/en/personalstats/ChargeCostsSetup")
@@ -632,6 +782,46 @@ class ChargeCostPagesTests(TestCase):
             "/en/personalstats/ChargeCostsSetup", HTTP_HOST="remote.example"
         )
         self.assertEqual(response.status_code, 404)
+
+    def test_setup_shows_tesla_invoice_sync_status(self):
+        self.client.login(username="cost_pages", password="x")
+        TeslaChargingHistorySync.objects.create(
+            hashed_vin=HV_A,
+            last_ok_at=datetime(2026, 9, 13, 12, 0, tzinfo=UTC),
+            last_from=datetime(2022, 6, 1, tzinfo=UTC),
+            last_to=datetime(2026, 9, 13, tzinfo=UTC),
+            last_error="Date range cannot exceed 1 year",
+        )
+        TeslaChargingInvoice.objects.create(
+            hashed_vin=HV_A,
+            tesla_session_id="inv-setup-1",
+            start=_at(2026, 9, 2, 15, 0),
+            end=_at(2026, 9, 2, 16, 0),
+            site_name="Test Supercharger",
+            total_eur=10.0,
+        )
+        response = self.client.get(f"/en/personalstats/ChargeCostsSetup?vin={HV_A}")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Tesla Supercharger invoices")
+        self.assertContains(response, "Date range cannot exceed 1 year")
+        self.assertContains(response, "Sync Tesla invoices")
+
+    def test_setup_sync_tesla_history_action(self):
+        self.client.login(username="cost_pages", password="x")
+        with patch(
+            "matesla.tesla_charging_history.sync_tesla_invoices", return_value=4
+        ):
+            response = self.client.post(
+                f"/en/personalstats/ChargeCostsSetup?vin={HV_A}",
+                {
+                    "action": "sync_tesla_history",
+                    "vin": HV_A,
+                    "hashed_vin": HV_A,
+                },
+                follow=True,
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Tesla invoices updated")
 
     def test_setup_save_rates_and_dynamic_triggers_elia(self):
         self.client.login(username="cost_pages", password="x")
@@ -816,7 +1006,6 @@ class ChargeCostPagesTests(TestCase):
         )
         self.assertEqual(PlaceTariffPeriod.objects.filter(place=place).count(), 1)
 
-        # Placeholder 0: the field looks filled but POST may omit it or send "".
         empty_place = ChargePlace.objects.create(
             user=self.user, name="bvd", latitude=50.81, longitude=4.31, radius_m=150
         )
@@ -830,14 +1019,29 @@ class ChargeCostPagesTests(TestCase):
             follow=True,
         )
         self.assertEqual(empty.status_code, 200)
-        blank = PlaceTariffPeriod.objects.get(place=empty_place)
-        self.assertAlmostEqual(blank.flat_eur_per_kwh, 0.0, places=4)
-        self.assertContains(empty, "0 €/kWh")
-        self.assertNotContains(empty, "Enter a price. 0 is allowed.")
+        self.assertFalse(PlaceTariffPeriod.objects.filter(place=empty_place).exists())
+        self.assertContains(empty, "Enter a price. 0 is allowed.")
+
+        camp = ChargePlace.objects.create(
+            user=self.user, name="camping cham", latitude=45.9, longitude=6.8, radius_m=150
+        )
+        self.client.post(
+            "/en/personalstats/ChargeCostsSetup",
+            {
+                "action": "save_tariff",
+                "place_id": str(camp.id),
+                "mode": TARIFF_PER_DAY,
+                "eur_per_day": "15",
+            },
+            follow=True,
+        )
+        daily = PlaceTariffPeriod.objects.get(place=camp)
+        self.assertEqual(daily.mode, TARIFF_PER_DAY)
+        self.assertAlmostEqual(daily.eur_per_day, 15.0, places=4)
 
     def test_rule_labels_follow_active_language(self):
         from django.utils import translation
-        from personalstats.charge_pages import _rule_label
+        from personalstats.charge_pages import _rule_label, _source_label
 
         with translation.override("fr"):
             self.assertEqual(
@@ -847,10 +1051,43 @@ class ChargeCostPagesTests(TestCase):
             self.assertEqual(
                 _rule_label("supercharger_invoice", "Drogenbos"), "Drogenbos"
             )
+            self.assertEqual(
+                _source_label("supercharger_invoice"),
+                "Facture Superchargeur Tesla",
+            )
+            self.assertEqual(_source_label("unpriced"), "Non chiffré")
+            self.assertEqual(_source_label("per_day"), "Forfait / jour")
         with translation.override("en"):
             self.assertEqual(
                 _rule_label("supercharger_rate"), "Supercharger average rate"
             )
+
+    def test_unpriced_cluster_list_skips_zero_kwh(self):
+        from personalstats.charge_pages import _unpriced_clusters
+
+        rows = [
+            {
+                "cluster_key": "p5",
+                "cluster_name": "Uccle",
+                "kwh": None,
+                "cost_eur": None,
+                "status": COST_UNPRICED,
+                "rule": RULE_UNPRICED,
+            },
+            {
+                "cluster_key": "p7",
+                "cluster_name": "delhaize boondael",
+                "kwh": 339.0,
+                "cost_eur": None,
+                "status": COST_UNPRICED,
+                "rule": RULE_PLACE,
+                "place_id": 7,
+            },
+        ]
+        listed = _unpriced_clusters(rows)
+        names = [item["name"] for item in listed]
+        self.assertEqual(names, ["delhaize boondael"])
+        self.assertEqual(listed[0]["place_id"], 7)
 
     def test_cluster_identity_labels_supercharger_sites(self):
         from matesla.charge_cost import ChargeSession, CostResult
@@ -978,3 +1215,164 @@ class TeslaChargingHistoryTests(TestCase):
         apply_tesla_invoices([session])
         self.assertAlmostEqual(session.tesla_invoice_eur, 11.69, places=2)
         self.assertEqual(session.tesla_site_name, "Anderlecht, Belgium")
+
+    def test_history_chunks_keep_padded_calls_under_one_year(self):
+        from matesla.tesla_charging_history import (
+            MAX_API_SPAN,
+            history_chunks,
+            padded_api_bounds,
+        )
+
+        start = datetime(2024, 1, 1, tzinfo=CHARGE_COST_TZ)
+        end = datetime(2025, 1, 1, tzinfo=CHARGE_COST_TZ)
+        chunks = history_chunks(start, end)
+        self.assertGreaterEqual(len(chunks), 2)
+        for chunk_start, chunk_end in chunks:
+            fetch_from, fetch_to = padded_api_bounds(chunk_start, chunk_end)
+            self.assertLessEqual(fetch_to - fetch_from, MAX_API_SPAN)
+
+    def test_year_window_issues_multiple_sub_year_requests(self):
+        from matesla.tesla_charging_history import (
+            MAX_API_SPAN,
+            ensure_tesla_invoices_for_window,
+        )
+
+        token = MagicMock()
+        token.access_token = "tok"
+        calls = []
+
+        def http_get(url, **kwargs):
+            calls.append(kwargs["params"])
+            resp = MagicMock()
+            resp.status_code = 200
+            resp.text = ""
+            resp.json.return_value = {"response": {"data": []}}
+            return resp
+
+        with patch(
+            "matesla.tesla_charging_history._vin_and_token",
+            return_value=("5YJTESTVIN0000001", token),
+        ), patch(
+            "matesla.TeslaOAuth.ensure_fresh_access_token",
+            return_value=token,
+        ):
+            ensure_tesla_invoices_for_window(
+                HV_A,
+                datetime(2024, 1, 1, tzinfo=UTC),
+                datetime(2025, 1, 1, tzinfo=UTC),
+                http_get=http_get,
+                force=True,
+                backfill=False,
+            )
+        self.assertGreaterEqual(len(calls), 2)
+        for params in calls:
+            start = datetime.fromisoformat(params["startTime"])
+            end = datetime.fromisoformat(params["endTime"])
+            self.assertLessEqual(end - start, MAX_API_SPAN)
+
+    def test_last_error_cleared_after_successful_chunk(self):
+        from matesla.tesla_charging_history import ensure_tesla_invoices_for_window
+
+        TeslaChargingHistorySync.objects.create(
+            hashed_vin=HV_A,
+            last_error="charging/history HTTP 400: Date range cannot exceed 1 year",
+        )
+        token = MagicMock()
+        token.access_token = "tok"
+
+        def http_get(url, **kwargs):
+            resp = MagicMock()
+            resp.status_code = 200
+            resp.text = ""
+            resp.json.return_value = {"response": {"data": []}}
+            return resp
+
+        with patch(
+            "matesla.tesla_charging_history._vin_and_token",
+            return_value=("5YJTESTVIN0000001", token),
+        ), patch(
+            "matesla.TeslaOAuth.ensure_fresh_access_token",
+            return_value=token,
+        ):
+            ensure_tesla_invoices_for_window(
+                HV_A,
+                datetime(2026, 9, 1, tzinfo=UTC),
+                datetime(2026, 9, 30, tzinfo=UTC),
+                http_get=http_get,
+                force=True,
+                backfill=False,
+            )
+        sync = TeslaChargingHistorySync.objects.get(hashed_vin=HV_A)
+        self.assertEqual(sync.last_error, "")
+        self.assertIsNotNone(sync.last_ok_at)
+
+    def test_pagination_continues_past_six_pages(self):
+        from matesla.tesla_charging_history import fetch_charging_history
+
+        pages = []
+
+        def http_get(url, **kwargs):
+            page = kwargs["params"]["pageNo"]
+            pages.append(page)
+            n = 50 if page < 8 else 3
+            rows = [
+                {
+                    "sessionId": f"{page}-{index}",
+                    "chargeStartDateTime": "2026-01-01T10:00:00Z",
+                    "fees": [{"totalDue": 1.0, "currencyCode": "EUR"}],
+                }
+                for index in range(n)
+            ]
+            resp = MagicMock()
+            resp.status_code = 200
+            resp.text = ""
+            resp.json.return_value = {"response": {"data": rows}}
+            return resp
+
+        records = fetch_charging_history(
+            "tok",
+            "5YJTESTVIN0000001",
+            datetime(2026, 1, 1, tzinfo=UTC),
+            datetime(2026, 6, 1, tzinfo=UTC),
+            http_get=http_get,
+        )
+        self.assertEqual(pages, list(range(1, 9)))
+        self.assertEqual(len(records), 50 * 7 + 3)
+
+    def test_sync_starts_from_oldest_charge_snapshot(self):
+        from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+        from matesla.tesla_charging_history import sync_tesla_invoices
+
+        TeslaCarDataSnapshot.objects.create(
+            vin="5YJTESTVIN0000001",
+            hashedVin=HV_A,
+            Date=datetime(2022, 6, 15, 8, 0, tzinfo=UTC),
+            DateOnlyDay=date(2022, 6, 15),
+            charging_state="Charging",
+            charger_power=7.0,
+            latitude=50.0,
+            longitude=4.0,
+        )
+        token = MagicMock()
+        token.access_token = "tok"
+        starts = []
+
+        def http_get(url, **kwargs):
+            starts.append(datetime.fromisoformat(kwargs["params"]["startTime"]))
+            resp = MagicMock()
+            resp.status_code = 200
+            resp.text = ""
+            resp.json.return_value = {"response": {"data": []}}
+            return resp
+
+        with patch(
+            "matesla.tesla_charging_history._vin_and_token",
+            return_value=("5YJTESTVIN0000001", token),
+        ), patch(
+            "matesla.TeslaOAuth.ensure_fresh_access_token",
+            return_value=token,
+        ):
+            sync_tesla_invoices(HV_A, http_get=http_get, force=True)
+        self.assertTrue(starts)
+        self.assertLessEqual(min(starts).year, 2022)
+        self.assertGreaterEqual(len(starts), 3)

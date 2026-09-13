@@ -164,6 +164,19 @@ msgstr "Dag / natt"
 msgid "Dynamic (day-ahead + cents)"
 msgstr "Dynamisk (day-ahead + øre)"
 
+msgid "Per day"
+msgstr "Per dag"
+
+msgid "€/day"
+msgstr "€/dag"
+
+#, python-format
+msgid "%(n)s €/day"
+msgstr "%(n)s €/dag"
+
+msgid "Pitch / campsite: one fee per day at this place, not per kWh."
+msgstr "Campingplass: én dagspris på dette stedet, ikke per kWh."
+
 msgid "Priced"
 msgstr "Prissatt"
 
@@ -1207,6 +1220,27 @@ msgstr "Sted lagret."
 msgid "Rates saved."
 msgstr "Tariffer lagret."
 
+msgid "Tesla invoices updated (%(n)s stored)."
+msgstr "Tesla-fakturaer oppdatert (%(n)s lagret)."
+
+msgid "Tesla Supercharger invoices"
+msgstr "Tesla Supercharger-fakturaer"
+
+msgid "Tesla history is fetched in one-year slices, from the oldest charge on this car until now."
+msgstr "Tesla-historikken hentes i ettårsbolker, fra den eldste ladningen på denne bilen frem til nå."
+
+msgid "%(n)s invoices · last sync %(when)s"
+msgstr "%(n)s faktura(er) · siste sync %(when)s"
+
+msgid "Not synced yet"
+msgstr "Ikke synkronisert ennå"
+
+msgid "Error: %(msg)s"
+msgstr "Feil: %(msg)s"
+
+msgid "Sync Tesla invoices"
+msgstr "Synkroniser Tesla-fakturaer"
+
 msgid "Name, latitude and longitude are required."
 msgstr "Navn, bredde- og lengdegrad er obligatorisk."
 
@@ -1572,6 +1606,12 @@ msgstr "Sted"
 
 msgid "No charge sessions in this period."
 msgstr "Ingen ladeøkter i denne perioden."
+
+msgid "Some charges in this period are not priced."
+msgstr "Noen ladninger i denne perioden er ikke priset."
+
+msgid "Set a rate for these places:"
+msgstr "Sett en tariff for disse stedene:"
 
 msgid "Charge rates"
 msgstr "Ladetariffer"
