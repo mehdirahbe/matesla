@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans 'Where did I go' %}{% endblock %}
+
+{% block extracss %}
+<link rel="stylesheet" href="{% static 'leaflet/leaflet.css' %}">
+{% endblock %}
+
+{% block cssstyle %}
+    .where-page .vehicle-chrome { margin-bottom: 12px; }
+    .where-toolbar {
+        display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem 1rem;
+        margin-bottom: 1rem; padding: 12px 14px; border-radius: 12px;
+        border: 1px solid var(--app-line); background: var(--app-surface);
+    }
+    .where-toolbar form {
+        display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem 0.65rem;
+        margin: 0; width: 100%;
+    }
+    .where-toolbar label {
+        display: block; font-size: 0.75rem; text-transform: uppercase;
+        letter-spacing: 0.04em; color: var(--app-muted); margin-bottom: 4px;
+    }
+    .where-toolbar label .where-optional {
+        text-transform: none; font-weight: 400; letter-spacing: 0; opacity: 0.85;
+    }
+    .where-toolbar .form-control { min-height: 36px; }
+    .where-q { min-width: min(18rem, 100%); flex: 1 1 16rem; }
+    .where-presets { display: flex; flex-wrap: wrap; gap: 0.4rem; width: 100%; }
+    .where-presets a, .where-chip {
+        display: inline-flex; align-items: center;
+        padding: 4px 10px; border-radius: 999px; font-size: 0.82rem; font-weight: 600;
+        border: 1px solid var(--app-line); background: var(--app-surface-2);
+        color: var(--app-muted); cursor: pointer; font-family: inherit;
+    }
+    .where-presets a:hover, .where-chip:hover { color: var(--app-text); border-color: var(--app-line-strong); }
+    .where-chip.is-active {
+        border-color: var(--app-energy); color: var(--app-energy);
+        background: var(--app-energy-soft);
+    }
+    .where-hint { font-size: 0.85rem; color: var(--app-muted); margin: 0 0 0.85rem; }
+    .where-empty, .where-error {
+        margin-bottom: 1rem; padding: 12px 14px; border-radius: 12px;
+        border: 1px solid var(--app-line); background: var(--app-surface);
+    }
+    .where-error { border-color: rgba(240, 180, 41, 0.45); background: rgba(240, 180, 41, 0.12); }
+    .where-layout {
+        display: grid; gap: 1rem;
+        grid-template-columns: minmax(0, 1fr);
+    }
+    @media (min-width: 960px) {
+        .where-layout { grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr); align-items: start; }
+    }
+    .where-days {
+        border-radius: 14px; border: 1px solid var(--app-line);
+        background: var(--app-surface); overflow: hidden;
+    }
+    .where-days h2 {
+        margin: 0; padding: 12px 14px; font-size: 0.78rem; font-weight: 600;
+        text-transform: uppercase; letter-spacing: .04em; color: var(--app-muted);
+        border-bottom: 1px solid var(--app-line);
+    }
+    .where-days ul { list-style: none; margin: 0; padding: 0; }
+    .where-days li { border-bottom: 1px solid var(--app-line); }
+    .where-days li:last-child { border-bottom: none; }
+    .where-days a {
+        display: flex; justify-content: space-between; gap: 0.75rem; align-items: baseline;
+        padding: 0.7rem 1rem; color: inherit;
+    }
+    .where-days a:hover { background: var(--app-surface-2); color: var(--app-blue); }
+    .where-days .meta { color: var(--app-muted); font-size: 0.82rem; white-space: nowrap; }
+    .where-map-shell { min-height: 280px; border-radius: 14px; overflow: hidden; border: 1px solid var(--app-line); }
+    #where-map { height: 420px; width: 100%; background: var(--app-bg-raised); }
+{% endblock %}
+
+{% block content %}
+<div class="where-page">
+{% include 'matesla/_vehicle_chrome.html' %}
+<div class="page-heading">
+    <div class="page-heading__copy">
+        <p class="eyebrow">{% trans 'Journey replay' %}</p>
+        <h1 class="page-title page-title--compact">{% trans 'Where did I go' %}</h1>
+        <p class="page-subtitle">{% trans 'Find days the car spent at a place or in a region.' %}</p>
+    </div>
+</div>
+
+<div class="where-toolbar">
+    <form method="get" action="{% url 'PersoWhere' hashedVin %}" id="where-form">
+        <div class="where-q">
+            <label for="where_q">{% trans 'Place or region' %}</label>
+            <input class="form-control" type="search" id="where_q" name="q"
+                   value="{{ query }}" maxlength="120"
+                   placeholder="{% trans 'Brittany, Namur, …' %}" required>
+        </div>
+        <div>
+            <label for="where_from">{% trans 'From' %}</label>
+            <input class="form-control" type="date" id="where_from" name="from"
+                   value="{{ from_iso }}" required>
+        </div>
+        <div>
+            <label for="where_to">{% trans 'To' %}
+                <span class="where-optional">({% trans 'Empty = that one day.' %})</span>
+            </label>
+            <input class="form-control" type="date" id="where_to" name="to"
+                   value="{{ to_iso }}"
+                   title="{% trans 'Empty = that one day.' %}">
+        </div>
+        <button class="btn btn-primary btn-sm" type="submit">{% trans 'Show' %}</button>
+        <div class="where-presets" role="group" aria-label="{% trans 'Date presets' %}">
+            <button type="button" class="where-chip" data-preset-from="{{ presets.this_month_from }}" data-preset-to="{{ presets.this_month_to }}">{% trans 'This month' %}</button>
+            <button type="button" class="where-chip" data-preset-from="{{ presets.last_month_from }}" data-preset-to="{{ presets.last_month_to }}">{% trans 'Last month' %}</button>
+            <button type="button" class="where-chip" data-preset-from="{{ presets.summer_from }}" data-preset-to="{{ presets.summer_to }}">{% trans 'Summer' %} {{ presets.summer_year }}</button>
+        </div>
+    </form>
+</div>
+
+{% if candidates|length > 1 %}
+<p class="where-hint">{% trans 'Several matches — pick one:' %}</p>
+<div class="where-presets" style="margin-bottom: 1rem;">
+    {% for cand in candidates %}
+    <a class="where-chip{% if cand.selected %} is-active{% endif %}"
+       href="{% url 'PersoWhere' hashedVin %}?q={{ query|urlencode }}&amp;from={{ from_iso }}&amp;to={{ to_iso }}&amp;c={{ cand.index }}">
+        {{ cand.label }}{% if cand.kind_label %} · {{ cand.kind_label }}{% endif %}
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if chosen %}
+<p class="where-hint">
+    {{ chosen.label }}{% if chosen.kind_label %} · {{ chosen.kind_label }}{% endif %}
+    — {% trans 'Cities use a tight map area; regions use the geocoder outline.' %}
+</p>
+{% endif %}
+
+{% if error %}
+<div class="where-error" role="status">{{ error }}</div>
+{% endif %}
+
+{% if searched and days %}
+<div class="where-layout">
+    <section class="where-days" aria-label="{% trans 'Matched days' %}">
+        <h2>{% trans 'Matched days' %} · {{ day_count }}</h2>
+        <ul>
+            {% for d in days %}
+            <li>
+                <a href="{% url 'PersoDayMapDay' hashedVin d.day_iso %}">
+                    <span>{{ d.day_label }}</span>
+                    <span class="meta">
+                        {{ d.point_count }} {% trans 'GPS points' %}
+                        {% if d.distance is not None %}
+                        · {{ d.distance }} {{ u_dist }}
+                        {% endif %}
+                    </span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    <div class="matesla-map-shell where-map-shell" id="where-map-shell">
+        <div id="where-map" role="img" aria-label="{% trans 'GPS points' %}"></div>
+    </div>
+</div>
+{% elif not query %}
+<p class="where-hint">{% trans 'Enter a place and a date range.' %}</p>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+(function () {
+    function syncWhereToVehicleSwitcher() {
+        var map = { where_q: "vehicle_switch_where_q", where_from: "vehicle_switch_where_from", where_to: "vehicle_switch_where_to" };
+        Object.keys(map).forEach(function (srcId) {
+            var src = document.getElementById(srcId);
+            var dest = document.getElementById(map[srcId]);
+            if (src && dest) dest.value = src.value;
+        });
+    }
+    document.querySelectorAll("[data-preset-from]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var fromEl = document.getElementById("where_from");
+            var toEl = document.getElementById("where_to");
+            if (fromEl) fromEl.value = btn.getAttribute("data-preset-from");
+            if (toEl) toEl.value = btn.getAttribute("data-preset-to");
+            syncWhereToVehicleSwitcher();
+        });
+    });
+    ["where_q", "where_from", "where_to"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("input", syncWhereToVehicleSwitcher);
+        el.addEventListener("change", syncWhereToVehicleSwitcher);
+    });
+    var switcher = document.querySelector("[data-vehicle-switcher]");
+    if (switcher) {
+        switcher.addEventListener("change", syncWhereToVehicleSwitcher, true);
+        switcher.addEventListener("submit", syncWhereToVehicleSwitcher);
+    }
+})();
+</script>
+{% if searched and days %}
+<script src="{% static 'leaflet/leaflet.js' %}"></script>
+<script src="{% static 'js/matesla-map-fullscreen.js' %}"></script>
+<script>
+(function () {
+    var segments = {{ path_json|safe }};
+    var markers = {{ markers_json|safe }};
+    var mapEl = document.getElementById("where-map");
+    if (!mapEl || typeof L === "undefined") return;
+    var leafletIconBase = "{% static 'leaflet/images/' %}";
+    L.Icon.Default.mergeOptions({
+        iconUrl: leafletIconBase + "marker-icon.png",
+        iconRetinaUrl: leafletIconBase + "marker-icon-2x.png",
+        shadowUrl: leafletIconBase + "marker-shadow.png"
+    });
+    var map = L.map("where-map");
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    var group = L.featureGroup();
+    var lineOpts = {
+        color: "#4db4ff",
+        weight: 3,
+        opacity: 0.88,
+        lineJoin: "round",
+        lineCap: "round"
+    };
+    (segments || []).forEach(function (seg) {
+        if (seg && seg.length >= 2) L.polyline(seg, lineOpts).addTo(group);
+    });
+    (markers || []).forEach(function (pt) {
+        if (pt && pt.length >= 2) L.circleMarker(pt, {
+            radius: 6, color: "#4db4ff", fillColor: "#4db4ff", fillOpacity: 0.9, weight: 2
+        }).addTo(group);
+    });
+    if (group.getLayers().length) {
+        group.addTo(map);
+        map.fitBounds(group.getBounds(), { padding: [28, 28], maxZoom: 12 });
+    } else {
+        map.setView([50.85, 4.35], 6);
+    }
+    setTimeout(function () { map.invalidateSize(); }, 80);
+    if (typeof mateslaAttachMapFullscreen === "function") {
+        mateslaAttachMapFullscreen(map, document.getElementById("where-map-shell") || mapEl, {
+            enter: "{% filter escapejs %}{% trans 'Fullscreen map' %}{% endfilter %}",
+            exit: "{% filter escapejs %}{% trans 'Exit fullscreen' %}{% endfilter %}",
+            position: "topleft"
+        });
+    }
+})();
+</script>
+{% endif %}
+{% endblock %}

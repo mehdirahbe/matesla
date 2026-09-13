@@ -2999,8 +2999,6 @@ msgstr "Send e-post"
 #~ msgid "Delete place"
 #~ msgstr "Slett sted"
 
-#~ msgid "To"
-#~ msgstr "Til"
 
 #~ msgid ""
 #~ "Places, home/work periods and prices. Nothing is assumed: you enter every "
@@ -3033,3 +3031,66 @@ msgstr "Send e-post"
 
 #~ msgid "Add assignment"
 #~ msgstr "Legg til tilordning"
+
+msgid "Where did I go"
+msgstr "Hvor har jeg vært"
+
+msgid "Find days the car spent at a place or in a region."
+msgstr "Dager på et sted eller i en region."
+
+msgid "Place or region"
+msgstr "Sted eller region"
+
+msgid "Brittany, Namur, …"
+msgstr "Bretagne, Namur, …"
+
+msgid "To"
+msgstr "Til"
+
+msgid "Empty = that one day."
+msgstr "Tom = den ene dagen."
+
+msgid "Last month"
+msgstr "Forrige måned"
+
+msgid "Summer"
+msgstr "Sommer"
+
+msgid "Date presets"
+msgstr "Datogenveier"
+
+msgid "Several matches — pick one:"
+msgstr "Flere treff — velg én:"
+
+msgid "Cities use a tight map area; regions use the geocoder outline."
+msgstr "Byer bruker et tett område; regioner geokoderens omriss."
+
+msgid "Geocoding quota reached. Try again later."
+msgstr "Geokodingskvote nådd. Prøv igjen senere."
+
+msgid "Could not look up this place."
+msgstr "Kunne ikke slå opp dette stedet."
+
+msgid "No matching place. Try a city or region name."
+msgstr "Ingen treff. Prøv et by- eller regionsnavn."
+
+msgid "Enter a place and a date range."
+msgstr "Angi et sted og en periode."
+
+msgid "Date range cannot exceed %(n)s days."
+msgstr "Perioden kan ikke overstige %(n)s dager."
+
+msgid "No days in this place for that period."
+msgstr "Ingen dager på dette stedet i den perioden."
+
+msgid "Matched days"
+msgstr "Funnet dager"
+
+msgid "Region"
+msgstr "Region"
+
+msgid "City"
+msgstr "By"
+
+msgid "County"
+msgstr "Fylke"

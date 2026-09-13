@@ -11,6 +11,11 @@
         {% if request.resolver_match.url_name == 'PersoDayMap' or request.resolver_match.url_name == 'PersoDayMapDay' %}
         <input type="hidden" name="next" value="daymap">
         {% if day_iso %}<input type="hidden" name="day" value="{{ day_iso }}">{% endif %}
+        {% elif request.resolver_match.url_name == 'PersoWhere' %}
+        <input type="hidden" name="next" value="where">
+        <input type="hidden" name="q" id="vehicle_switch_where_q" value="{{ query|default:'' }}">
+        <input type="hidden" name="from" id="vehicle_switch_where_from" value="{{ from_iso|default:'' }}">
+        <input type="hidden" name="to" id="vehicle_switch_where_to" value="{{ to_iso|default:'' }}">
         {% elif request.resolver_match.url_name == 'PersoDrives' %}
         <input type="hidden" name="next" value="drives">
         <input type="hidden" name="period" value="{{ stats_period|default:520 }}">
@@ -72,6 +77,7 @@
         {% if hashedVin %}
         <a href="{% url 'PersoStats' hashedVin %}" {% if request.resolver_match.url_name == 'PersoStats' %}aria-current="page"{% endif %}>{% trans 'My data' %}</a>
         <a href="{% url 'PersoDayMap' hashedVin %}" {% if request.resolver_match.url_name == 'PersoDayMap' or request.resolver_match.url_name == 'PersoDayMapDay' %}aria-current="page"{% endif %}>{% trans 'Day map' %}</a>
+        <a href="{% url 'PersoWhere' hashedVin %}" {% if request.resolver_match.url_name == 'PersoWhere' %}aria-current="page"{% endif %}>{% trans 'Where did I go' %}</a>
         <a href="{% url 'PersoDrives' hashedVin %}" {% if request.resolver_match.url_name == 'PersoDrives' %}aria-current="page"{% endif %}>{% trans 'Drives' %}</a>
         <a href="{% url 'PersoDCCharge' hashedVin %}" {% if request.resolver_match.url_name == 'PersoDCCharge' %}aria-current="page"{% endif %}>{% trans 'DC charge' %}</a>
         <a href="{% url 'PersoStatsFirmwareHistory' hashedVin %}" {% if request.resolver_match.url_name == 'PersoStatsFirmwareHistory' %}aria-current="page"{% endif %}>{% trans 'Firmware history' %}</a>

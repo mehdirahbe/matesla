@@ -2,6 +2,7 @@ from django.urls import path
 
 from . import views
 from .charge_pages import ChargeCosts, ChargeCostsSetup
+from .place_search import PlaceSearch
 from .views import FirmwareHistoryView
 
 '''From https://docs.djangoproject.com/en/3.0/topics/http/urls/
@@ -14,6 +15,8 @@ path('Stats/<str:hashedVin>', views.Stats, name='PersoStats'),
 # Day path / map: type a calendar day (or use prev/next arrows)
 path('DayMap/<str:hashedVin>', views.DayMap, name='PersoDayMap'),
 path('DayMap/<str:hashedVin>/<str:day>', views.DayMap, name='PersoDayMapDay'),
+# Place / region + date range → civil days (DayMap drill-down)
+path('Where/<str:hashedVin>', PlaceSearch, name='PersoWhere'),
 # Single fast-charge stop curve PNGs from day-map DC rows
 # chart: power_vs_time | power_vs_soc (separate files for save/print)
 path(

@@ -28,6 +28,7 @@ PERSONAL_HASHED_VIN_ROUTES = (
     ("/en/personalstats/Stats/{hash}", "html"),
     ("/en/personalstats/DayMap/{hash}", "html"),
     ("/en/personalstats/DayMap/{hash}/2024-01-15", "html"),
+    ("/en/personalstats/Where/{hash}", "html"),
     (
         "/en/personalstats/DayChargeSessionGraph/{hash}/2024-01-15/1700000000/power_vs_time",
         "png",

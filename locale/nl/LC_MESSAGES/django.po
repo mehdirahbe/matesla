@@ -3022,8 +3022,6 @@ msgstr "E-mail verzenden"
 #~ msgid "Delete place"
 #~ msgstr "Plaats verwijderen"
 
-#~ msgid "To"
-#~ msgstr "Tot"
 
 #~ msgid ""
 #~ "Places, home/work periods and prices. Nothing is assumed: you enter every "
@@ -3057,3 +3055,66 @@ msgstr "E-mail verzenden"
 
 #~ msgid "Add assignment"
 #~ msgstr "Toewijzing toevoegen"
+
+msgid "Where did I go"
+msgstr "Waar ben ik geweest"
+
+msgid "Find days the car spent at a place or in a region."
+msgstr "Dagen op een plek of in een streek."
+
+msgid "Place or region"
+msgstr "Plek of regio"
+
+msgid "Brittany, Namur, …"
+msgstr "Bretagne, Namen, …"
+
+msgid "To"
+msgstr "Tot"
+
+msgid "Empty = that one day."
+msgstr "Leeg = die ene dag."
+
+msgid "Last month"
+msgstr "Vorige maand"
+
+msgid "Summer"
+msgstr "Zomer"
+
+msgid "Date presets"
+msgstr "Datumsnelkoppelingen"
+
+msgid "Several matches — pick one:"
+msgstr "Meerdere treffers — kies er één:"
+
+msgid "Cities use a tight map area; regions use the geocoder outline."
+msgstr "Een stad gebruikt een krappe zone; een regio de geocodercontour."
+
+msgid "Geocoding quota reached. Try again later."
+msgstr "Geocoding-quota bereikt. Probeer het later opnieuw."
+
+msgid "Could not look up this place."
+msgstr "Deze plek kon niet worden opgezocht."
+
+msgid "No matching place. Try a city or region name."
+msgstr "Geen passende plek. Probeer een stad of regio."
+
+msgid "Enter a place and a date range."
+msgstr "Vul een plek en een periode in."
+
+msgid "Date range cannot exceed %(n)s days."
+msgstr "De periode mag niet langer zijn dan %(n)s dagen."
+
+msgid "No days in this place for that period."
+msgstr "Geen dagen op deze plek in die periode."
+
+msgid "Matched days"
+msgstr "Gevonden dagen"
+
+msgid "Region"
+msgstr "Regio"
+
+msgid "City"
+msgstr "Stad"
+
+msgid "County"
+msgstr "Provincie"

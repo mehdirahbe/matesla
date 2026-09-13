@@ -1124,7 +1124,8 @@ body.vehicle-switch-pending #dc-period,
 body.vehicle-switch-pending #drives-period,
 body.vehicle-switch-pending #daymap-form,
 body.vehicle-switch-pending #dc-form,
-body.vehicle-switch-pending #drives-form {
+body.vehicle-switch-pending #drives-form,
+body.vehicle-switch-pending #where-form {
     pointer-events: none;
     opacity: 0.5;
 }

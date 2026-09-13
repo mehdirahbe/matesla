@@ -946,6 +946,7 @@ def view_select_vehicle(request):
         "stats",
         "firmware",
         "drives",
+        "where",
         "dccharge",
         "polldetails",
         "charges",
@@ -1036,6 +1037,24 @@ def view_select_vehicle(request):
                 )
             if next_kind == "polldetails":
                 return redirect("PersoPollDetails", hashedVin=hashed)
+            if next_kind == "where":
+                from django.urls import reverse
+                from urllib.parse import urlencode
+
+                url = reverse("PersoWhere", kwargs={"hashedVin": hashed})
+                place = (request.POST.get("q") or "").strip()[:120]
+                date_from = (request.POST.get("from") or "").strip()
+                date_to = (request.POST.get("to") or "").strip()
+                params = {}
+                if place:
+                    params["q"] = place
+                if re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_from or ""):
+                    params["from"] = date_from
+                if re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_to or ""):
+                    params["to"] = date_to
+                if params:
+                    return redirect(f"{url}?{urlencode(params)}")
+                return redirect("PersoWhere", hashedVin=hashed)
             if next_kind == "charges":
                 return redirect("PersoChargeCosts", hashedVin=hashed)
             if next_kind == "charges_setup":

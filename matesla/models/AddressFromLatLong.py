@@ -14,7 +14,9 @@ Reverse-geocode provider:
 from __future__ import annotations
 
 import logging
+import re
 import time
+from dataclasses import dataclass, replace
 from datetime import date
 
 import requests
@@ -63,6 +65,17 @@ class NominatimDailyQuota(models.Model):
 
     def __str__(self):
         return f"{self.day}: {self.call_count} calls"
+
+
+class ForwardGeocodeCache(models.Model):
+    """Forward lookup cache (query text → ranked candidates with bbox)."""
+
+    query_key = models.CharField(max_length=240, unique=True)
+    payload = models.JSONField()
+    fetched_at = models.DateTimeField()
+
+    class Meta:
+        indexes = [models.Index(fields=["fetched_at"])]
 
 
 # purpose= for slot / reverse: interactive UI must not starve behind cron backfill.
@@ -590,3 +603,565 @@ def GetAddressFromLatLong(
         return _store_address(latitude, longitude, display)
     except Exception:
         return "Unknown"
+
+
+# ---------------------------------------------------------------------------
+# Forward geocode (place / region text → bbox). Same providers + quota as reverse.
+# ---------------------------------------------------------------------------
+
+FORWARD_CACHE_DAYS = 180
+FORWARD_MAX_HITS = 8
+FORWARD_SHOW_HITS = 3
+# Bump when ranking / amenity-supplement changes so stale city-only rows are ignored.
+FORWARD_CACHE_VERSION = "v2"
+
+# City vs region bbox policy (degrees). City must stay tight enough that
+# "Namur" does not become the whole province; region keeps the geocoder outline.
+CITY_MAX_LAT_SPAN = 0.45
+CITY_MAX_LON_SPAN = 0.65
+CITY_HALF_LAT = 0.14
+CITY_HALF_LON = 0.20
+REGION_PAD = 0.06
+CITY_PAD = 0.03
+OTHER_PAD = 0.06
+POINT_HALF_LAT = 0.08
+POINT_HALF_LON = 0.12
+
+_REGION_TYPES = frozenset(
+    {"state", "country", "region", "nation", "territory", "state_district"}
+)
+_CITY_TYPES = frozenset(
+    {
+        "city",
+        "town",
+        "village",
+        "municipality",
+        "hamlet",
+        "suburb",
+        "locality",
+        "city_district",
+        "district",
+        "neighbourhood",
+        "postcode",
+    }
+)
+_COUNTY_TYPES = frozenset({"county", "province", "department", "arrondissement"})
+_AREA_TYPES = frozenset(
+    {
+        "river",
+        "waterway",
+        "lake",
+        "reservoir",
+        "canyon",
+        "gorge",
+        "stream",
+        "canal",
+        "park",
+        "protected_area",
+        "nature_reserve",
+        "wood",
+        "forest",
+    }
+)
+# Promote amenity/natural hits whose outline is clearly bigger than a village.
+AREA_MIN_SPAN = 0.35
+
+
+@dataclass(frozen=True)
+class GeocodeHit:
+    label: str
+    name: str
+    kind: str  # region | city | county | other
+    lat: float
+    lon: float
+    south: float
+    north: float
+    west: float
+    east: float
+    provider: str
+    importance: float = 0.0
+
+
+@dataclass(frozen=True)
+class ForwardGeocodeResult:
+    hits: list[GeocodeHit]
+    error: str | None = None  # None | "quota" | "network" | "empty"
+    cached: bool = False
+
+
+def normalize_forward_query(query: str) -> str:
+    text = (query or "").strip()
+    text = re.sub(r"\s+", " ", text)
+    return text
+
+
+def _forward_cache_key(query: str) -> str:
+    lang = _prefer_lang_short()
+    return f"{active_geocoder()}|{FORWARD_CACHE_VERSION}|{lang}|{query.casefold()}"
+
+
+def _hit_to_dict(hit: GeocodeHit) -> dict:
+    return {
+        "label": hit.label,
+        "name": hit.name,
+        "kind": hit.kind,
+        "lat": hit.lat,
+        "lon": hit.lon,
+        "south": hit.south,
+        "north": hit.north,
+        "west": hit.west,
+        "east": hit.east,
+        "provider": hit.provider,
+        "importance": hit.importance,
+    }
+
+
+def _hit_from_dict(data: dict) -> GeocodeHit | None:
+    try:
+        return GeocodeHit(
+            label=str(data["label"]),
+            name=str(data.get("name") or data["label"]),
+            kind=str(data.get("kind") or "other"),
+            lat=float(data["lat"]),
+            lon=float(data["lon"]),
+            south=float(data["south"]),
+            north=float(data["north"]),
+            west=float(data["west"]),
+            east=float(data["east"]),
+            provider=str(data.get("provider") or ""),
+            importance=float(data.get("importance") or 0.0),
+        )
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def _bbox_span(south, north, west, east) -> float:
+    try:
+        return max(float(north) - float(south), float(east) - float(west))
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _classify_kind(
+    type_token: str,
+    *,
+    osm_class: str = "",
+    category: str = "",
+    south=None,
+    north=None,
+    west=None,
+    east=None,
+) -> str:
+    token = (type_token or "").strip().lower()
+    osm_class = (osm_class or "").strip().lower()
+    category = (category or "").strip().lower()
+    if token in _REGION_TYPES:
+        return "region"
+    if token in _CITY_TYPES:
+        return "city"
+    if token in _COUNTY_TYPES:
+        return "county"
+    span = (
+        _bbox_span(south, north, west, east)
+        if south is not None and north is not None and west is not None and east is not None
+        else 0.0
+    )
+    is_natural = (
+        token in _AREA_TYPES
+        or osm_class in ("waterway", "natural", "leisure")
+        or any(tag in category for tag in ("natural", "water", "park"))
+    )
+    # Geoapify often labels a river as result_type=amenity with a wide bbox
+    # ("Le Verdon") while tiny homonymous villages are result_type=city.
+    if span >= AREA_MIN_SPAN and (is_natural or token in ("amenity", "other", "")):
+        return "region"
+    if is_natural:
+        return "region"
+    return "other"
+
+
+def _clamp_bbox(south, north, west, east):
+    south = max(-90.0, min(90.0, float(south)))
+    north = max(-90.0, min(90.0, float(north)))
+    west = max(-180.0, min(180.0, float(west)))
+    east = max(-180.0, min(180.0, float(east)))
+    if south > north:
+        south, north = north, south
+    if west > east:
+        west, east = east, west
+    return south, north, west, east
+
+
+def _bbox_from_center(lat: float, lon: float, kind: str):
+    if kind == "region":
+        dlat, dlon = 1.5, 2.0
+    elif kind == "city":
+        dlat, dlon = POINT_HALF_LAT, POINT_HALF_LON
+    else:
+        dlat, dlon = 0.05, 0.08
+    return _clamp_bbox(lat - dlat, lat + dlat, lon - dlon, lon + dlon)
+
+
+def apply_bbox_policy(hit: GeocodeHit) -> GeocodeHit:
+    """
+    City: tight bbox (never the whole province). Region: geocoder outline + pad.
+
+    A city result whose bbox is huge (province returned as city) is rebuilt
+    around the centre. Regions are padded a little so GPS on the border still
+    matches (Brittany north coast).
+    """
+    south, north, west, east = hit.south, hit.north, hit.west, hit.east
+    lat_span = north - south
+    lon_span = east - west
+    pad = 0.0
+    if hit.kind == "city" and (
+        lat_span > CITY_MAX_LAT_SPAN or lon_span > CITY_MAX_LON_SPAN
+    ):
+        south = hit.lat - CITY_HALF_LAT
+        north = hit.lat + CITY_HALF_LAT
+        west = hit.lon - CITY_HALF_LON
+        east = hit.lon + CITY_HALF_LON
+    elif hit.kind == "region":
+        pad = REGION_PAD
+    elif hit.kind == "city":
+        pad = CITY_PAD
+    else:
+        pad = OTHER_PAD
+    if pad:
+        south -= pad
+        north += pad
+        west -= pad
+        east += pad
+    south, north, west, east = _clamp_bbox(south, north, west, east)
+    return replace(hit, south=south, north=north, west=west, east=east)
+
+
+def _query_tokens(text: str) -> list[str]:
+    return re.findall(r"[a-zà-ÿ0-9]+", (text or "").casefold())
+
+
+def rank_forward_hits(query: str, hits: list[GeocodeHit]) -> list[GeocodeHit]:
+    """
+    Named regions first (Bretagne, or a river/gorge like Le Verdon), then a
+    matching city (Namur). Tiny homonymous villages must not beat the feature
+    the query actually names.
+    """
+    if not hits:
+        return []
+    q_tokens = [tok for tok in _query_tokens(query) if len(tok) >= 3] or _query_tokens(
+        query
+    )
+
+    def name_matches(hit: GeocodeHit) -> bool:
+        hay = _query_tokens(hit.name) + _query_tokens(hit.label)
+        if not q_tokens or not hay:
+            return False
+        return all(tok in hay for tok in q_tokens)
+
+    def bbox_area(hit: GeocodeHit) -> float:
+        return max(0.0, hit.north - hit.south) * max(0.0, hit.east - hit.west)
+
+    matching_regions = [
+        hit for hit in hits if hit.kind == "region" and name_matches(hit)
+    ]
+    matching_cities = [
+        hit for hit in hits if hit.kind == "city" and name_matches(hit)
+    ]
+    if matching_regions:
+        primary = matching_regions
+    elif matching_cities:
+        primary = matching_cities
+    else:
+        primary = []
+
+    def importance_of(hit: GeocodeHit) -> float:
+        return (hit.importance, bbox_area(hit))
+
+    seen = set()
+    ordered: list[GeocodeHit] = []
+    for group in (primary, hits):
+        for hit in sorted(group, key=importance_of, reverse=True):
+            key = (
+                round(hit.lat, 3),
+                round(hit.lon, 3),
+                round(hit.south, 3),
+                round(hit.north, 3),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            ordered.append(hit)
+    return ordered[:FORWARD_SHOW_HITS]
+
+
+def _bbox_from_geoapify_feature(feat: dict, lat: float, lon: float, kind: str):
+    bbox = feat.get("bbox")
+    if isinstance(bbox, (list, tuple)) and len(bbox) == 4:
+        west, south, east, north = (float(v) for v in bbox)
+        return _clamp_bbox(south, north, west, east)
+    props = feat.get("properties") or {}
+    pb = props.get("bbox")
+    if isinstance(pb, dict) and {"lat1", "lat2", "lon1", "lon2"} <= set(pb):
+        lats = [float(pb["lat1"]), float(pb["lat2"])]
+        lons = [float(pb["lon1"]), float(pb["lon2"])]
+        return _clamp_bbox(min(lats), max(lats), min(lons), max(lons))
+    return _bbox_from_center(lat, lon, kind)
+
+
+def _importance_from_rank(rank: dict) -> float:
+    if not isinstance(rank, dict):
+        return 0.0
+    for key in ("importance", "popularity", "confidence"):
+        raw = rank.get(key)
+        if raw is None:
+            continue
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            continue
+    return 0.0
+
+
+def _hits_from_geoapify_features(query: str, features) -> list[GeocodeHit]:
+    hits: list[GeocodeHit] = []
+    for feat in features or []:
+        props = feat.get("properties") or {}
+        geom = feat.get("geometry") or {}
+        coords = geom.get("coordinates") or []
+        try:
+            lon = float(props.get("lon") if props.get("lon") is not None else coords[0])
+            lat = float(props.get("lat") if props.get("lat") is not None else coords[1])
+        except (TypeError, ValueError, IndexError):
+            continue
+        result_type = str(props.get("result_type") or props.get("type") or "")
+        south, north, west, east = _bbox_from_geoapify_feature(
+            feat, lat, lon, result_type
+        )
+        kind = _classify_kind(
+            result_type,
+            category=str(props.get("category") or ""),
+            south=south,
+            north=north,
+            west=west,
+            east=east,
+        )
+        name = str(props.get("name") or props.get("city") or props.get("state") or query)
+        label = CleanAddressDisplay(
+            props.get("formatted") or props.get("address_line1") or name
+        )
+        hits.append(
+            apply_bbox_policy(
+                GeocodeHit(
+                    label=label or name,
+                    name=name,
+                    kind=kind,
+                    lat=lat,
+                    lon=lon,
+                    south=south,
+                    north=north,
+                    west=west,
+                    east=east,
+                    provider="geoapify",
+                    importance=_importance_from_rank(props.get("rank") or {}),
+                )
+            )
+        )
+    return hits
+
+
+def _geoapify_search_json(
+    query: str, extra_params: dict | None = None
+) -> tuple[dict | None, str | None]:
+    api_key = _geoapify_api_key()
+    if not api_key:
+        return None, "network"
+    if not _acquire_nominatim_slot(purpose=NOMINATIM_PURPOSE_INTERACTIVE):
+        return None, "quota"
+    params = {
+        "text": query,
+        "apiKey": api_key,
+        "lang": _prefer_lang_short(),
+        "limit": FORWARD_MAX_HITS,
+    }
+    if extra_params:
+        params.update(extra_params)
+    try:
+        response = requests.get(
+            "https://api.geoapify.com/v1/geocode/search",
+            params=params,
+            headers={"User-Agent": "matesla-personal-tesla-stats/1.0"},
+            timeout=12,
+        )
+        response.raise_for_status()
+        return response.json(), None
+    except Exception as exc:
+        logger.warning("Geoapify forward failed for %r: %s", query, exc)
+        return None, "network"
+
+
+def _geoapify_forward(query: str) -> ForwardGeocodeResult:
+    data, error = _geoapify_search_json(query)
+    if data is None:
+        return ForwardGeocodeResult(hits=[], error=error or "network")
+
+    hits = _hits_from_geoapify_features(query, data.get("features") or [])
+    # Default search is administrative-only: "verdon" → tiny communes, never
+    # the river / gorges. One amenity lookup fills that gap (cached after).
+    if not any(hit.kind == "region" for hit in hits):
+        extra, extra_error = _geoapify_search_json(
+            query, extra_params={"type": "amenity"}
+        )
+        if extra is not None:
+            hits.extend(
+                _hits_from_geoapify_features(query, extra.get("features") or [])
+            )
+        elif extra_error == "quota" and not hits:
+            return ForwardGeocodeResult(hits=[], error="quota")
+    ranked = rank_forward_hits(query, hits)
+    if not ranked:
+        return ForwardGeocodeResult(hits=[], error="empty")
+    return ForwardGeocodeResult(hits=ranked)
+
+
+def _nominatim_forward(query: str) -> ForwardGeocodeResult:
+    if not _acquire_nominatim_slot(purpose=NOMINATIM_PURPOSE_INTERACTIVE):
+        return ForwardGeocodeResult(hits=[], error="quota")
+    try:
+        geolocator = Nominatim(user_agent="matesla-personal-tesla-stats/1.0")
+        locations = geolocator.geocode(
+            query,
+            language=_prefer_language_code(),
+            addressdetails=True,
+            exactly_one=False,
+            limit=FORWARD_MAX_HITS,
+            timeout=12,
+        )
+    except Exception as exc:
+        logger.warning("Nominatim forward failed for %r: %s", query, exc)
+        return ForwardGeocodeResult(hits=[], error="network")
+    if not locations:
+        return ForwardGeocodeResult(hits=[], error="empty")
+
+    hits: list[GeocodeHit] = []
+    for location in locations:
+        raw = getattr(location, "raw", None) or {}
+        try:
+            lat = float(location.latitude)
+            lon = float(location.longitude)
+        except (TypeError, ValueError):
+            continue
+        type_token = str(
+            raw.get("addresstype") or raw.get("type") or raw.get("class") or ""
+        )
+        addr = raw.get("address") or {}
+        name = str(
+            raw.get("name")
+            or addr.get("river")
+            or addr.get("state")
+            or addr.get("city")
+            or addr.get("town")
+            or addr.get("village")
+            or addr.get("municipality")
+            or query
+        )
+        label = CleanAddressDisplay(location.address or name)
+        bbox_raw = raw.get("boundingbox")
+        if isinstance(bbox_raw, (list, tuple)) and len(bbox_raw) == 4:
+            try:
+                south, north, west, east = (float(v) for v in bbox_raw)
+                south, north, west, east = _clamp_bbox(south, north, west, east)
+            except (TypeError, ValueError):
+                south, north, west, east = _bbox_from_center(lat, lon, "other")
+        else:
+            south, north, west, east = _bbox_from_center(lat, lon, "other")
+        kind = _classify_kind(
+            type_token,
+            osm_class=str(raw.get("class") or ""),
+            south=south,
+            north=north,
+            west=west,
+            east=east,
+        )
+        try:
+            importance = float(raw.get("importance") or 0)
+        except (TypeError, ValueError):
+            importance = 0.0
+        hits.append(
+            apply_bbox_policy(
+                GeocodeHit(
+                    label=label or name,
+                    name=name,
+                    kind=kind,
+                    lat=lat,
+                    lon=lon,
+                    south=south,
+                    north=north,
+                    west=west,
+                    east=east,
+                    provider="nominatim",
+                    importance=importance,
+                )
+            )
+        )
+    ranked = rank_forward_hits(query, hits)
+    if not ranked:
+        return ForwardGeocodeResult(hits=[], error="empty")
+    return ForwardGeocodeResult(hits=ranked)
+
+
+def _store_forward_cache(query_key: str, result: ForwardGeocodeResult) -> None:
+    if result.error or not result.hits:
+        return
+    payload = {
+        "error": result.error,
+        "hits": [_hit_to_dict(hit) for hit in result.hits],
+    }
+    ForwardGeocodeCache.objects.update_or_create(
+        query_key=query_key,
+        defaults={"payload": payload, "fetched_at": now()},
+    )
+
+
+def _load_forward_cache(query_key: str) -> ForwardGeocodeResult | None:
+    row = ForwardGeocodeCache.objects.filter(query_key=query_key).first()
+    if row is None:
+        return None
+    fetched = row.fetched_at
+    if fetched is not None:
+        age_days = (now() - fetched).days
+        if age_days > FORWARD_CACHE_DAYS:
+            return None
+    payload = row.payload if isinstance(row.payload, dict) else {}
+    hits = []
+    for item in payload.get("hits") or []:
+        hit = _hit_from_dict(item)
+        if hit is not None:
+            hits.append(hit)
+    error = payload.get("error")
+    if hits:
+        error = None
+    elif error not in ("empty", "quota", "network"):
+        error = "empty"
+    return ForwardGeocodeResult(hits=hits, error=error, cached=True)
+
+
+def ForwardGeocode(query: str) -> ForwardGeocodeResult:
+    """
+    Forward-geocode a free-text place / region. Uses Geoapify if a key is set,
+    else Nominatim. Shares the reverse-geocode daily cap + min interval.
+
+    Results are cached locally so a bookmarked search does not spend quota.
+    """
+    text = normalize_forward_query(query)
+    if not text:
+        return ForwardGeocodeResult(hits=[], error="empty")
+    cache_key = _forward_cache_key(text)
+    cached = _load_forward_cache(cache_key)
+    if cached is not None:
+        return cached
+    if active_geocoder() == "geoapify":
+        result = _geoapify_forward(text)
+    else:
+        result = _nominatim_forward(text)
+    _store_forward_cache(cache_key, result)
+    return result

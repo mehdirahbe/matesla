@@ -3043,8 +3043,6 @@ msgstr "E-Mail senden"
 #~ msgid "Delete place"
 #~ msgstr "Ort löschen"
 
-#~ msgid "To"
-#~ msgstr "Bis"
 
 #~ msgid ""
 #~ "Places, home/work periods and prices. Nothing is assumed: you enter every "
@@ -3079,3 +3077,66 @@ msgstr "E-Mail senden"
 
 #~ msgid "Add assignment"
 #~ msgstr "Zuordnung hinzufügen"
+
+msgid "Where did I go"
+msgstr "Wo war ich"
+
+msgid "Find days the car spent at a place or in a region."
+msgstr "Tage an einem Ort oder in einer Region."
+
+msgid "Place or region"
+msgstr "Ort oder Region"
+
+msgid "Brittany, Namur, …"
+msgstr "Bretagne, Namur, …"
+
+msgid "To"
+msgstr "Bis"
+
+msgid "Empty = that one day."
+msgstr "Leer = genau dieser Tag."
+
+msgid "Last month"
+msgstr "Letzter Monat"
+
+msgid "Summer"
+msgstr "Sommer"
+
+msgid "Date presets"
+msgstr "Datumsvorgaben"
+
+msgid "Several matches — pick one:"
+msgstr "Mehrere Treffer — bitte wählen:"
+
+msgid "Cities use a tight map area; regions use the geocoder outline."
+msgstr "Städte nutzen einen engen Bereich, Regionen die Geocoder-Grenze."
+
+msgid "Geocoding quota reached. Try again later."
+msgstr "Geocoding-Kontingent erreicht. Später erneut versuchen."
+
+msgid "Could not look up this place."
+msgstr "Dieser Ort konnte nicht gefunden werden."
+
+msgid "No matching place. Try a city or region name."
+msgstr "Kein passender Ort. Stadt oder Region versuchen."
+
+msgid "Enter a place and a date range."
+msgstr "Ort und Zeitraum angeben."
+
+msgid "Date range cannot exceed %(n)s days."
+msgstr "Der Zeitraum darf %(n)s Tage nicht überschreiten."
+
+msgid "No days in this place for that period."
+msgstr "Keine Tage an diesem Ort in diesem Zeitraum."
+
+msgid "Matched days"
+msgstr "Gefundene Tage"
+
+msgid "Region"
+msgstr "Region"
+
+msgid "City"
+msgstr "Stadt"
+
+msgid "County"
+msgstr "Bezirk"

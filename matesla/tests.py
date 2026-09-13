@@ -333,6 +333,47 @@ class VehicleSwitcherTests(TestCase):
         self.assertIn("Passage à", html)
         self.assertIn("Changement de voiture", html)
 
+    def test_select_vehicle_from_where_keeps_place_and_dates(self):
+        response = self.client.post(
+            "/en/matesla/select_vehicle",
+            {
+                "vehicle_api_id": self.car_b.api_id,
+                "next": "where",
+                "q": "Bretagne",
+                "from": "2024-06-21",
+                "to": "2024-09-22",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        location = response["Location"]
+        self.assertIn(self.hash_b, location)
+        self.assertIn("/personalstats/Where/", location)
+        self.assertIn("q=Bretagne", location)
+        self.assertIn("from=2024-06-21", location)
+        self.assertIn("to=2024-09-22", location)
+        self.assertNotIn(self.hash_a, location)
+
+    def test_where_page_embeds_search_in_vehicle_switcher(self):
+        from unittest.mock import MagicMock, patch
+
+        with patch(
+            "personalstats.place_search.ForwardGeocode",
+            return_value=MagicMock(error=None, hits=[]),
+        ):
+            response = self.client.get(
+                f"/en/personalstats/Where/{self.hash_a}"
+                "?q=Bretagne&from=2024-06-21&to=2024-09-22"
+            )
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn('name="next" value="where"', html)
+        self.assertIn('id="vehicle_switch_where_q"', html)
+        self.assertIn('value="Bretagne"', html)
+        self.assertIn('id="vehicle_switch_where_from"', html)
+        self.assertIn('value="2024-06-21"', html)
+        self.assertIn('id="vehicle_switch_where_to"', html)
+        self.assertIn('value="2024-09-22"', html)
+
     def test_select_vehicle_from_stats_redirects_to_new_hashed_vin(self):
         response = self.client.post(
             "/en/matesla/select_vehicle",
