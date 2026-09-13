@@ -479,10 +479,7 @@ function drawLifetimeMap(data) {
             zoomControl: true,
             attributionControl: true
         });
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(lifetimeMapState.map);
+        {% include "includes/osm_tile_layer.js" %}.addTo(lifetimeMapState.map);
         // Fullscreen control (also wires header expand button)
         var shell = document.getElementById("lifetime-map-shell") || mapEl.parentElement;
         ensureMapFullscreenScript().then(function () {

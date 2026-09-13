@@ -46,6 +46,11 @@ ALLOWED_HOSTS += [
 # ---------------------------------------------------------------------------
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
+# Django default is same-origin, which strips Referer on cross-origin tile
+# requests. OSMF tile policy requires a Referer on tile.openstreetmap.org
+# (https://operations.osmfoundation.org/policies/tiles/). Origin-only keeps
+# hashedVin paths off third-party tile logs.
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 # Forms / login over Tailscale HTTPS (TLS terminated by `tailscale serve`)
 CSRF_TRUSTED_ORIGINS = [
@@ -219,6 +224,7 @@ TEMPLATES = [
                 "mysite.context_processors.writable_access",
                 "mysite.context_processors.distance_unit",
                 "mysite.context_processors.geocoder_attribution",
+                "mysite.context_processors.osm_tiles",
             ],
         },
     },
@@ -354,6 +360,13 @@ GEOAPIFY_MIN_INTERVAL_SEC = float(os.getenv("GEOAPIFY_MIN_INTERVAL_SEC", "0.25")
 NOMINATIM_MAX_PER_DAY = int(os.getenv("NOMINATIM_MAX_PER_DAY", "1000"))
 NOMINATIM_BACKFILL_MAX_PER_DAY = int(os.getenv("NOMINATIM_BACKFILL_MAX_PER_DAY", "800"))
 NOMINATIM_MIN_INTERVAL_SEC = float(os.getenv("NOMINATIM_MIN_INTERVAL_SEC", "1.1"))
+
+# OSMF Standard raster tiles — exact host, no a/b/c subdomains.
+# Override OSM_TILE_URL to switch provider without a code change.
+OSM_TILE_URL = os.getenv(
+    "OSM_TILE_URL",
+    "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+).strip() or "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
 
 # ---------------------------------------------------------------------------
 # Tesla Fleet API (MyRobotCar) — set in .env, never commit secrets

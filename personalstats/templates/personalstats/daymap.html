@@ -713,12 +713,9 @@
         shadowUrl: leafletIconBase + 'marker-shadow.png'
     });
     var map = L.map('daymap');
-    // Raster tiles still come from OSM at runtime (not a vendored JS/CSS asset;
-    // self-hosting the planet is out of scope). Library code is fully local.
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
+    // OSMF Standard raster tiles (https://operations.osmfoundation.org/policies/tiles/).
+    // Library code is local; tiles are fetched at runtime.
+    {% include "includes/osm_tile_layer.js" %}.addTo(map);
     var latlngs = path.map(function (p) { return [p.lat, p.lon]; });
     var line = L.polyline(latlngs, { color: '#0d6efd', weight: 4, opacity: 0.85 }).addTo(map);
     var start = path[0];

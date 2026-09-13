@@ -218,10 +218,7 @@
         shadowUrl: leafletIconBase + "marker-shadow.png"
     });
     var map = L.map("where-map");
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
+    {% include "includes/osm_tile_layer.js" %}.addTo(map);
     var group = L.featureGroup();
     var lineOpts = {
         color: "#4db4ff",

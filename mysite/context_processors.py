@@ -24,3 +24,25 @@ def geocoder_attribution(request):
     except Exception:
         use_geoapify = False
     return {"use_geoapify": use_geoapify}
+
+
+# OSMF attribution guidelines: « © OpenStreetMap contributors » on the map,
+# linking to the copyright page. Keep English — it is a licence notice.
+OSM_TILE_ATTRIBUTION = (
+    '&copy; <a href="https://www.openstreetmap.org/copyright">'
+    "OpenStreetMap</a> contributors"
+)
+
+
+def osm_tiles(request):
+    """Leaflet raster URL + licence attribution (OSMF tile usage policy)."""
+    from django.conf import settings
+
+    return {
+        "osm_tile_url": getattr(
+            settings,
+            "OSM_TILE_URL",
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        ),
+        "osm_tile_attribution": OSM_TILE_ATTRIBUTION,
+    }

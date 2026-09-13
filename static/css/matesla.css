@@ -1899,14 +1899,18 @@ body.matesla-map-fs-open {
     border-color: var(--app-line);
 }
 
-.lifetime-map .leaflet-control-attribution {
-    background: rgba(11, 18, 32, 0.75);
-    color: var(--app-muted);
-    font-size: 0.65rem;
+.lifetime-map .leaflet-control-attribution,
+#daymap .leaflet-control-attribution,
+.matesla-map-shell .leaflet-control-attribution {
+    background: rgba(255, 255, 255, 0.85);
+    color: #111;
+    font-size: 0.7rem;
 }
 
-.lifetime-map .leaflet-control-attribution a {
-    color: var(--app-red-bright);
+.lifetime-map .leaflet-control-attribution a,
+#daymap .leaflet-control-attribution a,
+.matesla-map-shell .leaflet-control-attribution a {
+    color: #1a5fb4;
 }
 
 .lifetime-map-status {
