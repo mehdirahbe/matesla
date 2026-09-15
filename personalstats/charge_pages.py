@@ -17,6 +17,7 @@ from django.views.decorators.http import require_http_methods
 from matesla.charge_cost import CHARGE_COST_TZ, _haversine_m, price_sessions_starting_in
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.sqlite_guard import heavy_snapshot_read
+from matesla.units import get_distance_unit, miles_to_display
 from matesla.elia_dayahead import ensure_spots_for_dynamic_period
 from matesla.models.ChargeCost import (
     COST_PARTIAL,
@@ -79,6 +80,67 @@ def _duration_label(minutes: int) -> str:
     if mins == 0:
         return f"{hours} h"
     return f"{hours} h {mins:02d}"
+
+
+# Last reading before the window may start the delta only if it is still a
+# reading *of this period*. A months-long hole (TeslaFi gap, car offline)
+# would otherwise dump all intervening km into the displayed year/month.
+_ODO_PRIOR_MAX_GAP = timedelta(days=7)
+
+
+def _period_odometer_delta_miles(hashed_vin: str, window_start, window_end) -> float | None:
+    """Miles driven in [window_start, window_end), or None if we cannot tell.
+
+    Baseline is first→last odometer *inside* the window. A sample just before
+    the window is used only when it is at most ``_ODO_PRIOR_MAX_GAP`` old, so
+    New Year's Eve sleep counts and an 11-month blackout does not. One lonely
+    sample is unknown, not zero. Negative deltas (glitches) are discarded.
+    """
+    base = TeslaCarDataSnapshot.objects.filter(
+        hashedVin=hashed_vin, odometer__isnull=False
+    )
+    with heavy_snapshot_read():
+        last_in = (
+            base.filter(Date__gte=window_start, Date__lt=window_end)
+            .order_by("-Date")
+            .values_list("odometer", "Date")
+            .first()
+        )
+        if not last_in:
+            return None
+        end_odo, end_at = last_in
+        first_in = (
+            base.filter(Date__gte=window_start, Date__lt=window_end)
+            .order_by("Date")
+            .values_list("odometer", "Date")
+            .first()
+        )
+        if not first_in:
+            return None
+        start_odo, start_at = first_in
+        prior = (
+            base.filter(Date__lt=window_start)
+            .order_by("-Date")
+            .values_list("odometer", "Date")
+            .first()
+        )
+        if prior:
+            prior_odo, prior_at = prior
+            try:
+                gap = window_start - prior_at
+            except TypeError:
+                gap = None
+            if gap is not None and gap <= _ODO_PRIOR_MAX_GAP:
+                start_odo, start_at = prior_odo, prior_at
+        if start_at == end_at:
+            return None
+    try:
+        delta = float(end_odo) - float(start_odo)
+    except (TypeError, ValueError):
+        return None
+    if delta < 0:
+        return None
+    return delta
 
 
 def _supercharger_label(name: str) -> str:
@@ -1068,6 +1130,19 @@ def ChargeCosts(request, hashedVin):
     needs_onboarding = bool(rows) and (
         unpriced_kwh > 0 or (pct_priced is not None and pct_priced < 80)
     )
+    distance_unit = get_distance_unit(request)
+    distance = miles_to_display(
+        _period_odometer_delta_miles(hashedVin, window_start, window_end),
+        distance_unit,
+    )
+    eur_per_100 = None
+    if (
+        distance is not None
+        and distance > 0
+        and rows
+        and not unpriced_kwh
+    ):
+        eur_per_100 = total_eur / distance * 100.0
     context.update(
         {
             "hashedVin": hashedVin,
@@ -1088,6 +1163,9 @@ def ChargeCosts(request, hashedVin):
             "kwh_all": kwh_all,
             "avg_eur": (total_eur / priced_kwh) if priced_kwh else None,
             "pct_priced": pct_priced,
+            "distance": distance,
+            "distance_unit": distance_unit,
+            "eur_per_100": eur_per_100,
             "needs_onboarding": needs_onboarding,
             "unpriced_clusters": _unpriced_clusters(rows) if needs_onboarding else [],
             "allow_setup": is_writable_request(request),

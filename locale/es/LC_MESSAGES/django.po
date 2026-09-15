@@ -1580,6 +1580,9 @@ msgstr "kWh sin precio"
 msgid "Share priced"
 msgstr "Porcentaje con precio"
 
+msgid "Driven"
+msgstr "Recorrido"
+
 msgid "Date"
 msgstr "Fecha"
 

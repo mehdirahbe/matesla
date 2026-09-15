@@ -148,6 +148,8 @@
     <div class="charges-kpi"><span>{% trans 'kWh priced' %}</span><strong>{% if priced_kwh is not None %}{{ priced_kwh|floatformat:1 }}{% else %}—{% endif %}</strong></div>
     <div class="charges-kpi"><span>{% trans 'kWh unpriced' %}</span><strong>{% if unpriced_kwh is not None %}{{ unpriced_kwh|floatformat:1 }}{% else %}—{% endif %}</strong></div>
     <div class="charges-kpi"><span>{% trans 'Share priced' %}</span><strong>{% if pct_priced is not None %}{{ pct_priced|floatformat:0 }} %{% else %}—{% endif %}</strong></div>
+    <div class="charges-kpi"><span>{% trans 'Driven' %}</span><strong>{% if distance is not None %}{{ distance|floatformat:0 }} {{ distance_unit }}{% else %}—{% endif %}</strong></div>
+    <div class="charges-kpi"><span>€/100 {{ distance_unit }}</span><strong>{% if eur_per_100 is not None %}{{ eur_per_100|floatformat:2 }} €{% else %}—{% endif %}</strong></div>
 </div>
 
 {% if needs_onboarding %}

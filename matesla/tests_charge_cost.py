@@ -737,6 +737,232 @@ class ChargeCostPagesTests(TestCase):
         self.assertContains(response, "Work")
         self.assertNotContains(response, "Some charges in this period are not priced.")
 
+    def test_period_odometer_delta_miles(self):
+        from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+        from personalstats.charge_pages import _period_odometer_delta_miles
+
+        vin = "5YJ3E1EA0KFCOSTUI01"
+        window_start = datetime(2026, 3, 1, tzinfo=CHARGE_COST_TZ)
+        window_end = datetime(2026, 4, 1, tzinfo=CHARGE_COST_TZ)
+        self.assertIsNone(_period_odometer_delta_miles(HV_A, window_start, window_end))
+
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2026, 3, 10, 12, 0, tzinfo=UTC),
+            DateOnlyDay=date(2026, 3, 10),
+            odometer=10000.0,
+        )
+        self.assertIsNone(_period_odometer_delta_miles(HV_A, window_start, window_end))
+
+        # Stale prior (hole of weeks): do not dump the gap into this month.
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2026, 2, 10, 12, 0, tzinfo=UTC),
+            DateOnlyDay=date(2026, 2, 10),
+            odometer=9000.0,
+        )
+        self.assertIsNone(_period_odometer_delta_miles(HV_A, window_start, window_end))
+
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2026, 3, 28, 12, 0, tzinfo=UTC),
+            DateOnlyDay=date(2026, 3, 28),
+            odometer=10100.0,
+        )
+        self.assertAlmostEqual(
+            _period_odometer_delta_miles(HV_A, window_start, window_end),
+            100.0,
+            places=4,
+        )
+
+        # Fresh prior just before the window still counts day-1 driving.
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2026, 2, 28, 12, 0, tzinfo=UTC),
+            DateOnlyDay=date(2026, 2, 28),
+            odometer=9950.0,
+        )
+        self.assertAlmostEqual(
+            _period_odometer_delta_miles(HV_A, window_start, window_end),
+            150.0,
+            places=4,
+        )
+
+        TeslaCarDataSnapshot.objects.all().delete()
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2026, 2, 20, 12, 0, tzinfo=UTC),
+            DateOnlyDay=date(2026, 2, 20),
+            odometer=9800.0,
+        )
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2026, 4, 2, 12, 0, tzinfo=UTC),
+            DateOnlyDay=date(2026, 4, 2),
+            odometer=11000.0,
+        )
+        self.assertIsNone(_period_odometer_delta_miles(HV_A, window_start, window_end))
+
+        TeslaCarDataSnapshot.objects.all().delete()
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2026, 3, 2, 12, 0, tzinfo=UTC),
+            DateOnlyDay=date(2026, 3, 2),
+            odometer=5000.0,
+        )
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2026, 3, 20, 12, 0, tzinfo=UTC),
+            DateOnlyDay=date(2026, 3, 20),
+            odometer=5000.0,
+        )
+        self.assertEqual(
+            _period_odometer_delta_miles(HV_A, window_start, window_end), 0.0
+        )
+
+        TeslaCarDataSnapshot.objects.filter(
+            Date__gte=datetime(2026, 3, 20, tzinfo=UTC)
+        ).update(odometer=100.0)
+        self.assertIsNone(_period_odometer_delta_miles(HV_A, window_start, window_end))
+
+        # Year with an 11-month blackout before the first sample: only in-year km.
+        TeslaCarDataSnapshot.objects.all().delete()
+        year_start = datetime(2021, 1, 1, tzinfo=CHARGE_COST_TZ)
+        year_end = datetime(2022, 1, 1, tzinfo=CHARGE_COST_TZ)
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2020, 5, 16, 19, 0, tzinfo=UTC),
+            DateOnlyDay=date(2020, 5, 16),
+            odometer=23233.0,
+        )
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2021, 4, 29, 19, 0, tzinfo=UTC),
+            DateOnlyDay=date(2021, 4, 29),
+            odometer=42514.0,
+        )
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2021, 12, 31, 22, 0, tzinfo=UTC),
+            DateOnlyDay=date(2021, 12, 31),
+            odometer=55898.0,
+        )
+        self.assertAlmostEqual(
+            _period_odometer_delta_miles(HV_A, year_start, year_end),
+            55898.0 - 42514.0,
+            places=4,
+        )
+        self.assertLess(
+            _period_odometer_delta_miles(HV_A, year_start, year_end),
+            55898.0 - 23233.0,
+        )
+
+    def test_charges_kpi_distance_and_eur_per_100(self):
+        from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+        from matesla.units import COOKIE_NAME, MILES_TO_KM
+
+        work = ChargePlace.objects.create(
+            user=self.user,
+            name="Office",
+            latitude=50.1,
+            longitude=4.2,
+            radius_m=150,
+        )
+        PlaceTariffPeriod.objects.create(
+            place=work,
+            valid_from=date(2010, 1, 1),
+            mode=TARIFF_FLAT,
+            flat_eur_per_kwh=0.40,
+        )
+        VehiclePlaceRole.objects.create(
+            hashed_vin=HV_A,
+            place=work,
+            role=ROLE_WORK,
+            valid_from=date(2010, 1, 1),
+        )
+        vin = "5YJ3E1EA0KFCOSTUI01"
+        start_mi = 10000.0
+        end_mi = start_mi + 1000.0 / MILES_TO_KM
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2026, 2, 28, 12, 0, tzinfo=UTC),
+            DateOnlyDay=date(2026, 2, 28),
+            odometer=start_mi,
+        )
+        when = datetime(2026, 3, 10, 9, 0, tzinfo=UTC)
+        for index in range(2):
+            TeslaCarDataSnapshot.objects.create(
+                vin=vin,
+                hashedVin=HV_A,
+                Date=when + timedelta(minutes=index * 20),
+                DateOnlyDay=when.date(),
+                charging_state="Charging",
+                charger_power=7.0,
+                charge_energy_added=10.0 + index * 40.0,
+                latitude=50.1,
+                longitude=4.2,
+                battery_level=40.0,
+                odometer=start_mi + 50 + index,
+            )
+        TeslaCarDataSnapshot.objects.create(
+            vin=vin,
+            hashedVin=HV_A,
+            Date=datetime(2026, 3, 28, 12, 0, tzinfo=UTC),
+            DateOnlyDay=date(2026, 3, 28),
+            odometer=end_mi,
+        )
+        response = self.client.get(
+            f"/en/personalstats/ChargeCosts/{HV_A}?month=2026-03"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertAlmostEqual(response.context["distance"], 1000.0, places=2)
+        self.assertEqual(response.context["distance_unit"], "km")
+        self.assertAlmostEqual(response.context["eur_per_100"], 2.0, places=2)
+        self.assertContains(response, "Driven")
+        self.assertContains(response, "1000 km")
+        self.assertContains(response, "€/100 km")
+        self.assertContains(response, "2.00")
+
+        french = self.client.get(
+            f"/fr/personalstats/ChargeCosts/{HV_A}?month=2026-03"
+        )
+        self.assertEqual(french.status_code, 200)
+        self.assertContains(french, "Parcourus")
+
+        self.client.cookies[COOKIE_NAME] = "mi"
+        miles_view = self.client.get(
+            f"/en/personalstats/ChargeCosts/{HV_A}?month=2026-03"
+        )
+        self.assertEqual(miles_view.status_code, 200)
+        self.assertAlmostEqual(miles_view.context["distance"], end_mi - start_mi, places=4)
+        self.assertEqual(miles_view.context["distance_unit"], "mi")
+        self.assertContains(miles_view, "€/100 mi")
+        self.assertIsNotNone(miles_view.context["eur_per_100"])
+
+        TeslaCarDataSnapshot.objects.filter(
+            charging_state="Charging"
+        ).update(latitude=51.0, longitude=5.0)
+        VehiclePlaceRole.objects.all().delete()
+        PlaceTariffPeriod.objects.all().delete()
+        unpriced = self.client.get(
+            f"/en/personalstats/ChargeCosts/{HV_A}?month=2026-03"
+        )
+        self.assertEqual(unpriced.status_code, 200)
+        self.assertAlmostEqual(unpriced.context["distance"], end_mi - start_mi, places=4)
+        self.assertIsNone(unpriced.context["eur_per_100"])
+
     def test_charges_onboarding_when_unpriced(self):
         from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 
