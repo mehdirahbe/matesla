@@ -11,8 +11,9 @@ served as JSON:
 The date in the URL is the Brussels civil day. Timestamps in the payload are UTC.
 Prefer quarter-hour; fall back to hourly when QH is empty.
 
-Call ``ensure_spot_coverage`` when the user saves a dynamic tariff period.
-Do not fetch during DayMap render.
+Call ``ensure_spot_coverage`` when the user saves a dynamic tariff period,
+and from ChargeCosts when pricing a window that overlaps a dynamic tariff
+(capped, newest first). Do not fetch during DayMap render.
 """
 
 from __future__ import annotations
@@ -153,6 +154,11 @@ _BRUSSELS = ZoneInfo("Europe/Brussels")
 _MIN_MTU_FOR_CACHED_DAY = 20
 # One HTTP GET per civil day; cap so saving a tariff stays inside gunicorn timeout.
 MAX_FETCH_DAYS = 400
+# ChargeCosts page: fill a recent hole without 365 HTTP calls on a year view.
+WEB_MAX_FETCH_DAYS = 14
+# Evening cron: today, tomorrow (D+1 auction), and a short lookback if a
+# previous run was missed (laptop asleep).
+CRON_LOOKBACK_DAYS = 7
 
 
 def _brussels_day(when: datetime) -> date:

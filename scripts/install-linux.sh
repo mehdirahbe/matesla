@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Bootstrap MaTesla on Linux (Ubuntu/Debian-like): venv, deps, migrate,
-# collectstatic, systemd service, capture cron, and menu shortcut.
+# collectstatic, systemd service, capture + Elia crons, and menu shortcut.
 #
 # Usage (from anywhere):
 #   ./scripts/install-linux.sh
@@ -119,12 +119,16 @@ if [[ "$INSTALL_CRON" -eq 1 ]]; then
     echo "Then re-run: ./scripts/install_capture_cron.sh"
   else
     "$ROOT/scripts/install_capture_cron.sh"
+    echo
+    echo "==> Elia day-ahead cron (20:00 → home dynamic € on DayMap)"
+    "$ROOT/scripts/install_elia_cron.sh"
   fi
 else
   echo
   echo "==> Capture cron skipped (--no-cron)"
   echo "    Without it, graphs/history stay empty after install."
   echo "    Add later: ./scripts/install_capture_cron.sh"
+  echo "    Elia prices: ./scripts/install_elia_cron.sh"
 fi
 
 # --- optional weekly backup timer -------------------------------------------
@@ -178,9 +182,11 @@ echo "  systemctl status matesla-gunicorn.service"
 echo "  sudo systemctl stop matesla-gunicorn.service    # before a dev runserver"
 echo "  sudo systemctl start matesla-gunicorn.service"
 echo "  journalctl -u matesla-gunicorn.service -f"
-echo "  crontab -l                                      # capture cron"
+echo "  crontab -l                                      # capture + Elia crons"
 echo "  tail -f /tmp/matesla-capture.log"
+echo "  tail -f /tmp/matesla-elia.log"
 echo "  ./scripts/uninstall_capture_cron.sh"
+echo "  ./scripts/uninstall_elia_cron.sh"
 echo "  ./config/uninstall_gunicorn_service.sh"
 echo
 if [[ "$INSTALL_SERVICE" -eq 1 ]]; then
@@ -192,4 +198,7 @@ if [[ "$INSTALL_SERVICE" -eq 1 ]]; then
 fi
 if [[ "$INSTALL_CRON" -eq 1 ]] && crontab -l 2>/dev/null | grep -qF 'matesla/internal/capture'; then
   echo "Capture cron is installed."
+fi
+if [[ "$INSTALL_CRON" -eq 1 ]] && crontab -l 2>/dev/null | grep -qF 'manage.py FetchEliaDayAhead'; then
+  echo "Elia day-ahead cron is installed (20:00)."
 fi

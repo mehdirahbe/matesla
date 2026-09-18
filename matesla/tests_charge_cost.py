@@ -15,6 +15,7 @@ from matesla.charge_cost import (
     apply_daily_place_fees,
     price_and_persist,
     price_session,
+    price_sessions_starting_in,
 )
 from matesla.elia_dayahead import fetch_elia_day_ahead, store_spot_rows
 from matesla.models.ChargeCost import (
@@ -444,6 +445,41 @@ class ChargeCostEngineTests(TestCase):
         self.assertAlmostEqual(result.cost_eur, 0.10, places=4)
         self.assertAlmostEqual(result.missing_kwh, 1.0, places=4)
 
+    def test_pricing_window_fetches_elia_when_dynamic_overlaps(self):
+        PlaceTariffPeriod.objects.create(
+            place=self.home,
+            valid_from=date(2025, 10, 31),
+            mode=TARIFF_DYNAMIC,
+            dynamic_surcharge_cents=19,
+        )
+        start = datetime(2026, 9, 1, tzinfo=CHARGE_COST_TZ)
+        end = datetime(2026, 10, 1, tzinfo=CHARGE_COST_TZ)
+        with patch("matesla.elia_dayahead.ensure_spot_coverage") as mock_ensure:
+            price_sessions_starting_in(HV_A, start, end)
+        mock_ensure.assert_called_once()
+        self.assertEqual(mock_ensure.call_args[0][0], date(2026, 9, 1))
+        self.assertEqual(mock_ensure.call_args[0][1], date(2026, 9, 30))
+        self.assertEqual(mock_ensure.call_args[1]["max_days"], 14)
+
+        year_2021_start = datetime(2021, 1, 1, tzinfo=CHARGE_COST_TZ)
+        year_2021_end = datetime(2022, 1, 1, tzinfo=CHARGE_COST_TZ)
+        with patch("matesla.elia_dayahead.ensure_spot_coverage") as mock_ensure:
+            price_sessions_starting_in(HV_A, year_2021_start, year_2021_end)
+        mock_ensure.assert_not_called()
+
+    def test_pricing_window_skips_elia_without_dynamic(self):
+        PlaceTariffPeriod.objects.create(
+            place=self.home,
+            valid_from=date(2010, 1, 1),
+            mode=TARIFF_FLAT,
+            flat_eur_per_kwh=0.30,
+        )
+        start = datetime(2026, 9, 1, tzinfo=CHARGE_COST_TZ)
+        end = datetime(2026, 10, 1, tzinfo=CHARGE_COST_TZ)
+        with patch("matesla.elia_dayahead.ensure_spot_coverage") as mock_ensure:
+            price_sessions_starting_in(HV_A, start, end)
+        mock_ensure.assert_not_called()
+
     def test_persist_and_daymap_session_total_flag(self):
         from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 
@@ -593,6 +629,31 @@ class EliaDayAheadTests(TestCase):
         self.assertEqual(summary["days_skipped"], 1)
         self.assertEqual(summary["days_ok"], 0)
         session.get.assert_not_called()
+
+    def test_default_command_ensures_lookback_through_tomorrow(self):
+        from datetime import date as date_cls
+        from django.core.management import call_command
+        from django.utils import timezone
+        from matesla.elia_dayahead import CRON_LOOKBACK_DAYS
+        from matesla.management.commands.FetchEliaDayAhead import BRUSSELS
+
+        today = timezone.now().astimezone(BRUSSELS).date()
+        with patch(
+            "matesla.management.commands.FetchEliaDayAhead.ensure_spot_coverage"
+        ) as mock_ensure:
+            mock_ensure.return_value = {
+                "days_ok": 0,
+                "days_failed": 0,
+                "days_skipped": 8,
+                "days_truncated": 0,
+                "rows": 0,
+            }
+            call_command("FetchEliaDayAhead")
+        mock_ensure.assert_called_once()
+        start, end = mock_ensure.call_args[0][:2]
+        self.assertEqual(start, today - timedelta(days=CRON_LOOKBACK_DAYS))
+        self.assertEqual(end, today + timedelta(days=1))
+        self.assertIsInstance(start, date_cls)
 
     def test_range_logs_and_continues_on_http_error(self):
         from matesla.elia_dayahead import fetch_and_store_range

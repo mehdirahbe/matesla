@@ -935,6 +935,34 @@ def iter_sessions_starting_in(
     return sessions
 
 
+def _window_needs_elia(window_start: datetime, window_end: datetime) -> bool:
+    """True if a dynamic tariff could apply on some civil day in the window."""
+    if window_end <= window_start:
+        return False
+    start_day = _local_date(window_start)
+    last_day = _local_date(window_end - timedelta(microseconds=1))
+    from django.db.models import Q
+
+    return PlaceTariffPeriod.objects.filter(
+        mode=TARIFF_DYNAMIC,
+        valid_from__lte=last_day,
+    ).filter(Q(valid_to__isnull=True) | Q(valid_to__gte=start_day)).exists()
+
+
+def _ensure_elia_for_pricing_window(window_start: datetime, window_end: datetime) -> None:
+    """Fill missing Elia days for this window. No HTTP if already cached."""
+    if not _window_needs_elia(window_start, window_end):
+        return
+    from matesla.elia_dayahead import WEB_MAX_FETCH_DAYS, ensure_spot_coverage
+
+    start_day = _local_date(window_start)
+    last_day = _local_date(window_end - timedelta(microseconds=1))
+    try:
+        ensure_spot_coverage(start_day, last_day, max_days=WEB_MAX_FETCH_DAYS)
+    except Exception:
+        pass
+
+
 def price_sessions_starting_in(
     hashed_vin: str,
     window_start: datetime,
@@ -948,6 +976,7 @@ def price_sessions_starting_in(
         ensure_tesla_invoices_for_window,
     )
 
+    _ensure_elia_for_pricing_window(window_start, window_end)
     try:
         ensure_tesla_invoices_for_window(
             hashed_vin,

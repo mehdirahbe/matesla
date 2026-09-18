@@ -4,6 +4,10 @@ Fetch Belgian day-ahead auction prices from Elia Grid Data (no token).
   python manage.py FetchEliaDayAhead
   python manage.py FetchEliaDayAhead --date 2026-09-01
   python manage.py FetchEliaDayAhead --from 2025-11-01 --to 2025-11-30
+
+No-arg form (evening cron): fill missing days from today-lookback through
+tomorrow. Elia publishes D+1 around 13:00 Brussels, so a 20:00 run has
+tonight and tomorrow. Already-cached days are skipped.
 """
 
 from __future__ import annotations
@@ -13,7 +17,12 @@ from zoneinfo import ZoneInfo
 
 from django.core.management.base import BaseCommand, CommandError
 
-from matesla.elia_dayahead import fetch_and_store_day, fetch_and_store_range
+from matesla.elia_dayahead import (
+    CRON_LOOKBACK_DAYS,
+    ensure_spot_coverage,
+    fetch_and_store_day,
+    fetch_and_store_range,
+)
 
 BRUSSELS = ZoneInfo("Europe/Brussels")
 
@@ -29,10 +38,19 @@ class Command(BaseCommand):
             "--date",
             type=str,
             default="",
-            help="Single Brussels civil day YYYY-MM-DD (default: today + tomorrow)",
+            help="Single Brussels civil day YYYY-MM-DD (default: lookback through tomorrow)",
         )
         parser.add_argument("--from", dest="date_from", type=str, default="")
         parser.add_argument("--to", dest="date_to", type=str, default="")
+        parser.add_argument(
+            "--lookback",
+            type=int,
+            default=CRON_LOOKBACK_DAYS,
+            help=(
+                "With no --date/--from: also fill missing days this many days "
+                f"back (default {CRON_LOOKBACK_DAYS})"
+            ),
+        )
 
     def handle(self, *args, **options):
         single = (options.get("date") or "").strip()
@@ -64,10 +82,18 @@ class Command(BaseCommand):
         from django.utils import timezone
 
         today = timezone.now().astimezone(BRUSSELS).date()
-        summary = fetch_and_store_range(today, today + timedelta(days=1))
+        lookback = options.get("lookback")
+        if lookback is None:
+            lookback = CRON_LOOKBACK_DAYS
+        lookback = max(0, int(lookback))
+        start = today - timedelta(days=lookback)
+        end = today + timedelta(days=1)
+        summary = ensure_spot_coverage(start, end)
         self.stdout.write(
             self.style.SUCCESS(
-                f"{today} and next: {summary['rows']} rows "
-                f"({summary['days_ok']} ok, {summary['days_failed']} failed)"
+                f"{start}→{end}: {summary['rows']} rows "
+                f"({summary['days_ok']} fetched, "
+                f"{summary['days_skipped']} cached, "
+                f"{summary['days_failed']} failed)"
             )
         )

@@ -64,7 +64,8 @@ What the install enables for history:
 |-------|------|
 | systemd / gunicorn | App always listening on `127.0.0.1:8001` |
 | user crontab (every minute) | `curl` → `/matesla/internal/capture` (adaptive Fleet spacing inside the app) |
-| log | `/tmp/matesla-capture.log` |
+| user crontab (20:00) | `manage.py FetchEliaDayAhead` (Belgian day-ahead cache for home dynamic €) |
+| log | `/tmp/matesla-capture.log`, `/tmp/matesla-elia.log` |
 
 Without the capture cron, status works but **graphs stay empty**.
 
@@ -86,8 +87,11 @@ sudo systemctl start matesla-gunicorn.service
 journalctl -u matesla-gunicorn.service -f
 crontab -l
 tail -f /tmp/matesla-capture.log
+tail -f /tmp/matesla-elia.log
 ./scripts/install_capture_cron.sh                # re-add capture cron alone
 ./scripts/uninstall_capture_cron.sh
+./scripts/install_elia_cron.sh                   # evening Elia day-ahead fetch
+./scripts/uninstall_elia_cron.sh
 ./config/uninstall_gunicorn_service.sh           # remove service completely
 ```
 
@@ -457,11 +461,19 @@ curl -fsS http://127.0.0.1:8001/matesla/internal/capture
 ### Schedule with cron (Linux “Task Scheduler”)
 
 `./scripts/install-linux.sh` installs this automatically. To add or refresh
-only the capture line:
+the capture and Elia lines:
 
 ```bash
 ./scripts/install_capture_cron.sh
 # remove: ./scripts/uninstall_capture_cron.sh
+./scripts/install_elia_cron.sh
+# remove: ./scripts/uninstall_elia_cron.sh
+```
+
+Elia (Belgian day-ahead, used for home dynamic €/kWh) is fetched **once in the evening** (20:00), after the D+1 auction (~13:00 Brussels). That fills tonight and tomorrow so DayMap can price overnight home charging without opening Charges. Cached days are skipped; a 7-day lookback covers a missed evening. The machine must be on at 20:00.
+
+```cron
+0 20 * * * { date -Iseconds; cd /path/to/matesla && .venv/bin/python manage.py FetchEliaDayAhead; echo; } >> /tmp/matesla-elia.log 2>&1
 ```
 
 Cron jobs run as **your user**, whether or not you are logged into a graphical
@@ -478,6 +490,7 @@ Check:
 ```bash
 crontab -l
 tail -f /tmp/matesla-capture.log
+tail -f /tmp/matesla-elia.log
 ```
 
 #### Cron field order
