@@ -1026,6 +1026,9 @@ def annotate_daymap_charges(
     """
     Mutate DayMap charge dicts with cost_eur / cost_status / cost_is_session_total.
 
+    Matches Tesla invoices already in the local cache (no HTTP). Capture is
+    what fetches charging/history after a Supercharge.
+
     Never raises: a pricing failure must not blank the day map.
     """
     for charge in charges:
@@ -1048,13 +1051,19 @@ def annotate_daymap_charges(
                 lat,
                 lon,
             )
-            session.is_supercharger = is_sc
+            session.is_supercharger = bool(session.is_supercharger) or is_sc
             stored = ChargeSessionCost.objects.filter(
                 hashed_vin=hashed_vin,
                 start=session.start,
             ).first()
             if stored and stored.tesla_invoice_eur is not None:
                 session.tesla_invoice_eur = stored.tesla_invoice_eur
+                if stored.tesla_session_id and not session.tesla_session_id:
+                    session.tesla_session_id = stored.tesla_session_id
+            else:
+                from matesla.tesla_charging_history import apply_tesla_invoices
+
+                apply_tesla_invoices([session])
             result = price_and_persist(session)
             charge["cost_eur"] = result.cost_eur
             charge["cost_status"] = result.status

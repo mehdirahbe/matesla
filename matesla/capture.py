@@ -1021,8 +1021,38 @@ def _capture_all_online_vehicles_locked() -> dict:
                 _log(messages, f"  {label}: ERREUR inattendue — {type(exc).__name__}: {exc}")
 
     _summarize_tesla_access(stats, messages, any_due=any_due)
+    _refresh_supercharger_invoices_after_capture(messages)
     _run_geo_enrichment(stats, messages)
     return stats
+
+
+def _refresh_supercharger_invoices_after_capture(messages: list[str]) -> None:
+    """
+    After a Supercharge, pull Tesla's billed € so DayMap is right without
+    opening Charges. No-op when there is no recent DC session. Never raises.
+    """
+    try:
+        from matesla.models.VinHash import HashTheVin
+        from matesla.tesla_charging_history import (
+            maybe_refresh_invoice_after_supercharge,
+        )
+    except Exception:
+        traceback.print_exc()
+        return
+    for vehicle in TeslaVehicle.objects.exclude(vin=""):
+        vin = (vehicle.vin or "").strip()
+        if not vin:
+            continue
+        try:
+            info = maybe_refresh_invoice_after_supercharge(HashTheVin(vin))
+        except Exception:
+            traceback.print_exc()
+            continue
+        eur = (info or {}).get("cost_eur")
+        if eur is None:
+            continue
+        label = (vehicle.display_name or vin).strip()
+        _log(messages, f"  {label}: facture Superchargeur {eur:.2f} €")
 
 
 def _run_geo_enrichment(stats: dict, messages: list[str]) -> None:

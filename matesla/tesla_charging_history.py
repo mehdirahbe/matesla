@@ -3,6 +3,10 @@ Tesla Supercharger invoices from GET /api/1/dx/charging/history.
 
 Cached per vehicle. Matched onto derived charge sessions by start time.
 Never raises into the Charges page: a Tesla outage keeps the fallback rate.
+
+Capture pulls this after a Supercharge ends (Tesla publishes the invoice
+once the session is closed). DayMap then reads the local cache — it must
+not HTTP-fetch charging/history itself.
 """
 
 from __future__ import annotations
@@ -25,6 +29,13 @@ UTC = ZoneInfo("UTC")
 FETCH_TIMEOUT_S = 12
 CACHE_SECONDS = 3600
 PAGE_SIZE = 50
+# After unplug, Tesla usually posts the invoice within minutes. Do not fetch
+# while still Supercharging: an empty result would start the cooldown and
+# DayMap would keep the fallback €/kWh until the next retry.
+CAPTURE_INVOICE_LOOKBACK = timedelta(hours=24)
+CAPTURE_INVOICE_SETTLE = timedelta(minutes=5)
+CAPTURE_INVOICE_RETRY = timedelta(minutes=10)
+CAPTURE_INVOICE_FETCH_SPAN = timedelta(days=2)
 # Safety cap only: stop if Tesla keeps returning full pages.
 MAX_PAGES = 40
 # Tesla: "Date range cannot exceed 1 year". Keep each HTTP call under that
@@ -568,3 +579,167 @@ def apply_tesla_invoices(sessions) -> None:
         session.tesla_invoice_eur = total
         session.tesla_session_id = matched[0].tesla_session_id
         session.tesla_site_name = " · ".join(names)
+
+
+def _snapshot_is_dc(snap) -> bool:
+    from matesla.capture import _is_dc_charging
+
+    return _is_dc_charging(snap)
+
+
+def _recent_dc_snapshot(hashed_vin: str, since: datetime):
+    from django.db.models import Q
+
+    from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+
+    rows = (
+        TeslaCarDataSnapshot.objects.filter(
+            hashedVin=hashed_vin,
+            Date__gte=since,
+        )
+        .filter(
+            Q(charging_state__in=["Charging", "Starting"]) | Q(charger_power__gt=0.5)
+        )
+        .order_by("-Date")
+        .only(
+            "Date",
+            "charging_state",
+            "charger_power",
+            "fast_charger_present",
+            "fast_charger_type",
+        )
+        .iterator(chunk_size=80)
+    )
+    for snap in rows:
+        if _snapshot_is_dc(snap):
+            return snap
+    return None
+
+
+def _latest_snapshot(hashed_vin: str):
+    from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+
+    return (
+        TeslaCarDataSnapshot.objects.filter(hashedVin=hashed_vin)
+        .order_by("-Date")
+        .only(
+            "Date",
+            "charging_state",
+            "charger_power",
+            "fast_charger_present",
+            "fast_charger_type",
+        )
+        .first()
+    )
+
+
+def _persist_invoiced_sessions(sessions) -> float | None:
+    from matesla.charge_cost import price_and_persist
+
+    billed = None
+    for session in sessions:
+        if session.tesla_invoice_eur is None:
+            continue
+        price_and_persist(session)
+        if billed is None:
+            billed = float(session.tesla_invoice_eur)
+    return billed
+
+
+def maybe_refresh_invoice_after_supercharge(
+    hashed_vin: str,
+    *,
+    now: datetime | None = None,
+    http_get=None,
+) -> dict:
+    """
+    After a DC Supercharge has settled, fetch Tesla charging history and
+    persist the billed € on ChargeSessionCost.
+
+    Safe on every capture tick: no HTTP while still plugged in, no HTTP when
+    the invoice is already stored, 10 min cooldown between attempts.
+    Never raises.
+    """
+    if not hashed_vin:
+        return {"status": "skipped_none", "cost_eur": None}
+    now = _as_utc(now or timezone.now())
+    try:
+        return _maybe_refresh_invoice_after_supercharge(
+            hashed_vin, now=now, http_get=http_get
+        )
+    except Exception:
+        logger.warning(
+            "Tesla invoice refresh after Supercharge failed for %s…",
+            hashed_vin[:8],
+            exc_info=True,
+        )
+        return {"status": "error", "cost_eur": None}
+
+
+def _maybe_refresh_invoice_after_supercharge(
+    hashed_vin: str,
+    *,
+    now: datetime,
+    http_get=None,
+) -> dict:
+    from matesla.charge_cost import iter_sessions_starting_in
+    from matesla.models.ChargeCost import ChargeSessionCost
+
+    dc = _recent_dc_snapshot(hashed_vin, now - CAPTURE_INVOICE_LOOKBACK)
+    if dc is None or getattr(dc, "Date", None) is None:
+        return {"status": "skipped_none", "cost_eur": None}
+
+    latest = _latest_snapshot(hashed_vin)
+    if latest is not None and _snapshot_is_dc(latest) and latest.Date is not None:
+        age = now - _as_utc(latest.Date)
+        if age < CAPTURE_INVOICE_SETTLE:
+            return {"status": "skipped_live", "cost_eur": None}
+
+    dc_at = _as_utc(dc.Date)
+    window_start = dc_at - timedelta(hours=6)
+    window_end = now + timedelta(minutes=1)
+    sessions = iter_sessions_starting_in(hashed_vin, window_start, window_end)
+    pending = []
+    for session in sessions:
+        stored = ChargeSessionCost.objects.filter(
+            hashed_vin=hashed_vin, start=_as_utc(session.start)
+        ).first()
+        if stored is not None and stored.tesla_invoice_eur is not None:
+            continue
+        pending.append(session)
+
+    if not pending and sessions:
+        return {"status": "have_invoice", "cost_eur": None}
+
+    if pending:
+        apply_tesla_invoices(pending)
+        billed = _persist_invoiced_sessions(pending)
+        if billed is not None:
+            return {"status": "matched_local", "cost_eur": billed}
+        pending = [session for session in pending if session.tesla_invoice_eur is None]
+
+    sync = TeslaChargingHistorySync.objects.filter(hashed_vin=hashed_vin).first()
+    if (
+        sync is not None
+        and sync.last_ok_at is not None
+        and now - _as_utc(sync.last_ok_at) < CAPTURE_INVOICE_RETRY
+    ):
+        return {"status": "skipped_cooldown", "cost_eur": None}
+
+    ensure_tesla_invoices_for_window(
+        hashed_vin,
+        now - CAPTURE_INVOICE_FETCH_SPAN,
+        now + timedelta(hours=1),
+        http_get=http_get,
+        force=True,
+        backfill=False,
+    )
+    sync, _ = TeslaChargingHistorySync.objects.get_or_create(hashed_vin=hashed_vin)
+    if sync.last_ok_at is None or _as_utc(sync.last_ok_at) < now - timedelta(seconds=2):
+        sync.last_ok_at = now
+        sync.save(update_fields=["last_ok_at"])
+
+    sessions = iter_sessions_starting_in(hashed_vin, window_start, window_end)
+    apply_tesla_invoices(sessions)
+    billed = _persist_invoiced_sessions(sessions)
+    return {"status": "fetched", "cost_eur": billed}

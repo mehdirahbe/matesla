@@ -18,6 +18,7 @@ from matesla.charge_cost import (
     price_sessions_starting_in,
 )
 from matesla.elia_dayahead import fetch_elia_day_ahead, store_spot_rows
+from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.ChargeCost import (
     COST_PARTIAL,
     COST_PRICED,
@@ -1663,3 +1664,233 @@ class TeslaChargingHistoryTests(TestCase):
         self.assertTrue(starts)
         self.assertLessEqual(min(starts).year, 2022)
         self.assertGreaterEqual(len(starts), 3)
+
+    def _dc_snaps(self, start, n=4, step_min=10, power=150.0):
+        for index in range(n):
+            when = start + timedelta(minutes=step_min * index)
+            TeslaCarDataSnapshot.objects.create(
+                vin="5YJTESTVIN0000001",
+                hashedVin=HV_A,
+                Date=when,
+                DateOnlyDay=when.date(),
+                charging_state="Charging",
+                charger_power=power,
+                fast_charger_present=True,
+                fast_charger_type="Tesla",
+                charge_energy_added=5.0 + index * 12.0,
+                latitude=ELSE_LAT,
+                longitude=ELSE_LON,
+            )
+
+    def _invoice_http(self, total=12.79, start_iso="", stop_iso=""):
+        def http_get(url, **kwargs):
+            resp = MagicMock()
+            resp.status_code = 200
+            resp.text = ""
+            resp.json.return_value = {
+                "response": {
+                    "data": [
+                        {
+                            "sessionId": "sc-live-1",
+                            "chargeStartDateTime": start_iso,
+                            "chargeStopDateTime": stop_iso,
+                            "siteLocationName": "Anderlecht, Belgium",
+                            "fees": [
+                                {
+                                    "feeType": "CHARGING",
+                                    "currencyCode": "EUR",
+                                    "totalDue": total,
+                                    "usageBase": 60.91,
+                                    "uom": "kwh",
+                                }
+                            ],
+                        }
+                    ]
+                }
+            }
+            return resp
+
+        return http_get
+
+    def test_daymap_uses_cached_tesla_invoice_without_opening_charges(self):
+        User = get_user_model()
+        user = User.objects.create_user("sc_daymap", password="x")
+        ChargeCostSettings.objects.create(
+            user=user, other_eur_per_kwh=0.40, supercharger_eur_per_kwh=0.30
+        )
+        start = _at(2026, 10, 2, 9, 50)
+        end = _at(2026, 10, 2, 10, 37)
+        charges = [
+            {
+                "start": start,
+                "end": end,
+                "kwh_added": 56.84,
+                "lat": ELSE_LAT,
+                "lon": ELSE_LON,
+                "is_supercharger": True,
+            }
+        ]
+        annotate_daymap_charges(HV_A, charges)
+        self.assertAlmostEqual(charges[0]["cost_eur"], 56.84 * 0.30, places=2)
+        self.assertEqual(charges[0]["cost_rule"], RULE_SUPERCHARGER_RATE)
+
+        TeslaChargingInvoice.objects.create(
+            hashed_vin=HV_A,
+            tesla_session_id="anderlecht-today",
+            start=start,
+            end=end,
+            site_name="Anderlecht, Belgium",
+            total_eur=12.79,
+            kwh=60.91,
+            currency="EUR",
+        )
+        annotate_daymap_charges(HV_A, charges)
+        self.assertAlmostEqual(charges[0]["cost_eur"], 12.79, places=2)
+        self.assertEqual(charges[0]["cost_rule"], RULE_SUPERCHARGER_INVOICE)
+        stored = ChargeSessionCost.objects.get(hashed_vin=HV_A, start=start.astimezone(UTC))
+        self.assertAlmostEqual(stored.tesla_invoice_eur, 12.79, places=2)
+
+    def test_capture_skips_tesla_history_while_supercharge_is_live(self):
+        from matesla.tesla_charging_history import maybe_refresh_invoice_after_supercharge
+
+        now = _at(2026, 10, 2, 10, 20)
+        self._dc_snaps(_at(2026, 10, 2, 9, 50), n=4, step_min=10)
+
+        def http_get(*args, **kwargs):
+            raise AssertionError("must not fetch Tesla history while still Supercharging")
+
+        info = maybe_refresh_invoice_after_supercharge(
+            HV_A, now=now, http_get=http_get
+        )
+        self.assertEqual(info["status"], "skipped_live")
+        self.assertEqual(TeslaChargingInvoice.objects.count(), 0)
+
+    def test_capture_skips_tesla_history_for_ac_wall(self):
+        from matesla.tesla_charging_history import maybe_refresh_invoice_after_supercharge
+
+        start = _at(2026, 10, 2, 1, 0)
+        for index in range(3):
+            when = start + timedelta(minutes=15 * index)
+            TeslaCarDataSnapshot.objects.create(
+                vin="5YJTESTVIN0000001",
+                hashedVin=HV_A,
+                Date=when,
+                DateOnlyDay=when.date(),
+                charging_state="Charging",
+                charger_power=11.0,
+                fast_charger_present=False,
+                fast_charger_type="MCSingleWireCAN",
+                charge_energy_added=2.0 + index,
+                latitude=HOME_LAT,
+                longitude=HOME_LON,
+            )
+
+        def http_get(*args, **kwargs):
+            raise AssertionError("must not fetch Tesla history for AC wall")
+
+        info = maybe_refresh_invoice_after_supercharge(
+            HV_A, now=_at(2026, 10, 2, 2, 0), http_get=http_get
+        )
+        self.assertEqual(info["status"], "skipped_none")
+
+    def test_capture_fetches_invoice_after_supercharge_unplug(self):
+        from matesla.tesla_charging_history import maybe_refresh_invoice_after_supercharge
+
+        start = _at(2026, 10, 2, 9, 50)
+        self._dc_snaps(start, n=5, step_min=10)
+        unplug = _at(2026, 10, 2, 10, 40)
+        TeslaCarDataSnapshot.objects.create(
+            vin="5YJTESTVIN0000001",
+            hashedVin=HV_A,
+            Date=unplug,
+            DateOnlyDay=unplug.date(),
+            charging_state="Disconnected",
+            charger_power=0.0,
+            fast_charger_present=False,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+        )
+        token = MagicMock()
+        token.access_token = "tok"
+        http_get = self._invoice_http(
+            total=12.79,
+            start_iso="2026-10-02T07:50:00+00:00",
+            stop_iso="2026-10-02T08:37:00+00:00",
+        )
+        with patch(
+            "matesla.tesla_charging_history._vin_and_token",
+            return_value=("5YJTESTVIN0000001", token),
+        ), patch(
+            "matesla.TeslaOAuth.ensure_fresh_access_token",
+            return_value=token,
+        ):
+            info = maybe_refresh_invoice_after_supercharge(
+                HV_A, now=_at(2026, 10, 2, 10, 45), http_get=http_get
+            )
+        self.assertEqual(info["status"], "fetched")
+        self.assertAlmostEqual(info["cost_eur"], 12.79, places=2)
+        stored = ChargeSessionCost.objects.get(hashed_vin=HV_A)
+        self.assertEqual(stored.rule, RULE_SUPERCHARGER_INVOICE)
+        self.assertAlmostEqual(stored.cost_eur, 12.79, places=2)
+
+    def test_capture_matches_local_invoice_without_http(self):
+        from matesla.tesla_charging_history import maybe_refresh_invoice_after_supercharge
+
+        start = _at(2026, 10, 2, 9, 50)
+        self._dc_snaps(start, n=5, step_min=10)
+        TeslaCarDataSnapshot.objects.create(
+            vin="5YJTESTVIN0000001",
+            hashedVin=HV_A,
+            Date=_at(2026, 10, 2, 10, 40),
+            DateOnlyDay=date(2026, 10, 2),
+            charging_state="Disconnected",
+            charger_power=0.0,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+        )
+        TeslaChargingInvoice.objects.create(
+            hashed_vin=HV_A,
+            tesla_session_id="already-cached",
+            start=start,
+            end=_at(2026, 10, 2, 10, 37),
+            site_name="Anderlecht, Belgium",
+            total_eur=12.79,
+            currency="EUR",
+        )
+
+        def http_get(*args, **kwargs):
+            raise AssertionError("local cache must not hit Tesla")
+
+        info = maybe_refresh_invoice_after_supercharge(
+            HV_A, now=_at(2026, 10, 2, 10, 45), http_get=http_get
+        )
+        self.assertEqual(info["status"], "matched_local")
+        self.assertAlmostEqual(info["cost_eur"], 12.79, places=2)
+
+    def test_capture_respects_invoice_retry_cooldown(self):
+        from matesla.tesla_charging_history import maybe_refresh_invoice_after_supercharge
+
+        start = _at(2026, 10, 2, 9, 50)
+        self._dc_snaps(start, n=5, step_min=10)
+        TeslaCarDataSnapshot.objects.create(
+            vin="5YJTESTVIN0000001",
+            hashedVin=HV_A,
+            Date=_at(2026, 10, 2, 10, 40),
+            DateOnlyDay=date(2026, 10, 2),
+            charging_state="Disconnected",
+            charger_power=0.0,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+        )
+        TeslaChargingHistorySync.objects.create(
+            hashed_vin=HV_A,
+            last_ok_at=_at(2026, 10, 2, 10, 42).astimezone(UTC),
+        )
+
+        def http_get(*args, **kwargs):
+            raise AssertionError("cooldown must skip Tesla history")
+
+        info = maybe_refresh_invoice_after_supercharge(
+            HV_A, now=_at(2026, 10, 2, 10, 45), http_get=http_get
+        )
+        self.assertEqual(info["status"], "skipped_cooldown")

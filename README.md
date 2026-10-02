@@ -63,7 +63,7 @@ What the install enables for history:
 | Piece | Role |
 |-------|------|
 | systemd / gunicorn | App always listening on `127.0.0.1:8001` |
-| user crontab (every minute) | `curl` → `/matesla/internal/capture` (adaptive Fleet spacing inside the app) |
+| user crontab (every minute) | `curl` → `/matesla/internal/capture` (adaptive Fleet spacing; after a Supercharge also pulls Tesla charging-history invoices) |
 | user crontab (20:00) | `manage.py FetchEliaDayAhead` (Belgian day-ahead cache for home dynamic €) |
 | log | `/tmp/matesla-capture.log`, `/tmp/matesla-elia.log` |
 
