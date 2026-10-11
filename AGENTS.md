@@ -380,8 +380,9 @@ Tesla Supercharger invoice vs fallback rate:
 
 Tesla charging history (`GET /api/1/dx/charging/history`) is chunked to Tesla’s
 1-year API limit (`MAX_API_SPAN` 364 days after ±12 h pad). Match onto plug-in
-sessions by overlap (20 min pad) or close start (30 min). Tesla sometimes
-splits one stop into two invoices; sum them. Charges may backfill one extra
+sessions by overlap (5 min pad) or close start (30 min). Tesla sometimes
+splits one stop into two invoices; sum them. A new plug-in (counter reset)
+is a different session even under the 30 min grouping gap. Charges may backfill one extra
 older chunk. Manual sync is on Charge rates (`ChargeCostsSetup`), localhost
 only.
 

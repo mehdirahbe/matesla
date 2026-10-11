@@ -112,9 +112,56 @@ def kwh_from_plug_counter(energies, baseline=None) -> float | None:
         base = None
     if base is None or base <= 0.5:
         return peak
-    if first < base - 1.0 and first < base * 0.5:
+    if plug_counter_reset(base, first):
         return peak
     return max(0.0, peak - base)
+
+
+def plug_counter_reset(previous_energy, next_energy) -> bool:
+    """True when charge_energy_added dropped as a new plug-in."""
+    try:
+        previous = float(previous_energy)
+        nxt = float(next_energy)
+    except (TypeError, ValueError):
+        return False
+    if previous <= 0.5 or nxt <= 0.05:
+        return False
+    return nxt < previous - 1.0 and nxt < previous * 0.5
+
+
+def _charge_energy(row) -> float | None:
+    raw = row.get("charge_energy_added") if isinstance(row, dict) else None
+    if raw is None:
+        return None
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return None
+    return value if value > 0.05 else None
+
+
+def _last_usable_energy(group: list[dict]) -> float | None:
+    for point in reversed(group):
+        value = _charge_energy(point)
+        if value is not None:
+            return value
+    return None
+
+
+# A merged ChargeSessionCost from two plugs at the same stall can share the
+# first plug's start. Trust its Tesla invoice only when the stored end still
+# matches this plug-in (not the later stall 15+ min away).
+_STORED_SESSION_END_SLACK = timedelta(minutes=15)
+
+
+def stored_invoice_fits_session(stored, session) -> bool:
+    """True when a cached Tesla invoice still describes this plug-in."""
+    if stored is None or stored.tesla_invoice_eur is None:
+        return False
+    if stored.end is None or session.end is None:
+        return False
+    delta = abs((_as_utc(stored.end) - _as_utc(session.end)).total_seconds())
+    return delta <= _STORED_SESSION_END_SLACK.total_seconds()
 
 
 @dataclass
@@ -683,6 +730,10 @@ def price_session(session: ChargeSession) -> CostResult:
 
 def persist_session_cost(session: ChargeSession, result: CostResult) -> ChargeSessionCost:
     """Insert or update the row keyed by (hashed_vin, start). Keeps tesla invoice if set."""
+    start = _as_utc(session.start)
+    existing = ChargeSessionCost.objects.filter(
+        hashed_vin=session.hashed_vin, start=start
+    ).first()
     defaults = {
         "end": _as_utc(session.end),
         "kwh": session.kwh,
@@ -695,15 +746,25 @@ def persist_session_cost(session: ChargeSession, result: CostResult) -> ChargeSe
     }
     if session.tesla_invoice_eur is not None:
         defaults["tesla_invoice_eur"] = session.tesla_invoice_eur
-    if session.tesla_session_id:
-        defaults["tesla_session_id"] = session.tesla_session_id
+        if session.tesla_session_id:
+            defaults["tesla_session_id"] = session.tesla_session_id
+    elif existing is not None and not stored_invoice_fits_session(existing, session):
+        # Merged two plugs into one row: do not keep the summed invoice on
+        # the first stall after we split them.
+        defaults["tesla_invoice_eur"] = None
+        defaults["tesla_session_id"] = ""
     obj, created = ChargeSessionCost.objects.update_or_create(
         hashed_vin=session.hashed_vin,
-        start=_as_utc(session.start),
+        start=start,
         defaults=defaults,
     )
-    if not created and session.tesla_invoice_eur is None and obj.tesla_invoice_eur is not None:
-        # Recalc must not drop a stored Tesla invoice.
+    if (
+        not created
+        and session.tesla_invoice_eur is None
+        and obj.tesla_invoice_eur is not None
+        and stored_invoice_fits_session(existing, session)
+    ):
+        # Recalc must not drop a stored Tesla invoice for the same plug-in.
         obj.rule = RULE_SUPERCHARGER_INVOICE
         obj.status = COST_PRICED
         obj.cost_eur = obj.tesla_invoice_eur
@@ -785,6 +846,32 @@ _EXPAND_GAP = timedelta(minutes=30)
 _EXPAND_PAD = timedelta(hours=16)
 
 
+def _group_active_charge_points(rows) -> list[list[dict]]:
+    """Split on 30 min silence or a plug-in counter reset (new cable)."""
+    groups: list[list[dict]] = []
+    current: list[dict] = []
+    for row in rows:
+        stamp = row.get("Date")
+        if stamp is None:
+            continue
+        stamp = _as_utc(stamp)
+        point = dict(row)
+        point["t"] = stamp
+        if current:
+            silent = stamp - current[-1]["t"] > _EXPAND_GAP
+            reset = plug_counter_reset(
+                _last_usable_energy(current), _charge_energy(point)
+            )
+            if silent or reset:
+                groups.append(current)
+                current = [point]
+                continue
+        current.append(point)
+    if current:
+        groups.append(current)
+    return groups
+
+
 def expand_session_from_snapshots(
     hashed_vin: str,
     fragment_start: datetime,
@@ -797,6 +884,8 @@ def expand_session_from_snapshots(
     Widen a civil-day charge fragment to the full plug-in (30 min gap).
 
     Used so DayMap can show the same session total on both sides of midnight.
+    A new plug-in (charge_energy_added reset) is a different session even
+    when the next stall is under 30 minutes away.
     """
     from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 
@@ -817,22 +906,7 @@ def expand_session_from_snapshots(
         "charger_phases",
     )
 
-    groups: list[list[dict]] = []
-    current: list[dict] = []
-    for row in window:
-        stamp = row.get("Date")
-        if stamp is None:
-            continue
-        stamp = _as_utc(stamp)
-        row = dict(row)
-        row["t"] = stamp
-        if current and stamp - current[-1]["t"] > _EXPAND_GAP:
-            groups.append(current)
-            current = [row]
-        else:
-            current.append(row)
-    if current:
-        groups.append(current)
+    groups = _group_active_charge_points(window)
 
     chosen = None
     for group in groups:
@@ -982,22 +1056,7 @@ def iter_sessions_starting_in(
         "longitude",
         "charger_power",
     )
-    groups: list[list[dict]] = []
-    current: list[dict] = []
-    for row in rows:
-        stamp = row.get("Date")
-        if stamp is None:
-            continue
-        stamp = _as_utc(stamp)
-        point = dict(row)
-        point["t"] = stamp
-        if current and stamp - current[-1]["t"] > _EXPAND_GAP:
-            groups.append(current)
-            current = [point]
-        else:
-            current.append(point)
-    if current:
-        groups.append(current)
+    groups = _group_active_charge_points(rows)
     sessions = []
     for group in groups:
         if len(group) < 2 and (group[-1]["t"] - group[0]["t"]).total_seconds() < 60:
@@ -1079,7 +1138,10 @@ def price_sessions_starting_in(
         stored = ChargeSessionCost.objects.filter(
             hashed_vin=hashed_vin, start=session.start
         ).first()
-        if stored and stored.tesla_invoice_eur is not None and session.tesla_invoice_eur is None:
+        if (
+            session.tesla_invoice_eur is None
+            and stored_invoice_fits_session(stored, session)
+        ):
             session.tesla_invoice_eur = stored.tesla_invoice_eur
             if stored.tesla_session_id and not session.tesla_session_id:
                 session.tesla_session_id = stored.tesla_session_id
@@ -1129,7 +1191,7 @@ def annotate_daymap_charges(
                 hashed_vin=hashed_vin,
                 start=session.start,
             ).first()
-            if stored and stored.tesla_invoice_eur is not None:
+            if stored_invoice_fits_session(stored, session):
                 session.tesla_invoice_eur = stored.tesla_invoice_eur
                 if stored.tesla_session_id and not session.tesla_session_id:
                     session.tesla_session_id = stored.tesla_session_id

@@ -44,6 +44,10 @@ WINDOW_PAD = timedelta(hours=12)
 MAX_API_SPAN = timedelta(days=364)
 RECENT_REFRESH = timedelta(days=14)
 MATCH_START_MAX_S = 30 * 60
+# Clock skew only. A 20 min pad glued the next Supercharge stall 16 min later
+# onto the first plug-in (Anderlecht 2026-09-13). Tesla split invoices on the
+# *same* plug still overlap the unpadded window and are summed.
+MATCH_OVERLAP_PAD = timedelta(minutes=5)
 EUR_CODES = {"EUR", "€", ""}
 
 
@@ -187,8 +191,8 @@ def match_invoices(session_start, session_end, invoices, used_ids: set[str] | No
     """Tesla invoices that overlap this plug-in (Tesla sometimes splits one stop)."""
     start = _as_utc(session_start)
     end = _as_utc(session_end)
-    pad_start = start - timedelta(minutes=20)
-    pad_end = end + timedelta(minutes=20)
+    pad_start = start - MATCH_OVERLAP_PAD
+    pad_end = end + MATCH_OVERLAP_PAD
     used_ids = used_ids or set()
     overlapping = []
     close_start = []
@@ -679,7 +683,7 @@ def _maybe_refresh_invoice_after_supercharge(
     now: datetime,
     http_get=None,
 ) -> dict:
-    from matesla.charge_cost import iter_sessions_starting_in
+    from matesla.charge_cost import iter_sessions_starting_in, stored_invoice_fits_session
     from matesla.models.ChargeCost import ChargeSessionCost
 
     dc = _recent_dc_snapshot(hashed_vin, now - CAPTURE_INVOICE_LOOKBACK)
@@ -701,7 +705,7 @@ def _maybe_refresh_invoice_after_supercharge(
         stored = ChargeSessionCost.objects.filter(
             hashed_vin=hashed_vin, start=_as_utc(session.start)
         ).first()
-        if stored is not None and stored.tesla_invoice_eur is not None:
+        if stored_invoice_fits_session(stored, session):
             continue
         pending.append(session)
 

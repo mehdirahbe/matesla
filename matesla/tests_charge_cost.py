@@ -13,9 +13,11 @@ from matesla.charge_cost import (
     ChargeSession,
     annotate_daymap_charges,
     apply_daily_place_fees,
+    expand_session_from_snapshots,
     is_active_charge,
     iter_sessions_starting_in,
     kwh_from_plug_counter,
+    plug_counter_reset,
     price_and_persist,
     price_session,
     price_sessions_starting_in,
@@ -89,6 +91,12 @@ class PlugCounterKwhTests(TestCase):
         self.assertTrue(is_active_charge("Charging", 7.0))
         self.assertTrue(is_active_charge("", 7.0))
         self.assertTrue(is_active_charge(None, 7.0))
+
+    def test_plug_counter_reset_detects_new_cable(self):
+        self.assertTrue(plug_counter_reset(14.9, 5.28))
+        self.assertFalse(plug_counter_reset(22.0, 22.1))
+        self.assertFalse(plug_counter_reset(None, 5.28))
+        self.assertFalse(plug_counter_reset(14.9, None))
 
 
 class October10CabinHeatSessionTests(TestCase):
@@ -229,6 +237,191 @@ class October10CabinHeatSessionTests(TestCase):
         from matesla.tesla_charging_history import _recent_dc_snapshot
 
         self.assertIsNone(_recent_dc_snapshot(HV_A, _at(2026, 10, 10, 0, 0)))
+
+
+class September13TwoSuperchargeTests(TestCase):
+    """
+    RobotBleu 2026-09-13 Anderlecht: two Supercharge plugs 16 min apart
+    (Stopped in between, charge_energy_added reset). DayMap split them on
+    park but expand+invoice matching used to glue both Tesla invoices
+    (4.00 + 7.69) onto each row.
+    """
+
+    VIN = "5YJ3E1EA0KFCOSTSC13"
+    SC_LAT, SC_LON = 50.8379, 4.2882
+
+    def _snap(self, when, **fields):
+        defaults = dict(
+            vin=self.VIN,
+            hashedVin=HV_A,
+            Date=when,
+            DateOnlyDay=when.astimezone(UTC).date(),
+            latitude=self.SC_LAT,
+            longitude=self.SC_LON,
+            battery_level=40.0,
+            charger_power=0.0,
+            fast_charger_present=True,
+            fast_charger_type="Tesla",
+        )
+        defaults.update(fields)
+        return TeslaCarDataSnapshot.objects.create(**defaults)
+
+    def setUp(self):
+        User = get_user_model()
+        user = User.objects.create_user("sc_sep13", password="x")
+        ChargeCostSettings.objects.create(
+            user=user, other_eur_per_kwh=0.40, supercharger_eur_per_kwh=0.55
+        )
+        self._snap(
+            _at(2026, 9, 13, 9, 26),
+            charging_state="Starting",
+            charger_power=0.0,
+            charge_energy_added=0.0,
+            battery_level=19.0,
+        )
+        self._snap(
+            _at(2026, 9, 13, 9, 28),
+            charging_state="Charging",
+            charger_power=160.0,
+            charge_energy_added=4.42,
+            battery_level=25.0,
+        )
+        self._snap(
+            _at(2026, 9, 13, 9, 32),
+            charging_state="Charging",
+            charger_power=129.0,
+            charge_energy_added=13.3,
+            battery_level=37.0,
+        )
+        self._snap(
+            _at(2026, 9, 13, 9, 34),
+            charging_state="Stopped",
+            charger_power=0.0,
+            charge_energy_added=14.9,
+            battery_level=40.0,
+        )
+        self._snap(
+            _at(2026, 9, 13, 9, 50),
+            charging_state="Charging",
+            charger_power=110.0,
+            charge_energy_added=5.28,
+            battery_level=46.0,
+        )
+        self._snap(
+            _at(2026, 9, 13, 10, 11),
+            charging_state="Charging",
+            charger_power=43.0,
+            charge_energy_added=29.58,
+            battery_level=80.0,
+        )
+        self._snap(
+            _at(2026, 9, 13, 10, 13),
+            charging_state="Disconnected",
+            charger_power=0.0,
+            charge_energy_added=30.86,
+            battery_level=81.0,
+        )
+        TeslaChargingInvoice.objects.create(
+            hashed_vin=HV_A,
+            tesla_session_id="762271391",
+            start=_at(2026, 9, 13, 9, 26),
+            end=_at(2026, 9, 13, 9, 32),
+            site_name="Anderlecht, Belgium",
+            total_eur=4.00,
+            kwh=16.6895,
+            currency="EUR",
+        )
+        TeslaChargingInvoice.objects.create(
+            hashed_vin=HV_A,
+            tesla_session_id="762280516",
+            start=_at(2026, 9, 13, 9, 47),
+            end=_at(2026, 9, 13, 10, 12),
+            site_name="Anderlecht, Belgium",
+            total_eur=7.69,
+            kwh=32.0538,
+            currency="EUR",
+        )
+        # Stale merged row as production had before the split.
+        ChargeSessionCost.objects.create(
+            hashed_vin=HV_A,
+            start=_at(2026, 9, 13, 9, 26).astimezone(UTC),
+            end=_at(2026, 9, 13, 10, 11).astimezone(UTC),
+            kwh=29.58,
+            latitude=self.SC_LAT,
+            longitude=self.SC_LON,
+            rule=RULE_SUPERCHARGER_INVOICE,
+            status=COST_PRICED,
+            cost_eur=11.69,
+            tesla_invoice_eur=11.69,
+            tesla_session_id="762271391",
+        )
+
+    def test_iter_sessions_splits_on_counter_reset(self):
+        sessions = iter_sessions_starting_in(
+            HV_A, _at(2026, 9, 13, 0, 0), _at(2026, 9, 14, 0, 0)
+        )
+        self.assertEqual(len(sessions), 2)
+        self.assertEqual(sessions[0].start, _at(2026, 9, 13, 9, 26))
+        self.assertEqual(sessions[0].end, _at(2026, 9, 13, 9, 32))
+        self.assertAlmostEqual(sessions[0].kwh, 13.3, places=1)
+        self.assertEqual(sessions[1].start, _at(2026, 9, 13, 9, 50))
+        self.assertEqual(sessions[1].end, _at(2026, 9, 13, 10, 11))
+        self.assertAlmostEqual(sessions[1].kwh, 29.58, places=2)
+
+    def test_expand_does_not_cross_the_new_plug(self):
+        first = expand_session_from_snapshots(
+            HV_A,
+            _at(2026, 9, 13, 9, 26),
+            _at(2026, 9, 13, 9, 34),
+            14.9,
+            self.SC_LAT,
+            self.SC_LON,
+        )
+        second = expand_session_from_snapshots(
+            HV_A,
+            _at(2026, 9, 13, 9, 50),
+            _at(2026, 9, 13, 10, 13),
+            30.86,
+            self.SC_LAT,
+            self.SC_LON,
+        )
+        self.assertEqual(first.start, _at(2026, 9, 13, 9, 26))
+        self.assertEqual(first.end, _at(2026, 9, 13, 9, 32))
+        self.assertEqual(second.start, _at(2026, 9, 13, 9, 50))
+        self.assertEqual(second.end, _at(2026, 9, 13, 10, 11))
+
+    def test_daymap_rows_keep_each_tesla_invoice(self):
+        charges = [
+            {
+                "start": _at(2026, 9, 13, 9, 26),
+                "end": _at(2026, 9, 13, 9, 34),
+                "kwh_added": 14.9,
+                "lat": self.SC_LAT,
+                "lon": self.SC_LON,
+                "is_supercharger": True,
+            },
+            {
+                "start": _at(2026, 9, 13, 9, 50),
+                "end": _at(2026, 9, 13, 10, 13),
+                "kwh_added": 30.86,
+                "lat": self.SC_LAT,
+                "lon": self.SC_LON,
+                "is_supercharger": True,
+            },
+        ]
+        annotate_daymap_charges(HV_A, charges)
+        self.assertAlmostEqual(charges[0]["cost_eur"], 4.00, places=2)
+        self.assertAlmostEqual(charges[1]["cost_eur"], 7.69, places=2)
+        self.assertEqual(charges[0]["cost_rule"], RULE_SUPERCHARGER_INVOICE)
+        self.assertEqual(charges[1]["cost_rule"], RULE_SUPERCHARGER_INVOICE)
+        self.assertNotAlmostEqual(charges[0]["cost_eur"], 11.69, places=2)
+        self.assertNotAlmostEqual(charges[1]["cost_eur"], 11.69, places=2)
+        stored = list(
+            ChargeSessionCost.objects.filter(hashed_vin=HV_A).order_by("start")
+        )
+        self.assertEqual(len(stored), 2)
+        self.assertAlmostEqual(stored[0].cost_eur, 4.00, places=2)
+        self.assertAlmostEqual(stored[1].cost_eur, 7.69, places=2)
 
 
 class ChargeCostEngineTests(TestCase):
@@ -1843,6 +2036,43 @@ class TeslaChargingHistoryTests(TestCase):
         apply_tesla_invoices([session])
         self.assertAlmostEqual(session.tesla_invoice_eur, 11.69, places=2)
         self.assertEqual(session.tesla_site_name, "Anderlecht, Belgium")
+
+    def test_invoice_overlap_pad_does_not_glue_next_stall(self):
+        from matesla.tesla_charging_history import match_invoices
+
+        first = TeslaChargingInvoice.objects.create(
+            hashed_vin=HV_A,
+            tesla_session_id="anderlecht-stall-a",
+            start=_at(2026, 9, 13, 9, 26),
+            end=_at(2026, 9, 13, 9, 32),
+            site_name="Anderlecht, Belgium",
+            total_eur=4.00,
+            currency="EUR",
+        )
+        second = TeslaChargingInvoice.objects.create(
+            hashed_vin=HV_A,
+            tesla_session_id="anderlecht-stall-b",
+            start=_at(2026, 9, 13, 9, 47),
+            end=_at(2026, 9, 13, 10, 12),
+            site_name="Anderlecht, Belgium",
+            total_eur=7.69,
+            currency="EUR",
+        )
+        invoices = [first, second]
+        matched_first = match_invoices(
+            _at(2026, 9, 13, 9, 26),
+            _at(2026, 9, 13, 9, 32),
+            invoices,
+        )
+        self.assertEqual([inv.tesla_session_id for inv in matched_first], ["anderlecht-stall-a"])
+        matched_second = match_invoices(
+            _at(2026, 9, 13, 9, 50),
+            _at(2026, 9, 13, 10, 11),
+            invoices,
+        )
+        self.assertEqual(
+            [inv.tesla_session_id for inv in matched_second], ["anderlecht-stall-b"]
+        )
 
     def test_history_chunks_keep_padded_calls_under_one_year(self):
         from matesla.tesla_charging_history import (
