@@ -588,8 +588,7 @@ def _snapshot_is_dc(snap) -> bool:
 
 
 def _recent_dc_snapshot(hashed_vin: str, since: datetime):
-    from django.db.models import Q
-
+    from matesla.charge_cost import active_charge_q
     from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 
     rows = (
@@ -597,9 +596,7 @@ def _recent_dc_snapshot(hashed_vin: str, since: datetime):
             hashedVin=hashed_vin,
             Date__gte=since,
         )
-        .filter(
-            Q(charging_state__in=["Charging", "Starting"]) | Q(charger_power__gt=0.5)
-        )
+        .filter(active_charge_q())
         .order_by("-Date")
         .only(
             "Date",

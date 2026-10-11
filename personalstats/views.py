@@ -1915,8 +1915,10 @@ def _charge_session_ok(session_points) -> bool:
 
 def _charge_filter_q():
     """SQL filter: rows that look like an active charge (state or power)."""
+    from matesla.charge_cost import active_charge_q
+
     # Exact match (not iexact/LIKE) so SQLite can use partial charge indexes.
-    return Q(charging_state__in=["Charging", "Starting"]) | Q(charger_power__gt=0.5)
+    return active_charge_q()
 
 
 def _charge_sessions_sql_by_number(hashed_vin, desiredperiod=None):
@@ -3608,12 +3610,12 @@ def _build_lifetime_map_payload(hashed_vin, desired_period_weeks):
 
 def _point_kind(sample):
     """Classify a sample: charge | drive | park."""
-    charging_state = (sample.get("charging_state") or "").strip().lower()
+    from matesla.charge_cost import is_active_charge
+
+    charging_state = (sample.get("charging_state") or "").strip()
     charger_power = sample.get("charger_power")
-    # Starting: power ramp just after plug; treat as charge so it stays in-session.
-    if charging_state in ("charging", "starting") or (
-        charger_power is not None and charger_power > 0.5
-    ):
+    # Complete + a few kW is cabin heat on the wall, not a pack charge.
+    if is_active_charge(charging_state, charger_power):
         return "charge"
     shift_state = (sample.get("shift_state") or "").strip().upper()
     speed = sample.get("speed")
@@ -4449,9 +4451,11 @@ def _segment_day(rows, pack_kwh):
                 minutes = max(minutes, 1.0)
 
             # kWh: Tesla charge_energy_added is the *session total* since plug-in.
-            # Max over the session window (incl. post-unplug sample) — not a
-            # delta between first and last Charging polls (that misses both
-            # edges on short Supercharges).
+            # Max over the window (incl. post-unplug) for a new cable. A later
+            # burst on the same plug still shows last night's total — subtract
+            # the park sample before this fragment unless the counter reset.
+            from matesla.charge_cost import kwh_from_plug_counter
+
             session_energy_vals = []
             for point in energy_points:
                 energy = point.get("charge_energy_added")
@@ -4462,10 +4466,11 @@ def _segment_day(rows, pack_kwh):
                         continue
                     if energy_f > 0.05:
                         session_energy_vals.append(energy_f)
-            kwh_added = None
-            if session_energy_vals:
-                kwh_added = max(session_energy_vals)
-            elif soc_added is not None and soc_added > 0:
+            baseline = None
+            if prev_pts:
+                baseline = prev_pts[-1].get("charge_energy_added")
+            kwh_added = kwh_from_plug_counter(session_energy_vals, baseline)
+            if kwh_added is None and soc_added is not None and soc_added > 0:
                 kwh_added = soc_added / 100.0 * pack_kwh
             # Effective kW: charger_power when set, else V×I×phases (AC wall
             # often has charger_power=0 in TeslaFi while current is filled).

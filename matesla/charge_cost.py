@@ -55,6 +55,67 @@ from matesla.models.ChargeCost import (
 
 CHARGE_COST_TZ = ZoneInfo("Europe/Brussels")
 
+# Tesla still reports a few kW while Complete/Disconnected if climate draws
+# from the wall. That is not a charge session (SoC already at the limit).
+_IDLE_PLUGGED_STATES = ("Complete", "Disconnected")
+_ACTIVE_CHARGE_STATES = ("Charging", "Starting")
+
+
+def is_active_charge(charging_state, charger_power) -> bool:
+    """True when the car is actually adding energy to the pack."""
+    state = (charging_state or "").strip()
+    state_key = state.lower()
+    if state_key in ("charging", "starting"):
+        return True
+    if state_key in ("complete", "disconnected"):
+        return False
+    try:
+        return charger_power is not None and float(charger_power) > 0.5
+    except (TypeError, ValueError):
+        return False
+
+
+def active_charge_q():
+    """SQL: Charging/Starting, or power with an unknown/empty state (TeslaFi)."""
+    from django.db.models import Q
+
+    return Q(charging_state__in=list(_ACTIVE_CHARGE_STATES)) | (
+        Q(charger_power__gt=0.5)
+        & ~Q(charging_state__in=list(_IDLE_PLUGGED_STATES))
+    )
+
+
+def kwh_from_plug_counter(energies, baseline=None) -> float | None:
+    """
+    kWh added in this fragment from Tesla's plug-in session counter.
+
+    ``charge_energy_added`` is cumulative since the cable went in. A later
+    Charging burst on the same plug (or cabin heat mis-classified as charge)
+    still shows last night's total. Subtract ``baseline`` (last sample before
+    this fragment) unless the counter reset (new plug-in).
+    """
+    vals: list[float] = []
+    for raw in energies or ():
+        try:
+            value = float(raw)
+        except (TypeError, ValueError):
+            continue
+        if value > 0.05:
+            vals.append(value)
+    if not vals:
+        return None
+    peak = max(vals)
+    first = vals[0]
+    try:
+        base = float(baseline) if baseline is not None else None
+    except (TypeError, ValueError):
+        base = None
+    if base is None or base <= 0.5:
+        return peak
+    if first < base - 1.0 and first < base * 0.5:
+        return peak
+    return max(0.0, peak - base)
+
 
 @dataclass
 class ChargeSession:
@@ -737,8 +798,6 @@ def expand_session_from_snapshots(
 
     Used so DayMap can show the same session total on both sides of midnight.
     """
-    from django.db.models import Q
-
     from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 
     start = _as_utc(fragment_start)
@@ -747,9 +806,7 @@ def expand_session_from_snapshots(
         hashedVin=hashed_vin,
         Date__gte=start - _EXPAND_PAD,
         Date__lte=end + _EXPAND_PAD,
-    ).filter(
-        Q(charging_state__in=["Charging", "Starting"]) | Q(charger_power__gt=0.5)
-    ).order_by("Date").values(
+    ).filter(active_charge_q()).order_by("Date").values(
         "Date",
         "charge_energy_added",
         "latitude",
@@ -819,7 +876,17 @@ def expand_session_from_snapshots(
             power_f = None
         if power_f is not None and power_f > 0.05:
             powers.append((pt["t"], power_f))
-    kwh = max(energies) if energies else fragment_kwh
+    prior = (
+        TeslaCarDataSnapshot.objects.filter(
+            hashedVin=hashed_vin, Date__lt=chosen[0]["t"]
+        )
+        .order_by("-Date")
+        .values_list("charge_energy_added", flat=True)
+        .first()
+    )
+    kwh = kwh_from_plug_counter(energies, prior)
+    if kwh is None:
+        kwh = fragment_kwh
     return ChargeSession(
         hashed_vin=hashed_vin,
         start=chosen[0]["t"],
@@ -845,6 +912,8 @@ def _group_looks_dc(group: list[dict]) -> bool:
 
 
 def _session_from_group(hashed_vin: str, group: list[dict]) -> ChargeSession:
+    from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+
     gps = [
         (pt.get("latitude"), pt.get("longitude"))
         for pt in group
@@ -871,7 +940,15 @@ def _session_from_group(hashed_vin: str, group: list[dict]) -> ChargeSession:
             power_f = None
         if power_f is not None and power_f > 0.05:
             powers.append((pt["t"], power_f))
-    kwh = max(energies) if energies else None
+    prior = (
+        TeslaCarDataSnapshot.objects.filter(
+            hashedVin=hashed_vin, Date__lt=group[0]["t"]
+        )
+        .order_by("-Date")
+        .values_list("charge_energy_added", flat=True)
+        .first()
+    )
+    kwh = kwh_from_plug_counter(energies, prior)
     return ChargeSession(
         hashed_vin=hashed_vin,
         start=group[0]["t"],
@@ -890,8 +967,6 @@ def iter_sessions_starting_in(
     window_end: datetime,
 ) -> list[ChargeSession]:
     """Full plug-in sessions whose start falls in [window_start, window_end)."""
-    from django.db.models import Q
-
     from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 
     start = _as_utc(window_start)
@@ -900,9 +975,7 @@ def iter_sessions_starting_in(
         hashedVin=hashed_vin,
         Date__gte=start - _EXPAND_PAD,
         Date__lt=end + _EXPAND_PAD,
-    ).filter(
-        Q(charging_state__in=["Charging", "Starting"]) | Q(charger_power__gt=0.5)
-    ).order_by("Date").values(
+    ).filter(active_charge_q()).order_by("Date").values(
         "Date",
         "charge_energy_added",
         "latitude",

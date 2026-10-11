@@ -1011,12 +1011,12 @@ class PersonalStatsGraphPerfTests(TestCase):
 class DayMapSegmentSocTests(TestCase):
     """Drive/charge SoC anchors with sparse Supercharger polls."""
 
-    def _ts(self, hour, minute=0):
+    def _ts(self, hour, minute=0, *, year=2026, month=8, day=9):
         from datetime import datetime
         from zoneinfo import ZoneInfo
 
         tz = ZoneInfo("Europe/Brussels")
-        return datetime(2026, 8, 9, hour, minute, 0, tzinfo=tz)
+        return datetime(year, month, day, hour, minute, 0, tzinfo=tz)
 
     def _row(self, t, *, kind, soc, odo, lat=50.0, lon=5.0, power_kw=0.0):
         """Minimal day-map sample dict."""
@@ -1227,6 +1227,90 @@ class DayMapSegmentSocTests(TestCase):
         self.assertEqual(charges[0]["start_local"], "12:29")
         self.assertEqual(charges[0]["end_local"], "12:53")
         self.assertAlmostEqual(charges[0]["kwh_added"], 36.5, places=1)
+
+    def test_october_10_cabin_heat_does_not_replay_night_kwh(self):
+        """
+        Live 2026-10-10: leftover counter 53.64, overnight AC to 90 %, then
+        plugged Complete + 1–2 kW cabin heat. Morning must not replay 22.3 kWh.
+        """
+        from personalstats.views import _find_charge_session_points, _segment_day
+
+        def ts(hour, minute=0):
+            return self._ts(hour, minute, year=2026, month=10, day=10)
+        odo = 8000.0
+        rows = [
+            self._row(ts(0, 29), kind="park", soc=61.0, odo=odo),
+            self._row(ts(0, 50), kind="charge", soc=61.0, odo=odo, power_kw=7.0),
+            self._row(ts(3, 58), kind="charge", soc=88.0, odo=odo, power_kw=7.0),
+            self._row(ts(4, 19), kind="park", soc=90.0, odo=odo),
+            self._row(ts(7, 31), kind="park", soc=90.0, odo=odo),
+            self._row(ts(7, 43), kind="park", soc=90.0, odo=odo),
+            self._row(ts(7, 46), kind="park", soc=90.0, odo=odo),
+            self._row(ts(11, 48), kind="charge", soc=70.0, odo=odo, power_kw=7.0),
+            self._row(ts(12, 35), kind="charge", soc=72.0, odo=odo, power_kw=7.0),
+        ]
+        rows[0]["charging_state"] = "Disconnected"
+        rows[0]["charge_energy_added"] = 53.64
+        rows[1]["charge_energy_added"] = 0.64
+        rows[2]["charge_energy_added"] = 20.6
+        rows[3]["charging_state"] = "Complete"
+        rows[3]["charge_energy_added"] = 22.34
+        rows[4]["charging_state"] = "Complete"
+        rows[4]["charger_power"] = 2.0
+        rows[4]["charge_energy_added"] = 22.3
+        rows[4]["is_climate_on"] = True
+        rows[5]["charging_state"] = "Complete"
+        rows[5]["charger_power"] = 1.0
+        rows[5]["charge_energy_added"] = 22.3
+        rows[5]["is_climate_on"] = True
+        rows[6]["charging_state"] = "Disconnected"
+        rows[6]["charge_energy_added"] = 22.3
+        rows[7]["charge_energy_added"] = 0.10
+        rows[8]["charge_energy_added"] = 0.72
+
+        _drives, charges = _segment_day(rows, pack_kwh=75.0)
+        self.assertEqual(len(charges), 2)
+        self.assertEqual(charges[0]["start_local"], "00:50")
+        self.assertEqual(charges[0]["end_local"], "03:58")
+        self.assertAlmostEqual(charges[0]["kwh_added"], 20.6, places=1)
+        self.assertLess(charges[0]["kwh_added"], 22.0)
+        self.assertEqual(charges[1]["start_local"], "11:48")
+        self.assertAlmostEqual(charges[1]["kwh_added"], 0.72, places=2)
+        for charge in charges:
+            self.assertNotEqual(charge["start_local"], "07:31")
+            self.assertLess(charge["kwh_added"], 22.0)
+        heat_ts = int(ts(7, 31).timestamp())
+        self.assertIsNone(_find_charge_session_points(rows, heat_ts))
+
+    def test_second_charging_burst_same_plug_is_increment_only(self):
+        """Raising the limit without unplugging: second line is new kWh, not the night."""
+        from personalstats.views import _segment_day
+
+        rows = [
+            self._row(
+                self._ts(1, 0), kind="charge", soc=50.0, odo=8100.0, power_kw=7.0
+            ),
+            self._row(
+                self._ts(3, 0), kind="charge", soc=80.0, odo=8100.0, power_kw=7.0
+            ),
+            self._row(self._ts(3, 20), kind="park", soc=80.0, odo=8100.0),
+            self._row(
+                self._ts(7, 30), kind="charge", soc=80.0, odo=8100.0, power_kw=7.0
+            ),
+            self._row(
+                self._ts(8, 0), kind="charge", soc=90.0, odo=8100.0, power_kw=7.0
+            ),
+        ]
+        rows[0]["charge_energy_added"] = 1.0
+        rows[1]["charge_energy_added"] = 22.0
+        rows[2]["charging_state"] = "Complete"
+        rows[2]["charge_energy_added"] = 22.0
+        rows[3]["charge_energy_added"] = 22.1
+        rows[4]["charge_energy_added"] = 29.5
+        _drives, charges = _segment_day(rows, pack_kwh=75.0)
+        self.assertEqual(len(charges), 2)
+        self.assertAlmostEqual(charges[0]["kwh_added"], 22.0, places=1)
+        self.assertAlmostEqual(charges[1]["kwh_added"], 7.5, places=1)
 
 
 class DayMapUnmonitoredTailTests(TestCase):

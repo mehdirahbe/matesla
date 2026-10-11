@@ -13,6 +13,9 @@ from matesla.charge_cost import (
     ChargeSession,
     annotate_daymap_charges,
     apply_daily_place_fees,
+    is_active_charge,
+    iter_sessions_starting_in,
+    kwh_from_plug_counter,
     price_and_persist,
     price_session,
     price_sessions_starting_in,
@@ -61,6 +64,164 @@ ELSE_LAT, ELSE_LON = 51.0000, 5.0000
 def _at(year, month, day, hour, minute=0):
     """Aware datetime in Europe/Brussels."""
     return datetime(year, month, day, hour, minute, tzinfo=CHARGE_COST_TZ)
+
+
+class PlugCounterKwhTests(TestCase):
+    def test_new_plug_uses_session_total(self):
+        self.assertAlmostEqual(kwh_from_plug_counter([0.64, 20.6], 53.64), 20.6)
+        self.assertAlmostEqual(kwh_from_plug_counter([1.0, 30.0], 0.0), 30.0)
+        self.assertAlmostEqual(kwh_from_plug_counter([5.1, 14.54], None), 14.54)
+
+    def test_same_plug_later_burst_is_increment(self):
+        self.assertAlmostEqual(kwh_from_plug_counter([22.1, 29.5], 22.0), 7.5)
+        self.assertAlmostEqual(kwh_from_plug_counter([22.3], 22.34), 0.0)
+
+    def test_complete_with_cabin_kw_is_not_active_charge(self):
+        self.assertFalse(is_active_charge("Complete", 2.0))
+        self.assertFalse(is_active_charge("Disconnected", 1.0))
+        self.assertTrue(is_active_charge("Charging", 7.0))
+        self.assertTrue(is_active_charge("", 7.0))
+        self.assertTrue(is_active_charge(None, 7.0))
+
+
+class October10CabinHeatSessionTests(TestCase):
+    """
+    RobotBleu 2026-10-10: leftover 53.64 kWh, overnight AC, then plugged
+    Complete + 1–2 kW cabin heat at 90 %. Charges and Stats must not emit a
+    second 22.3 kWh session at 07:31.
+    """
+
+    VIN = "5YJ3E1EA0KFCOSTUI01"
+
+    def _snap(self, when, **fields):
+        defaults = dict(
+            vin=self.VIN,
+            hashedVin=HV_A,
+            Date=when,
+            DateOnlyDay=when.date(),
+            latitude=HOME_LAT,
+            longitude=HOME_LON,
+            battery_level=90.0,
+            charger_power=0.0,
+            fast_charger_present=False,
+            fast_charger_type="MCSingleWireCAN",
+        )
+        defaults.update(fields)
+        return TeslaCarDataSnapshot.objects.create(**defaults)
+
+    def setUp(self):
+        self._snap(
+            _at(2026, 10, 10, 0, 29),
+            charging_state="Disconnected",
+            charge_energy_added=53.64,
+            battery_level=61.0,
+        )
+        # Night AC is polled every 30 min; keep gaps under the 30 min session split.
+        overnight = (
+            (0, 50, 0.64, 61.0),
+            (1, 20, 4.0, 66.0),
+            (1, 50, 8.0, 71.0),
+            (2, 20, 12.0, 76.0),
+            (2, 50, 16.0, 81.0),
+            (3, 20, 18.5, 85.0),
+            (3, 40, 19.6, 87.0),
+            (3, 58, 20.6, 88.0),
+        )
+        for hour, minute, energy, soc in overnight:
+            self._snap(
+                _at(2026, 10, 10, hour, minute),
+                charging_state="Charging",
+                charger_power=7.0,
+                charge_energy_added=energy,
+                battery_level=soc,
+            )
+        self._snap(
+            _at(2026, 10, 10, 4, 19),
+            charging_state="Complete",
+            charger_power=0.0,
+            charge_energy_added=22.34,
+            battery_level=90.0,
+        )
+        self._snap(
+            _at(2026, 10, 10, 7, 31),
+            charging_state="Complete",
+            charger_power=2.0,
+            charge_energy_added=22.3,
+            battery_level=90.0,
+            is_climate_on=True,
+        )
+        self._snap(
+            _at(2026, 10, 10, 7, 43),
+            charging_state="Complete",
+            charger_power=1.0,
+            charge_energy_added=22.3,
+            battery_level=90.0,
+            is_climate_on=True,
+        )
+        self._snap(
+            _at(2026, 10, 10, 7, 46),
+            charging_state="Disconnected",
+            charger_power=0.0,
+            charge_energy_added=22.3,
+            battery_level=90.0,
+        )
+        self._snap(
+            _at(2026, 10, 10, 11, 48),
+            charging_state="Charging",
+            charger_power=7.0,
+            charge_energy_added=0.10,
+            battery_level=70.0,
+        )
+        self._snap(
+            _at(2026, 10, 10, 12, 10),
+            charging_state="Charging",
+            charger_power=7.0,
+            charge_energy_added=0.40,
+            battery_level=71.0,
+        )
+        self._snap(
+            _at(2026, 10, 10, 12, 35),
+            charging_state="Charging",
+            charger_power=7.0,
+            charge_energy_added=0.72,
+            battery_level=72.0,
+        )
+
+    def test_charges_does_not_price_cabin_heat_as_night_kwh(self):
+        sessions = iter_sessions_starting_in(
+            HV_A, _at(2026, 10, 10, 0, 0), _at(2026, 10, 11, 0, 0)
+        )
+        self.assertEqual(len(sessions), 2)
+        self.assertAlmostEqual(sessions[0].kwh, 20.6, places=1)
+        self.assertAlmostEqual(sessions[1].kwh, 0.72, places=2)
+        heat = _at(2026, 10, 10, 7, 31)
+        for session in sessions:
+            self.assertLess(session.kwh, 22.0)
+            self.assertGreater(abs((session.start - heat).total_seconds()), 60)
+
+    def test_stats_histograms_skip_complete_cabin_heat(self):
+        from personalstats.views import _iter_charge_sessions
+
+        sessions = list(
+            _iter_charge_sessions(
+                TeslaCarDataSnapshot.objects.filter(hashedVin=HV_A)
+            )
+        )
+        self.assertEqual(len(sessions), 2)
+        heat = _at(2026, 10, 10, 7, 31)
+        for session in sessions:
+            self.assertGreater(abs((session[0]["t"] - heat).total_seconds()), 60)
+            energies = [
+                float(point["charge_energy_added"])
+                for point in session
+                if point.get("charge_energy_added")
+            ]
+            self.assertLess(max(energies), 22.0)
+
+    def test_cabin_heat_is_not_a_live_dc_snapshot(self):
+        from matesla.tesla_charging_history import _recent_dc_snapshot
+
+        self.assertIsNone(_recent_dc_snapshot(HV_A, _at(2026, 10, 10, 0, 0)))
 
 
 class ChargeCostEngineTests(TestCase):
