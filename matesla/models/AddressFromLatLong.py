@@ -512,20 +512,39 @@ def _geoapify_reverse(
         return None
 
 
+def lookup_cached_addresses(pairs) -> dict[tuple[float, float], str]:
+    """Map (lat, lon) to a stored address. One query. No HTTP."""
+    coords = []
+    for pair in pairs or ():
+        try:
+            coords.append((float(pair[0]), float(pair[1])))
+        except (TypeError, ValueError, IndexError):
+            continue
+    if not coords:
+        return {}
+    lats = {lat for lat, _lon in coords}
+    lons = {lon for _lat, lon in coords}
+    found: dict[tuple[float, float], str] = {}
+    for row in AddressFromLatLong.objects.filter(
+        latitude__in=lats, longitude__in=lons
+    ).only("latitude", "longitude", "address"):
+        cleaned = CleanAddressDisplay(row.address or "")
+        if not cleaned or cleaned == "Unknown":
+            continue
+        found[(float(row.latitude), float(row.longitude))] = cleaned
+    return found
+
+
 def LookupCachedAddress(latitude, longitude):
     """
     Fast path: return a cleaned address only if already in the local DB.
     Never hits the network (page render must stay instant).
     """
-    row = AddressFromLatLong.objects.filter(
-        latitude=latitude, longitude=longitude
-    ).first()
-    if not row:
+    try:
+        key = (float(latitude), float(longitude))
+    except (TypeError, ValueError):
         return None
-    cleaned = CleanAddressDisplay(row.address or "")
-    if not cleaned or cleaned == "Unknown":
-        return None
-    return cleaned
+    return lookup_cached_addresses([key]).get(key)
 
 
 def _store_address(latitude, longitude, display: str) -> str:

@@ -5,6 +5,7 @@ from django.test import SimpleTestCase
 
 from matesla.superchargers import (
     CACHE_KEY,
+    SuperchargerIndex,
     _normalize_sites,
     nearest_supercharger,
 )
@@ -66,6 +67,46 @@ class SuperchargerMatchTests(SimpleTestCase):
         # Aix-en-Provence coords — Paris is hundreds of km away
         match = nearest_supercharger(43.51202, 5.466372)
         self.assertIsNone(match)
+
+    def test_index_reuses_directory_for_many_lookups(self):
+        sites = _normalize_sites(
+            [
+                {
+                    "id": 1,
+                    "locationId": "testdummy",
+                    "name": "Test SC",
+                    "status": "OPEN",
+                    "gps": {"latitude": 43.5120, "longitude": 5.4664},
+                    "powerKilowatt": 250,
+                    "stallCount": 12,
+                },
+            ]
+        )
+        cache.set(CACHE_KEY, sites, 60)
+        index = SuperchargerIndex.from_cache()
+        self.assertIsNotNone(index)
+        self.assertEqual(index.nearest(43.51202, 5.466372)["name"], "Test SC")
+        self.assertIsNone(index.nearest(48.85, 2.35))
+
+    def test_match_across_cell_boundary(self):
+        """400 m can sit on the other side of a 0.02° grid line."""
+        sites = _normalize_sites(
+            [
+                {
+                    "id": 3,
+                    "locationId": "boundary",
+                    "name": "Boundary SC",
+                    "status": "OPEN",
+                    "gps": {"latitude": 0.019, "longitude": 0.0},
+                    "powerKilowatt": 250,
+                    "stallCount": 8,
+                },
+            ]
+        )
+        cache.set(CACHE_KEY, sites, 60)
+        match = nearest_supercharger(0.021, 0.0)
+        self.assertIsNotNone(match)
+        self.assertEqual(match["name"], "Boundary SC")
 
     def test_skips_closed_sites(self):
         sites = _normalize_sites(

@@ -17,6 +17,7 @@ Civil clock for night windows and period dates: Europe/Brussels (same as DayMap)
 
 from __future__ import annotations
 
+import bisect
 import math
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
@@ -196,6 +197,53 @@ def _as_utc(when: datetime) -> datetime:
     return when.astimezone(ZoneInfo("UTC"))
 
 
+@dataclass
+class ChargePricingCache:
+    """Places, roles, Elia spots and stored costs for one VIN / window.
+
+    A year of Charges used to round-trip SQLite once per session (geofence,
+    spot_eur_mwh_at per MTU, persist even when the row was unchanged). Load
+    those once. DayMap still calls price_session without a cache.
+    """
+
+    hashed_vin: str
+    owner_id: int | None = None
+    settings: ChargeCostSettings | None = None
+    places: list = field(default_factory=list)
+    home_roles: list = field(default_factory=list)
+    work_roles: list = field(default_factory=list)
+    spots_loaded: bool = False
+    spot_starts: list = field(default_factory=list)
+    spot_rows: list = field(default_factory=list)
+    stored_by_start: dict = field(default_factory=dict)
+
+    def spot_eur_mwh_at(self, when: datetime):
+        when = _as_utc(when)
+        if not self.spot_starts:
+            return None
+        index = bisect.bisect_right(self.spot_starts, when) - 1
+        if index < 0:
+            return None
+        start, end, price = self.spot_rows[index]
+        if when >= end:
+            return None
+        minutes = max(1, int(round((end - start).total_seconds() / 60.0)))
+        return float(price), minutes
+
+    def mtu_boundaries(self, start: datetime, end: datetime) -> list[datetime]:
+        start = _as_utc(start)
+        end = _as_utc(end)
+        lo = bisect.bisect_left(self.spot_starts, start - timedelta(hours=2))
+        hi = bisect.bisect_left(self.spot_starts, end + timedelta(hours=2))
+        bounds: list[datetime] = []
+        for stamp, mtu_end, _price in self.spot_rows[lo:hi]:
+            if start < stamp < end:
+                bounds.append(stamp)
+            if start < mtu_end < end:
+                bounds.append(mtu_end)
+        return sorted(set(bounds))
+
+
 def _local(when: datetime) -> datetime:
     return _as_utc(when).astimezone(CHARGE_COST_TZ)
 
@@ -253,7 +301,12 @@ def owner_user_id(hashed_vin: str):
     return None
 
 
-def settings_for_hashed_vin(hashed_vin: str) -> ChargeCostSettings | None:
+def settings_for_hashed_vin(
+    hashed_vin: str,
+    cache: ChargePricingCache | None = None,
+) -> ChargeCostSettings | None:
+    if cache is not None:
+        return cache.settings
     user_id = owner_user_id(hashed_vin)
     if user_id is not None:
         found = ChargeCostSettings.objects.filter(user_id=user_id).first()
@@ -266,6 +319,7 @@ def _matching_place(
     hashed_vin: str,
     lat: float | None,
     lon: float | None,
+    cache: ChargePricingCache | None = None,
 ) -> ChargePlace | None:
     """Closest named geofence for this vehicle's owner (any tag)."""
     if lat is None or lon is None:
@@ -274,12 +328,15 @@ def _matching_place(
         lat_f, lon_f = float(lat), float(lon)
     except (TypeError, ValueError):
         return None
-    user_id = owner_user_id(hashed_vin)
-    places = (
-        ChargePlace.objects.filter(user_id=user_id)
-        if user_id is not None
-        else ChargePlace.objects.all()
-    )
+    if cache is not None:
+        places = cache.places
+    else:
+        user_id = owner_user_id(hashed_vin)
+        places = (
+            ChargePlace.objects.filter(user_id=user_id)
+            if user_id is not None
+            else ChargePlace.objects.all()
+        )
     best = None
     best_d = None
     for place in places:
@@ -296,6 +353,7 @@ def _matching_role(
     when: datetime,
     lat: float | None,
     lon: float | None,
+    cache: ChargePricingCache | None = None,
 ) -> tuple[ChargePlace, VehiclePlaceRole] | None:
     if lat is None or lon is None:
         return None
@@ -304,10 +362,13 @@ def _matching_role(
     except (TypeError, ValueError):
         return None
     day = _local_date(when)
-    roles = (
-        VehiclePlaceRole.objects.filter(hashed_vin=hashed_vin, role=role)
-        .select_related("place")
-    )
+    if cache is not None:
+        roles = cache.home_roles if role == ROLE_HOME else cache.work_roles
+    else:
+        roles = (
+            VehiclePlaceRole.objects.filter(hashed_vin=hashed_vin, role=role)
+            .select_related("place")
+        )
     best = None
     best_d = None
     for assignment in roles:
@@ -495,8 +556,13 @@ def _price_day_night(
     )
 
 
-def spot_eur_mwh_at(when: datetime) -> tuple[float, int] | None:
+def spot_eur_mwh_at(
+    when: datetime,
+    cache: ChargePricingCache | None = None,
+) -> tuple[float, int] | None:
     """Covering Elia MTU: (price €/MWh, resolution minutes), or None."""
+    if cache is not None and cache.spots_loaded:
+        return cache.spot_eur_mwh_at(when)
     when = _as_utc(when)
     row = (
         DayAheadSpotPrice.objects.filter(mtu_start__lte=when)
@@ -511,7 +577,13 @@ def spot_eur_mwh_at(when: datetime) -> tuple[float, int] | None:
     return float(row.price_eur_mwh), int(row.resolution_minutes)
 
 
-def _mtu_boundaries(start: datetime, end: datetime) -> list[datetime]:
+def _mtu_boundaries(
+    start: datetime,
+    end: datetime,
+    cache: ChargePricingCache | None = None,
+) -> list[datetime]:
+    if cache is not None and cache.spots_loaded:
+        return cache.mtu_boundaries(start, end)
     start = _as_utc(start)
     end = _as_utc(end)
     rows = list(
@@ -534,6 +606,7 @@ def _mtu_boundaries(start: datetime, end: datetime) -> list[datetime]:
 def _price_dynamic(
     session: ChargeSession,
     tariff: PlaceTariffPeriod,
+    cache: ChargePricingCache | None = None,
 ) -> CostResult:
     kwh = _kwh_for_known_rate(session)
     cents = tariff.dynamic_surcharge_cents
@@ -552,13 +625,13 @@ def _price_dynamic(
     slices = _energy_timeline(
         session.start, session.end, kwh, session.power_samples
     )
-    for bound in _mtu_boundaries(session.start, session.end):
+    for bound in _mtu_boundaries(session.start, session.end, cache=cache):
         slices = _split_at(slices, bound)
     total = 0.0
     priced = 0.0
     missing = 0.0
     for t0, _t1, energy in slices:
-        spot = spot_eur_mwh_at(t0)
+        spot = spot_eur_mwh_at(t0, cache=cache)
         if spot is None:
             missing += energy
             continue
@@ -628,6 +701,7 @@ def _price_home_or_work(
     session: ChargeSession,
     place: ChargePlace,
     role: str,
+    cache: ChargePricingCache | None = None,
 ) -> CostResult | None:
     tariff = _tariff_at(place, session.start)
     if tariff is None:
@@ -663,11 +737,14 @@ def _price_home_or_work(
     if tariff.mode == TARIFF_DAY_NIGHT:
         return _price_day_night(session, tariff)
     if tariff.mode == TARIFF_DYNAMIC:
-        return _price_dynamic(session, tariff)
+        return _price_dynamic(session, tariff, cache=cache)
     return None
 
 
-def price_session(session: ChargeSession) -> CostResult:
+def price_session(
+    session: ChargeSession,
+    cache: ChargePricingCache | None = None,
+) -> CostResult:
     """Apply the rule chain. Does not write the database."""
     if session.tesla_invoice_eur is not None:
         try:
@@ -684,33 +761,45 @@ def price_session(session: ChargeSession) -> CostResult:
             )
 
     home = _matching_role(
-        session.hashed_vin, ROLE_HOME, session.start, session.lat, session.lon
+        session.hashed_vin,
+        ROLE_HOME,
+        session.start,
+        session.lat,
+        session.lon,
+        cache=cache,
     )
     if home:
-        priced = _price_home_or_work(session, home[0], ROLE_HOME)
+        priced = _price_home_or_work(session, home[0], ROLE_HOME, cache=cache)
         if priced is not None:
             return priced
         return _unpriced_at(home[0], ROLE_HOME)
 
     work = _matching_role(
-        session.hashed_vin, ROLE_WORK, session.start, session.lat, session.lon
+        session.hashed_vin,
+        ROLE_WORK,
+        session.start,
+        session.lat,
+        session.lon,
+        cache=cache,
     )
     if work:
-        priced = _price_home_or_work(session, work[0], ROLE_WORK)
+        priced = _price_home_or_work(session, work[0], ROLE_WORK, cache=cache)
         if priced is not None:
             return priced
         return _unpriced_at(work[0], ROLE_WORK)
 
-    named = _matching_place(session.hashed_vin, session.lat, session.lon)
+    named = _matching_place(
+        session.hashed_vin, session.lat, session.lon, cache=cache
+    )
     if named:
-        priced = _price_home_or_work(session, named, "other")
+        priced = _price_home_or_work(session, named, "other", cache=cache)
         if priced is not None:
             if priced.rule in (RULE_HOME_DAY_NIGHT, RULE_HOME_DYNAMIC, RULE_HOME_FLAT):
                 priced.rule = RULE_PLACE
             return priced
         return _unpriced_at(named, "other")
 
-    settings = settings_for_hashed_vin(session.hashed_vin)
+    settings = settings_for_hashed_vin(session.hashed_vin, cache=cache)
     if session.is_supercharger and settings and settings.supercharger_eur_per_kwh is not None:
         return _price_flat(
             session,
@@ -728,12 +817,74 @@ def price_session(session: ChargeSession) -> CostResult:
     return CostResult(None, COST_UNPRICED, RULE_UNPRICED)
 
 
-def persist_session_cost(session: ChargeSession, result: CostResult) -> ChargeSessionCost:
-    """Insert or update the row keyed by (hashed_vin, start). Keeps tesla invoice if set."""
+def _optional_float_close(left, right, abs_tol: float = 1e-4) -> bool:
+    if left is None and right is None:
+        return True
+    if left is None or right is None:
+        return False
+    try:
+        return math.isclose(float(left), float(right), rel_tol=1e-6, abs_tol=abs_tol)
+    except (TypeError, ValueError):
+        return False
+
+
+def _datetime_close(left, right) -> bool:
+    if left is None and right is None:
+        return True
+    if left is None or right is None:
+        return False
+    return abs((_as_utc(left) - _as_utc(right)).total_seconds()) < 1.0
+
+
+def _session_cost_row_matches(row: ChargeSessionCost, defaults: dict) -> bool:
+    """True when a write would not change the persisted row."""
+    if not _datetime_close(row.end, defaults.get("end")):
+        return False
+    if not _optional_float_close(row.kwh, defaults.get("kwh"), abs_tol=1e-3):
+        return False
+    if not _optional_float_close(
+        row.latitude, defaults.get("latitude"), abs_tol=1e-5
+    ):
+        return False
+    if not _optional_float_close(
+        row.longitude, defaults.get("longitude"), abs_tol=1e-5
+    ):
+        return False
+    if row.place_id != defaults.get("place_id"):
+        return False
+    if row.rule != defaults.get("rule") or row.status != defaults.get("status"):
+        return False
+    if not _optional_float_close(
+        row.cost_eur, defaults.get("cost_eur"), abs_tol=1e-4
+    ):
+        return False
+    if "tesla_invoice_eur" in defaults and not _optional_float_close(
+        row.tesla_invoice_eur, defaults.get("tesla_invoice_eur"), abs_tol=1e-4
+    ):
+        return False
+    if "tesla_session_id" in defaults and (row.tesla_session_id or "") != (
+        defaults.get("tesla_session_id") or ""
+    ):
+        return False
+    return True
+
+
+def persist_session_cost(
+    session: ChargeSession,
+    result: CostResult,
+    *,
+    existing: ChargeSessionCost | None = None,
+) -> ChargeSessionCost:
+    """Insert or update the row keyed by (hashed_vin, start). Keeps tesla invoice if set.
+
+    Skip the SQLite write when the row already matches: a year of Charges
+    used to update_or_create every session on every GET.
+    """
     start = _as_utc(session.start)
-    existing = ChargeSessionCost.objects.filter(
-        hashed_vin=session.hashed_vin, start=start
-    ).first()
+    if existing is None:
+        existing = ChargeSessionCost.objects.filter(
+            hashed_vin=session.hashed_vin, start=start
+        ).first()
     defaults = {
         "end": _as_utc(session.end),
         "kwh": session.kwh,
@@ -753,25 +904,26 @@ def persist_session_cost(session: ChargeSession, result: CostResult) -> ChargeSe
         # the first stall after we split them.
         defaults["tesla_invoice_eur"] = None
         defaults["tesla_session_id"] = ""
-    obj, created = ChargeSessionCost.objects.update_or_create(
+    elif (
+        existing is not None
+        and session.tesla_invoice_eur is None
+        and existing.tesla_invoice_eur is not None
+        and stored_invoice_fits_session(existing, session)
+    ):
+        # Recalc must not drop a stored Tesla invoice for the same plug-in.
+        defaults["rule"] = RULE_SUPERCHARGER_INVOICE
+        defaults["status"] = COST_PRICED
+        defaults["cost_eur"] = existing.tesla_invoice_eur
+        result.cost_eur = existing.tesla_invoice_eur
+        result.status = COST_PRICED
+        result.rule = RULE_SUPERCHARGER_INVOICE
+    if existing is not None and _session_cost_row_matches(existing, defaults):
+        return existing
+    obj, _created = ChargeSessionCost.objects.update_or_create(
         hashed_vin=session.hashed_vin,
         start=start,
         defaults=defaults,
     )
-    if (
-        not created
-        and session.tesla_invoice_eur is None
-        and obj.tesla_invoice_eur is not None
-        and stored_invoice_fits_session(existing, session)
-    ):
-        # Recalc must not drop a stored Tesla invoice for the same plug-in.
-        obj.rule = RULE_SUPERCHARGER_INVOICE
-        obj.status = COST_PRICED
-        obj.cost_eur = obj.tesla_invoice_eur
-        obj.save(update_fields=["rule", "status", "cost_eur"])
-        result.cost_eur = obj.cost_eur
-        result.status = obj.status
-        result.rule = obj.rule
     return obj
 
 
@@ -924,53 +1076,13 @@ def expand_session_from_snapshots(
             lon=lon,
         )
 
-    energies = []
-    powers = []
-    mid_lat, mid_lon = lat, lon
-    gps = [
-        (pt.get("latitude"), pt.get("longitude"))
-        for pt in chosen
-        if pt.get("latitude") is not None and pt.get("longitude") is not None
-    ]
-    if gps:
-        mid_lat, mid_lon = gps[len(gps) // 2]
-    for pt in chosen:
-        energy = pt.get("charge_energy_added")
-        if energy is not None:
-            try:
-                energy_f = float(energy)
-            except (TypeError, ValueError):
-                energy_f = None
-            if energy_f is not None and energy_f > 0.05:
-                energies.append(energy_f)
-        power = pt.get("charger_power")
-        try:
-            power_f = float(power) if power is not None else None
-        except (TypeError, ValueError):
-            power_f = None
-        if power_f is not None and power_f > 0.05:
-            powers.append((pt["t"], power_f))
-    prior = (
-        TeslaCarDataSnapshot.objects.filter(
-            hashedVin=hashed_vin, Date__lt=chosen[0]["t"]
-        )
-        .order_by("-Date")
-        .values_list("charge_energy_added", flat=True)
-        .first()
-    )
-    kwh = kwh_from_plug_counter(energies, prior)
-    if kwh is None:
-        kwh = fragment_kwh
-    return ChargeSession(
-        hashed_vin=hashed_vin,
-        start=chosen[0]["t"],
-        end=chosen[-1]["t"],
-        kwh=kwh,
-        lat=mid_lat,
-        lon=mid_lon,
-        power_samples=powers,
-        is_supercharger=_group_looks_dc(chosen),
-    )
+    session = _session_from_group(hashed_vin, chosen)
+    if session.kwh is None:
+        session.kwh = fragment_kwh
+    if session.lat is None:
+        session.lat = lat
+        session.lon = lon
+    return session
 
 
 def _group_looks_dc(group: list[dict]) -> bool:
@@ -985,9 +1097,83 @@ def _group_looks_dc(group: list[dict]) -> bool:
     return peak >= 40.0
 
 
-def _session_from_group(hashed_vin: str, group: list[dict]) -> ChargeSession:
+_PRIOR_UNSET = object()
+
+
+def _sqlite_utc_text(when: datetime) -> str:
+    """Naive UTC text matching Django's SQLite Date column.
+
+    An aware ISO stamp (`…+00:00`) sorts *after* stored `YYYY-MM-DD HH:MM:SS`,
+    so `Date < start` would include the first charging sample of the session.
+    """
+    utc = _as_utc(when).replace(tzinfo=None)
+    if utc.microsecond:
+        return utc.strftime("%Y-%m-%d %H:%M:%S.%f")
+    return utc.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _priors_before_starts(
+    hashed_vin: str, starts: Sequence[datetime]
+) -> dict[datetime, float | None]:
+    """Last charge_energy_added strictly before each start (any vehicle state).
+
+    0.0 is a real baseline (NoPower after a drive). NULL is returned as None
+    and must not walk back: TeslaFi Unknown rows sit between plugs, and
+    walking back subtracted a leftover 0.7 kWh (2026-07-04 night).
+
+    One SQL with a VALUES list: N LIMIT-1 ORM round-trips were several
+    seconds on gunicorn --threads 4 even though each seek is an index hit.
+    No lower Date bound — the 16 h grouping pad must not hide the baseline
+    of the first session in a year/month window.
+    """
+    from django.db import connection
+
     from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 
+    if not starts:
+        return {}
+    table = TeslaCarDataSnapshot._meta.db_table
+    values_sql = ",".join(["(%s, %s)"] * len(starts))
+    sql = f"""
+        WITH starts(seq, start_ts) AS (VALUES {values_sql})
+        SELECT seq, (
+            SELECT charge_energy_added
+            FROM {table}
+            WHERE hashedVin = %s AND "Date" < starts.start_ts
+            ORDER BY "Date" DESC
+            LIMIT 1
+        )
+        FROM starts
+        ORDER BY seq
+    """
+    params: list = []
+    for index, stamp in enumerate(starts):
+        params.extend([index, _sqlite_utc_text(stamp)])
+    params.append(hashed_vin)
+    with connection.cursor() as cursor:
+        cursor.execute(sql, params)
+        fetched = cursor.fetchall()
+    out: dict[datetime, float | None] = {}
+    for (_seq, energy), stamp in zip(fetched, starts):
+        if energy is not None:
+            try:
+                energy = float(energy)
+            except (TypeError, ValueError):
+                energy = None
+        out[_as_utc(stamp)] = energy
+    return out
+
+
+def _prior_energy_before(hashed_vin: str, when: datetime):
+    """Same baseline as the Charges batch path; one start (DayMap expand)."""
+    return _priors_before_starts(hashed_vin, [when]).get(_as_utc(when))
+
+
+def _session_from_group(
+    hashed_vin: str,
+    group: list[dict],
+    prior_energy=_PRIOR_UNSET,
+) -> ChargeSession:
     gps = [
         (pt.get("latitude"), pt.get("longitude"))
         for pt in group
@@ -1014,15 +1200,9 @@ def _session_from_group(hashed_vin: str, group: list[dict]) -> ChargeSession:
             power_f = None
         if power_f is not None and power_f > 0.05:
             powers.append((pt["t"], power_f))
-    prior = (
-        TeslaCarDataSnapshot.objects.filter(
-            hashedVin=hashed_vin, Date__lt=group[0]["t"]
-        )
-        .order_by("-Date")
-        .values_list("charge_energy_added", flat=True)
-        .first()
-    )
-    kwh = kwh_from_plug_counter(energies, prior)
+    if prior_energy is _PRIOR_UNSET:
+        prior_energy = _prior_energy_before(hashed_vin, group[0]["t"])
+    kwh = kwh_from_plug_counter(energies, prior_energy)
     return ChargeSession(
         hashed_vin=hashed_vin,
         start=group[0]["t"],
@@ -1042,13 +1222,19 @@ def iter_sessions_starting_in(
 ) -> list[ChargeSession]:
     """Full plug-in sessions whose start falls in [window_start, window_end)."""
     from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
+    from matesla.sqlite_guard import heavy_snapshot_read
 
     start = _as_utc(window_start)
     end = _as_utc(window_end)
-    rows = TeslaCarDataSnapshot.objects.filter(
+    pad_start = start - _EXPAND_PAD
+    pad_end = end + _EXPAND_PAD
+    # Charging rows only (grouping). Priors are a separate index seek per
+    # session start: a year of *all* snapshots (~110k) listed in this request
+    # was ~4 s on the threaded gunicorn worker.
+    charge_qs = TeslaCarDataSnapshot.objects.filter(
         hashedVin=hashed_vin,
-        Date__gte=start - _EXPAND_PAD,
-        Date__lt=end + _EXPAND_PAD,
+        Date__gte=pad_start,
+        Date__lt=pad_end,
     ).filter(active_charge_q()).order_by("Date").values(
         "Date",
         "charge_energy_added",
@@ -1056,14 +1242,31 @@ def iter_sessions_starting_in(
         "longitude",
         "charger_power",
     )
+    with heavy_snapshot_read():
+        rows = list(charge_qs)
     groups = _group_active_charge_points(rows)
-    sessions = []
+    candidates: list[list[dict]] = []
     for group in groups:
-        if len(group) < 2 and (group[-1]["t"] - group[0]["t"]).total_seconds() < 60:
+        too_short = (
+            len(group) < 2
+            and (group[-1]["t"] - group[0]["t"]).total_seconds() < 60
+        )
+        if too_short:
             continue
-        session = _session_from_group(hashed_vin, group)
-        if start <= session.start < end:
-            sessions.append(session)
+        if start <= group[0]["t"] < end:
+            candidates.append(group)
+    with heavy_snapshot_read():
+        priors = _priors_before_starts(
+            hashed_vin, [group[0]["t"] for group in candidates]
+        )
+    sessions = []
+    for group in candidates:
+        session = _session_from_group(
+            hashed_vin,
+            group,
+            prior_energy=priors.get(_as_utc(group[0]["t"])),
+        )
+        sessions.append(session)
     return sessions
 
 
@@ -1095,6 +1298,68 @@ def _ensure_elia_for_pricing_window(window_start: datetime, window_end: datetime
         pass
 
 
+def _fill_cache_spots(
+    cache: ChargePricingCache, window_start: datetime, window_end: datetime
+) -> None:
+    start = _as_utc(window_start) - timedelta(hours=2)
+    end = _as_utc(window_end) + timedelta(hours=2)
+    rows = DayAheadSpotPrice.objects.filter(
+        mtu_start__gte=start,
+        mtu_start__lt=end,
+    ).order_by("mtu_start").values_list(
+        "mtu_start", "resolution_minutes", "price_eur_mwh"
+    )
+    cache.spots_loaded = True
+    for mtu_start, resolution, price in rows:
+        t0 = _as_utc(mtu_start)
+        minutes = int(resolution) if resolution else 15
+        t1 = t0 + timedelta(minutes=minutes)
+        cache.spot_starts.append(t0)
+        cache.spot_rows.append((t0, t1, float(price)))
+
+
+def pricing_cache_for(
+    hashed_vin: str,
+    window_start: datetime,
+    window_end: datetime,
+) -> ChargePricingCache:
+    """Load geofences, tariffs, Elia spots and stored costs once for a window."""
+    cache = ChargePricingCache(hashed_vin=hashed_vin)
+    cache.owner_id = owner_user_id(hashed_vin)
+    if cache.owner_id is not None:
+        cache.settings = ChargeCostSettings.objects.filter(
+            user_id=cache.owner_id
+        ).first()
+    if cache.settings is None:
+        cache.settings = ChargeCostSettings.objects.order_by("pk").first()
+    places_qs = (
+        ChargePlace.objects.filter(user_id=cache.owner_id)
+        if cache.owner_id is not None
+        else ChargePlace.objects.all()
+    )
+    cache.places = list(places_qs.prefetch_related("tariff_periods"))
+    roles = list(
+        VehiclePlaceRole.objects.filter(hashed_vin=hashed_vin)
+        .select_related("place")
+        .prefetch_related("place__tariff_periods")
+    )
+    cache.home_roles = [row for row in roles if row.role == ROLE_HOME]
+    cache.work_roles = [row for row in roles if row.role == ROLE_WORK]
+    if _window_needs_elia(window_start, window_end):
+        _fill_cache_spots(cache, window_start, window_end)
+    pad_start = _as_utc(window_start) - _EXPAND_PAD
+    pad_end = _as_utc(window_end) + _EXPAND_PAD
+    cache.stored_by_start = {
+        _as_utc(row.start): row
+        for row in ChargeSessionCost.objects.filter(
+            hashed_vin=hashed_vin,
+            start__gte=pad_start,
+            start__lt=pad_end,
+        )
+    }
+    return cache
+
+
 def price_sessions_starting_in(
     hashed_vin: str,
     window_start: datetime,
@@ -1120,6 +1385,7 @@ def price_sessions_starting_in(
     except Exception:
         pass
     sessions = list(iter_sessions_starting_in(hashed_vin, window_start, window_end))
+    cache = pricing_cache_for(hashed_vin, window_start, window_end)
     for session in sessions:
         if supercharger_match and session.lat is not None and session.lon is not None:
             try:
@@ -1135,9 +1401,7 @@ def price_sessions_starting_in(
     apply_tesla_invoices(sessions)
     out = []
     for session in sessions:
-        stored = ChargeSessionCost.objects.filter(
-            hashed_vin=hashed_vin, start=session.start
-        ).first()
+        stored = cache.stored_by_start.get(_as_utc(session.start))
         if (
             session.tesla_invoice_eur is None
             and stored_invoice_fits_session(stored, session)
@@ -1145,10 +1409,14 @@ def price_sessions_starting_in(
             session.tesla_invoice_eur = stored.tesla_invoice_eur
             if stored.tesla_session_id and not session.tesla_session_id:
                 session.tesla_session_id = stored.tesla_session_id
-        out.append((session, price_session(session)))
+        out.append((session, price_session(session, cache=cache)))
     apply_daily_place_fees(out)
     for session, result in out:
-        persist_session_cost(session, result)
+        persist_session_cost(
+            session,
+            result,
+            existing=cache.stored_by_start.get(_as_utc(session.start)),
+        )
     return out
 
 

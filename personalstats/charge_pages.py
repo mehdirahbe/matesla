@@ -255,7 +255,20 @@ def _supercharger_label(name: str) -> str:
     return f"{label} · {raw}"
 
 
-def _cluster_identity(session, result, place_names: dict, sc_site=None) -> tuple[str, str]:
+def _rounded_coord(lat, lon) -> tuple[float, float] | None:
+    try:
+        return round(float(lat), 4), round(float(lon), 4)
+    except (TypeError, ValueError):
+        return None
+
+
+def _cluster_identity(
+    session,
+    result,
+    place_names: dict,
+    sc_site=None,
+    address_by_coord=None,
+) -> tuple[str, str]:
     if result.place_id and result.place_id in place_names:
         return f"p{result.place_id}", place_names[result.place_id]
     site = (getattr(session, "tesla_site_name", None) or "").strip()
@@ -268,9 +281,15 @@ def _cluster_identity(session, result, place_names: dict, sc_site=None) -> tuple
     lat, lon = session.lat, session.lon
     if lat is not None and lon is not None:
         key = f"g{round(float(lat), 3):.3f}_{round(float(lon), 3):.3f}"
-        from matesla.models.AddressFromLatLong import LookupCachedAddress
+        rounded = _rounded_coord(lat, lon)
+        if address_by_coord is not None:
+            addr = address_by_coord.get(rounded) if rounded else None
+        else:
+            from matesla.models.AddressFromLatLong import LookupCachedAddress
 
-        addr = LookupCachedAddress(round(float(lat), 4), round(float(lon), 4))
+            addr = (
+                LookupCachedAddress(rounded[0], rounded[1]) if rounded else None
+            )
         return key, addr or gettext("Other chargers")
     return "x", _rule_label(result.rule)
 
@@ -1148,16 +1167,11 @@ def ChargeCosts(request, hashedVin):
 
     sc_match = None
     try:
-        from django.core.cache import cache as django_cache
+        from matesla.superchargers import SuperchargerIndex
 
-        from matesla.superchargers import CACHE_KEY as SC_CACHE_KEY
-        from matesla.superchargers import nearest_supercharger
-
-        if django_cache.get(SC_CACHE_KEY) is not None:
-
-            def sc_match(lat, lon):
-                return nearest_supercharger(lat, lon)
-
+        sc_index = SuperchargerIndex.from_cache()
+        if sc_index is not None:
+            sc_match = sc_index.nearest
     except Exception:
         sc_match = None
 
@@ -1169,6 +1183,23 @@ def ChargeCosts(request, hashedVin):
         row.id: row.name
         for row in ChargePlace.objects.filter(pk__in=place_ids).only("id", "name")
     } if place_ids else {}
+    address_coords = []
+    for session, result in priced_rows:
+        if result.place_id and result.place_id in place_names:
+            continue
+        if (getattr(session, "tesla_site_name", None) or "").strip():
+            continue
+        if getattr(session, "is_supercharger", False):
+            continue
+        rounded = _rounded_coord(session.lat, session.lon)
+        if rounded:
+            address_coords.append(rounded)
+    if address_coords:
+        from matesla.models.AddressFromLatLong import lookup_cached_addresses
+
+        address_by_coord = lookup_cached_addresses(address_coords)
+    else:
+        address_by_coord = {}
     rows = []
     total_eur = 0.0
     priced_kwh = 0.0
@@ -1186,8 +1217,15 @@ def ChargeCosts(request, hashedVin):
         minutes = max(
             0, int(round((session.end - session.start).total_seconds() / 60.0))
         )
+        # price_sessions already ran sc_match and copied the site name onto
+        # the session. A second 10k-site scan per row doubled a year GET.
         sc_site = None
-        if sc_match and session.lat is not None and session.lon is not None:
+        if (
+            not (getattr(session, "tesla_site_name", None) or "").strip()
+            and sc_match
+            and session.lat is not None
+            and session.lon is not None
+        ):
             try:
                 sc_site = sc_match(session.lat, session.lon)
             except Exception:
@@ -1198,7 +1236,11 @@ def ChargeCosts(request, hashedVin):
             or (sc_site.get("name") if isinstance(sc_site, dict) else None)
         )
         cluster_key, cluster_name = _cluster_identity(
-            session, result, place_names, sc_site=sc_site
+            session,
+            result,
+            place_names,
+            sc_site=sc_site,
+            address_by_coord=address_by_coord,
         )
         rows.append(
             {

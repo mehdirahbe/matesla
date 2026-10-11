@@ -27,6 +27,10 @@ CACHE_SECONDS = 12 * 3600  # 12 h
 MATCH_MAX_METERS = 400.0
 # HTTP budget when cache is cold (async endpoint only)
 FETCH_TIMEOUT_S = 25
+# Cell size ≈ the old 0.02°/0.03° reject box (~2 km). A 400 m match is always
+# in this cell or a neighbour.
+_CELL_LAT_DEG = 0.02
+_CELL_LON_DEG = 0.03
 
 
 def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -122,6 +126,97 @@ def fetch_supercharger_sites(*, force: bool = False) -> list[dict[str, Any]]:
         return []
 
 
+def _cell_key(lat: float, lon: float) -> tuple[int, int]:
+    return (
+        int(math.floor(lat / _CELL_LAT_DEG)),
+        int(math.floor(lon / _CELL_LON_DEG)),
+    )
+
+
+def _sites_cell_grid(sites: list[dict[str, Any]]) -> dict[tuple[int, int], list]:
+    grid: dict[tuple[int, int], list] = {}
+    for site in sites:
+        grid.setdefault(_cell_key(site["lat"], site["lon"]), []).append(site)
+    return grid
+
+
+class SuperchargerIndex:
+    """Directory + cell grid for many nearest lookups in one request.
+
+    LocMemCache unpickles ~10k sites on every cache.get. A year of Charges
+    used to do that per session (and walk every site). Load once, grid once.
+    """
+
+    def __init__(self, sites: list[dict[str, Any]] | None):
+        self.sites = sites or []
+        self.grid = _sites_cell_grid(self.sites)
+
+    @classmethod
+    def from_cache(cls) -> SuperchargerIndex | None:
+        """None when the directory is not in LocMemCache (no HTTP)."""
+        try:
+            hit = cache.get(CACHE_KEY)
+        except Exception:
+            return None
+        if not hit:
+            return None
+        return cls(hit)
+
+    def nearest(
+        self,
+        lat: float,
+        lon: float,
+        *,
+        max_meters: float = MATCH_MAX_METERS,
+    ) -> dict[str, Any] | None:
+        try:
+            lat_f = float(lat)
+            lon_f = float(lon)
+        except (TypeError, ValueError):
+            return None
+        if not (-90 <= lat_f <= 90 and -180 <= lon_f <= 180):
+            return None
+        if not self.sites:
+            return None
+        lat_i, lon_i = _cell_key(lat_f, lon_f)
+        best = None
+        best_d = max_meters + 1.0
+        for dlat in (-1, 0, 1):
+            for dlon in (-1, 0, 1):
+                for site in self.grid.get((lat_i + dlat, lon_i + dlon), ()):
+                    dist = _haversine_m(lat_f, lon_f, site["lat"], site["lon"])
+                    if dist <= max_meters and dist < best_d:
+                        best_d = dist
+                        best = site
+        if best is None:
+            return None
+        location_id = best.get("location_id")
+        site_id = best.get("id")
+        if location_id:
+            tesla_url = (
+                f"https://www.tesla.com/findus/location/supercharger/{location_id}"
+            )
+        else:
+            tesla_url = None
+        if site_id is not None:
+            info_url = f"https://supercharge.info/map?siteId={site_id}"
+        else:
+            info_url = None
+        return {
+            "name": best["name"],
+            "power_kw": best.get("power_kw"),
+            "stalls": best.get("stalls"),
+            "distance_m": round(best_d),
+            "lat": best["lat"],
+            "lon": best["lon"],
+            "location_id": location_id,
+            "site_id": site_id,
+            "url": tesla_url or info_url,
+            "tesla_url": tesla_url,
+            "info_url": info_url,
+        }
+
+
 def nearest_supercharger(
     lat: float,
     lon: float,
@@ -133,57 +228,7 @@ def nearest_supercharger(
 
     Links prefer Tesla findus (works in browsers) with supercharge.info map fallback.
     """
-    try:
-        lat_f = float(lat)
-        lon_f = float(lon)
-    except (TypeError, ValueError):
-        return None
-    if not (-90 <= lat_f <= 90 and -180 <= lon_f <= 180):
-        return None
-
     sites = fetch_supercharger_sites()
     if not sites:
         return None
-
-    best = None
-    best_d = max_meters + 1.0
-    for site in sites:
-        # Cheap reject box ~0.01° ≈ 1 km before haversine
-        if abs(site["lat"] - lat_f) > 0.02 or abs(site["lon"] - lon_f) > 0.03:
-            continue
-        dist = _haversine_m(lat_f, lon_f, site["lat"], site["lon"])
-        if dist <= max_meters and dist < best_d:
-            best_d = dist
-            best = site
-
-    if best is None:
-        return None
-
-    location_id = best.get("location_id")
-    site_id = best.get("id")
-    # Official Tesla location page (browser); community map as reliable fallback
-    if location_id:
-        tesla_url = (
-            f"https://www.tesla.com/findus/location/supercharger/{location_id}"
-        )
-    else:
-        tesla_url = None
-    if site_id is not None:
-        info_url = f"https://supercharge.info/map?siteId={site_id}"
-    else:
-        info_url = None
-
-    return {
-        "name": best["name"],
-        "power_kw": best.get("power_kw"),
-        "stalls": best.get("stalls"),
-        "distance_m": round(best_d),
-        "lat": best["lat"],
-        "lon": best["lon"],
-        "location_id": location_id,
-        "site_id": site_id,
-        # Prefer Tesla map when we have a locationId; else supercharge.info
-        "url": tesla_url or info_url,
-        "tesla_url": tesla_url,
-        "info_url": info_url,
-    }
+    return SuperchargerIndex(sites).nearest(lat, lon, max_meters=max_meters)

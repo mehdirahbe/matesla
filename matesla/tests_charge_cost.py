@@ -2464,3 +2464,375 @@ class TeslaChargingHistoryTests(TestCase):
             HV_A, now=_at(2026, 10, 2, 10, 45), http_get=http_get
         )
         self.assertEqual(info["status"], "skipped_cooldown")
+
+
+class ChargesShippedPathTests(TestCase):
+    """Drive iter_sessions / price_sessions / Charges GET — not a reimplementation."""
+
+    VIN = "5YJ3E1EA0KFCOSTUI01"
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user("charges_path", password="x")
+        from matesla.models.TeslaCarInfo import TeslaCarInfo
+
+        TeslaCarInfo.objects.create(
+            vin=self.VIN,
+            hashedVin=HV_A,
+            Date=date(2024, 1, 1),
+            LastSeenDate=date(2024, 1, 1),
+            car_type="model3",
+            charge_port_type="CCS",
+            exterior_color="Black",
+            has_air_suspension=False,
+            has_ludicrous_mode=False,
+            motorized_charge_port=True,
+            rear_seat_heaters="1",
+            rhd=False,
+            roof_color="Glass",
+            wheel_type="Pinwheel18",
+            eu_vehicle=True,
+        )
+        self.home = ChargePlace.objects.create(
+            user=self.user,
+            name="Home path",
+            latitude=HOME_LAT,
+            longitude=HOME_LON,
+            radius_m=150,
+        )
+        PlaceTariffPeriod.objects.create(
+            place=self.home,
+            valid_from=date(2010, 1, 1),
+            mode=TARIFF_FLAT,
+            flat_eur_per_kwh=0.20,
+        )
+        VehiclePlaceRole.objects.create(
+            hashed_vin=HV_A,
+            place=self.home,
+            role=ROLE_HOME,
+            valid_from=date(2010, 1, 1),
+        )
+        ChargeCostSettings.objects.create(
+            user=self.user,
+            supercharger_eur_per_kwh=0.40,
+        )
+        self.client = Client()
+
+    def _snap(self, when, **fields):
+        defaults = dict(
+            vin=self.VIN,
+            hashedVin=HV_A,
+            Date=when,
+            DateOnlyDay=when.date(),
+            battery_level=50.0,
+            charger_power=7.0,
+            charging_state="Charging",
+        )
+        defaults.update(fields)
+        return TeslaCarDataSnapshot.objects.create(**defaults)
+
+    def test_idle_zero_between_plugs_keeps_second_peak_kwh(self):
+        """NoPower 0 after a drive must be the baseline, not the previous peak.
+
+        Tesla often starts the next Supercharge around 40 kWh; that is not a
+        50 % drop from a 46 kWh previous stop, so a charging-only prior would
+        subtract and show ~15 kWh instead of ~60.
+        """
+        self._snap(
+            _at(2026, 9, 2, 15, 43),
+            charge_energy_added=0.4,
+            charger_power=90.0,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+        )
+        self._snap(
+            _at(2026, 9, 2, 16, 11),
+            charge_energy_added=45.9,
+            charger_power=90.0,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+        )
+        self._snap(
+            _at(2026, 9, 2, 23, 11),
+            charging_state="NoPower",
+            charger_power=0.0,
+            charge_energy_added=0.0,
+            latitude=50.45,
+            longitude=3.95,
+        )
+        self._snap(
+            _at(2026, 9, 3, 0, 32),
+            charge_energy_added=40.52,
+            charger_power=78.0,
+            latitude=50.45,
+            longitude=3.95,
+        )
+        self._snap(
+            _at(2026, 9, 3, 0, 56),
+            charge_energy_added=60.46,
+            charger_power=32.0,
+            latitude=50.45,
+            longitude=3.95,
+        )
+        sessions = iter_sessions_starting_in(
+            HV_A,
+            datetime(2026, 9, 1, tzinfo=CHARGE_COST_TZ),
+            datetime(2026, 10, 1, tzinfo=CHARGE_COST_TZ),
+        )
+        self.assertEqual(len(sessions), 2)
+        self.assertAlmostEqual(sessions[0].kwh, 45.9, places=1)
+        self.assertAlmostEqual(sessions[1].kwh, 60.46, places=1)
+
+    def test_null_energy_before_plug_keeps_peak_kwh(self):
+        """Unknown/NULL immediately before a plug is the LIMIT-1 baseline.
+
+        Walking back past it to a leftover 0.72 would subtract (33.5 − 0.72).
+        """
+        self._snap(
+            _at(2026, 7, 3, 12, 0),
+            charge_energy_added=0.72,
+            charging_state="Disconnected",
+            charger_power=0.0,
+            latitude=HOME_LAT,
+            longitude=HOME_LON,
+        )
+        self._snap(
+            _at(2026, 7, 3, 22, 59),
+            charge_energy_added=None,
+            charging_state="Unknown",
+            charger_power=None,
+            latitude=HOME_LAT,
+            longitude=HOME_LON,
+        )
+        self._snap(
+            _at(2026, 7, 4, 1, 0),
+            charge_energy_added=0.74,
+            latitude=HOME_LAT,
+            longitude=HOME_LON,
+        )
+        self._snap(
+            _at(2026, 7, 4, 1, 20),
+            charge_energy_added=33.5,
+            latitude=HOME_LAT,
+            longitude=HOME_LON,
+        )
+        sessions = iter_sessions_starting_in(
+            HV_A,
+            datetime(2026, 7, 1, tzinfo=CHARGE_COST_TZ),
+            datetime(2026, 8, 1, tzinfo=CHARGE_COST_TZ),
+        )
+        self.assertEqual(len(sessions), 1)
+        self.assertAlmostEqual(sessions[0].kwh, 33.5, places=1)
+
+    def test_prior_older_than_expand_pad_still_subtracts(self):
+        """First session of a window: baseline may sit before the 16 h pad."""
+        window_start = datetime(2026, 9, 1, tzinfo=CHARGE_COST_TZ)
+        window_end = datetime(2026, 9, 2, tzinfo=CHARGE_COST_TZ)
+        self._snap(
+            window_start - timedelta(hours=20),
+            charge_energy_added=10.0,
+            charging_state="Disconnected",
+            charger_power=0.0,
+            latitude=HOME_LAT,
+            longitude=HOME_LON,
+        )
+        self._snap(
+            window_start + timedelta(minutes=5),
+            charge_energy_added=12.0,
+            latitude=HOME_LAT,
+            longitude=HOME_LON,
+        )
+        self._snap(
+            window_start + timedelta(minutes=25),
+            charge_energy_added=22.0,
+            latitude=HOME_LAT,
+            longitude=HOME_LON,
+        )
+        sessions = iter_sessions_starting_in(HV_A, window_start, window_end)
+        self.assertEqual(len(sessions), 1)
+        self.assertAlmostEqual(sessions[0].kwh, 12.0, places=1)
+
+    def test_two_plugs_split_on_counter_reset_under_30_min(self):
+        """Same stall, 16 min gap, new cable: two sessions, kWh is each plug."""
+        self._snap(
+            _at(2026, 9, 13, 9, 26),
+            charge_energy_added=0.5,
+            charger_power=70.0,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+        )
+        self._snap(
+            _at(2026, 9, 13, 9, 32),
+            charge_energy_added=14.9,
+            charger_power=70.0,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+        )
+        self._snap(
+            _at(2026, 9, 13, 9, 50),
+            charge_energy_added=0.4,
+            charger_power=90.0,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+        )
+        self._snap(
+            _at(2026, 9, 13, 10, 12),
+            charge_energy_added=30.86,
+            charger_power=90.0,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+        )
+        TeslaChargingInvoice.objects.create(
+            hashed_vin=HV_A,
+            tesla_session_id="stall-a",
+            start=_at(2026, 9, 13, 9, 26),
+            end=_at(2026, 9, 13, 9, 32),
+            site_name="Anderlecht Supercharger",
+            total_eur=4.00,
+            currency="EUR",
+        )
+        TeslaChargingInvoice.objects.create(
+            hashed_vin=HV_A,
+            tesla_session_id="stall-b",
+            start=_at(2026, 9, 13, 9, 47),
+            end=_at(2026, 9, 13, 10, 12),
+            site_name="Anderlecht Supercharger",
+            total_eur=7.69,
+            currency="EUR",
+        )
+        window_start = datetime(2026, 9, 1, tzinfo=CHARGE_COST_TZ)
+        window_end = datetime(2026, 10, 1, tzinfo=CHARGE_COST_TZ)
+        sessions = iter_sessions_starting_in(HV_A, window_start, window_end)
+        self.assertEqual(len(sessions), 2)
+        self.assertAlmostEqual(sessions[0].kwh, 14.9, places=1)
+        self.assertAlmostEqual(sessions[1].kwh, 30.86, places=1)
+
+        priced = price_sessions_starting_in(HV_A, window_start, window_end)
+        self.assertEqual(len(priced), 2)
+        self.assertEqual(priced[0][1].rule, RULE_SUPERCHARGER_INVOICE)
+        self.assertEqual(priced[1][1].rule, RULE_SUPERCHARGER_INVOICE)
+        self.assertAlmostEqual(priced[0][1].cost_eur, 4.00, places=2)
+        self.assertAlmostEqual(priced[1][1].cost_eur, 7.69, places=2)
+        n_before = ChargeSessionCost.objects.filter(hashed_vin=HV_A).count()
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        with CaptureQueriesContext(connection) as captured:
+            priced_again = price_sessions_starting_in(HV_A, window_start, window_end)
+        self.assertLess(
+            len(captured),
+            40,
+            "second price_sessions must not round-trip per session",
+        )
+        self.assertEqual(len(priced_again), 2)
+        self.assertAlmostEqual(priced_again[0][1].cost_eur, 4.00, places=2)
+        self.assertAlmostEqual(priced_again[1][1].cost_eur, 7.69, places=2)
+        self.assertEqual(
+            ChargeSessionCost.objects.filter(hashed_vin=HV_A).count(), n_before
+        )
+
+    def test_charges_get_home_work_unpriced_and_invoice(self):
+        self._snap(
+            _at(2026, 8, 2, 22, 0),
+            charge_energy_added=0.2,
+            latitude=HOME_LAT,
+            longitude=HOME_LON,
+        )
+        self._snap(
+            _at(2026, 8, 2, 22, 20),
+            charge_energy_added=10.0,
+            latitude=HOME_LAT,
+            longitude=HOME_LON,
+        )
+        work = ChargePlace.objects.create(
+            user=self.user,
+            name="Office path",
+            latitude=WORK_LAT,
+            longitude=WORK_LON,
+            radius_m=150,
+        )
+        PlaceTariffPeriod.objects.create(
+            place=work,
+            valid_from=date(2010, 1, 1),
+            mode=TARIFF_FLAT,
+            flat_eur_per_kwh=0.0,
+        )
+        VehiclePlaceRole.objects.create(
+            hashed_vin=HV_A,
+            place=work,
+            role=ROLE_WORK,
+            valid_from=date(2010, 1, 1),
+        )
+        self._snap(
+            _at(2026, 8, 10, 12, 0),
+            charge_energy_added=0.1,
+            latitude=WORK_LAT,
+            longitude=WORK_LON,
+        )
+        self._snap(
+            _at(2026, 8, 10, 12, 20),
+            charge_energy_added=5.0,
+            latitude=WORK_LAT,
+            longitude=WORK_LON,
+        )
+        self._snap(
+            _at(2026, 8, 20, 15, 0),
+            charge_energy_added=0.1,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+            charger_power=11.0,
+        )
+        self._snap(
+            _at(2026, 8, 20, 15, 20),
+            charge_energy_added=8.0,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+            charger_power=11.0,
+        )
+        TeslaChargingInvoice.objects.create(
+            hashed_vin=HV_A,
+            tesla_session_id="inv-aug",
+            start=_at(2026, 8, 25, 9, 0),
+            end=_at(2026, 8, 25, 9, 20),
+            site_name="Test Supercharger",
+            total_eur=6.50,
+            currency="EUR",
+        )
+        self._snap(
+            _at(2026, 8, 25, 9, 0),
+            charge_energy_added=0.3,
+            charger_power=80.0,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+        )
+        self._snap(
+            _at(2026, 8, 25, 9, 20),
+            charge_energy_added=20.0,
+            charger_power=80.0,
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+        )
+
+        month = self.client.get(f"/en/personalstats/ChargeCosts/{HV_A}?month=2026-08")
+        self.assertEqual(month.status_code, 200)
+        rows = month.context["rows"]
+        self.assertEqual(len(rows), 4)
+        by_rule = {row["rule"]: row for row in rows}
+        self.assertIn(RULE_HOME_FLAT, by_rule)
+        self.assertAlmostEqual(by_rule[RULE_HOME_FLAT]["cost_eur"], 2.0, places=2)
+        self.assertEqual(by_rule[RULE_HOME_FLAT]["source_label"], "Home (flat)")
+        self.assertIn(RULE_WORK, by_rule)
+        self.assertAlmostEqual(by_rule[RULE_WORK]["cost_eur"], 0.0, places=2)
+        self.assertIn(RULE_SUPERCHARGER_INVOICE, by_rule)
+        self.assertAlmostEqual(
+            by_rule[RULE_SUPERCHARGER_INVOICE]["cost_eur"], 6.50, places=2
+        )
+        self.assertIn(RULE_UNPRICED, by_rule)
+        self.assertIsNone(by_rule[RULE_UNPRICED]["cost_eur"])
+        self.assertContains(month, "2.00")
+        self.assertContains(month, "6.50")
+        year = self.client.get(f"/en/personalstats/ChargeCosts/{HV_A}?year=2026")
+        self.assertEqual(year.status_code, 200)
+        self.assertEqual(len(year.context["rows"]), 4)
+        self.assertAlmostEqual(year.context["total_eur"], 8.50, places=2)
+
