@@ -97,9 +97,12 @@
     .charges-onboard p { margin: 0; }
     .charges-onboard ul { margin: 0.45rem 0 0; padding-left: 1.2rem; }
     .charges-onboard a { font-weight: 600; }
-    .charges-kwh, .charges-cost { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .charges-kwh, .charges-cost, .charges-rate { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .charges-kwh { color: var(--app-energy); }
     .charges-cost { font-weight: 600; }
+    .charges-rate { font-weight: 600; }
+    .charges-rate--high { color: var(--app-danger); }
+    .charges-rate--low { color: var(--app-blue); }
     @media (max-width: 700px) {
         .charges-list th:nth-child(2), .charges-list td:nth-child(2) { display: none; }
         .charges-where { max-width: 9rem; }
@@ -219,6 +222,7 @@
         <th>{% trans 'Time' %}</th>
         <th>{% trans 'Where' %}</th>
         <th class="charges-kwh">{% trans 'Energy' %}</th>
+        <th class="charges-rate">{% trans '€/kWh' %}</th>
         <th class="charges-cost">{% trans 'Cost' %}</th>
     </tr>
     </thead>
@@ -226,7 +230,7 @@
     {% for r in rows %}
     {% ifchanged r.month_key %}
     <tr class="charges-month" data-month-row>
-        <td colspan="5">{{ r.month_label }}</td>
+        <td colspan="6">{{ r.month_label }}</td>
     </tr>
     {% endifchanged %}
     <tr data-cluster-row data-cluster="{{ r.cluster_key }}" data-in-top="{% if r.in_top %}1{% else %}0{% endif %}">
@@ -240,6 +244,11 @@
             {% if r.source_label %}<span class="charges-source charges-source--{{ r.rule }}">{{ r.source_label }}</span>{% endif %}
         </td>
         <td class="charges-kwh">{% if r.kwh is not None %}{{ r.kwh|floatformat:1 }} kWh{% else %}—{% endif %}</td>
+        <td class="charges-rate{% if r.rate_tone %} charges-rate--{{ r.rate_tone }}{% endif %}"
+            {% if r.rate_tone == 'high' %}title="{% trans 'Above typical' %}"
+            {% elif r.rate_tone == 'low' %}title="{% trans 'Below typical' %}"{% endif %}>
+            {% if r.eur_per_kwh is not None %}{{ r.eur_per_kwh|floatformat:2 }}{% else %}—{% endif %}
+        </td>
         <td class="charges-cost">{% if r.cost_eur is not None %}{{ r.cost_eur|floatformat:2 }} €{% else %}—{% endif %}</td>
     </tr>
     {% endfor %}

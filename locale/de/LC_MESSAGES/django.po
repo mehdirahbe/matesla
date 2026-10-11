@@ -1639,6 +1639,12 @@ msgstr "Zeit"
 msgid "Where"
 msgstr "Ort"
 
+msgid "Above typical"
+msgstr "Über dem Üblichen"
+
+msgid "Below typical"
+msgstr "Unter dem Üblichen"
+
 msgid "No charge sessions in this period."
 msgstr "Keine Ladesitzungen in diesem Zeitraum."
 

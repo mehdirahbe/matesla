@@ -1607,6 +1607,12 @@ msgstr "Tid"
 msgid "Where"
 msgstr "Sted"
 
+msgid "Above typical"
+msgstr "Over det vanlige"
+
+msgid "Below typical"
+msgstr "Under det vanlige"
+
 msgid "No charge sessions in this period."
 msgstr "Ingen ladeøkter i denne perioden."
 

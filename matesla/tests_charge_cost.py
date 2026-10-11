@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 from zoneinfo import ZoneInfo
 
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase, override_settings
+from django.test import Client, SimpleTestCase, TestCase, override_settings
 from matesla.charge_cost import (
     CHARGE_COST_TZ,
     ChargeSession,
@@ -21,6 +21,13 @@ from matesla.charge_cost import (
     price_sessions_starting_in,
 )
 from matesla.elia_dayahead import fetch_elia_day_ahead, store_spot_rows
+from personalstats.charge_pages import (
+    _month_is_complete,
+    _previous_month_window,
+    _rate_mean_stdev,
+    _rate_tone,
+    _session_eur_per_kwh,
+)
 from matesla.models.TeslaCarDataSnapshot import TeslaCarDataSnapshot
 from matesla.models.ChargeCost import (
     COST_PARTIAL,
@@ -834,6 +841,43 @@ class EliaDayAheadTests(TestCase):
         self.assertTrue(any("network down" in line for line in logs.output))
 
 
+class ChargeRateStatsTests(SimpleTestCase):
+    def test_session_rate_needs_energy_and_cost(self):
+        self.assertAlmostEqual(_session_eur_per_kwh(4.0, 10.0), 0.4)
+        self.assertEqual(_session_eur_per_kwh(0.0, 10.0), 0.0)
+        self.assertIsNone(_session_eur_per_kwh(None, 10.0))
+        self.assertIsNone(_session_eur_per_kwh(4.0, None))
+        self.assertIsNone(_session_eur_per_kwh(4.0, 0.0))
+
+    def test_mean_stdev_needs_two_distinct_rates(self):
+        self.assertIsNone(_rate_mean_stdev([]))
+        self.assertIsNone(_rate_mean_stdev([0.2]))
+        self.assertIsNone(_rate_mean_stdev([0.2, 0.2, 0.2]))
+        mean, stdev = _rate_mean_stdev([0.10, 0.10, 0.10, 0.50])
+        self.assertAlmostEqual(mean, 0.20, places=4)
+        self.assertAlmostEqual(stdev, 0.20, places=4)
+        self.assertEqual(_rate_tone(0.50, mean, stdev), "high")
+        self.assertIsNone(_rate_tone(0.10, mean, stdev))
+        self.assertEqual(_rate_tone(0.0, mean, stdev), None)
+
+    def test_low_tone_when_below_mean_minus_stdev(self):
+        mean, stdev = _rate_mean_stdev([0.0, 0.20, 0.20, 0.20, 0.50])
+        self.assertEqual(_rate_tone(0.0, mean, stdev), "low")
+        self.assertEqual(_rate_tone(0.50, mean, stdev), "high")
+        self.assertIsNone(_rate_tone(0.20, mean, stdev))
+
+    def test_incomplete_month_uses_previous_calendar_month(self):
+        today = date(2026, 10, 11)
+        self.assertTrue(_month_is_complete(2026, 9, today))
+        self.assertFalse(_month_is_complete(2026, 10, today))
+        start, end = _previous_month_window(2026, 10)
+        self.assertEqual(start, _at(2026, 9, 1, 0))
+        self.assertEqual(end, _at(2026, 10, 1, 0))
+        jan_start, jan_end = _previous_month_window(2026, 1)
+        self.assertEqual(jan_start, _at(2025, 12, 1, 0))
+        self.assertEqual(jan_end, _at(2026, 1, 1, 0))
+
+
 @override_settings(ALLOWED_HOSTS=["testserver", "remote.example"])
 class ChargeCostPagesTests(TestCase):
     def setUp(self):
@@ -1219,6 +1263,141 @@ class ChargeCostPagesTests(TestCase):
         self.assertContains(response, "camping cham")
         self.assertContains(response, f"place={camping.id}")
         self.assertContains(response, "Named place")
+
+    def _two_point_charge(self, when, lat, lon, energy=10.0):
+        for index, added in enumerate((0.1, energy)):
+            TeslaCarDataSnapshot.objects.create(
+                vin="5YJ3E1EA0KFCOSTUI01",
+                hashedVin=HV_A,
+                Date=when + timedelta(minutes=index * 15),
+                DateOnlyDay=when.date(),
+                charging_state="Charging",
+                charger_power=7.0,
+                charge_energy_added=added,
+                latitude=lat,
+                longitude=lon,
+                battery_level=40.0,
+            )
+
+    def _cheap_work_and_dear_place(self):
+        work = ChargePlace.objects.create(
+            user=self.user,
+            name="Office",
+            latitude=WORK_LAT,
+            longitude=WORK_LON,
+            radius_m=150,
+        )
+        PlaceTariffPeriod.objects.create(
+            place=work,
+            valid_from=date(2010, 1, 1),
+            mode=TARIFF_FLAT,
+            flat_eur_per_kwh=0.10,
+        )
+        VehiclePlaceRole.objects.create(
+            hashed_vin=HV_A,
+            place=work,
+            role=ROLE_WORK,
+            valid_from=date(2010, 1, 1),
+        )
+        highway = ChargePlace.objects.create(
+            user=self.user,
+            name="Highway stop",
+            latitude=ELSE_LAT,
+            longitude=ELSE_LON,
+            radius_m=150,
+        )
+        PlaceTariffPeriod.objects.create(
+            place=highway,
+            valid_from=date(2010, 1, 1),
+            mode=TARIFF_FLAT,
+            flat_eur_per_kwh=0.50,
+        )
+
+    def test_charges_table_shows_eur_per_kwh_and_outlier_colors(self):
+        self._cheap_work_and_dear_place()
+        for day in (3, 5, 7):
+            self._two_point_charge(
+                datetime(2026, 9, day, 10, 0, tzinfo=UTC), WORK_LAT, WORK_LON
+            )
+        self._two_point_charge(
+            datetime(2026, 9, 20, 10, 0, tzinfo=UTC), ELSE_LAT, ELSE_LON
+        )
+        with patch(
+            "personalstats.charge_pages._charges_today",
+            return_value=date(2026, 10, 11),
+        ):
+            response = self.client.get(
+                f"/en/personalstats/ChargeCosts/{HV_A}?month=2026-09"
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "€/kWh")
+        self.assertContains(response, 'charges-rate--high"')
+        self.assertNotContains(response, 'charges-rate--low"')
+        rows = response.context["rows"]
+        tones = {
+            round(row["eur_per_kwh"], 2): row["rate_tone"]
+            for row in rows
+            if row["eur_per_kwh"] is not None
+        }
+        self.assertEqual(tones.get(0.5), "high")
+        self.assertIsNone(tones.get(0.1))
+        self.assertIsNotNone(response.context["rate_mean"])
+        self.assertIsNotNone(response.context["rate_stdev"])
+
+    def test_incomplete_month_colors_from_previous_month(self):
+        self._cheap_work_and_dear_place()
+        for day in (3, 5, 7):
+            self._two_point_charge(
+                datetime(2026, 9, day, 10, 0, tzinfo=UTC), WORK_LAT, WORK_LON
+            )
+        self._two_point_charge(
+            datetime(2026, 9, 20, 10, 0, tzinfo=UTC), ELSE_LAT, ELSE_LON
+        )
+        self._two_point_charge(
+            datetime(2026, 10, 2, 10, 0, tzinfo=UTC), ELSE_LAT, ELSE_LON
+        )
+        self._two_point_charge(
+            datetime(2026, 10, 4, 10, 0, tzinfo=UTC), WORK_LAT, WORK_LON
+        )
+        with patch(
+            "personalstats.charge_pages._charges_today",
+            return_value=date(2026, 10, 11),
+        ):
+            response = self.client.get(
+                f"/en/personalstats/ChargeCosts/{HV_A}?month=2026-10"
+            )
+        self.assertEqual(response.status_code, 200)
+        rows = response.context["rows"]
+        self.assertEqual(len(rows), 2)
+        tones = {
+            round(row["eur_per_kwh"], 2): row["rate_tone"]
+            for row in rows
+            if row["eur_per_kwh"] is not None
+        }
+        self.assertEqual(tones.get(0.5), "high")
+        self.assertIsNone(tones.get(0.1))
+
+    def test_single_priced_session_has_rate_without_color(self):
+        self._cheap_work_and_dear_place()
+        self._two_point_charge(
+            datetime(2026, 8, 12, 10, 0, tzinfo=UTC), ELSE_LAT, ELSE_LON
+        )
+        with patch(
+            "personalstats.charge_pages._charges_today",
+            return_value=date(2026, 10, 11),
+        ):
+            response = self.client.get(
+                f"/en/personalstats/ChargeCosts/{HV_A}?month=2026-08"
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "€/kWh")
+        self.assertNotContains(response, 'charges-rate--high"')
+        self.assertNotContains(response, 'charges-rate--low"')
+        rows = response.context["rows"]
+        self.assertEqual(len(rows), 1)
+        self.assertAlmostEqual(rows[0]["eur_per_kwh"], 0.50, places=2)
+        self.assertIsNone(rows[0]["rate_tone"])
+        self.assertIsNone(response.context["rate_mean"])
 
     def test_setup_requires_login_on_localhost(self):
         response = self.client.get("/en/personalstats/ChargeCostsSetup")

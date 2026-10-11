@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import statistics
 from calendar import monthrange
 from datetime import date, datetime, time, timedelta
 
@@ -80,6 +81,106 @@ def _duration_label(minutes: int) -> str:
     if mins == 0:
         return f"{hours} h"
     return f"{hours} h {mins:02d}"
+
+
+def _charges_today() -> date:
+    return datetime.now(CHARGE_COST_TZ).date()
+
+
+def _month_is_complete(year: int, month: int, today: date) -> bool:
+    last = date(year, month, monthrange(year, month)[1])
+    return today > last
+
+
+def _previous_month_window(year: int, month: int) -> tuple[datetime, datetime]:
+    if month == 1:
+        start = datetime(year - 1, 12, 1, tzinfo=CHARGE_COST_TZ)
+        end = datetime(year, 1, 1, tzinfo=CHARGE_COST_TZ)
+    else:
+        start = datetime(year, month - 1, 1, tzinfo=CHARGE_COST_TZ)
+        end = datetime(year, month, 1, tzinfo=CHARGE_COST_TZ)
+    return start, end
+
+
+def _session_eur_per_kwh(cost_eur, kwh) -> float | None:
+    """€/kWh for one session, or None when cost or energy is missing."""
+    if cost_eur is None or kwh is None:
+        return None
+    try:
+        energy = float(kwh)
+        euros = float(cost_eur)
+    except (TypeError, ValueError):
+        return None
+    if energy <= 0:
+        return None
+    return euros / energy
+
+
+def _rate_mean_stdev(rates) -> tuple[float, float] | None:
+    """Sample mean and stdev, or None when an outlier band cannot be drawn."""
+    values = []
+    for raw in rates or ():
+        try:
+            values.append(float(raw))
+        except (TypeError, ValueError):
+            continue
+    if len(values) < 2:
+        return None
+    mean = statistics.mean(values)
+    stdev = statistics.stdev(values)
+    if stdev <= 1e-12:
+        return None
+    return mean, stdev
+
+
+def _rate_tone(rate, mean, stdev) -> str | None:
+    if rate is None or mean is None or stdev is None:
+        return None
+    if rate > mean + stdev:
+        return "high"
+    if rate < mean - stdev:
+        return "low"
+    return None
+
+
+def _rates_from_priced_pairs(priced_rows) -> list[float]:
+    rates = []
+    for session, result in priced_rows:
+        rate = _session_eur_per_kwh(result.cost_eur, session.kwh)
+        if rate is not None:
+            rates.append(rate)
+    return rates
+
+
+def _baseline_rate_stats(
+    hashed_vin,
+    view,
+    year,
+    month,
+    today,
+    display_rows,
+    *,
+    supercharger_match=None,
+):
+    """
+    Mean / stdev of session €/kWh for colouring.
+
+    Year and a finished month use the rows on screen. The current (incomplete)
+    month uses the previous calendar month, so a handful of October stops do
+    not set the bar.
+    """
+    if view == "year" or _month_is_complete(year, month, today):
+        rates = [
+            row["eur_per_kwh"]
+            for row in display_rows
+            if row.get("eur_per_kwh") is not None
+        ]
+        return _rate_mean_stdev(rates)
+    prev_start, prev_end = _previous_month_window(year, month)
+    prev_priced = price_sessions_starting_in(
+        hashed_vin, prev_start, prev_end, supercharger_match=supercharger_match
+    )
+    return _rate_mean_stdev(_rates_from_priced_pairs(prev_priced))
 
 
 # Last reading before the window may start the delta only if it is still a
@@ -1004,7 +1105,7 @@ def ChargeCosts(request, hashedVin):
     if chrome_error:
         return chrome_error
 
-    today = datetime.now(CHARGE_COST_TZ).date()
+    today = _charges_today()
     year_raw = (request.GET.get("year") or "").strip()
     month_raw = (request.GET.get("month") or "").strip()
     view = "month"
@@ -1113,6 +1214,8 @@ def ChargeCosts(request, hashedVin):
                 "duration_label": _duration_label(minutes),
                 "kwh": session.kwh,
                 "cost_eur": result.cost_eur,
+                "eur_per_kwh": _session_eur_per_kwh(result.cost_eur, session.kwh),
+                "rate_tone": None,
                 "status": result.status,
                 "rule": result.rule,
                 "rule_label": _rule_label(result.rule, place_name),
@@ -1124,6 +1227,22 @@ def ChargeCosts(request, hashedVin):
             }
         )
 
+    rate_stats = _baseline_rate_stats(
+        hashedVin,
+        view,
+        year,
+        month,
+        today,
+        rows,
+        supercharger_match=sc_match,
+    )
+    rate_mean = rate_stdev = None
+    if rate_stats:
+        rate_mean, rate_stdev = rate_stats
+        for row in rows:
+            row["rate_tone"] = _rate_tone(
+                row["eur_per_kwh"], rate_mean, rate_stdev
+            )
     top_clusters, rest_cluster = _summarize_clusters(rows)
     kwh_all = priced_kwh + unpriced_kwh
     pct_priced = (100.0 * priced_kwh / kwh_all) if kwh_all else None
@@ -1162,6 +1281,8 @@ def ChargeCosts(request, hashedVin):
             "unpriced_kwh": unpriced_kwh,
             "kwh_all": kwh_all,
             "avg_eur": (total_eur / priced_kwh) if priced_kwh else None,
+            "rate_mean": rate_mean,
+            "rate_stdev": rate_stdev,
             "pct_priced": pct_priced,
             "distance": distance,
             "distance_unit": distance_unit,
