@@ -3785,6 +3785,89 @@ def _as_float_or_none(value):
         return None
 
 
+# Same ceiling as efficiency-trip filtering. Used only when no speed sample
+# exists to cap a sparse odo/clock average.
+_DRIVE_AVG_KMH_SANITY = 160.0
+
+
+def _max_recorded_speed_mph(samples) -> float | None:
+    """Peak Fleet speed (mph) among samples. Crawl / 0 is not a peak."""
+    peak = None
+    for sample in samples or ():
+        raw = sample.get("speed")
+        if raw is None:
+            continue
+        try:
+            mph = float(raw)
+        except (TypeError, ValueError):
+            continue
+        if mph <= DAY_MAP_STOP_SPEED:
+            continue
+        if peak is None or mph > peak:
+            peak = mph
+    return peak
+
+
+def _plausible_drive_span(
+    time_start,
+    time_end,
+    miles,
+    max_speed_mph,
+    *,
+    earliest_start=None,
+):
+    """Odo/clock average, stretched when sparse capture hid driving time.
+
+    DayMap distance uses the previous park odometer (full trip) while the
+    clock starts at the first in-gear poll. A 20 min gap then looks like
+    140 km/h. Stretch start backward (not before ``earliest_start``, the
+    last park poll) so average cannot exceed the max recorded speed.
+    Hide the average when even that is still implausible.
+    """
+    from matesla.units import MILES_TO_KM
+
+    if time_start is None or time_end is None:
+        return time_start, time_end, 0.0, 0.0, None, None
+    if time_end < time_start:
+        time_end = time_start
+    seconds = max(0.0, (time_end - time_start).total_seconds())
+    hours = seconds / 3600.0
+
+    def averages(span_hours):
+        if miles is None or miles <= 0 or span_hours <= 0.01:
+            return None, None
+        return miles / span_hours, (miles * MILES_TO_KM) / span_hours
+
+    avg_mph, avg_kmh = averages(hours)
+    cap_mph = max_speed_mph
+    if cap_mph is not None and cap_mph <= DAY_MAP_STOP_SPEED:
+        cap_mph = None
+
+    if (
+        miles is not None
+        and miles > 0
+        and cap_mph is not None
+        and avg_mph is not None
+        and avg_mph > cap_mph
+    ):
+        min_hours = miles / cap_mph
+        stretched_start = time_end - timedelta(hours=min_hours)
+        if earliest_start is not None and stretched_start < earliest_start:
+            stretched_start = earliest_start
+        if stretched_start < time_start:
+            time_start = stretched_start
+            seconds = max(0.0, (time_end - time_start).total_seconds())
+            hours = seconds / 3600.0
+            avg_mph, avg_kmh = averages(hours)
+
+    if avg_kmh is not None:
+        if cap_mph is not None and avg_mph is not None and avg_mph > cap_mph + 1e-6:
+            avg_mph = avg_kmh = None
+        elif cap_mph is None and avg_kmh > _DRIVE_AVG_KMH_SANITY:
+            avg_mph = avg_kmh = None
+    return time_start, time_end, seconds, hours, avg_mph, avg_kmh
+
+
 def _finalize_drive_segment(start_pt, end_pt, acc, *, min_km, pack_kwh):
     """
     Build one leaderboard trip from first/last drive sample + running accumulators.
@@ -4195,7 +4278,10 @@ def _segment_day(rows, pack_kwh):
     Drive timing vs addresses (important with sparse capture):
       - Times: first in-gear sample → first park/charge after the drive
         (do NOT start the clock on the previous parking dwell, or a 10 min
-        wait at the park becomes “drive time”).
+        wait at the park becomes “drive time”). When park-to-park odo over
+        that clock exceeds the max recorded speed (sparse gap before the
+        first D poll), stretch start backward so avg ≤ that peak — never
+        back into the previous park sample.
       - Addresses / odo: prefer adjacent park/charge samples so the map
         shows the real parking GPS, not the last mid-road D sample.
       - Drive SoC end: when the next group is charge, use the last in-gear
@@ -4298,22 +4384,29 @@ def _segment_day(rows, pack_kwh):
             kwh_per_100km = None
             if kwh_used is not None and km is not None and km > 0.2:
                 kwh_per_100km = kwh_used / km * 100.0
-            avg_mph = (
-                (miles / hours) if (miles is not None and hours > 0.01) else None
+            earliest_start = None
+            if group_index > 0 and groups[group_index - 1][1]:
+                earliest_start = groups[group_index - 1][1][-1]["t"]
+            drive_start, drive_end, seconds, hours, avg_mph, avg_kmh = (
+                _plausible_drive_span(
+                    time_start_pt["t"],
+                    time_end_pt["t"],
+                    miles,
+                    _max_recorded_speed_mph(points),
+                    earliest_start=earliest_start,
+                )
             )
-            avg_kmh = (km / hours) if (km is not None and hours > 0.01) else None
+            minutes = seconds / 60.0
             trip_extras = _drive_trip_extras(points, geo_start, geo_end)
             drives.append(
                 {
                     "kind": "drive",
-                    "start": time_start_pt["t"],
-                    "end": time_end_pt["t"],
-                    "start_local": time_start_pt["t"]
-                    .astimezone(DAY_MAP_TZ)
-                    .strftime("%H:%M"),
-                    "end_local": time_end_pt["t"]
-                    .astimezone(DAY_MAP_TZ)
-                    .strftime("%H:%M"),
+                    "start": drive_start,
+                    "end": drive_end,
+                    "start_local": drive_start.astimezone(DAY_MAP_TZ).strftime(
+                        "%H:%M"
+                    ),
+                    "end_local": drive_end.astimezone(DAY_MAP_TZ).strftime("%H:%M"),
                     "minutes": int(round(minutes)),
                     "miles": miles,
                     "km": km,

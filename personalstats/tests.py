@@ -1313,6 +1313,118 @@ class DayMapSegmentSocTests(TestCase):
         self.assertAlmostEqual(charges[1]["kwh_added"], 7.5, places=1)
 
 
+class DayMapSparseDriveSpeedTests(TestCase):
+    """Park-to-park odo vs first-D clock must not invent 140 km/h averages."""
+
+    def _ts(self, hour, minute=0, second=0):
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+
+        return datetime(
+            2026, 10, 29, hour, minute, second, tzinfo=ZoneInfo("Europe/Brussels")
+        )
+
+    def _row(self, t, *, kind, odo, speed=None, soc=60.0, lat=50.8, lon=4.3):
+        from personalstats.tests import DayMapSegmentSocTests
+
+        row = DayMapSegmentSocTests()._row(
+            t, kind=kind if kind != "drive" else "drive", soc=soc, odo=odo, lat=lat, lon=lon
+        )
+        if kind == "park":
+            row["shift_state"] = "P"
+            row["speed"] = 0.0 if speed is None else speed
+        elif kind == "drive":
+            row["speed"] = speed
+        return row
+
+    def test_aram_oct29_sparse_night_avg_not_above_recorded_speed(self):
+        """Live Aram 2026-10-29 00–02: 6.3 km in a 3 min clock is a poll gap.
+
+        Odo is park→park (true km). Clock started at the first in-gear poll.
+        Implied 127 / 148 km/h while Fleet never saw more than 37 mph.
+        """
+        from matesla.units import MILES_TO_KM
+        from personalstats.views import _segment_day
+
+        rows = [
+            self._row(self._ts(0, 5, 2), kind="park", odo=171650.590626, soc=63.0),
+            self._row(self._ts(0, 26, 2), kind="park", odo=171650.590626, soc=62.0),
+            self._row(
+                self._ts(0, 47, 1),
+                kind="drive",
+                odo=171654.049179,
+                speed=17.0,
+                soc=60.0,
+            ),
+            self._row(self._ts(0, 50, 2), kind="park", odo=171654.535091, soc=59.0),
+            self._row(
+                self._ts(1, 11, 2),
+                kind="drive",
+                odo=171661.710064,
+                speed=37.0,
+                soc=56.0,
+            ),
+            self._row(
+                self._ts(1, 14, 1),
+                kind="drive",
+                odo=171663.533167,
+                speed=13.0,
+                soc=55.0,
+            ),
+            self._row(self._ts(1, 17, 2), kind="park", odo=171663.712744, soc=55.0),
+        ]
+        rows[-1]["shift_state"] = None
+        rows[-1]["speed"] = None
+        drives, _charges = _segment_day(rows, pack_kwh=75.0)
+        self.assertEqual(len(drives), 2)
+        first, second = drives
+        self.assertAlmostEqual(first["km"], 6.35, places=1)
+        self.assertAlmostEqual(second["km"], 14.8, places=1)
+        first_cap = 17.0 * MILES_TO_KM
+        second_cap = 37.0 * MILES_TO_KM
+        self.assertIsNotNone(first["avg_kmh"])
+        self.assertIsNotNone(second["avg_kmh"])
+        self.assertLessEqual(first["avg_kmh"], first_cap + 0.05)
+        self.assertLessEqual(second["avg_kmh"], second_cap + 0.05)
+        self.assertGreaterEqual(first["minutes"], 10)
+        self.assertGreaterEqual(second["minutes"], 10)
+        day_hours = sum(
+            (d["end"] - d["start"]).total_seconds() / 3600.0 for d in drives
+        )
+        day_km = sum(d["km"] for d in drives)
+        day_avg = day_km / day_hours
+        self.assertLess(day_avg, 80.0)
+
+    def test_dense_drive_keeps_average_at_recorded_speed(self):
+        """When clock already matches odo/speed, do not invent extra minutes."""
+        from personalstats.views import _segment_day
+
+        rows = [
+            self._row(self._ts(10, 0), kind="park", odo=1000.0),
+            self._row(self._ts(10, 0, 30), kind="drive", odo=1000.1, speed=50.0),
+            self._row(self._ts(10, 30), kind="drive", odo=1025.1, speed=50.0),
+            self._row(self._ts(10, 30, 30), kind="park", odo=1025.2),
+        ]
+        drives, _charges = _segment_day(rows, pack_kwh=75.0)
+        self.assertEqual(len(drives), 1)
+        self.assertEqual(drives[0]["start_local"], "10:00")
+        self.assertAlmostEqual(drives[0]["avg_mph"], 50.0, delta=2.0)
+
+    def test_no_speed_sample_hides_implausible_average(self):
+        from personalstats.views import _segment_day
+
+        rows = [
+            self._row(self._ts(12, 0), kind="park", odo=2000.0),
+            self._row(self._ts(12, 20), kind="drive", odo=2020.0, speed=None),
+            self._row(self._ts(12, 22), kind="park", odo=2021.0),
+        ]
+        rows[1]["shift_state"] = "D"
+        drives, _charges = _segment_day(rows, pack_kwh=75.0)
+        self.assertEqual(len(drives), 1)
+        self.assertIsNone(drives[0]["avg_kmh"])
+        self.assertIsNone(drives[0]["avg_mph"])
+
+
 class DayMapUnmonitoredTailTests(TestCase):
     """Sparse capture: day-end GPS far from last drive arrival."""
 
