@@ -45,6 +45,7 @@ RULE_HOME_DYNAMIC = "home_dynamic"
 RULE_WORK = "work"
 RULE_SUPERCHARGER_INVOICE = "supercharger_invoice"
 RULE_SUPERCHARGER_RATE = "supercharger_rate"
+RULE_ATLANTE = "atlante"
 RULE_PLACE = "place"
 RULE_PER_DAY = "per_day"
 RULE_OTHER = "other"
@@ -58,6 +59,7 @@ RULE_CHOICES = (
     (RULE_PER_DAY, _("Per day")),
     (RULE_SUPERCHARGER_INVOICE, _("Tesla Supercharger invoice")),
     (RULE_SUPERCHARGER_RATE, _("Supercharger average rate")),
+    (RULE_ATLANTE, _("Atlante")),
     (RULE_OTHER, _("Other chargers")),
     (RULE_UNPRICED, _("Unpriced")),
 )

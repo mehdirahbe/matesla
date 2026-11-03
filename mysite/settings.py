@@ -145,6 +145,13 @@ WRITABLE_HOSTS = [
 _owner_id = os.environ.get("MATESLA_OWNER_USER_ID", "").strip()
 MATESLA_OWNER_USER_ID = int(_owner_id) if _owner_id.isdigit() else None
 MATESLA_OWNER_USERNAME = os.environ.get("MATESLA_OWNER_USERNAME", "").strip() or None
+# Atlante GPS match radius (metres). Clamped to 200–500 in atlante_sites.
+try:
+    MATESLA_ATLANTE_MATCH_METERS = float(
+        os.environ.get("MATESLA_ATLANTE_MATCH_METERS", "300") or 300
+    )
+except ValueError:
+    MATESLA_ATLANTE_MATCH_METERS = 300.0
 # POST allowed remotely (session / auth only — not Tesla setup).
 READONLY_SAFE_POST_URL_NAMES = [
     "login",

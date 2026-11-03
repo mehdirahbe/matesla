@@ -29,6 +29,7 @@ from matesla.models.ChargeCost import (
     PlaceTariffPeriod,
     ROLE_HOME,
     ROLE_WORK,
+    RULE_ATLANTE,
     TARIFF_DAY_NIGHT,
     TARIFF_DYNAMIC,
     TARIFF_FLAT,
@@ -56,6 +57,7 @@ def _rule_labels() -> dict[str, str]:
         "work": gettext("Work"),
         "supercharger_invoice": gettext("Tesla Supercharger invoice"),
         "supercharger_rate": gettext("Supercharger average rate"),
+        "atlante": gettext("Atlante"),
         "place": gettext("Named place"),
         "per_day": gettext("Per day"),
         "other": gettext("Other chargers"),
@@ -64,6 +66,8 @@ def _rule_labels() -> dict[str, str]:
 
 
 def _rule_label(rule: str, place_name: str | None = None) -> str:
+    if rule == RULE_ATLANTE:
+        return _source_label(rule)
     if place_name:
         return place_name
     return _source_label(rule)
@@ -271,6 +275,8 @@ def _cluster_identity(
 ) -> tuple[str, str]:
     if result.place_id and result.place_id in place_names:
         return f"p{result.place_id}", place_names[result.place_id]
+    if result.rule == RULE_ATLANTE:
+        return "atlante", gettext("Atlante")
     site = (getattr(session, "tesla_site_name", None) or "").strip()
     if not site and isinstance(sc_site, dict):
         site = (sc_site.get("name") or "").strip()
@@ -1188,6 +1194,8 @@ def ChargeCosts(request, hashedVin):
         if result.place_id and result.place_id in place_names:
             continue
         if (getattr(session, "tesla_site_name", None) or "").strip():
+            continue
+        if result.rule == RULE_ATLANTE:
             continue
         if getattr(session, "is_supercharger", False):
             continue

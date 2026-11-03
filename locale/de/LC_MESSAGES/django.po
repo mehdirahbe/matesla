@@ -211,6 +211,9 @@ msgstr "Tesla-Supercharger-Rechnung"
 msgid "Supercharger average rate"
 msgstr "Supercharger-Durchschnittspreis"
 
+msgid "Atlante"
+msgstr "Atlante"
+
 msgid "Other chargers"
 msgstr "Andere Ladestationen"
 

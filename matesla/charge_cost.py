@@ -5,9 +5,11 @@ Rule order (most specific first):
   1. Tesla Supercharger invoice from charging history (or a stored amount)
   2. Home geofence for this vehicle on the session's local date (with role period)
   3. Work geofence likewise
-  4. Supercharger site match → user Supercharger €/kWh
-  5. Other chargers → user other-chargers €/kWh
-  6. Unpriced (no invented euros)
+  4. Named place
+  5. Atlante (DC + GPS, no Tesla Supercharger invoice or directory match)
+  6. Supercharger site match → user Supercharger €/kWh
+  7. Other chargers → user other-chargers €/kWh
+  8. Unpriced (no invented euros)
 
 Home dynamic: €/kWh = Elia spot €/MWh / 1000 + surcharge_cents / 100,
 integrated per MTU (not one price × session kWh).
@@ -37,6 +39,7 @@ from matesla.models.ChargeCost import (
     PlaceTariffPeriod,
     ROLE_HOME,
     ROLE_WORK,
+    RULE_ATLANTE,
     RULE_HOME_DAY_NIGHT,
     RULE_HOME_DYNAMIC,
     RULE_HOME_FLAT,
@@ -174,9 +177,11 @@ class ChargeSession:
     lat: float | None = None
     lon: float | None = None
     is_supercharger: bool = False
+    is_dc: bool = False
     tesla_invoice_eur: float | None = None
     tesla_session_id: str = ""
     tesla_site_name: str = ""
+    atlante_site_name: str = ""
     # Optional (timestamp, kW) samples for MTU energy; scaled to kwh.
     power_samples: list[tuple[datetime, float]] = field(default_factory=list)
 
@@ -658,6 +663,35 @@ def _price_dynamic(
     )
 
 
+def _session_is_dc(session: ChargeSession) -> bool:
+    """True when snapshot grouping saw DC (peak ≥ 40 kW)."""
+    return bool(session.is_dc)
+
+
+def _tesla_supercharger_session(session: ChargeSession) -> bool:
+    """True when Tesla's invoice or Supercharger directory already claimed this stop."""
+    if session.tesla_invoice_eur is not None:
+        return True
+    return bool((session.tesla_site_name or "").strip())
+
+
+def _price_atlante(session: ChargeSession) -> CostResult | None:
+    """DC + GPS near an Atlante site, and no Tesla Supercharger match."""
+    if not _session_is_dc(session):
+        return None
+    if _tesla_supercharger_session(session):
+        return None
+    if session.lat is None or session.lon is None:
+        return None
+    from matesla.atlante_sites import ATLANTE_EUR_PER_KWH, nearest_atlante
+
+    hit = nearest_atlante(session.lat, session.lon)
+    if hit is None:
+        return None
+    session.atlante_site_name = hit.get("name") or "Atlante"
+    return _price_flat(session, ATLANTE_EUR_PER_KWH, RULE_ATLANTE, None)
+
+
 def _price_flat(
     session: ChargeSession,
     rate: float,
@@ -798,6 +832,10 @@ def price_session(
                 priced.rule = RULE_PLACE
             return priced
         return _unpriced_at(named, "other")
+
+    atlante = _price_atlante(session)
+    if atlante is not None:
+        return atlante
 
     settings = settings_for_hashed_vin(session.hashed_vin, cache=cache)
     if session.is_supercharger and settings and settings.supercharger_eur_per_kwh is not None:
@@ -1203,6 +1241,7 @@ def _session_from_group(
     if prior_energy is _PRIOR_UNSET:
         prior_energy = _prior_energy_before(hashed_vin, group[0]["t"])
     kwh = kwh_from_plug_counter(energies, prior_energy)
+    looks_dc = _group_looks_dc(group)
     return ChargeSession(
         hashed_vin=hashed_vin,
         start=group[0]["t"],
@@ -1211,7 +1250,8 @@ def _session_from_group(
         lat=mid_lat,
         lon=mid_lon,
         power_samples=powers,
-        is_supercharger=_group_looks_dc(group),
+        is_supercharger=looks_dc,
+        is_dc=looks_dc,
     )
 
 
@@ -1442,10 +1482,12 @@ def annotate_daymap_charges(
                 continue
             lat, lon = charge.get("lat"), charge.get("lon")
             is_sc = bool(charge.get("is_supercharger"))
+            tesla_gps = False
             if supercharger_for and lat is not None and lon is not None:
-                is_sc = is_sc or bool(
+                tesla_gps = bool(
                     supercharger_for.get((round(float(lat), 5), round(float(lon), 5)))
                 )
+                is_sc = is_sc or tesla_gps
             session = expand_session_from_snapshots(
                 hashed_vin,
                 start,
@@ -1455,6 +1497,8 @@ def annotate_daymap_charges(
                 lon,
             )
             session.is_supercharger = bool(session.is_supercharger) or is_sc
+            if tesla_gps and not session.tesla_site_name:
+                session.tesla_site_name = "Supercharger"
             stored = ChargeSessionCost.objects.filter(
                 hashed_vin=hashed_vin,
                 start=session.start,
@@ -1477,6 +1521,8 @@ def annotate_daymap_charges(
                 named = ChargePlace.objects.filter(pk=result.place_id).only("name").first()
                 if named:
                     charge["place_name"] = named.name
+            elif result.rule == RULE_ATLANTE:
+                charge["place_name"] = session.atlante_site_name or "Atlante"
         except Exception:
             charge.setdefault("cost_eur", None)
             charge.setdefault("cost_status", COST_UNPRICED)

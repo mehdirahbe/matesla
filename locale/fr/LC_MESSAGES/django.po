@@ -200,6 +200,9 @@ msgstr "Facture Superchargeur Tesla"
 msgid "Supercharger average rate"
 msgstr "Tarif moyen Superchargeur"
 
+msgid "Atlante"
+msgstr "Atlante"
+
 msgid "Other chargers"
 msgstr "Autres chargeurs"
 

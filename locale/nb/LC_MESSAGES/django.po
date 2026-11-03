@@ -204,6 +204,9 @@ msgstr "Tesla Supercharger-faktura"
 msgid "Supercharger average rate"
 msgstr "Supercharger gjennomsnittspris"
 
+msgid "Atlante"
+msgstr "Atlante"
+
 msgid "Other chargers"
 msgstr "Andre ladere"
 

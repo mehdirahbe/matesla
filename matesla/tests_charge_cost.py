@@ -44,6 +44,7 @@ from matesla.models.ChargeCost import (
     TeslaChargingInvoice,
     ROLE_HOME,
     ROLE_WORK,
+    RULE_ATLANTE,
     RULE_HOME_DAY_NIGHT,
     RULE_HOME_DYNAMIC,
     RULE_HOME_FLAT,
@@ -927,6 +928,112 @@ class ChargeCostEngineTests(TestCase):
         result = price_and_persist(session)
         self.assertEqual(result.rule, RULE_SUPERCHARGER_INVOICE)
         self.assertAlmostEqual(result.cost_eur, 12.0, places=4)
+
+
+ATLANTE_TEST_LAT, ATLANTE_TEST_LON = 50.5000, 4.5000
+# ~2.2 km north — outside 200–500 m tolerance.
+ATLANTE_FAR_LAT, ATLANTE_FAR_LON = 50.5200, 4.5000
+ATLANTE_TEST_SITES = ((ATLANTE_TEST_LAT, ATLANTE_TEST_LON, "Atlante · Test"),)
+
+
+@patch("matesla.atlante_sites.ATLANTE_SITES", ATLANTE_TEST_SITES)
+class AtlanteChargeCostTests(TestCase):
+    """Each Atlante criterion: DC, GPS, Supercharger wins, 0.20 €/kWh."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user("atlante_user", password="x")
+        self.settings = ChargeCostSettings.objects.create(
+            user=self.user,
+            other_eur_per_kwh=0.40,
+            supercharger_eur_per_kwh=0.55,
+        )
+
+    def _session(self, lat, lon, **kwargs):
+        return ChargeSession(
+            hashed_vin=HV_A,
+            start=_at(2026, 4, 17, 10),
+            end=_at(2026, 4, 17, 10, 20),
+            kwh=10.0,
+            lat=lat,
+            lon=lon,
+            **kwargs,
+        )
+
+    def test_ac_near_atlante_stays_other(self):
+        session = self._session(ATLANTE_TEST_LAT, ATLANTE_TEST_LON, is_dc=False)
+        result = price_session(session)
+        self.assertEqual(result.rule, RULE_OTHER)
+        self.assertAlmostEqual(result.cost_eur, 4.0, places=4)
+
+    def test_dc_far_from_atlante_stays_other(self):
+        session = self._session(ATLANTE_FAR_LAT, ATLANTE_FAR_LON, is_dc=True)
+        result = price_session(session)
+        self.assertEqual(result.rule, RULE_OTHER)
+        self.assertAlmostEqual(result.cost_eur, 4.0, places=4)
+
+    def test_dc_near_atlante_with_supercharger_invoice_stays_supercharger(self):
+        session = self._session(
+            ATLANTE_TEST_LAT,
+            ATLANTE_TEST_LON,
+            is_dc=True,
+            tesla_invoice_eur=18.5,
+        )
+        result = price_session(session)
+        self.assertEqual(result.rule, RULE_SUPERCHARGER_INVOICE)
+        self.assertAlmostEqual(result.cost_eur, 18.5, places=4)
+
+    def test_dc_near_atlante_without_invoice_is_atlante_at_0_20(self):
+        session = self._session(ATLANTE_TEST_LAT, ATLANTE_TEST_LON, is_dc=True)
+        result = price_session(session)
+        self.assertEqual(result.rule, RULE_ATLANTE)
+        self.assertEqual(result.status, COST_PRICED)
+        self.assertAlmostEqual(result.cost_eur, 2.0, places=4)
+        self.assertEqual(session.atlante_site_name, "Atlante · Test")
+
+    def test_supercharger_directory_match_beats_atlante(self):
+        session = self._session(
+            ATLANTE_TEST_LAT,
+            ATLANTE_TEST_LON,
+            is_dc=True,
+            is_supercharger=True,
+            tesla_site_name="Calais Supercharger",
+        )
+        result = price_session(session)
+        self.assertEqual(result.rule, RULE_SUPERCHARGER_RATE)
+        self.assertAlmostEqual(result.cost_eur, 5.5, places=4)
+
+    def test_dc_heuristic_flag_near_atlante_is_still_atlante(self):
+        """Production sets is_supercharger from DC peak; that is not a Tesla match."""
+        session = self._session(
+            ATLANTE_TEST_LAT,
+            ATLANTE_TEST_LON,
+            is_dc=True,
+            is_supercharger=True,
+        )
+        result = price_session(session)
+        self.assertEqual(result.rule, RULE_ATLANTE)
+        self.assertAlmostEqual(result.cost_eur, 2.0, places=4)
+
+
+class AtlanteSiteMatchTests(SimpleTestCase):
+    def test_real_calais_site_matches_within_default_radius(self):
+        from matesla.atlante_sites import nearest_atlante
+
+        hit = nearest_atlante(50.93657, 1.86296)
+        self.assertIsNotNone(hit)
+        self.assertIn("Calais", hit["name"])
+        self.assertLessEqual(hit["distance_m"], 20)
+
+    def test_match_meters_clamped_to_200_500(self):
+        from matesla.atlante_sites import atlante_match_meters
+
+        with override_settings(MATESLA_ATLANTE_MATCH_METERS=50):
+            self.assertEqual(atlante_match_meters(), 200.0)
+        with override_settings(MATESLA_ATLANTE_MATCH_METERS=800):
+            self.assertEqual(atlante_match_meters(), 500.0)
+        with override_settings(MATESLA_ATLANTE_MATCH_METERS=350):
+            self.assertEqual(atlante_match_meters(), 350.0)
 
 
 class EliaDayAheadTests(TestCase):
@@ -1878,6 +1985,7 @@ class ChargeCostPagesTests(TestCase):
             )
             self.assertEqual(_source_label("unpriced"), "Non chiffré")
             self.assertEqual(_source_label("per_day"), "Forfait / jour")
+            self.assertEqual(_source_label("atlante"), "Atlante")
         with translation.override("en"):
             self.assertEqual(
                 _rule_label("supercharger_rate"), "Supercharger average rate"
@@ -1931,6 +2039,28 @@ class ChargeCostPagesTests(TestCase):
             session, CostResult(0, COST_PRICED, RULE_PLACE, place_id=9), {9: "tesla drogenbos"}
         )
         self.assertEqual(tagged[1], "tesla drogenbos")
+
+    def test_cluster_identity_groups_atlante(self):
+        from matesla.charge_cost import ChargeSession, CostResult
+        from personalstats.charge_pages import _cluster_identity, _source_label
+
+        session = ChargeSession(
+            hashed_vin=HV_A,
+            start=_at(2026, 4, 17, 10),
+            end=_at(2026, 4, 17, 10, 20),
+            kwh=24.0,
+            lat=50.93657,
+            lon=1.86296,
+            is_dc=True,
+            is_supercharger=True,
+            atlante_site_name="Atlante · Calais · Kiabi",
+        )
+        key, name = _cluster_identity(
+            session, CostResult(4.8, COST_PRICED, RULE_ATLANTE), {}
+        )
+        self.assertEqual(key, "atlante")
+        self.assertEqual(name, "Atlante")
+        self.assertEqual(_source_label("atlante"), "Atlante")
 
 
 class TeslaChargingHistoryTests(TestCase):
