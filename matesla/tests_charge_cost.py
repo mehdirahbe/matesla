@@ -1025,6 +1025,28 @@ class AtlanteSiteMatchTests(SimpleTestCase):
         self.assertIn("Calais", hit["name"])
         self.assertLessEqual(hit["distance_m"], 20)
 
+    def test_real_thillois_site_matches_july_session_gps(self):
+        """RobotBleu 2026-07-04 and 2026-07-11 DC GPS at CCV Reims."""
+        from matesla.atlante_sites import nearest_atlante
+
+        hit = nearest_atlante(49.263746, 3.967322)
+        self.assertIsNotNone(hit)
+        self.assertIn("Thillois", hit["name"])
+        self.assertLessEqual(hit["distance_m"], 50)
+        hit_return = nearest_atlante(49.263782, 3.967289)
+        self.assertIsNotNone(hit_return)
+        self.assertIn("Thillois", hit_return["name"])
+        self.assertLessEqual(hit_return["distance_m"], 50)
+
+    def test_real_valence_chaussea_site_matches_july_session_gps(self):
+        """RobotBleu 2026-07-05 DC GPS at Atlante Valence Chaussea."""
+        from matesla.atlante_sites import nearest_atlante
+
+        hit = nearest_atlante(44.952553, 4.931989)
+        self.assertIsNotNone(hit)
+        self.assertIn("Valence", hit["name"])
+        self.assertLessEqual(hit["distance_m"], 80)
+
     def test_match_meters_clamped_to_200_500(self):
         from matesla.atlante_sites import atlante_match_meters
 

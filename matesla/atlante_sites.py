@@ -4,7 +4,10 @@ Maintained Atlante DC site coordinates (Belgium and nearby).
 Source: OpenStreetMap charging stations tagged operator/brand/network Atlante
 (ODbL). Belgium currently has no OSM Atlante sites; the list covers Hauts-de-France
 and the rest of metropolitan France, Luxembourg and the Netherlands, plus sites
-that match past household DC charges (Calais, Caen, Chanas, Grenoble).
+that match past household DC charges (Calais, Caen, Chanas, Grenoble,
+Thillois, Valence). Thillois is Open Charge Map OCM-469637 (OSM has no
+charging_station node yet). Valence Chaussea is OSM shop node 1465451713
+at the published Atlante address (station opened May 2026).
 
 A session is Atlante only when it is DC, within ATLANTE_MATCH_METERS of a site
 here, and has no Tesla Supercharger invoice or Supercharger directory match.
@@ -39,6 +42,7 @@ ATLANTE_SITES: tuple[tuple[float, float, str], ...] = (
     (49.529065, 0.972609, "Atlante · Barentin · Ixina Rouen"),
     (49.348791, 4.209005, "Atlante · Warmeriville"),
     (49.348383, 6.130719, "Atlante · Metz"),
+    (49.264004, 3.967387, "Atlante · Thillois · CCV Reims"),
     (49.240466, 2.467169, "Atlante"),
     (49.165325, -0.425455, "Atlante · Caen"),
     (49.108816, -1.133683, "Atlante"),
@@ -83,6 +87,7 @@ ATLANTE_SITES: tuple[tuple[float, float, str], ...] = (
     ),
     (45.146604, 5.691227, "Atlante · Grenoble"),
     (45.058073, 3.109270, "Atlante"),
+    (44.952915, 4.931737, "Atlante · Valence · Chaussea"),
     (44.880444, -0.629167, "Atlante"),
     (44.870361, 3.251429, "Atlante"),
     (44.610332, -1.129941, "Atlante"),
