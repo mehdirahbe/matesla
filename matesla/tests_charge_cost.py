@@ -991,13 +991,27 @@ class AtlanteChargeCostTests(TestCase):
         self.assertAlmostEqual(result.cost_eur, 2.0, places=4)
         self.assertEqual(session.atlante_site_name, "Atlante · Test")
 
-    def test_supercharger_directory_match_beats_atlante(self):
+    def test_supercharger_directory_match_does_not_beat_atlante(self):
+        """Tesla Bretteville is 162 m from Atlante Caen; no invoice → Atlante."""
         session = self._session(
             ATLANTE_TEST_LAT,
             ATLANTE_TEST_LON,
             is_dc=True,
             is_supercharger=True,
             tesla_site_name="Calais Supercharger",
+        )
+        result = price_session(session)
+        self.assertEqual(result.rule, RULE_ATLANTE)
+        self.assertAlmostEqual(result.cost_eur, 2.0, places=4)
+
+    def test_supercharger_directory_without_atlante_uses_rate(self):
+        """Keep the 400 m Tesla directory match when no Atlante site is near."""
+        session = self._session(
+            ATLANTE_FAR_LAT,
+            ATLANTE_FAR_LON,
+            is_dc=True,
+            is_supercharger=True,
+            tesla_site_name="Caen, France - Bretteville",
         )
         result = price_session(session)
         self.assertEqual(result.rule, RULE_SUPERCHARGER_RATE)
@@ -1014,6 +1028,36 @@ class AtlanteChargeCostTests(TestCase):
         result = price_session(session)
         self.assertEqual(result.rule, RULE_ATLANTE)
         self.assertAlmostEqual(result.cost_eur, 2.0, places=4)
+
+
+class AtlanteCaenSessionTests(TestCase):
+    """RobotBleu 2026-11-03: stall on Atlante Caen, Tesla directory 162 m away."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user("atlante_caen_user", password="x")
+        ChargeCostSettings.objects.create(
+            user=self.user,
+            other_eur_per_kwh=0.40,
+            supercharger_eur_per_kwh=0.55,
+        )
+
+    def test_caen_dc_is_atlante_despite_nearby_tesla_directory(self):
+        session = ChargeSession(
+            hashed_vin=HV_A,
+            start=_at(2026, 11, 3, 14, 42),
+            end=_at(2026, 11, 3, 15, 12),
+            kwh=43.82,
+            lat=49.165343,
+            lon=-0.425452,
+            is_dc=True,
+            is_supercharger=True,
+            tesla_site_name="Caen, France - Bretteville",
+        )
+        result = price_session(session)
+        self.assertEqual(result.rule, RULE_ATLANTE)
+        self.assertAlmostEqual(result.cost_eur, 8.764, places=4)
+        self.assertIn("Caen", session.atlante_site_name)
 
 
 class AtlanteSiteMatchTests(SimpleTestCase):
@@ -1037,6 +1081,15 @@ class AtlanteSiteMatchTests(SimpleTestCase):
         self.assertIsNotNone(hit_return)
         self.assertIn("Thillois", hit_return["name"])
         self.assertLessEqual(hit_return["distance_m"], 50)
+
+    def test_real_caen_site_matches_november_session_gps(self):
+        """RobotBleu 2026-11-03 DC GPS; Tesla Bretteville is 162 m away."""
+        from matesla.atlante_sites import nearest_atlante
+
+        hit = nearest_atlante(49.165343, -0.425452)
+        self.assertIsNotNone(hit)
+        self.assertIn("Caen", hit["name"])
+        self.assertLessEqual(hit["distance_m"], 20)
 
     def test_real_valence_chaussea_site_matches_july_session_gps(self):
         """RobotBleu 2026-07-05 DC GPS at Atlante Valence Chaussea."""
@@ -2075,6 +2128,7 @@ class ChargeCostPagesTests(TestCase):
             lon=1.86296,
             is_dc=True,
             is_supercharger=True,
+            tesla_site_name="Calais Supercharger",
             atlante_site_name="Atlante · Calais · Kiabi",
         )
         key, name = _cluster_identity(

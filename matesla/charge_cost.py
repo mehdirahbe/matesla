@@ -6,8 +6,9 @@ Rule order (most specific first):
   2. Home geofence for this vehicle on the session's local date (with role period)
   3. Work geofence likewise
   4. Named place
-  5. Atlante (DC + GPS, no Tesla Supercharger invoice or directory match)
+  5. Atlante (DC + GPS, no Tesla Supercharger invoice)
   6. Supercharger site match → user Supercharger €/kWh
+     (directory GPS only when Atlante did not match; an invoice already won at 1)
   7. Other chargers → user other-chargers €/kWh
   8. Unpriced (no invented euros)
 
@@ -668,18 +669,16 @@ def _session_is_dc(session: ChargeSession) -> bool:
     return bool(session.is_dc)
 
 
-def _tesla_supercharger_session(session: ChargeSession) -> bool:
-    """True when Tesla's invoice or Supercharger directory already claimed this stop."""
-    if session.tesla_invoice_eur is not None:
-        return True
-    return bool((session.tesla_site_name or "").strip())
-
-
 def _price_atlante(session: ChargeSession) -> CostResult | None:
-    """DC + GPS near an Atlante site, and no Tesla Supercharger match."""
+    """DC + GPS near an Atlante site.
+
+    A Tesla invoice already returned at the top of price_session. Directory
+    proximity (tesla_site_name, 400 m SuperchargerIndex) must not skip Atlante:
+    a stall can sit on Atlante while a Tesla site is a few hundred metres away.
+    """
     if not _session_is_dc(session):
         return None
-    if _tesla_supercharger_session(session):
+    if session.tesla_invoice_eur is not None:
         return None
     if session.lat is None or session.lon is None:
         return None

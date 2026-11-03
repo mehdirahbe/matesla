@@ -9,8 +9,9 @@ Thillois, Valence). Thillois is Open Charge Map OCM-469637 (OSM has no
 charging_station node yet). Valence Chaussea is OSM shop node 1465451713
 at the published Atlante address (station opened May 2026).
 
-A session is Atlante only when it is DC, within ATLANTE_MATCH_METERS of a site
-here, and has no Tesla Supercharger invoice or Supercharger directory match.
+A session is Atlante when it is DC, within ATLANTE_MATCH_METERS of a site here,
+and has no Tesla Supercharger invoice. Supercharger directory proximity alone
+does not override an Atlante GPS match.
 """
 
 from __future__ import annotations
