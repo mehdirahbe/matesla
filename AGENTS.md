@@ -7,9 +7,11 @@ with `matesla/capture.py`, `matesla/charge_cost.py`, or `mysite/settings.py`,
 trust those files. The README spacing table lags the code (sentry, dog/camp,
 habit classes).
 
-This file is the durable “why”. Intervals, rule order, and constants live in
-the modules named below — copy them from there, do not freeze a second copy
-here that will rot.
+This file is the durable “why”. Intervals and numeric constants live in the
+modules named below — copy them from there, do not freeze a second copy
+here that will rot. Product rule *intent* (who wins, who must not HTTP,
+locked non-goals) lives here. When that intent changes in code, update this
+file in the same change so a new session can follow it without the chat.
 
 ## What this project is
 
@@ -38,6 +40,12 @@ capture is snapshot polling on purpose.
 - User-facing copy and git commits are **English**. Capture cron lines in
   `capture.py` stay **French** so `/tmp/matesla-capture.log` is readable.
 - Do not start a new product feature unless the user asked for it.
+- When a product rule changes (pricing order, who fetches HTTP, honesty on
+  money/distance, a locked non-goal, a new charge category), edit this file
+  in the same change. Rewrite the durable sentence; do not append a session
+  diary. Do not wait for the user to ask. If this file and
+  `matesla/charge_cost.py` (or the named source module) disagree after the
+  change the user accepted, fix this file to match the code.
 - Do not commit or push unless the user explicitly asked.
 - Prefer **404** over 500 or an empty 200 for a bad `hashedVin` URL.
 - Honesty on money and distance: a missing value is blank (`—`), not a fake 0.
@@ -75,7 +83,7 @@ Files that matter:
 - `matesla/TeslaOAuth.py`, `matesla/TeslaPartner.py`, `matesla/TeslaState.py` — token refresh, partner register, parsed state.
 - `matesla/capture.py` — adaptive poll policy and `/internal/capture`. Source of truth for intervals.
 - `matesla/poll_habits.py`, `matesla/poll_diagnostics.py` — idle habit classes and the Polling details page.
-- `matesla/charge_cost.py`, `matesla/elia_dayahead.py`, `matesla/tesla_charging_history.py` — €/kWh rules, Elia day-ahead, Supercharger invoices.
+- `matesla/charge_cost.py`, `matesla/atlante_sites.py`, `matesla/elia_dayahead.py`, `matesla/tesla_charging_history.py` — €/kWh rules, Atlante site list, Elia day-ahead, Supercharger invoices.
 - `matesla/place_search.py`, `personalstats/place_search.py` — Where-did-I-go (GPS bbox, not address ILIKE).
 - `matesla/units.py` — miles in the DB, km/mi only at display (cookie `matesla_distance_unit`).
 - `matesla/soc_refine.py`, `matesla/BatteryDegradation.py`, `matesla/epa_catalog.py` — raw SoC stays as stored; degradation is rule-of-three vs EPA.
@@ -338,14 +346,28 @@ optimizations must keep the **same plotted series and style**.
 
 ## Charge cost
 
-`matesla/charge_cost.py` prices a session in this order (most specific first):
+`matesla/charge_cost.py` prices a session in this order (most specific first).
+Numbers (metres, €/kWh, DC peak) live in the modules; the *order* is the
+product rule:
 
 1. Tesla Supercharger invoice (charging history, or a stored amount)
 2. Home geofence for that vehicle and local date (with role period)
 3. Work geofence likewise
-4. Supercharger site match → user Supercharger **average** €/kWh
-5. Other-chargers €/kWh
-6. Unpriced — no invented euros
+4. Named place
+5. Atlante — DC (`is_dc` / `_group_looks_dc`) and GPS within
+   `atlante_match_meters()` of a site in `matesla/atlante_sites.py`, and **no
+   Tesla invoice**. Flat `ATLANTE_EUR_PER_KWH`. Supercharger directory
+   proximity (`tesla_site_name`, `MATCH_MAX_METERS` in `superchargers.py`)
+   must not skip Atlante: a stall can sit on Atlante while Tesla is a few
+   hundred metres away. Missing household DC at a verified Atlante stall →
+   add that site (OSM `charging_station`, else Open Charge Map); do not
+   scrape atlante.energy as a live feed.
+6. Supercharger site match → user Supercharger **average** €/kWh. Directory
+   GPS (and the DC `is_supercharger` heuristic) apply here **only when
+   Atlante did not match**, including a recent DC stop whose invoice is not
+   in cache yet.
+7. Other-chargers €/kWh
+8. Unpriced — no invented euros
 
 Open-ended periods (`valid_to` null) are valid. Missing `valid_to` is not why
 a home dynamic session is unpriced; a hole in the Elia cache is.
@@ -537,6 +559,8 @@ Do not implement these unless the user explicitly reopens them:
 - ChargePlace as a geocoder for Where
 - FirmwareHistory leftover schema cleanup
 - Recalculating Supercharger € from car kWh when a Tesla invoice exists
+- Supercharger directory GPS (no invoice) classifying a stall that matches
+  an Atlante site
 
 ## Git
 
