@@ -533,7 +533,7 @@ To remove the job later: `crontab -e` and delete the line.
 
 #### Requirements for a successful capture
 
-- Machine powered on; `cron` service active
+- Machine awake; `cron` service active. On AC power, closing the lid or locking the screen must not suspend. Since Ubuntu 26.04 the login screen (GDM) applies its own power settings once the session locks. Install with `./config/install_server_mode_logind.sh`. PicturesDjango has the same script; if one of them has already configured the machine, the other only reports that and leaves logind and GDM running. On battery, closing the lid still suspends.
 - Web app listening on `127.0.0.1:8001`
 - Tesla account linked (OAuth) and partner register done for the Fleet region
 

@@ -99,6 +99,7 @@ Files that matter:
 - `matesla/apps.py` — on connect, SQLite `journal_mode=WAL`, `busy_timeout=30000`.
 - `matesla/sqlite_guard.py` — `heavy_snapshot_read()` serializes big snapshot scans on the threaded worker.
 - `config/matesla-gunicorn.service.in` — unit template. Installed copy is the systemd path above.
+- `config/install_server_mode_logind.sh` — keep the laptop awake on AC with the lid closed. Same installer as PicturesDjango; a second run is a no-op when the settings are already in place.
 - `scripts/install_capture_cron.sh`, `scripts/install_elia_cron.sh`, `scripts/tailscale-serve-matesla.sh`.
 
 `TIME_ZONE` in settings is `UTC`. Capture, habits, charge cost, day map, and
@@ -321,9 +322,23 @@ HTTP-fetch `/api/1/dx/charging/history`.
 `last_polled_at` is updated after a real poll attempt. Spacing uses that, not
 “every cron tick”.
 
-The laptop must be on for cron. User crontab does not catch up missed 20:00
-Elia runs; `CRON_LOOKBACK_DAYS` (7) on the next evening run covers a missed
-night. Capture does **not** poll Elia (DayMap timeout / Fleet lock).
+The laptop must stay awake for cron, including with the lid closed on AC
+power. The logged-in account settings cover only an unlocked session. Since
+Ubuntu 26.04, a locked session is powered by GDM. `config/install_server_mode_logind.sh`
+writes the shared machine files: logind drop-in
+`/etc/systemd/logind.conf.d/server-mode.conf` (`HandleLidSwitchExternalPower=ignore`,
+`HandleLidSwitch=suspend`), GDM keyfile `/etc/dconf/db/gdm.d/90-no-suspend-ac`
+(`lid-close-ac-action='nothing'`, `sleep-inactive-ac-type='nothing'`), and
+`/etc/dconf/profile/gdm` with `system-db:gdm`, mode `644`, so the `gdm`
+user can read it and GDM actually loads that keyfile. PicturesDjango ships the same script and the same three paths. If
+those settings are already present, a second run from either repo prints
+that and does not restart logind or GDM's dconf. It refreshes the local
+profile only when `system-db:gdm` or a directive from the packaged GDM
+profile is missing (an Ubuntu upgrade). On battery, lid-close still
+suspends. On this laptop, lid closed on AC does not suspend and capture
+cron keeps running. User crontab does not catch up missed 20:00 Elia runs;
+`CRON_LOOKBACK_DAYS` (7) on the next evening run covers a missed night.
+Capture does **not** poll Elia (DayMap timeout / Fleet lock).
 
 ## Day map first paint
 
